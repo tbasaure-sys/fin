@@ -199,8 +199,12 @@ def run_spectral_structure_pipeline(
     research_settings: ResearchSettings,
     proxy_prices: pd.DataFrame,
     current_weights: dict[str, float] | None = None,
+    *,
+    write_outputs: bool = True,
+    monte_carlo_paths: int | None = None,
 ) -> SpectralRiskArtifacts:
-    ensure_directory(research_settings.spectral_output_dir)
+    if write_outputs:
+        ensure_directory(research_settings.spectral_output_dir)
     prices = proxy_prices.sort_index().ffill().dropna(how="all")
     returns = prices.pct_change().dropna(how="all")
     window = research_settings.spectral_window_days
@@ -222,8 +226,9 @@ def run_spectral_structure_pipeline(
             "monte_carlo": {},
             "warnings": ["insufficient market history for spectral structure"],
         }
-        (research_settings.spectral_output_dir / "spectral_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
-        panel.to_csv(research_settings.spectral_output_dir / "spectral_state.csv", index=False)
+        if write_outputs:
+            (research_settings.spectral_output_dir / "spectral_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+            panel.to_csv(research_settings.spectral_output_dir / "spectral_state.csv", index=False)
         return SpectralRiskArtifacts(panel=panel, summary=summary)
 
     panel["eig1_percentile"] = _expanding_percentile(panel["eig1_share"], high_is_risky=True)
@@ -263,6 +268,7 @@ def run_spectral_structure_pipeline(
     mu_open, cov_open, n_open = _estimate_regime_params(asset_returns, aligned_states.eq("open"), regime="open")
     mu_compressed, cov_compressed, n_compressed = _estimate_regime_params(asset_returns, aligned_states.eq("compressed"), regime="compressed")
 
+    path_count = int(monte_carlo_paths or research_settings.monte_carlo_paths)
     monte_carlo: dict[str, dict[str, float | list[dict[str, float]]]] = {}
     for idx, horizon in enumerate(research_settings.monte_carlo_horizons):
         wealth, drawdowns = _simulate_paths(
@@ -272,7 +278,7 @@ def run_spectral_structure_pipeline(
             cov_compressed=cov_compressed,
             weights=weight_series.to_numpy(dtype=float),
             horizon=horizon,
-            n_paths=research_settings.monte_carlo_paths,
+            n_paths=path_count,
             p_compressed=p_compressed,
             seed=42 + idx,
         )
@@ -337,6 +343,7 @@ def run_spectral_structure_pipeline(
         "monte_carlo": monte_carlo,
     }
 
-    panel.to_csv(research_settings.spectral_output_dir / "spectral_state.csv", index=False)
-    (research_settings.spectral_output_dir / "spectral_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+    if write_outputs:
+        panel.to_csv(research_settings.spectral_output_dir / "spectral_state.csv", index=False)
+        (research_settings.spectral_output_dir / "spectral_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     return SpectralRiskArtifacts(panel=panel, summary=summary)

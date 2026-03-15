@@ -1,1 +1,1 @@
-web: python -m meta_alpha_allocator.cli dashboard serve --host 0.0.0.0 --port $PORT
+web: python -m meta_alpha_allocator.cli dashboard serve --host 0.0.0.0 --port ${PORT:-8000}

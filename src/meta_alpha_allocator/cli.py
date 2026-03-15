@@ -12,6 +12,7 @@ from .data.fmp_client import FMPClient
 from .research.forecast_baselines import run_forecast_baselines
 from .research.earnings_cash_kernel import run_earnings_cash_kernel
 from .research.pipeline import run_research
+from .research.spectral_backtest import run_spectral_backtest
 from .research.statement_intel import run_statement_intelligence
 from .research.tail_risk import run_tail_risk_pipeline
 from .runtime import run_phantom, run_policy, run_production
@@ -83,6 +84,10 @@ def main() -> None:
     kernel_parser.add_argument("--start-date", default=ResearchSettings.start_date)
     kernel_parser.add_argument("--end-date", default=None)
 
+    spectral_backtest_parser = subparsers.add_parser("spectral-backtest", help="Research backtest for spectral compression overlay")
+    spectral_backtest_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    spectral_backtest_parser.add_argument("--end-date", default=None)
+
     args = parser.parse_args()
     paths = PathConfig()
     research_settings = ResearchSettings(start_date=args.start_date, end_date=args.end_date, top_n=getattr(args, "top_n", ResearchSettings.top_n))
@@ -119,6 +124,9 @@ def main() -> None:
         print(json.dumps(artifacts.summary, indent=2))
     elif args.command == "earnings-cash-kernel":
         artifacts = run_earnings_cash_kernel(paths, research_settings)
+        print(json.dumps(artifacts.summary, indent=2))
+    elif args.command == "spectral-backtest":
+        artifacts = run_spectral_backtest(paths, research_settings)
         print(json.dumps(artifacts.summary, indent=2))
     elif args.command == "policy":
         payload = run_policy(paths, research_settings, allocator_settings)

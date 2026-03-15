@@ -1,0 +1,32 @@
+{
+  "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/src/meta_alpha_allocator/dashboard/static/index.html"
+    },
+    {
+      "source": "/app.js",
+      "destination": "/src/meta_alpha_allocator/dashboard/static/app.js"
+    },
+    {
+      "source": "/styles.css",
+      "destination": "/src/meta_alpha_allocator/dashboard/static/styles.css"
+    },
+    {
+      "source": "/config.js",
+      "destination": "/src/meta_alpha_allocator/dashboard/static/config.js"
+    }
+  ]
+}

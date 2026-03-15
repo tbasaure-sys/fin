@@ -523,6 +523,36 @@ def load_cached_snapshot(paths: PathConfig, dashboard_settings: DashboardSetting
     return _safe_json_load(snapshot_path)
 
 
+def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]:
+    snapshot = {
+        "generated_at": generated_at,
+        "as_of_date": None,
+        "overview": {},
+        "performance": {"summary_metrics": {}, "benchmark_table": [], "series": [], "oos_blocks": [], "regime_performance": [], "episode_performance": [], "confidence_split": {}},
+        "risk": {"state": {}, "tail_risk": {}, "historical_context": {}, "spectral": {}, "structure": {}, "macro": {}, "explanation": {}, "forecast_baseline": {}},
+        "forecast": {"latest": {}, "metrics": [], "warnings": []},
+        "hedges": {"ranking": []},
+        "sectors": {"records": [], "preferred": [], "deteriorating": []},
+        "international": {"records": [], "preferred": []},
+        "portfolio": {"top_holdings": [], "sector_weights": [], "alignment": {"notes": ["No portfolio data is available yet."]}},
+        "screener": {"rows": [], "count": 0, "default_sort": {"column": "discovery_score", "direction": "desc"}},
+        "statement_intelligence": {
+            "top_statement_names": [],
+            "top_compounders": [],
+            "top_cash_generators": [],
+            "top_kernel_names": [],
+            "cash_mismatch_names": [],
+            "kernel_sector_breadth": [],
+            "kernel_research_utility": {},
+            "risk_names": [],
+            "coverage": 0,
+            "holdings_coverage": 0,
+        },
+    }
+    snapshot["status"] = _build_status(snapshot, warnings)
+    return snapshot
+
+
 def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
     ensure_directory(output_dir)
     files = {
@@ -575,7 +605,13 @@ def build_dashboard_snapshot(
             cached.setdefault("status", {})
             cached["status"]["warnings"] = list(cached["status"].get("warnings", [])) + warnings + ["using cached snapshot because current payload is unavailable"]
             return cached
-        raise FileNotFoundError("No current allocator payload or cached dashboard snapshot is available.")
+        empty = _empty_snapshot(
+            generated_at=datetime.now(tz=UTC).isoformat(),
+            warnings=warnings + ["no current allocator payload or cached snapshot is available"],
+        )
+        empty["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
+        _write_snapshot_files(empty, dashboard_settings.output_dir)
+        return empty
 
     overview = _extract_overview(current_payload)
     fmp_client = FMPClient.from_env(paths.cache_root)
