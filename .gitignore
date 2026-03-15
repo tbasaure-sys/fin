@@ -1,24 +1,27 @@
-# datasets
-*.csv
-*.xlsx
-*.xls
+# runtime and generated artifacts
+output/
+cache/
+tmp/
+.pytest_cache/
 
-# analysis outputs
+# local data and notebooks
 data/
 datasets/
 analysis/
+.ipynb_checkpoints/
 
 # python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
+.venv/
+venv/
 
 # environment variables
 .env
 .env.*
+!.env.example
 
-# notebooks
-.ipynb_checkpoints
-
-# system
+# editor and system
 .DS_Store
 Thumbs.db

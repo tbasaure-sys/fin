@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 import webbrowser
 from functools import partial
@@ -14,6 +15,7 @@ from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cache
 
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
+CORS_ORIGIN = os.environ.get("META_ALLOCATOR_CORS_ORIGIN", "*")
 
 
 class DashboardService:
@@ -69,9 +71,15 @@ def _content_type(path: Path) -> str:
 
 def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
     class Handler(BaseHTTPRequestHandler):
+        def _send_cors_headers(self) -> None:
+            self.send_header("Access-Control-Allow-Origin", CORS_ORIGIN)
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+
         def _send_json(self, payload: dict, status: int = 200) -> None:
             body = _json_bytes(payload)
             self.send_response(status)
+            self._send_cors_headers()
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
@@ -84,6 +92,7 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                 return
             body = asset_path.read_bytes()
             self.send_response(200)
+            self._send_cors_headers()
             self.send_header("Content-Type", _content_type(asset_path))
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
@@ -98,6 +107,9 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
             if parsed.path == "/app.js":
                 self._send_static(STATIC_ROOT / "app.js")
                 return
+            if parsed.path == "/config.js":
+                self._send_static(STATIC_ROOT / "config.js")
+                return
             if parsed.path == "/styles.css":
                 self._send_static(STATIC_ROOT / "styles.css")
                 return
@@ -110,6 +122,7 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                 "/api/overview": snapshot.get("overview", {}),
                 "/api/performance": snapshot.get("performance", {}),
                 "/api/risk": snapshot.get("risk", {}),
+                "/api/spectral": snapshot.get("risk", {}).get("spectral", {}),
                 "/api/forecast": snapshot.get("forecast", {}),
                 "/api/hedges": snapshot.get("hedges", {}),
                 "/api/sectors": snapshot.get("sectors", {}),
@@ -146,6 +159,11 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                     "status": snapshot.get("status", {}),
                 }
             )
+
+        def do_OPTIONS(self) -> None:  # noqa: N802
+            self.send_response(204)
+            self._send_cors_headers()
+            self.end_headers()
 
         def log_message(self, format: str, *args: object) -> None:  # noqa: A003
             return

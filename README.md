@@ -1,18 +1,22 @@
 # Meta Allocator
 
-`meta_alpha_allocator` is a self-contained workspace that routes capital
-between three sleeves and now produces a decision map instead of forcing a
-stock-picking workflow:
+`meta_alpha_allocator` is a local-first market operating system built around
+one practical question: how much beta to run, and what hedge to use when the
+environment turns fragile.
 
-- `core_beta`: broad beta exposure via `SPY`
-- `defense`: capital preservation via `IEF` and `BIL` with robust fallbacks
-- `selection_context`: a cross-sectional opportunity map that can be used to
-  prioritize sectors and then choose names manually
+The stack now combines:
 
-The system reuses local artifacts from:
+- `state engine`: systemic fragility, tail risk, macro, and cross-asset structure
+- `policy overlay`: learned beta sizing plus dynamic hedge switching
+- `scenario synthesis`: Bayesian blending over likely macro/risk worlds
+- `opportunity maps`: sector and international terrain, used as context
+- `statement intelligence`: accounting quality, cash confirmation, and valuation context
+- `discovery intelligence`: non-holding ideas from `portfolio_manager`, including owner elasticity
+
+Primary local dependencies:
 
 - `Fin_model` for systemic state and fragility
-- `portfolio_manager` for slow priors and metadata
+- `portfolio_manager` for holdings, discovery, valuation, and metadata
 - `caria_publication/data` for historical prices and membership history
 
 ## Quick start
@@ -33,6 +37,19 @@ python -m meta_alpha_allocator.cli dashboard refresh
 python -m meta_alpha_allocator.cli dashboard serve --open-browser
 python -m pytest
 ```
+
+If you prefer a file-based setup, copy `.env.example` to `.env` and set values there for your shell or deployment platform.
+
+## Repo hygiene
+
+Generated artifacts are intentionally ignored from git:
+
+- `output/`
+- `cache/`
+- `tmp/`
+- `.pytest_cache/`
+
+That keeps snapshots, reports, caches, and local backtest artifacts out of the repo while still letting you regenerate them locally at any time.
 
 ## Outputs
 
@@ -81,6 +98,10 @@ Dashboard writes to `output/dashboard/latest/`:
 - `screener.json`
 - `status.json`
 
+Document generation writes to `output/doc/`:
+
+- `meta_allocator_methodology_report.docx`
+
 ## Workstation
 
 The local workstation is a dense Bloomberg-style web app served from Python and
@@ -94,6 +115,8 @@ on:
 - `current portfolio cockpit`
 - `financial statement intelligence over holdings and the screener`
 - `equity screener with filters`
+- `consensus fragility` and `belief-capacity mismatch`
+- `owner elasticity` over discovery names
 
 Useful commands:
 
@@ -105,12 +128,53 @@ python -m meta_alpha_allocator.cli forecast-baseline --start-date 2025-01-01
 python -m meta_alpha_allocator.cli statement-intel
 ```
 
+## Discovery flow
+
+`portfolio_manager` now emits three distinct artifacts:
+
+- `screener.csv`: full context, including current holdings
+- `holdings_context.csv`: current holdings scored as context, not discovery
+- `discovery_screener.csv`: non-holding ideas, including enriched daily-screen discoveries
+
+The workstation consumes `discovery_screener.csv` by default, so current holdings no longer dominate the discovery panel.
+
+## Deployment layout
+
+Recommended split:
+
+- `Railway`: Python backend and API
+- `Vercel`: static frontend from `src/meta_alpha_allocator/dashboard/static`
+
+Backend notes:
+
+- `Procfile` and `railway.toml` are included
+- `DashboardSettings.port` reads `PORT` automatically
+- `PathConfig` supports env overrides for all major local data roots
+- CORS is enabled via `META_ALLOCATOR_CORS_ORIGIN`
+
+Frontend notes:
+
+- `config.js` exposes `window.META_ALLOCATOR_CONFIG.API_BASE`
+- local default is same-origin
+- for Vercel, point `API_BASE` to the Railway backend URL
+- `vercel.json` is included inside `src/meta_alpha_allocator/dashboard/static`
+
+Important env vars:
+
+- `FMP_API_KEY`
+- `FRED_API_KEY`
+- `PORT`
+- `META_ALLOCATOR_CORS_ORIGIN`
+- optional path overrides from `.env.example`
+
 ## Design notes
 
 - Cross-sectional weights are learned only on train windows using historical
   feature information coefficients.
 - The state engine is routing-oriented: it decides when beta should be reduced
   and when defense or diversification should dominate.
+- The policy layer now includes `consensus_fragility_score` and `belief_capacity_misalignment`.
+- Discovery names now include `owner_elasticity_score` and `owner_elasticity_bucket`.
 - The production report combines three additive components:
   `state overlay`, `sector/international opportunity maps`, and `hedge ranking`.
 - When sector or liquidity metadata is missing, the system uses explicit

@@ -1,6 +1,8 @@
 numpy
 pandas
 pyarrow
+python-docx
+matplotlib
 pytest
 requests
 scikit-learn

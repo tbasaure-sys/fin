@@ -9,6 +9,8 @@ const COLORS = {
   muted: "#9ba6bc",
 };
 
+const API_BASE = (window.META_ALLOCATOR_CONFIG && window.META_ALLOCATOR_CONFIG.API_BASE) || "";
+
 const state = {
   snapshot: null,
   density: "dense",
@@ -46,6 +48,12 @@ function regimeBadge(regime) {
   return ["badge badge-blue", regime || "NEUTRAL"];
 }
 
+function structuralBadge(structuralState) {
+  if (structuralState === "compressed") return `<span class="state-pill state-compressed">Compressed</span>`;
+  if (structuralState === "open") return `<span class="state-pill state-open">Open</span>`;
+  return `<span class="state-pill state-transition">${structuralState || "transition"}</span>`;
+}
+
 function panelStatus(name) {
   const panels = state.snapshot?.status?.panels || [];
   return panels.find((panel) => panel.name === name) || { status: "unknown", stale_days: null };
@@ -81,12 +89,18 @@ function lineChart(rows, seriesDefs, { height = 190, min = null, max = null } = 
   const minValue = min !== null ? min : Math.min(...values);
   const maxValue = max !== null ? max : Math.max(...values);
   const span = maxValue - minValue || 1;
-  const pathFor = (key) => rows.map((row, idx) => {
-    const x = padding + (idx / Math.max(rows.length - 1, 1)) * (width - padding * 2);
-    const value = Number(row[key]);
-    const y = height - padding - ((value - minValue) / span) * (height - padding * 2);
-    return `${idx === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
-  }).join(" ");
+  const pathFor = (key) => {
+    let started = false;
+    return rows.map((row, idx) => {
+      const x = padding + (idx / Math.max(rows.length - 1, 1)) * (width - padding * 2);
+      const value = Number(row[key]);
+      if (Number.isNaN(value)) return "";
+      const y = height - padding - ((value - minValue) / span) * (height - padding * 2);
+      const segment = `${started ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+      started = true;
+      return segment;
+    }).join(" ");
+  };
   const grid = [0.25, 0.5, 0.75].map((ratio) => {
     const y = padding + ratio * (height - padding * 2);
     return `<line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="rgba(255,255,255,0.06)" />`;
@@ -94,6 +108,48 @@ function lineChart(rows, seriesDefs, { height = 190, min = null, max = null } = 
   const paths = seriesDefs.map((series) => `<path d="${pathFor(series.key)}" fill="none" stroke="${series.color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" />`).join("");
   const legend = `<div class="legend">${seriesDefs.map((series) => `<span class="legend-item"><span class="legend-swatch" style="background:${series.color}"></span>${series.label}</span>`).join("")}</div>`;
   return `<svg viewBox="0 0 ${width} ${height}" class="chart-svg">${grid}${paths}</svg>${legend}`;
+}
+
+function fanChart(rows, { height = 190, color = COLORS.gold } = {}) {
+  if (!rows || !rows.length) return `<div class="muted">No scenario paths available.</div>`;
+  const width = 900;
+  const padding = 24;
+  const values = [];
+  rows.forEach((row) => ["p10", "p50", "p90"].forEach((key) => {
+    const value = Number(row[key]);
+    if (!Number.isNaN(value)) values.push(value);
+  }));
+  if (!values.length) return `<div class="muted">No scenario paths available.</div>`;
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  const span = maxValue - minValue || 1;
+  const point = (idx, value) => {
+    const x = padding + (idx / Math.max(rows.length - 1, 1)) * (width - padding * 2);
+    const y = height - padding - ((value - minValue) / span) * (height - padding * 2);
+    return [x, y];
+  };
+  const upper = rows.map((row, idx) => point(idx, Number(row.p90)));
+  const lower = [...rows].reverse().map((row, idx) => point(rows.length - 1 - idx, Number(row.p10)));
+  const band = [...upper, ...lower].map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+  const medianPath = rows.map((row, idx) => {
+    const [x, y] = point(idx, Number(row.p50));
+    return `${idx === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+  }).join(" ");
+  const grid = [0.25, 0.5, 0.75].map((ratio) => {
+    const y = padding + ratio * (height - padding * 2);
+    return `<line x1="${padding}" y1="${y}" x2="${width - padding}" y2="${y}" stroke="rgba(255,255,255,0.06)" />`;
+  }).join("");
+  return `
+    <svg viewBox="0 0 ${width} ${height}" class="chart-svg">
+      ${grid}
+      <polygon points="${band}" fill="${color}" opacity="0.18"></polygon>
+      <path d="${medianPath}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"></path>
+    </svg>
+    <div class="legend">
+      <span class="legend-item"><span class="legend-swatch" style="background:${color};opacity:0.85"></span>Median path</span>
+      <span class="legend-item"><span class="legend-swatch" style="background:${color};opacity:0.25"></span>10-90 percentile band</span>
+    </div>
+  `;
 }
 
 function barChart(rows, valueKey, labelKey, color, height = 170) {
@@ -141,7 +197,7 @@ function table(columns, rows) {
 }
 
 async function fetchJson(path, options = {}) {
-  const response = await fetch(path, options);
+  const response = await fetch(`${API_BASE}${path}`, options);
   if (!response.ok) throw new Error(`Request failed: ${response.status}`);
   return response.json();
 }
@@ -154,10 +210,11 @@ function renderTopStrip() {
     metricCard("Regime", `<span class="${regimeClass}">${regimeLabel}</span>`, `Crash ${fmtPct(overview.crash_prob)}`),
     metricCard("Beta target", fmtPct(overview.beta_target), overview.recommended_action || ""),
     metricCard("Selected hedge", overview.selected_hedge || "-", overview.best_hedge_now ? `Best now ${overview.best_hedge_now}` : ""),
-    metricCard("Confidence", fmtPct(overview.confidence), `Alt ${overview.alternative_action || "-"}`),
+    metricCard("Confidence", fmtPct(overview.confidence), `Utility ${fmtNum(overview.expected_utility, 4)}`),
     metricCard("Tail risk", fmtPct(overview.tail_risk_score), `Legitimacy ${fmtPct(overview.legitimacy_risk)}`),
+    metricCard("Structure", fmtPct(overview.compression_score), `${overview.spectral_state || "transition"} | freedom ${fmtPct(overview.freedom_score)}`),
     metricCard("Consensus", fmtPct(overview.consensus_fragility_score), `Belief-capacity ${fmtPct(overview.belief_capacity_misalignment)}`),
-    metricCard("Utility", fmtNum(overview.expected_utility, 4), `Refresh ${fmtDate(state.snapshot.generated_at)}`),
+    metricCard("Refresh", fmtDate(state.snapshot.generated_at), `Alt ${overview.alternative_action || "-"}`),
   ].join("");
   document.getElementById("last-refresh").textContent = new Date(state.snapshot.generated_at).toLocaleTimeString();
 }
@@ -179,13 +236,15 @@ function renderCommand() {
   const risk = state.snapshot.risk;
   const portfolio = state.snapshot.portfolio;
   const forecast = state.snapshot.forecast || {};
+  const spectral = risk.spectral || {};
+  const spectralLatest = spectral.latest || {};
   const scenario = overview.scenario_synthesis || {};
   const spyBaseline = forecast.latest?.SPY || {};
   const shyBaseline = forecast.latest?.SHY || {};
   const scenarioRows = Object.entries(scenario.posterior || {}).sort((left, right) => Number(right[1]) - Number(left[1])).slice(0, 3);
   const [regimeClass, regimeLabel] = regimeBadge(overview.regime);
   document.getElementById("command-panel").innerHTML = `
-    <div class="grid-two">
+    <div class="grid-three">
       <div class="card">
         <h3>Stance</h3>
         <div class="big-readout">${fmtPct(overview.beta_target, 0)}</div>
@@ -212,10 +271,25 @@ function renderCommand() {
           `).join("")}
         </div>
       </div>
+      <div class="card">
+        <h3>Structural State</h3>
+        <div class="big-readout" style="font-size:28px;">${fmtPct(spectralLatest.compression_score)}</div>
+        <div class="fact-list">
+          <div class="fact-row"><span>State</span><span>${structuralBadge(spectralLatest.structural_state)}</span></div>
+          <div class="fact-row"><span>Freedom</span><span class="mono">${fmtPct(spectralLatest.freedom_score)}</span></div>
+          <div class="fact-row"><span>Beta ceiling</span><span class="mono">${fmtPct(overview.structural_beta_ceiling)}</span></div>
+          <div class="fact-row"><span>Eig1 share</span><span class="mono">${fmtPct(spectralLatest.eig1_share)}</span></div>
+          <div class="fact-row"><span>Eff. dimension</span><span class="mono">${fmtNum(spectralLatest.effective_dimension, 1)}</span></div>
+        </div>
+      </div>
     </div>
     <div class="card" style="margin-top:10px;">
       <h3>Why this action</h3>
       <div class="small-list">${(overview.why_this_action || []).map((item) => `<div>${item}</div>`).join("") || "<div class='muted'>No explanation available.</div>"}</div>
+    </div>
+    <div class="card" style="margin-top:10px;">
+      <h3>Spectral narrative</h3>
+      <div class="small-list">${(spectralLatest.structural_narrative || []).map((item) => `<div>${item}</div>`).join("") || "<div class='muted'>No structural narrative available.</div>"}</div>
     </div>
     <div class="card" style="margin-top:10px;">
       <h3>Consensus Fragility</h3>
@@ -339,6 +413,68 @@ function renderPerformance() {
       <div class="card">
         <h3>OOS blocks</h3>
         <div class="grid-three">${oosBlocks}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderStructural() {
+  const spectral = state.snapshot.risk?.spectral || {};
+  const latest = spectral.latest || {};
+  const history = spectral.history || [];
+  const mc21 = spectral.monte_carlo?.["21"] || {};
+  const mc63 = spectral.monte_carlo?.["63"] || {};
+  const recentHistory = history.slice(-120);
+  const compressionChart = lineChart(recentHistory, [
+    { key: "compression_score", label: "Compression", color: COLORS.drawdown },
+    { key: "freedom_score", label: "Freedom", color: COLORS.green },
+    { key: "avg_corr", label: "Avg corr", color: COLORS.blue },
+  ], { min: 0, max: 1 });
+  const fan21 = fanChart(mc21.path_percentiles || [], { color: COLORS.gold });
+  const fan63 = fanChart(mc63.path_percentiles || [], { color: COLORS.blue });
+
+  document.getElementById("structural-panel").innerHTML = `
+    <div class="grid-three">
+      <div class="card">
+        <h3>State</h3>
+        <div class="big-readout" style="font-size:28px;">${fmtPct(latest.compression_score)}</div>
+        <div class="note-block" style="margin-top:10px;">${structuralBadge(latest.structural_state)}</div>
+        <div class="subtle-metric"><span>Suggested stance</span><span class="mono">${latest.suggested_stance || "-"}</span></div>
+        <div class="subtle-metric"><span>Beta ceiling</span><span class="mono">${fmtPct(latest.structural_beta_ceiling)}</span></div>
+      </div>
+      <div class="card">
+        <h3>Primary mode</h3>
+        <div class="big-readout" style="font-size:28px;">${fmtPct(latest.eig1_share)}</div>
+        <div class="muted">Correlation mass captured by the first mode</div>
+      </div>
+      <div class="card">
+        <h3>Eff. dimension</h3>
+        <div class="big-readout" style="font-size:28px;">${fmtNum(latest.effective_dimension, 1)}</div>
+        <div class="muted">Functional degrees of freedom still available</div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:10px;">
+      <h3>Structural compression history ${statusBadge("risk")}</h3>
+      <div class="chart chart-small">${compressionChart}</div>
+      <div class="spark-grid" style="margin-top:10px;">
+        <div class="note-block">${(latest.structural_narrative || [])[0] || "No structural narrative available."}</div>
+        <div class="note-block">${(latest.structural_narrative || [])[1] || "Monte Carlo is conditioned on open vs compressed structural worlds."}</div>
+      </div>
+    </div>
+    <div class="grid-two" style="margin-top:10px;">
+      <div class="card">
+        <h3>21d path space</h3>
+        <div class="chart chart-small">${fan21}</div>
+        <div class="subtle-metric"><span>Expected return</span><span class="mono">${fmtPct(mc21.expected_return)}</span></div>
+        <div class="subtle-metric"><span>Probability of loss</span><span class="mono">${fmtPct(mc21.probability_loss)}</span></div>
+        <div class="subtle-metric"><span>CVaR 95</span><span class="mono">${fmtPct(mc21.cvar_95)}</span></div>
+      </div>
+      <div class="card">
+        <h3>63d path space</h3>
+        <div class="chart chart-small">${fan63}</div>
+        <div class="subtle-metric"><span>Expected return</span><span class="mono">${fmtPct(mc63.expected_return)}</span></div>
+        <div class="subtle-metric"><span>Probability of loss</span><span class="mono">${fmtPct(mc63.probability_loss)}</span></div>
+        <div class="subtle-metric"><span>CVaR 95</span><span class="mono">${fmtPct(mc63.cvar_95)}</span></div>
       </div>
     </div>
   `;
@@ -619,6 +755,7 @@ function renderAll() {
   renderWarnings();
   renderCommand();
   renderPerformance();
+  renderStructural();
   renderHedges();
   renderSectors();
   renderInternational();

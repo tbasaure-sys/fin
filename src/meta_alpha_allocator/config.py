@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import os
 from pathlib import Path
 
 
@@ -9,17 +10,21 @@ FINANCE_ROOT = PROJECT_ROOT.parent
 CT_ROOT = FINANCE_ROOT.parent
 
 
+def _env_path(name: str, default: Path) -> Path:
+    return Path(os.environ.get(name, str(default))).expanduser()
+
+
 @dataclass(frozen=True)
 class PathConfig:
-    project_root: Path = PROJECT_ROOT
-    finance_root: Path = FINANCE_ROOT
-    ct_root: Path = CT_ROOT
-    fin_model_root: Path = FINANCE_ROOT / "Fin_model"
-    portfolio_manager_root: Path = FINANCE_ROOT / "portfolio_manager"
-    polymarket_root: Path = CT_ROOT / "polymarket_paper_trader"
-    caria_data_root: Path = CT_ROOT / "01_Framework_Core" / "manuscripts" / "research" / "caria_publication" / "data"
-    output_root: Path = PROJECT_ROOT / "output"
-    cache_root: Path = PROJECT_ROOT / "cache"
+    project_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_PROJECT_ROOT", PROJECT_ROOT))
+    finance_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_FINANCE_ROOT", FINANCE_ROOT))
+    ct_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_CT_ROOT", CT_ROOT))
+    fin_model_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_FIN_MODEL_ROOT", FINANCE_ROOT / "Fin_model"))
+    portfolio_manager_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_PORTFOLIO_MANAGER_ROOT", FINANCE_ROOT / "portfolio_manager"))
+    polymarket_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_POLYMARKET_ROOT", CT_ROOT / "polymarket_paper_trader"))
+    caria_data_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_CARIA_DATA_ROOT", CT_ROOT / "01_Framework_Core" / "manuscripts" / "research" / "caria_publication" / "data"))
+    output_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_OUTPUT_ROOT", PROJECT_ROOT / "output"))
+    cache_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_CACHE_ROOT", PROJECT_ROOT / "cache"))
 
 
 @dataclass(frozen=True)
@@ -44,6 +49,12 @@ class ResearchSettings:
     forecast_min_training_samples: int = 252
     forecast_retrain_frequency: str = "monthly"
     forecast_horizons: tuple[int, ...] = (5, 10, 20)
+    spectral_window_days: int = 60
+    spectral_history_points: int = 180
+    spectral_open_quantile: float = 0.35
+    spectral_compressed_quantile: float = 0.65
+    monte_carlo_horizons: tuple[int, ...] = (21, 63)
+    monte_carlo_paths: int = 1500
     forecast_tickers: tuple[str, ...] = ("SPY", "SHY", "IEF", "GLD", "UUP", "BIL")
     market_proxy_tickers: tuple[str, ...] = (
         "SPY",
@@ -137,6 +148,7 @@ class ResearchSettings:
     tail_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "tail_risk" / "latest")
     policy_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "policy" / "latest")
     forecast_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "forecast" / "latest")
+    spectral_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "spectral" / "latest")
     statement_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "statement_intel" / "latest")
     statement_kernel_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "statement_kernel" / "latest")
 
@@ -159,8 +171,8 @@ class AllocatorSettings:
 
 @dataclass(frozen=True)
 class DashboardSettings:
-    host: str = "127.0.0.1"
-    port: int = 8765
+    host: str = field(default_factory=lambda: os.environ.get("META_ALLOCATOR_HOST", "127.0.0.1"))
+    port: int = field(default_factory=lambda: int(os.environ.get("PORT", os.environ.get("META_ALLOCATOR_PORT", "8765"))))
     auto_refresh_seconds: int = 300
     market_lookback_days: int = 252
     chart_history_points: int = 260
