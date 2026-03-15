@@ -1,11 +1,11 @@
 # nixpacks.toml — Railway build configuration
 #
-# We only need to declare the Python version here.
-# Nixpacks handles the virtualenv creation and `pip install -r requirements.txt`
-# automatically — do NOT add a custom [phases.install] with pip commands, as
-# that would try to install into the immutable /nix/store and fail.
+# Sets Python 3.11 via NIXPACKS_PYTHON_VERSION.
+# Nixpacks handles virtualenv creation and `pip install -r requirements.txt`
+# automatically — do NOT add a custom [phases.install] with pip commands.
 #
-# Python 3.11 required: datetime.UTC was added in 3.11; 3.10 will crash on boot.
+# Note: on Nixpacks the binary is `python3`, not `python`.
+# The startCommand in railway.toml uses `python3 -m gunicorn` accordingly.
 
 [variables]
 NIXPACKS_PYTHON_VERSION = "3.11"
