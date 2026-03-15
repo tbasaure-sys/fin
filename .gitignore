@@ -21,6 +21,7 @@ venv/
 .env
 .env.*
 !.env.example
+README.local.md
 
 # editor and system
 .DS_Store
