@@ -1,11 +1,4 @@
 # nixpacks.toml — Railway build configuration
-#
-# Sets Python 3.11 via NIXPACKS_PYTHON_VERSION.
-# Nixpacks handles virtualenv creation and `pip install -r requirements.txt`
-# automatically — do NOT add a custom [phases.install] with pip commands.
-#
-# Note: on Nixpacks the binary is `python3`, not `python`.
-# The startCommand in railway.toml uses `python3 -m gunicorn` accordingly.
-
-[variables]
-NIXPACKS_PYTHON_VERSION = "3.11"
+# Python version is set via runtime.txt (python-3.11.8).
+# No custom phases — Nixpacks handles virtualenv + pip install automatically.
+# startCommand is in railway.toml.
