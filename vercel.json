@@ -1,5 +1,11 @@
 {
+  "version": 2,
   "cleanUrls": true,
+  "functions": {
+    "api/[...path].js": {
+      "runtime": "@vercel/node@3.2.22"
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
@@ -27,6 +33,10 @@
     {
       "source": "/config.js",
       "destination": "/src/meta_alpha_allocator/dashboard/static/config.js"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/[...path].js"
     }
   ]
 }

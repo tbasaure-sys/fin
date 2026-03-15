@@ -68,6 +68,8 @@ The repository includes:
 - `vercel.json`
 - a Vercel API proxy for forwarding `/api/*` requests to the backend
 
+On Vercel, this repository should be treated as a static/Node project, not as a Python runtime.
+
 Environment variables are documented in `.env.example`.
 
 ## Status
