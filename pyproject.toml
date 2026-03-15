@@ -8,6 +8,10 @@ version = "0.1.0"
 description = "Meta allocator routing engine for liquid US markets"
 requires-python = ">=3.10"
 
+[project.optional-dependencies]
+# Install with: pip install -e ".[serve]"
+serve = ["gunicorn>=22.0"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

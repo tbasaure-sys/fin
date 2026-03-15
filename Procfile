@@ -1,1 +1,1 @@
-web: python3 -m meta_alpha_allocator.cli dashboard serve --host 0.0.0.0 --port ${PORT:-8000}
+web: gunicorn 'meta_alpha_allocator.dashboard.wsgi:create_app()' --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT:-8000} --preload --log-level info
