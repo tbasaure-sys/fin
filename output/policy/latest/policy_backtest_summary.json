@@ -1,0 +1,72 @@
+{
+  "policy_overlay": {
+    "total_return": 2.8477868876458303,
+    "annual_return": 0.08705623033648213,
+    "annual_vol": 0.11576269600040859,
+    "sharpe": 0.7520231762412899,
+    "max_drawdown": -0.2627036153444433
+  },
+  "heuristic_state_overlay": {
+    "total_return": 5.270617008739879,
+    "annual_return": 0.12044592659806486,
+    "annual_vol": 0.11527696518482262,
+    "sharpe": 1.0448394994173804,
+    "max_drawdown": -0.2359739855467312
+  },
+  "benchmark_spy": {
+    "total_return": 6.704783750804603,
+    "annual_return": 0.1348332803498693,
+    "annual_vol": 0.17164597622923403,
+    "sharpe": 0.7855312621473794,
+    "max_drawdown": -0.3371725431713015
+  },
+  "static_60_40": {
+    "total_return": 3.3728072200307446,
+    "annual_return": 0.09570367398224233,
+    "annual_vol": 0.09934032034333908,
+    "sharpe": 0.9633920411316593,
+    "max_drawdown": -0.2101747070859863
+  },
+  "vol_target": {
+    "total_return": 4.4338003898346585,
+    "annual_return": 0.110548158078843,
+    "annual_vol": 0.09561822923268248,
+    "sharpe": 1.1561410304914685,
+    "max_drawdown": -0.12108857821012597
+  },
+  "trend_following": {
+    "total_return": 16.72333000175964,
+    "annual_return": 0.19493289161255456,
+    "annual_vol": 0.11377734413206948,
+    "sharpe": 1.713283897594604,
+    "max_drawdown": -0.1010189364467371
+  },
+  "defensive_mix": {
+    "total_return": 1.3800606262688078,
+    "annual_return": 0.05518464172711579,
+    "annual_vol": 0.08180950458727997,
+    "sharpe": 0.6745504939250799,
+    "max_drawdown": -0.2505296088015877
+  },
+  "high_vs_low_confidence": {
+    "high": {
+      "total_return": 1.4794280323070255,
+      "annual_return": 0.11907117369296638,
+      "annual_vol": 0.1258974613599263,
+      "sharpe": 0.945778988764163,
+      "max_drawdown": -0.23912450862281565
+    },
+    "low": {
+      "total_return": 0.5518848853481735,
+      "annual_return": 0.05595718636353486,
+      "annual_vol": 0.10464777307202883,
+      "sharpe": 0.5347193229331278,
+      "max_drawdown": -0.18512066657915127
+    }
+  },
+  "acceptance_checks": {
+    "beats_heuristic_sharpe": false,
+    "beats_heuristic_cagr_similar_drawdown": false,
+    "lower_drawdown_similar_cagr": false
+  }
+}

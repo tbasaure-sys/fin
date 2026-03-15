@@ -1,0 +1,163 @@
+{
+  "records": [
+    {
+      "ticker": "EWC",
+      "mom_20d": -0.0041621344,
+      "mom_60d": 0.0319737082,
+      "vol_20d": 0.0093580317,
+      "drawdown_63d": -0.0538170749,
+      "corr_spy_60d": 0.6085666954,
+      "market": "Canada",
+      "opportunity_score": 0.8623462081,
+      "trend_score": 0.8625,
+      "diversification_score": 0.775,
+      "view": "preferred"
+    },
+    {
+      "ticker": "EEM",
+      "mom_20d": -0.066710505,
+      "mom_60d": 0.065326215,
+      "vol_20d": 0.0175598908,
+      "drawdown_63d": -0.102827389,
+      "corr_spy_60d": 0.688008705,
+      "market": "Emerging Markets",
+      "opportunity_score": 0.7866871001,
+      "trend_score": 0.7875,
+      "diversification_score": 0.325,
+      "view": "preferred"
+    },
+    {
+      "ticker": "EWZ",
+      "mom_20d": -0.0779423193,
+      "mom_60d": 0.0939125445,
+      "vol_20d": 0.0197061623,
+      "drawdown_63d": -0.1035614665,
+      "corr_spy_60d": 0.5474117432,
+      "market": "Brazil",
+      "opportunity_score": 0.7495605947,
+      "trend_score": 0.75,
+      "diversification_score": 0.5,
+      "view": "preferred"
+    },
+    {
+      "ticker": "EFA",
+      "mom_20d": -0.0753720438,
+      "mom_60d": 0.0098363211,
+      "vol_20d": 0.0112950977,
+      "drawdown_63d": -0.0885860334,
+      "corr_spy_60d": 0.7306408467,
+      "market": "Developed ex US",
+      "opportunity_score": 0.5931897582,
+      "trend_score": 0.59375,
+      "diversification_score": 0.275,
+      "view": "preferred"
+    },
+    {
+      "ticker": "VGK",
+      "mom_20d": -0.0742534799,
+      "mom_60d": -0.0035248551,
+      "vol_20d": 0.0111341371,
+      "drawdown_63d": -0.0920543087,
+      "corr_spy_60d": 0.7292637406,
+      "market": "Europe",
+      "opportunity_score": 0.5185412825,
+      "trend_score": 0.51875,
+      "diversification_score": 0.4,
+      "view": "secondary"
+    },
+    {
+      "ticker": "EWJ",
+      "mom_20d": -0.1072079023,
+      "mom_60d": 0.0189588253,
+      "vol_20d": 0.0149106296,
+      "drawdown_63d": -0.11290838,
+      "corr_spy_60d": 0.6143653035,
+      "market": "Japan",
+      "opportunity_score": 0.4312829554,
+      "trend_score": 0.43125,
+      "diversification_score": 0.45,
+      "view": "secondary"
+    },
+    {
+      "ticker": "FXI",
+      "mom_20d": -0.0625969524,
+      "mom_60d": -0.0543784459,
+      "vol_20d": 0.0106970331,
+      "drawdown_63d": -0.1113290151,
+      "corr_spy_60d": 0.4976502955,
+      "market": "China",
+      "opportunity_score": 0.4069860039,
+      "trend_score": 0.40625,
+      "diversification_score": 0.825,
+      "view": "secondary"
+    },
+    {
+      "ticker": "INDA",
+      "mom_20d": -0.0950856558,
+      "mom_60d": -0.0949152024,
+      "vol_20d": 0.0104808507,
+      "drawdown_63d": -0.1191348944,
+      "corr_spy_60d": 0.4675172065,
+      "market": "India",
+      "opportunity_score": 0.151406097,
+      "trend_score": 0.15,
+      "diversification_score": 0.95,
+      "view": "secondary"
+    }
+  ],
+  "preferred": [
+    {
+      "ticker": "EWC",
+      "mom_20d": -0.0041621344,
+      "mom_60d": 0.0319737082,
+      "vol_20d": 0.0093580317,
+      "drawdown_63d": -0.0538170749,
+      "corr_spy_60d": 0.6085666954,
+      "market": "Canada",
+      "opportunity_score": 0.8623462081,
+      "trend_score": 0.8625,
+      "diversification_score": 0.775,
+      "view": "preferred"
+    },
+    {
+      "ticker": "EEM",
+      "mom_20d": -0.066710505,
+      "mom_60d": 0.065326215,
+      "vol_20d": 0.0175598908,
+      "drawdown_63d": -0.102827389,
+      "corr_spy_60d": 0.688008705,
+      "market": "Emerging Markets",
+      "opportunity_score": 0.7866871001,
+      "trend_score": 0.7875,
+      "diversification_score": 0.325,
+      "view": "preferred"
+    },
+    {
+      "ticker": "EWZ",
+      "mom_20d": -0.0779423193,
+      "mom_60d": 0.0939125445,
+      "vol_20d": 0.0197061623,
+      "drawdown_63d": -0.1035614665,
+      "corr_spy_60d": 0.5474117432,
+      "market": "Brazil",
+      "opportunity_score": 0.7495605947,
+      "trend_score": 0.75,
+      "diversification_score": 0.5,
+      "view": "preferred"
+    },
+    {
+      "ticker": "EFA",
+      "mom_20d": -0.0753720438,
+      "mom_60d": 0.0098363211,
+      "vol_20d": 0.0112950977,
+      "drawdown_63d": -0.0885860334,
+      "corr_spy_60d": 0.7306408467,
+      "market": "Developed ex US",
+      "opportunity_score": 0.5931897582,
+      "trend_score": 0.59375,
+      "diversification_score": 0.275,
+      "view": "preferred"
+    }
+  ],
+  "stale_days": 0
+}

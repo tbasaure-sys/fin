@@ -1,0 +1,271 @@
+{
+  "as_of_date": "2026-03-13",
+  "regime": "RISK_ON",
+  "crash_prob": 0.4511833746540071,
+  "tail_risk_score": 0.0029293688438510814,
+  "legitimacy_risk": 0.4419574221623469,
+  "beta_target": 1.0,
+  "selected_hedge": "UUP",
+  "confidence": 0.6215097301170395,
+  "expected_utility": 0.005137835300501975,
+  "alternative_action": "beta_025",
+  "recommended_action": "beta_100",
+  "policy_recommended_action": "beta_100",
+  "best_hedge_now": "UUP",
+  "why_this_action": [
+    "Scenario weighting confirmed beta near 100% with soft landing as the dominant world.",
+    "tlt_score supported beta target 100%",
+    "tail_loss_5d supported beta target 100%",
+    "memory_p_fail supported beta target 100%"
+  ],
+  "conditions_that_flip": [
+    "crash_prob moving higher would favor beta target 25%",
+    "bil_score moving higher would favor beta target 25%",
+    "tlt_score moving higher would favor beta target 25%"
+  ],
+  "scenario_narrative": [
+    "Posterior leans to soft landing at 63%.",
+    "Growth holds up, fragility is contained, and broad participation supports risk.",
+    "Secondary scenario is reflation qe at 14%."
+  ],
+  "scenario_synthesis": {
+    "prior": {
+      "soft_landing": 0.6132075471698113,
+      "reflation_qe": 0.1490566037735849,
+      "mania_rotation": 0.09056603773584905,
+      "tightening_stress": 0.13018867924528302,
+      "recession_crash": 0.016981132075471698
+    },
+    "likelihood": {
+      "soft_landing": 1.0589200625406079,
+      "reflation_qe": 1.0,
+      "mania_rotation": 1.2411023790006717,
+      "tightening_stress": 0.8290120915133248,
+      "recession_crash": 0.7377360981934876
+    },
+    "posterior": {
+      "soft_landing": 0.6296598423578105,
+      "reflation_qe": 0.14453950064768706,
+      "mania_rotation": 0.10899543379042848,
+      "tightening_stress": 0.10465727301187232,
+      "recession_crash": 0.012147950192201742
+    },
+    "dominant_scenario": "soft_landing",
+    "secondary_scenario": "reflation_qe",
+    "expected_beta": 0.7587550226968719,
+    "preferred_hedge": "SHY",
+    "hedge_scores": {
+      "SHY": 0.272172201978221,
+      "BIL": 0.24359686623900537,
+      "IEF": 0.1512692605811701,
+      "UUP": 0.13926707012424724,
+      "GLD": 0.13943651395206222,
+      "TLT": 0.05425808712529416
+    },
+    "narrative": [
+      "Posterior leans to soft landing at 63%.",
+      "Growth holds up, fragility is contained, and broad participation supports risk.",
+      "Secondary scenario is reflation qe at 14%."
+    ]
+  },
+  "current_weights": {
+    "SPY": 0.2082330057098693,
+    "IEF": 0.04582213893897399,
+    "AEE": 0.03619914711872353,
+    "CNP": 0.03619914711872353,
+    "EVRG": 0.03619914711872353,
+    "AEP": 0.03619914711872353,
+    "ATO": 0.03619914711872353,
+    "FE": 0.03619914711872353,
+    "WELL": 0.03619914711872353,
+    "XEL": 0.03619914711872353,
+    "DUK": 0.03619914711872353,
+    "ETR": 0.03619914711872353,
+    "EXC": 0.036141413231771814,
+    "WEC": 0.03602594545786839,
+    "COR": 0.03591047768396497,
+    "VTR": 0.03579500991006154,
+    "LNT": 0.03567954213615812,
+    "GD": 0.03556407436225469,
+    "ORLY": 0.03544860658835127,
+    "SO": 0.03533313881444784,
+    "K": 0.03521767104054443,
+    "APH": 0.03510220326664099,
+    "BIL": 0.027735301671857424
+  },
+  "tail_risk_latest": {
+    "date": "2026-03-13",
+    "tail_loss_5d": 0.001622995655952495,
+    "tail_loss_10d": 0.0015943739026385558,
+    "tail_loss_20d": 0.0022919752404237195,
+    "tail_risk_score": 0.001880569876081106
+  },
+  "sectors": {
+    "preferred": [
+      {
+        "sector": "Technology",
+        "coverage": 1,
+        "avg_selection_score": 0.2371962902,
+        "breadth": 1.0,
+        "avg_quality": 0.8,
+        "avg_residual_momentum": 0.0220482941,
+        "avg_crowding": 0.1231041005,
+        "ticker": "XLK",
+        "mom_20d": -0.0173120002,
+        "mom_60d": -0.0371925531,
+        "vol_20d": 0.0128215462,
+        "drawdown_63d": -0.0832941971,
+        "corr_spy_60d": 0.8975868991,
+        "proxy_ticker": "XLK",
+        "opportunity_score": 0.6283114548,
+        "signal_score": 0.8534090909,
+        "defense_fit": 0.3545454545,
+        "cross_section_weight": 0.25,
+        "view": "preferred"
+      },
+      {
+        "sector": "Unknown",
+        "coverage": 318,
+        "avg_selection_score": 0.0007382372,
+        "breadth": 0.4937106918,
+        "avg_quality": 0.4968358744,
+        "avg_residual_momentum": -0.0141880656,
+        "avg_crowding": 0.4147671155,
+        "ticker": null,
+        "mom_20d": null,
+        "mom_60d": null,
+        "vol_20d": null,
+        "drawdown_63d": null,
+        "corr_spy_60d": null,
+        "proxy_ticker": null,
+        "opportunity_score": 0.4330922142,
+        "signal_score": 0.5875,
+        "defense_fit": 0.5,
+        "cross_section_weight": 0.25,
+        "view": "preferred"
+      },
+      {
+        "sector": "Energy",
+        "coverage": 0,
+        "avg_selection_score": null,
+        "breadth": null,
+        "avg_quality": null,
+        "avg_residual_momentum": null,
+        "avg_crowding": null,
+        "ticker": "XLE",
+        "mom_20d": 0.0689144359,
+        "mom_60d": 0.2877153289,
+        "vol_20d": 0.010602686,
+        "drawdown_63d": 0.0,
+        "corr_spy_60d": 0.0268945406,
+        "proxy_ticker": "XLE",
+        "opportunity_score": 0.4246958928,
+        "signal_score": 0.575,
+        "defense_fit": 0.8681818182,
+        "cross_section_weight": 0.25,
+        "view": "preferred"
+      },
+      {
+        "sector": "Materials",
+        "coverage": 0,
+        "avg_selection_score": null,
+        "breadth": null,
+        "avg_quality": null,
+        "avg_residual_momentum": null,
+        "avg_crowding": null,
+        "ticker": "XLB",
+        "mom_20d": -0.0689003043,
+        "mom_60d": 0.0958315976,
+        "vol_20d": 0.0094877598,
+        "drawdown_63d": -0.0826184333,
+        "corr_spy_60d": 0.5217114794,
+        "proxy_ticker": "XLB",
+        "opportunity_score": 0.4137749108,
+        "signal_score": 0.5613636364,
+        "defense_fit": 0.4545454545,
+        "cross_section_weight": 0.25,
+        "view": "preferred"
+      },
+      {
+        "sector": "Consumer Staples",
+        "coverage": 3,
+        "avg_selection_score": -0.0111722523,
+        "breadth": 0.6666666667,
+        "avg_quality": 0.598808,
+        "avg_residual_momentum": -0.1280764412,
+        "avg_crowding": 0.179300584,
+        "ticker": null,
+        "mom_20d": null,
+        "mom_60d": null,
+        "vol_20d": null,
+        "drawdown_63d": null,
+        "corr_spy_60d": null,
+        "proxy_ticker": "XLP",
+        "opportunity_score": 0.405625,
+        "signal_score": 0.55,
+        "defense_fit": 0.55,
+        "cross_section_weight": 0.25,
+        "view": "preferred"
+      },
+      {
+        "sector": "Utilities",
+        "coverage": 0,
+        "avg_selection_score": null,
+        "breadth": null,
+        "avg_quality": null,
+        "avg_residual_momentum": null,
+        "avg_crowding": null,
+        "ticker": "XLU",
+        "mom_20d": 0.037790035,
+        "mom_60d": 0.0946740658,
+        "vol_20d": 0.0100256236,
+        "drawdown_63d": -0.0161324212,
+        "corr_spy_60d": 0.053922976,
+        "proxy_ticker": "XLU",
+        "opportunity_score": 0.404484056,
+        "signal_score": 0.5477272727,
+        "defense_fit": 0.7954545455,
+        "cross_section_weight": 0.25,
+        "view": "preferred"
+      }
+    ]
+  },
+  "forecast_baseline": {
+    "IEF": {
+      "predicted_5d": 0.004672114059532731,
+      "predicted_10d": 0.010027618861160319,
+      "predicted_20d": 0.014671049533684807,
+      "date": "2026-03-13"
+    },
+    "SHY": {
+      "predicted_5d": 0.001980948426252074,
+      "predicted_10d": 0.004060705107048383,
+      "predicted_20d": 0.008076532637982402,
+      "date": "2026-03-13"
+    },
+    "GLD": {
+      "predicted_5d": 0.027490641698735233,
+      "predicted_10d": 0.03817987712979476,
+      "predicted_20d": 0.06098842582521683,
+      "date": "2026-03-13"
+    },
+    "BIL": {
+      "predicted_5d": 0.0007329753707388024,
+      "predicted_10d": 0.0014304243962523343,
+      "predicted_20d": 0.0028976623820436403,
+      "date": "2026-03-13"
+    },
+    "SPY": {
+      "predicted_5d": -0.009021972650935753,
+      "predicted_10d": -0.016755682476424772,
+      "predicted_20d": -0.02006343006415561,
+      "date": "2026-03-13"
+    },
+    "UUP": {
+      "predicted_5d": -0.012456283276621667,
+      "predicted_10d": -0.0234481120809357,
+      "predicted_20d": -0.04230953023131339,
+      "date": "2026-03-13"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "latest": {
+    "SHY": {
+      "predicted_5d": null,
+      "predicted_10d": null,
+      "predicted_20d": null,
+      "date": "2026-05-08"
+    },
+    "GLD": {
+      "predicted_5d": null,
+      "predicted_10d": null,
+      "predicted_20d": null,
+      "date": "2026-05-08"
+    },
+    "SPY": {
+      "predicted_5d": null,
+      "predicted_10d": null,
+      "predicted_20d": null,
+      "date": "2026-05-08"
+    }
+  },
+  "metrics": [],
+  "warnings": []
+}

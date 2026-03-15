@@ -1,0 +1,93 @@
+{
+  "selected_hedge": "UUP",
+  "best_hedge_now": "UUP",
+  "alternative_hedge": "BIL",
+  "us_treasuries_best_hedge": false,
+  "ranking": [
+    {
+      "ticker": "UUP",
+      "is_treasury": false,
+      "down_capture": 0.0004852767,
+      "stress_capture": -0.0008279063,
+      "corr_spy_63d": -0.1083710013,
+      "vol_20d": 0.0031753564,
+      "carry_60d": 0.0326713571,
+      "drawdown_63d": 0.0,
+      "hedge_score": 0.8118286863,
+      "crisis_score": 0.5833333333,
+      "carry_score": 0.8125,
+      "view": "preferred"
+    },
+    {
+      "ticker": "BIL",
+      "is_treasury": false,
+      "down_capture": 0.0001562733,
+      "stress_capture": 0.0001630038,
+      "corr_spy_63d": 0.1351271119,
+      "vol_20d": 0.0001139396,
+      "carry_60d": 0.0086963315,
+      "drawdown_63d": 0.0,
+      "hedge_score": 0.7535197644,
+      "crisis_score": 0.5333333333,
+      "carry_score": 0.7541666667,
+      "view": "preferred"
+    },
+    {
+      "ticker": "SHY",
+      "is_treasury": true,
+      "down_capture": 0.0002053521,
+      "stress_capture": 0.0003533028,
+      "corr_spy_63d": -0.1316469992,
+      "vol_20d": 0.0008732238,
+      "carry_60d": 0.004314657,
+      "drawdown_63d": -0.0049061282,
+      "hedge_score": 0.6836018588,
+      "crisis_score": 0.775,
+      "carry_score": 0.6833333333,
+      "view": "preferred"
+    },
+    {
+      "ticker": "IEF",
+      "is_treasury": true,
+      "down_capture": 0.0001308187,
+      "stress_capture": 0.0006472242,
+      "corr_spy_63d": -0.015224693,
+      "vol_20d": 0.0028681134,
+      "carry_60d": 0.00230329,
+      "drawdown_63d": -0.021666865,
+      "hedge_score": 0.4920328378,
+      "crisis_score": 0.6166666667,
+      "carry_score": 0.4916666667,
+      "view": "secondary"
+    },
+    {
+      "ticker": "GLD",
+      "is_treasury": false,
+      "down_capture": 0.0013928105,
+      "stress_capture": 0.005658803,
+      "corr_spy_63d": 0.1719258617,
+      "vol_20d": 0.0191223844,
+      "carry_60d": 0.1643254435,
+      "drawdown_63d": -0.0706997338,
+      "hedge_score": 0.4589436185,
+      "crisis_score": 0.6666666667,
+      "carry_score": 0.4583333333,
+      "view": "secondary"
+    },
+    {
+      "ticker": "TLT",
+      "is_treasury": true,
+      "down_capture": -0.0007527328,
+      "stress_capture": -0.0004270794,
+      "corr_spy_63d": 0.11811993,
+      "vol_20d": 0.0056953881,
+      "carry_60d": 0.0011337916,
+      "drawdown_63d": -0.0439575824,
+      "hedge_score": 0.3000732342,
+      "crisis_score": 0.325,
+      "carry_score": 0.3,
+      "view": "secondary"
+    }
+  ],
+  "stale_days": 0
+}

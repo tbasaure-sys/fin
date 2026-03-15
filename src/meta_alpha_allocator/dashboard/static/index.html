@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Meta Allocator Workstation</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="top-strip">
+        <div class="brand-block">
+          <div class="brand-kicker">Meta Allocator</div>
+          <h1>Workstation</h1>
+          <div id="top-datetime" class="muted"></div>
+        </div>
+        <div id="top-metrics" class="top-metrics"></div>
+        <div class="toolbar">
+          <button id="refresh-btn" class="action-button action-primary">Refresh</button>
+          <button id="density-btn" class="action-button">Dense</button>
+          <div class="refresh-box">
+            <span class="muted">Auto</span>
+            <strong id="countdown">300s</strong>
+          </div>
+          <div class="refresh-box">
+            <span class="muted">Last</span>
+            <strong id="last-refresh">-</strong>
+          </div>
+        </div>
+      </header>
+
+      <section id="warning-strip" class="warning-strip hidden"></section>
+
+      <main class="dashboard-grid">
+        <section class="panel panel-command" data-panel="command">
+          <div class="panel-header">
+            <div>
+              <div class="panel-kicker">Decision</div>
+              <h2>Command Center</h2>
+            </div>
+            <button class="panel-focus" data-focus="command">Focus</button>
+          </div>
+          <div id="command-panel" class="panel-body"></div>
+        </section>
+
+        <section class="panel panel-performance" data-panel="performance">
+          <div class="panel-header">
+            <div>
+              <div class="panel-kicker">Backtest</div>
+              <h2>Performance + Risk</h2>
+            </div>
+            <button class="panel-focus" data-focus="performance">Focus</button>
+          </div>
+          <div id="performance-panel" class="panel-body"></div>
+        </section>
+
+        <section class="panel panel-hedges" data-panel="hedges">
+          <div class="panel-header">
+            <div>
+              <div class="panel-kicker">Protection</div>
+              <h2>Hedge Monitor</h2>
+            </div>
+            <button class="panel-focus" data-focus="hedges">Focus</button>
+          </div>
+          <div id="hedges-panel" class="panel-body"></div>
+        </section>
+
+        <section class="panel panel-sectors" data-panel="sectors">
+          <div class="panel-header">
+            <div>
+              <div class="panel-kicker">Opportunity</div>
+              <h2>Sector Map</h2>
+            </div>
+            <button class="panel-focus" data-focus="sectors">Focus</button>
+          </div>
+          <div id="sectors-panel" class="panel-body"></div>
+        </section>
+
+        <section class="panel panel-international" data-panel="international">
+          <div class="panel-header">
+            <div>
+              <div class="panel-kicker">Diversification</div>
+              <h2>International Map</h2>
+            </div>
+            <button class="panel-focus" data-focus="international">Focus</button>
+          </div>
+          <div id="international-panel" class="panel-body"></div>
+        </section>
+
+        <section class="panel panel-portfolio" data-panel="portfolio">
+          <div class="panel-header">
+            <div>
+              <div class="panel-kicker">Live Book</div>
+              <h2>Portfolio Cockpit</h2>
+            </div>
+            <button class="panel-focus" data-focus="portfolio">Focus</button>
+          </div>
+          <div id="portfolio-panel" class="panel-body"></div>
+        </section>
+
+        <section class="panel panel-regimes" data-panel="regimes">
+          <div class="panel-header">
+            <div>
+              <div class="panel-kicker">History</div>
+              <h2>Historical Regimes</h2>
+            </div>
+            <button class="panel-focus" data-focus="regimes">Focus</button>
+          </div>
+          <div id="regimes-panel" class="panel-body"></div>
+        </section>
+
+        <section class="panel panel-screener" data-panel="screener">
+          <div class="panel-header">
+            <div>
+              <div class="panel-kicker">Scanner</div>
+              <h2>Equity Screener</h2>
+            </div>
+            <div class="screener-controls">
+              <input id="screener-search" type="search" placeholder="Search ticker, sector, thesis">
+              <select id="screener-sort">
+                <option value="discovery_score">Discovery</option>
+                <option value="owner_elasticity_score">Owner elasticity</option>
+                <option value="composite_score">Composite</option>
+                <option value="earnings_cash_kernel_score">Cash kernel</option>
+                <option value="statement_conviction_score">Stmt conviction</option>
+                <option value="valuation_gap">Valuation gap</option>
+                <option value="momentum_6m">Momentum</option>
+                <option value="quality_score">Quality</option>
+                <option value="suggested_position">Suggested position</option>
+              </select>
+              <button id="screener-direction" class="action-button">Desc</button>
+              <button class="panel-focus" data-focus="screener">Focus</button>
+            </div>
+          </div>
+          <div id="screener-panel" class="panel-body"></div>
+        </section>
+      </main>
+    </div>
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,24 @@
+# datasets
+*.csv
+*.xlsx
+*.xls
+
+# analysis outputs
+data/
+datasets/
+analysis/
+
+# python
+__pycache__/
+*.pyc
+
+# environment variables
+.env
+.env.*
+
+# notebooks
+.ipynb_checkpoints
+
+# system
+.DS_Store
+Thumbs.db
