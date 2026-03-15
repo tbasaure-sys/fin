@@ -174,6 +174,8 @@ input[type="search"] {
     "command performance structural"
     "hedges sectors international"
     "portfolio portfolio regimes"
+    "chrono chrono chrono"
+    "audit audit audit"
     "screener screener screener";
 }
 
@@ -190,6 +192,8 @@ input[type="search"] {
 .panel-international { grid-area: international; }
 .panel-portfolio { grid-area: portfolio; }
 .panel-regimes { grid-area: regimes; min-height: 260px; }
+.panel-chrono { grid-area: chrono; min-height: 220px; }
+.panel-audit { grid-area: audit; min-height: 320px; }
 .panel-screener { grid-area: screener; min-height: 380px; }
 
 .panel-header {
@@ -470,6 +474,171 @@ body.compact .panel-body {
       "international"
       "portfolio"
       "regimes"
+      "chrono"
+      "audit"
       "screener";
   }
+}
+
+/* ── Decision Audit Panel ──────────────────────────────────────────────────── */
+.audit-kpi-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 0 4px;
+}
+
+.audit-kpi-strip .metric-card {
+  min-width: 120px;
+  flex: 1 1 120px;
+}
+
+.blame-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.blame-row {
+  display: grid;
+  grid-template-columns: 180px 1fr 120px;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.blame-label {
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.blame-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.blame-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.blame-value {
+  font-size: 11px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.audit-penalty-box {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(255, 106, 106, 0.12);
+  border: 1px solid rgba(255, 106, 106, 0.35);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #ff9e9e;
+}
+
+.audit-penalty-box strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.text-red { color: #ff6a6a; }
+.text-green { color: #3bd18b; }
+
+/* ── Chrono Alert Panel ───────────────────────────────────────────────────── */
+.chrono-header-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 4px 0 10px;
+  flex-wrap: wrap;
+}
+
+.chrono-badge {
+  padding: 6px 18px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  color: #fff;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chrono-ceiling-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 80px;
+}
+
+.chrono-ceiling-box .muted {
+  font-size: 11px;
+}
+
+.chrono-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--text-secondary, #aaa);
+}
+
+.chrono-meta strong {
+  color: var(--text-primary, #eee);
+}
+
+.chrono-level-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.chrono-level-cell {
+  flex: 1;
+  min-width: 90px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1.5px solid;
+  text-align: center;
+  cursor: default;
+  transition: opacity 0.15s;
+  opacity: 0.5;
+}
+
+.chrono-level-active {
+  opacity: 1 !important;
+  box-shadow: 0 0 8px rgba(255,255,255,0.12);
+}
+
+.chrono-level-name {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.chrono-level-ceil {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.badge-active {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }

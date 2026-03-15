@@ -9,7 +9,7 @@ builder = "NIXPACKS"
 #                gunicorn kills a worker as unresponsive.
 # --preload: loads the app before forking so the background thread starts
 #            inside the worker process (important for DashboardService).
-startCommand = "gunicorn 'meta_alpha_allocator.dashboard.wsgi:create_app()' --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT:-8000} --preload --log-level info"
+startCommand = "python -m gunicorn 'meta_alpha_allocator.dashboard.wsgi:create_app()' --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT:-8000} --preload --log-level info"
 
 # Railway will GET /health every 10s after deploy.
 # The server must respond within 30s — boot is now instant (cache served first).

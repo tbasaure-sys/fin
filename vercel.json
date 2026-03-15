@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "cleanUrls": true,
 
   "headers": [
     {
@@ -14,11 +13,7 @@
 
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/[...path]"
-    },
-    {
-      "source": "/:path*",
+      "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
   ],

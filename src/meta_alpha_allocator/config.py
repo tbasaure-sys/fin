@@ -96,9 +96,11 @@ class ResearchSettings:
     min_assets_per_day: int = 25
     tail_horizons: tuple[int, ...] = (5, 10, 20)
     tail_loss_thresholds: tuple[float, ...] = (-0.01, -0.02, -0.035)
-    policy_min_training_samples: int = 80
+    policy_min_training_samples: int = 24
     policy_retrain_frequency: str = "monthly"
     policy_confidence_threshold: float = 0.42
+    policy_label_min_forward_spread: float = 0.02
+    policy_label_min_utility_gap: float = 0.005
     forecast_min_training_samples: int = 252
     forecast_retrain_frequency: str = "monthly"
     forecast_horizons: tuple[int, ...] = (5, 10, 20)
@@ -108,6 +110,10 @@ class ResearchSettings:
     spectral_compressed_quantile: float = 0.65
     monte_carlo_horizons: tuple[int, ...] = (21, 63)
     monte_carlo_paths: int = 1500
+    chrono_initial_train_days: int = 252
+    chrono_prediction_horizon_days: int = 10
+    chrono_embedding_window: int = 60
+    chrono_hidden_sizes: tuple[int, ...] = (32, 12)
     forecast_tickers: tuple[str, ...] = ("SPY", "SHY", "IEF", "GLD", "UUP", "BIL")
     market_proxy_tickers: tuple[str, ...] = (
         "SPY",
@@ -202,6 +208,7 @@ class ResearchSettings:
     policy_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "policy" / "latest")
     forecast_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "forecast" / "latest")
     spectral_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "spectral" / "latest")
+    chrono_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "chrono_fragility" / "latest")
     statement_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "statement_intel" / "latest")
     statement_kernel_output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "statement_kernel" / "latest")
 

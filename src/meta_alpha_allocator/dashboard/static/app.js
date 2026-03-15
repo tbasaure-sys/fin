@@ -750,6 +750,251 @@ async function loadScreener() {
   ], rows);
 }
 
+async function renderAudit() {
+  const el = document.getElementById("audit-panel");
+  if (!el) return;
+
+  let audit;
+  try {
+    audit = await fetchJson("/api/audit");
+  } catch (_) {
+    el.innerHTML = `<div class="muted">Audit data not yet available.</div>`;
+    return;
+  }
+
+  if (!audit || audit.available === false) {
+    el.innerHTML = `<div class="muted">${audit?.error || "Decision history insufficient for calibration."}</div>`;
+    return;
+  }
+
+  const penalty = audit.confidence_penalty ?? 0;
+  const penaltyActive = penalty > 0.01;
+  const errShort = audit.rolling_error_rate_63d ?? null;
+  const errLong  = audit.rolling_error_rate_252d ?? null;
+  const streak   = audit.recent_consecutive_errors ?? 0;
+  const totalDec   = audit.total_decisions ?? 0;
+  const accuracy = audit.accuracy_overall ?? null;
+  const totalWrong = accuracy !== null && totalDec ? Math.round((1 - accuracy) * totalDec) : 0;
+  const utilGap  = audit.mean_utility_gap_63d ?? audit.mean_utility_gap_252d ?? null;
+  const confBias = audit.calibration_gap ?? null;
+  const calibDrift = null; // not in current schema
+  const blameObj = audit.blame ?? {};
+  const blameFeatures = {};
+  (blameObj.feature_blame || []).forEach((entry) => {
+    blameFeatures[entry.feature] = entry.correlation ?? entry.blame_score ?? 0;
+  });
+  const recentDecisions = (audit.recent_decisions ?? []).map((d) => ({
+    date: d.date,
+    recommended_action: d.recommended,
+    confidence: d.confidence,
+    best_action_ex_post: d.best_ex_post,
+    utility: d.utility_achieved,
+    utility_gap: d.utility_gap,
+    correct: d.was_correct,
+  }));
+
+  // Sort blame features by absolute magnitude
+  const blameEntries = Object.entries(blameFeatures)
+    .filter(([, v]) => v !== null && !Number.isNaN(Number(v)))
+    .sort((a, b) => Math.abs(Number(b[1])) - Math.abs(Number(a[1])))
+    .slice(0, 8);
+
+  function blameBar(value) {
+    const v = Number(value);
+    const pct = Math.abs(v) * 100;
+    const color = v > 0 ? COLORS.drawdown : COLORS.teal;
+    const dir = v > 0 ? "↑ hurt" : "↓ helped";
+    return `
+      <div class="blame-row">
+        <div class="blame-label">${this}</div>
+        <div class="blame-track">
+          <div class="blame-fill" style="width:${Math.min(pct * 2, 100)}%;background:${color}"></div>
+        </div>
+        <div class="blame-value mono">${v >= 0 ? "+" : ""}${v.toFixed(3)} <span class="muted">${dir}</span></div>
+      </div>
+    `;
+  }
+
+  const blameHtml = blameEntries.length
+    ? blameEntries.map(([feat, val]) => {
+        const v = Number(val);
+        const pct = Math.abs(v) * 100;
+        const color = v > 0 ? COLORS.drawdown : COLORS.teal;
+        const dir = v > 0 ? "↑ hurt" : "↓ helped";
+        return `
+          <div class="blame-row">
+            <div class="blame-label">${feat}</div>
+            <div class="blame-track">
+              <div class="blame-fill" style="width:${Math.min(pct * 2, 100)}%;background:${color}"></div>
+            </div>
+            <div class="blame-value mono">${v >= 0 ? "+" : ""}${v.toFixed(3)} <span class="muted">${dir}</span></div>
+          </div>
+        `;
+      }).join("")
+    : `<div class="muted">Insufficient wrong decisions for blame attribution.</div>`;
+
+  const recentHtml = recentDecisions.length ? table([
+    { key: "date",               label: "Date",      render: (v) => v ? v.slice(0, 10) : "-" },
+    { key: "recommended_action", label: "Action",    mono: true },
+    { key: "confidence",         label: "Conf",      render: (v) => fmtPct(v) },
+    { key: "best_action_ex_post",label: "Best ex-post", mono: true },
+    { key: "utility",            label: "Utility",   render: (v) => fmtNum(v, 4) },
+    { key: "utility_gap",        label: "Gap",       render: (v) => {
+        if (v === null || v === undefined) return "-";
+        const n = Number(v);
+        const cls = n < -0.01 ? "text-red" : n > 0.01 ? "text-green" : "";
+        return `<span class="${cls}">${fmtNum(v, 4)}</span>`;
+    }},
+    { key: "correct",            label: "✓",         render: (v) => v ? `<span class="badge badge-green">✓</span>` : `<span class="badge badge-red">✗</span>` },
+  ], recentDecisions.slice(-20).reverse()) : `<div class="muted">No decision history available yet.</div>`;
+
+  el.innerHTML = `
+    <div class="audit-kpi-strip">
+      ${metricCard("Error rate (1m)", errShort !== null ? fmtPct(errShort) : "-", errLong !== null ? `3m avg ${fmtPct(errLong)}` : "")}
+      ${metricCard("Consec. errors", streak, streak >= 3 ? "⚠ streak active" : "ok")}
+      ${metricCard("Wrong / total", `${totalWrong} / ${totalDec}`, totalDec ? `${fmtPct(totalDec ? totalWrong/totalDec : null)} miss` : "")}
+      ${metricCard("Mean utility gap", utilGap !== null ? fmtNum(utilGap, 4) : "-", "avg cost of errors")}
+      ${metricCard("Confidence bias", confBias !== null ? fmtNum(confBias, 3) : "-", "> 0 = overconfident")}
+      ${metricCard("Penalty active", penaltyActive ? `<span class="badge badge-red">${fmtPct(penalty)}</span>` : `<span class="badge badge-green">None</span>`, penaltyActive ? (audit.penalty_reason || "") : "model calibrated")}
+      ${calibDrift !== null ? metricCard("Calib. drift", fmtNum(calibDrift, 3), calibDrift > 0.05 ? "⚠ degrading" : "stable") : ""}
+    </div>
+
+    <div class="grid-two" style="margin-top:10px;">
+      <div class="card">
+        <h3>Blame vector — what signals hurt most</h3>
+        <div class="blame-chart">${blameHtml}</div>
+        <div class="muted" style="margin-top:8px;font-size:11px;">
+          Pearson correlation of each context feature vs utility gap on wrong decisions.
+          Positive = signal was high when we erred; negative = signal helped.
+        </div>
+      </div>
+      <div class="card">
+        <h3>Audit narrative</h3>
+        <div class="small-list">
+          ${((audit.calibration_narrative || audit.narrative) || []).map((line) => `<div>${line}</div>`).join("") || `<div class="muted">No narrative available.</div>`}
+          ${(blameObj.narrative || []).map((line) => `<div class="muted">${line}</div>`).join("")}
+        </div>
+        ${penaltyActive ? `
+          <div class="audit-penalty-box">
+            <strong>Confidence penalty: −${fmtPct(penalty)}</strong>
+            <div>${audit.penalty_reason || ""}</div>
+          </div>
+        ` : ""}
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:10px;">
+      <h3>Recent decisions log</h3>
+      ${recentHtml}
+    </div>
+  `;
+}
+
+async function renderChrono() {
+  const el = document.getElementById("chrono-panel");
+  if (!el) return;
+
+  let c;
+  try {
+    c = await fetchJson("/api/chrono");
+  } catch (_) {
+    el.innerHTML = `<div class="muted">Chrono fragility panel not available yet.</div>`;
+    return;
+  }
+
+  if (!c || c.available === false) {
+    el.innerHTML = `<div class="muted">${c?.error || "No chrono panel found — run chrono fragility research first."}</div>`;
+    return;
+  }
+
+  const level   = c.alert_level || "NORMAL";
+  const ceiling = c.beta_ceiling ?? 0.85;
+  const frag    = c.fragility_score ?? null;
+  const frag20  = c.frag_20d_mean ?? null;
+  const trend   = c.frag_trend || "stable";
+  const state   = c.chrono_state || "unknown";
+  const streak  = c.surprise_streak ?? 0;
+  const surp    = c.surprise ?? null;
+  const days    = c.alert_days_persisted ?? 1;
+  const asOf    = c.as_of_date || "";
+
+  // Level → colour
+  const levelColor = {
+    NORMAL_PERMISSIVE: COLORS.teal,
+    NORMAL:            COLORS.muted || "#888",
+    ELEVATED:          COLORS.equity || "#f0a500",
+    HIGH:              "#e07830",
+    EXTREME:           COLORS.drawdown,
+  }[level] || "#888";
+
+  const trendArrow = trend === "rising" ? "↑" : trend === "falling" ? "↓" : "→";
+  const trendColor = trend === "rising" ? COLORS.drawdown : trend === "falling" ? COLORS.teal : "";
+
+  // Build level bar — 5 levels, highlight current
+  const LEVELS = ["NORMAL_PERMISSIVE","NORMAL","ELEVATED","HIGH","EXTREME"];
+  const CEILINGS = [1.00, 0.85, 0.60, 0.40, 0.25];
+  const levelBarHtml = LEVELS.map((lvl, i) => {
+    const active = lvl === level;
+    const col = {
+      NORMAL_PERMISSIVE: COLORS.teal,
+      NORMAL:            "#888",
+      ELEVATED:          COLORS.equity || "#f0a500",
+      HIGH:              "#e07830",
+      EXTREME:           COLORS.drawdown,
+    }[lvl];
+    return `<div class="chrono-level-cell ${active ? 'chrono-level-active' : ''}" style="${active ? `background:${col};color:#fff;` : `border-color:${col};color:${col};`}">
+      <div class="chrono-level-name">${lvl.replace('_',' ')}</div>
+      <div class="chrono-level-ceil">β ≤ ${(CEILINGS[i]*100).toFixed(0)}%</div>
+    </div>`;
+  }).join("");
+
+  const narrativeHtml = (c.narrative || [])
+    .map((line) => `<div style="margin-bottom:4px;">${line}</div>`)
+    .join("") || `<div class="muted">No narrative available.</div>`;
+
+  el.innerHTML = `
+    <div class="chrono-header-row">
+      <div class="chrono-badge" style="background:${levelColor};">
+        ${level.replace(/_/g," ")}
+      </div>
+      <div class="chrono-ceiling-box">
+        <span class="muted">Beta ceiling</span>
+        <strong class="mono" style="font-size:1.6rem;">${(ceiling*100).toFixed(0)}%</strong>
+      </div>
+      <div class="chrono-meta">
+        <div>Fragility <strong>${frag !== null ? frag.toFixed(3) : "—"}</strong>
+          <span style="color:${trendColor}">${trendArrow}</span>
+          <span class="muted">(20d avg ${frag20 !== null ? frag20.toFixed(3) : "—"})</span>
+        </div>
+        <div>State <strong>${state}</strong> · Surprise <strong>${surp !== null ? surp.toFixed(2) : "—"}</strong>${streak > 0 ? ` · <span style="color:${COLORS.drawdown}">Streak ${streak}d</span>` : ""}</div>
+        <div class="muted">Alert for ${days} day${days===1?'':'s'} · As of ${asOf}</div>
+      </div>
+    </div>
+
+    <div class="chrono-level-bar">${levelBarHtml}</div>
+
+    <div class="grid-two" style="margin-top:10px;">
+      <div class="card">
+        <h3>Alert narrative</h3>
+        <div class="small-list">${narrativeHtml}</div>
+      </div>
+      <div class="card">
+        <h3>Beta ceiling by level</h3>
+        ${LEVELS.map((lvl, i) => {
+          const active = lvl === level;
+          const col = {NORMAL_PERMISSIVE:COLORS.teal,NORMAL:"#888",ELEVATED:COLORS.equity||"#f0a500",HIGH:"#e07830",EXTREME:COLORS.drawdown}[lvl];
+          return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0;"></div>
+            <div style="flex:1;font-size:12px;${active?'font-weight:700;':''}">${lvl.replace(/_/g,' ')}</div>
+            <div class="mono" style="font-size:12px;">β ≤ ${(CEILINGS[i]*100).toFixed(0)}%</div>
+            ${active ? `<div class="badge badge-active" style="background:${col};color:#fff;">NOW</div>` : ''}
+          </div>`;
+        }).join("")}
+      </div>
+    </div>
+  `;
+}
+
 function renderAll() {
   renderTopStrip();
   renderWarnings();
@@ -761,6 +1006,8 @@ function renderAll() {
   renderInternational();
   renderPortfolio();
   renderRegimes();
+  renderAudit();
+  renderChrono();
   loadScreener();
 }
 
