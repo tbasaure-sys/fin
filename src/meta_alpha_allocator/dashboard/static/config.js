@@ -1,0 +1,3 @@
+window.META_ALLOCATOR_CONFIG = window.META_ALLOCATOR_CONFIG || {
+  API_BASE: "",
+};

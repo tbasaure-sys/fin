@@ -20,6 +20,7 @@ from .runtime import run_phantom, run_policy, run_production
 def main() -> None:
     parser = argparse.ArgumentParser(description="Meta Allocator")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    default_dashboard_settings = DashboardSettings()
 
     research_parser = subparsers.add_parser("research", help="Run walk-forward research backtest")
     research_parser.add_argument("--start-date", default=ResearchSettings.start_date)
@@ -53,8 +54,8 @@ def main() -> None:
     dashboard_serve = dashboard_subparsers.add_parser("serve", help="Serve the local workstation UI")
     dashboard_serve.add_argument("--start-date", default=ResearchSettings.start_date)
     dashboard_serve.add_argument("--end-date", default=None)
-    dashboard_serve.add_argument("--host", default=DashboardSettings.host)
-    dashboard_serve.add_argument("--port", type=int, default=DashboardSettings.port)
+    dashboard_serve.add_argument("--host", default=default_dashboard_settings.host)
+    dashboard_serve.add_argument("--port", type=int, default=default_dashboard_settings.port)
     dashboard_serve.add_argument("--open-browser", action="store_true")
 
     dashboard_refresh = dashboard_subparsers.add_parser("refresh", help="Refresh the workstation snapshot")
@@ -88,8 +89,8 @@ def main() -> None:
     allocator_settings = AllocatorSettings()
 
     dashboard_settings = DashboardSettings(
-        host=getattr(args, "host", DashboardSettings.host),
-        port=getattr(args, "port", DashboardSettings.port),
+        host=getattr(args, "host", default_dashboard_settings.host),
+        port=getattr(args, "port", default_dashboard_settings.port),
     )
 
     if args.command in {"research", "train"}:

@@ -19,6 +19,7 @@ from ..data.fmp_client import FMPClient
 from ..models import DashboardSnapshot
 from ..research.forecast_baselines import run_forecast_baselines
 from ..research.behavioral_edges import summarize_owner_elasticity
+from ..research.spectral_structure import run_spectral_structure_pipeline
 from ..research.statement_intel import run_statement_intelligence
 from ..policy.engine import build_policy_state_frame
 from ..research.regime_labels import build_daily_regime_frame
@@ -397,6 +398,7 @@ def _build_risk_snapshot(
     forecast_summary: dict[str, Any],
     *,
     fred_client: FREDClient | None,
+    spectral_summary: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     as_of_date = pd.to_datetime(overview_payload.get("as_of_date") or pd.Timestamp.today().normalize())
     latest_policy_state = build_policy_state_frame(pd.DatetimeIndex([as_of_date]), state_panel, proxy_prices, research_settings)
@@ -434,6 +436,7 @@ def _build_risk_snapshot(
         "state": overview_payload.get("state", {}),
         "tail_risk": overview_payload.get("tail_risk_latest", {}),
         "historical_context": historical_context,
+        "spectral": spectral_summary or {},
         "structure": {
             "crowding_pct": latest_row.get("crowding_pct"),
             "breadth_20d": latest_row.get("breadth_20d"),
@@ -507,6 +510,11 @@ def _extract_overview(payload: dict[str, Any]) -> dict[str, Any]:
         "scenario_synthesis": policy.get("scenario_synthesis", {}),
         "current_weights": weights,
         "tail_risk_latest": payload.get("tail_risk", {}),
+        "spectral_state": payload.get("spectral", {}).get("latest", {}).get("structural_state"),
+        "compression_score": payload.get("spectral", {}).get("latest", {}).get("compression_score"),
+        "freedom_score": payload.get("spectral", {}).get("latest", {}).get("freedom_score"),
+        "structural_beta_ceiling": payload.get("spectral", {}).get("latest", {}).get("structural_beta_ceiling"),
+        "structural_suggested_stance": payload.get("spectral", {}).get("latest", {}).get("suggested_stance"),
     }
 
 
@@ -522,6 +530,7 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
         "overview.json": snapshot.get("overview", {}),
         "performance.json": snapshot.get("performance", {}),
         "risk.json": snapshot.get("risk", {}),
+        "spectral.json": snapshot.get("risk", {}).get("spectral", {}),
         "forecast.json": snapshot.get("forecast", {}),
         "hedges.json": snapshot.get("hedges", {}),
         "sectors.json": snapshot.get("sectors", {}),
@@ -612,6 +621,17 @@ def build_dashboard_snapshot(
         warnings.append(f"forecast baseline refresh failed: {exc}")
         forecast_artifacts = type("ForecastFallback", (), {"summary": {"latest": {}, "metrics": [], "warnings": [str(exc)]}})()
     forecast_latest = forecast_artifacts.summary.get("latest", {})
+    try:
+        spectral_artifacts = run_spectral_structure_pipeline(
+            paths,
+            research_settings,
+            market_panel,
+            current_payload.get("weights", {}),
+        )
+    except Exception as exc:
+        warnings.append(f"spectral structure refresh failed: {exc}")
+        spectral_artifacts = type("SpectralFallback", (), {"summary": {"latest": {}, "history": [], "monte_carlo": {}}})()
+    current_payload["spectral"] = spectral_artifacts.summary
     risk = _build_risk_snapshot(
         state_panel,
         market_panel,
@@ -620,11 +640,20 @@ def build_dashboard_snapshot(
         research_settings,
         forecast_latest,
         fred_client=fred_client,
+        spectral_summary=spectral_artifacts.summary,
     )
-    risk["stale_days"] = _staleness_days(_path_mtime(paths.output_root / "tail_risk" / "latest" / "tail_risk_summary.json"), pd.Timestamp.today().normalize())
+    risk["stale_days"] = max(
+        _staleness_days(_path_mtime(paths.output_root / "tail_risk" / "latest" / "tail_risk_summary.json"), pd.Timestamp.today().normalize()) or 0,
+        _staleness_days(_path_mtime(research_settings.spectral_output_dir / "spectral_summary.json"), pd.Timestamp.today().normalize()) or 0,
+    )
     performance = _build_performance_snapshot(paths, dashboard_settings)
     overview["sectors"] = {"preferred": sectors["preferred"]}
     overview["forecast_baseline"] = forecast_latest
+    overview["spectral_state"] = spectral_artifacts.summary.get("latest", {}).get("structural_state")
+    overview["compression_score"] = spectral_artifacts.summary.get("latest", {}).get("compression_score")
+    overview["freedom_score"] = spectral_artifacts.summary.get("latest", {}).get("freedom_score")
+    overview["structural_beta_ceiling"] = spectral_artifacts.summary.get("latest", {}).get("structural_beta_ceiling")
+    overview["structural_suggested_stance"] = spectral_artifacts.summary.get("latest", {}).get("suggested_stance")
     try:
         statement_artifacts = run_statement_intelligence(paths, research_settings)
     except Exception as exc:

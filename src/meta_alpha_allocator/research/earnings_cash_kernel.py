@@ -38,6 +38,18 @@ def _json_default(value):
     raise TypeError(f"Object of type {type(value)!r} is not JSON serializable")
 
 
+def _sanitize_error_message(exc: Exception) -> str:
+    text = str(exc)
+    if "apikey=" in text:
+        prefix, _, remainder = text.partition("apikey=")
+        replacement = "[redacted]"
+        if "&" in remainder:
+            _, suffix = remainder.split("&", 1)
+            return f"{prefix}apikey={replacement}&{suffix}"
+        return f"{prefix}apikey={replacement}"
+    return text
+
+
 def _scalar_score(value: float | None, low: float, high: float, *, reverse: bool = False, neutral: float = 0.5) -> float:
     if value is None or pd.isna(value):
         return neutral
@@ -578,7 +590,7 @@ def run_earnings_cash_kernel(
         try:
             history = _prepare_statement_history(meta["ticker"], client)
         except Exception as exc:
-            warnings.append(f"{meta['ticker']}: FMP statement fetch failed ({exc})")
+            warnings.append(f"{meta['ticker']}: FMP statement fetch failed ({_sanitize_error_message(exc)})")
             history = _prepare_statement_history_from_yfinance(meta["ticker"])
             used_yfinance_fallback = not history.empty
         if history.empty:

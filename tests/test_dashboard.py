@@ -189,6 +189,7 @@ def test_build_dashboard_snapshot_from_existing_outputs(tmp_path: Path, monkeypa
     )
 
     assert snapshot["overview"]["selected_hedge"] == "SHY"
+    assert snapshot["risk"]["spectral"]["latest"]["compression_score"] is not None
     assert snapshot["portfolio"]["top_holdings"][0]["ticker"] == "SGOV"
     assert snapshot["screener"]["rows"][0]["ticker"] == "MSFT"
     assert snapshot["screener"]["source_file"] == "discovery_screener.csv"
