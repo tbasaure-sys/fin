@@ -11,6 +11,8 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
+from ..research.chrono_fragility import latest_chrono_alert
+from ..research.decision_audit import DecisionAudit, AuditSummary
 from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cached_snapshot
 
 
@@ -50,12 +52,26 @@ class DashboardService:
 
         # Always load cached snapshot first — never block startup.
         self._snapshot = load_cached_snapshot(paths, dashboard_settings)
+        if self._snapshot is None:
+            try:
+                self._snapshot = build_dashboard_snapshot(
+                    self.paths,
+                    self.research_settings,
+                    self.allocator_settings,
+                    self.dashboard_settings,
+                    refresh_outputs=False,
+                )
+            except Exception:
+                self._snapshot = None
 
         if self._snapshot is None:
             # No cache at all: build a lightweight empty shell so the server
             # can still respond while the background refresh runs.
             from .snapshot import _empty_snapshot
-            from datetime import UTC, datetime
+            import sys as _sys
+            from datetime import datetime
+            from datetime import timezone as _tz
+            UTC = getattr(__import__("datetime"), "UTC", _tz.utc)
             self._snapshot = _empty_snapshot(
                 generated_at=datetime.now(tz=UTC).isoformat(),
                 warnings=["snapshot not yet available — refresh in progress"],
@@ -94,6 +110,34 @@ class DashboardService:
     def is_refreshing(self) -> bool:
         with self._lock:
             return self._refreshing
+
+    def audit_summary(self) -> dict:
+        """Return the latest audit summary, loading from disk if needed."""
+        # Try cached audit output first (written by run_decision_audit on refresh).
+        audit_path = self.paths.output_root / "audit" / "latest" / "audit_summary.json"
+        if audit_path.exists():
+            try:
+                text = audit_path.read_text(encoding="utf-8").replace("NaN", "null")
+                return json.loads(text)
+            except Exception:
+                pass
+        # Fall back: build live from CSV history and serialise via write_outputs.
+        try:
+            audit = DecisionAudit.from_paths(self.paths)
+            summary = audit.build_summary()
+            # write_outputs serialises the dataclass tree to a plain dict via JSON round-trip.
+            audit.write_outputs(summary)
+            text = audit_path.read_text(encoding="utf-8").replace("NaN", "null")
+            return json.loads(text)
+        except Exception as exc:
+            return {"error": str(exc), "available": False}
+
+    def chrono_alert(self) -> dict:
+        """Return the latest chrono alert dict, loaded from the cached CSV panel."""
+        try:
+            return latest_chrono_alert(self.paths)
+        except Exception as exc:
+            return {"available": False, "error": str(exc)}
 
     def refresh(self) -> dict:
         """Trigger a synchronous refresh (called via POST /api/refresh)."""
@@ -204,6 +248,8 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                     **snapshot.get("status", {}),
                     "refreshing": service.is_refreshing(),
                 },
+                "/api/audit": service.audit_summary(),
+                "/api/chrono": service.chrono_alert(),
             }
             if parsed.path == "/api/screener":
                 self._send_json(apply_screener_query(snapshot, parsed.query))

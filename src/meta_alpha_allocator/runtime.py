@@ -115,7 +115,7 @@ def run_production(paths: PathConfig, research_settings: ResearchSettings, alloc
         proxy_prices if not proxy_prices.empty else defense_prices,
         research_settings,
     ).iloc[-1]
-    policy_decision = build_current_policy_output(research_settings, policy_history, proxy_returns, latest_policy_row)
+    policy_decision = build_current_policy_output(research_settings, policy_history, proxy_returns, latest_policy_row, paths=paths)
     overlay_report = build_overlay_report(
         latest_state=latest_state,
         latest_scored=latest_scored,

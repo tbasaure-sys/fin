@@ -23,6 +23,7 @@ from urllib.parse import parse_qs, urlparse
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
 from .server import DashboardService, CORS_ORIGIN
 from .snapshot import apply_screener_query
+# chrono_alert is exposed via service.chrono_alert() — no extra import needed here
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
 
@@ -155,6 +156,8 @@ def create_app(
                 **snapshot.get("status", {}),
                 "refreshing": service.is_refreshing(),
             },
+            "/api/audit": service.audit_summary(),
+            "/api/chrono": service.chrono_alert(),
         }
 
         if path_info in route_map:

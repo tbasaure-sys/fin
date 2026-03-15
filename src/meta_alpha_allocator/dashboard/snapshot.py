@@ -3,7 +3,12 @@ from __future__ import annotations
 import json
 import math
 import zipfile
-from datetime import UTC, datetime, timedelta
+import sys
+from datetime import datetime, timedelta, timezone
+if sys.version_info >= (3, 11):
+    from datetime import UTC
+else:
+    UTC = timezone.utc
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs
@@ -493,17 +498,17 @@ def _extract_overview(payload: dict[str, Any]) -> dict[str, Any]:
         "crash_prob": overlay.get("state", {}).get("crash_prob"),
         "tail_risk_score": overlay.get("state", {}).get("tail_risk_score"),
         "legitimacy_risk": overlay.get("state", {}).get("legitimacy_risk"),
-        "beta_target": payload.get("beta_target"),
-        "selected_hedge": payload.get("selected_hedge"),
-        "confidence": payload.get("policy_confidence"),
-        "expected_utility": payload.get("policy_expected_utility"),
+        "beta_target": payload.get("beta_target", policy.get("beta_target")),
+        "selected_hedge": payload.get("selected_hedge", policy.get("selected_hedge")),
+        "confidence": payload.get("policy_confidence", policy.get("confidence")),
+        "expected_utility": payload.get("policy_expected_utility", policy.get("expected_utility")),
         "consensus_fragility_score": behavioral_state.get("consensus_fragility_score"),
         "belief_capacity_misalignment": behavioral_state.get("belief_capacity_misalignment"),
         "consensus_fragility_narrative": behavioral_state.get("consensus_fragility_narrative", []),
-        "alternative_action": payload.get("best_alternative_action"),
-        "recommended_action": payload.get("recommended_policy"),
+        "alternative_action": payload.get("best_alternative_action", policy.get("alternative_action")),
+        "recommended_action": payload.get("recommended_policy", policy.get("recommended_action")),
         "policy_recommended_action": policy.get("policy_recommended_action"),
-        "best_hedge_now": payload.get("best_hedge_now"),
+        "best_hedge_now": payload.get("best_hedge_now", policy.get("selected_hedge")),
         "why_this_action": policy.get("explanation_fields", {}).get("why_this_action", []),
         "conditions_that_flip": policy.get("explanation_fields", {}).get("conditions_that_flip_decision", []),
         "scenario_narrative": policy.get("explanation_fields", {}).get("scenario_narrative", []),

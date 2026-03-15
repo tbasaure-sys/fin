@@ -11,6 +11,7 @@ from .data.fred_client import FREDClient
 from .data.fmp_client import FMPClient
 from .research.forecast_baselines import run_forecast_baselines
 from .research.earnings_cash_kernel import run_earnings_cash_kernel
+from .research.chrono_fragility import run_chrono_fragility
 from .research.pipeline import run_research
 from .research.spectral_backtest import run_spectral_backtest
 from .research.statement_intel import run_statement_intelligence
@@ -88,6 +89,10 @@ def main() -> None:
     spectral_backtest_parser.add_argument("--start-date", default=ResearchSettings.start_date)
     spectral_backtest_parser.add_argument("--end-date", default=None)
 
+    chrono_parser = subparsers.add_parser("chrono-fragility", help="Run chrono-fragility representational compression research")
+    chrono_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    chrono_parser.add_argument("--end-date", default=None)
+
     args = parser.parse_args()
     paths = PathConfig()
     research_settings = ResearchSettings(start_date=args.start_date, end_date=args.end_date, top_n=getattr(args, "top_n", ResearchSettings.top_n))
@@ -127,6 +132,9 @@ def main() -> None:
         print(json.dumps(artifacts.summary, indent=2))
     elif args.command == "spectral-backtest":
         artifacts = run_spectral_backtest(paths, research_settings)
+        print(json.dumps(artifacts.summary, indent=2))
+    elif args.command == "chrono-fragility":
+        artifacts = run_chrono_fragility(paths, research_settings)
         print(json.dumps(artifacts.summary, indent=2))
     elif args.command == "policy":
         payload = run_policy(paths, research_settings, allocator_settings)

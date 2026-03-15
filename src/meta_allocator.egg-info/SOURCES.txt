@@ -33,6 +33,7 @@ src/meta_alpha_allocator/production/allocator.py
 src/meta_alpha_allocator/production/reporting.py
 src/meta_alpha_allocator/research/__init__.py
 src/meta_alpha_allocator/research/behavioral_edges.py
+src/meta_alpha_allocator/research/decision_audit.py
 src/meta_alpha_allocator/research/earnings_cash_kernel.py
 src/meta_alpha_allocator/research/features.py
 src/meta_alpha_allocator/research/forecast_baselines.py
