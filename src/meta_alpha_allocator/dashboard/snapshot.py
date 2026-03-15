@@ -1,0 +1,716 @@
+from __future__ import annotations
+
+import json
+import math
+import zipfile
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from typing import Any
+from urllib.parse import parse_qs
+import xml.etree.ElementTree as ET
+
+import numpy as np
+import pandas as pd
+
+from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
+from ..data.adapters import load_fmp_market_proxy_panel, load_state_panel
+from ..data.fred_client import FREDClient
+from ..data.fmp_client import FMPClient
+from ..models import DashboardSnapshot
+from ..research.forecast_baselines import run_forecast_baselines
+from ..research.behavioral_edges import summarize_owner_elasticity
+from ..research.statement_intel import run_statement_intelligence
+from ..policy.engine import build_policy_state_frame
+from ..research.regime_labels import build_daily_regime_frame
+from ..runtime import run_production
+from ..utils import ensure_directory, time_safe_join
+
+
+def _json_default(value: Any) -> Any:
+    if isinstance(value, (pd.Timestamp, datetime)):
+        return value.isoformat()
+    if isinstance(value, np.generic):
+        return value.item()
+    if pd.isna(value):
+        return None
+    raise TypeError(f"Object of type {type(value)!r} is not JSON serializable")
+
+
+def _safe_json_load(path: Path) -> dict[str, Any] | None:
+    if not path.exists():
+        return None
+    text = path.read_text(encoding="utf-8").replace("NaN", "null")
+    return json.loads(text)
+
+
+def _safe_csv_load(path: Path, *, sep: str = ",", decimal: str = ".", thousands: str | None = None, index_col: int | None = None) -> pd.DataFrame:
+    if not path.exists():
+        return pd.DataFrame()
+    return pd.read_csv(path, sep=sep, decimal=decimal, thousands=thousands, index_col=index_col)
+
+
+def _safe_semicolon_csv(path: Path) -> pd.DataFrame:
+    return _safe_csv_load(path, sep=";", decimal=",", thousands=".")
+
+
+def _load_preferred_screener(latest_root: Path) -> pd.DataFrame:
+    discovery_path = latest_root / "discovery_screener.csv"
+    if discovery_path.exists():
+        return _safe_semicolon_csv(discovery_path)
+    return _safe_semicolon_csv(latest_root / "screener.csv")
+
+
+def _path_mtime(path: Path) -> pd.Timestamp | None:
+    if not path.exists():
+        return None
+    return pd.to_datetime(datetime.fromtimestamp(path.stat().st_mtime, tz=UTC)).tz_convert(None)
+
+
+def _staleness_days(reference: pd.Timestamp | None, as_of: pd.Timestamp | None) -> int | None:
+    if reference is None or as_of is None:
+        return None
+    return max(int((pd.to_datetime(as_of) - pd.to_datetime(reference)).days), 0)
+
+
+def _percent(value: float | None) -> float | None:
+    if value is None or pd.isna(value):
+        return None
+    return float(value)
+
+
+def _frame_to_records(frame: pd.DataFrame, limit: int | None = None) -> list[dict[str, Any]]:
+    if frame.empty:
+        return []
+    data = frame.copy()
+    if limit is not None:
+        data = data.head(limit)
+    data = data.replace({np.nan: None})
+    return json.loads(data.to_json(orient="records", date_format="iso"))
+
+
+def _series_growth(returns: pd.Series) -> pd.Series:
+    clean = returns.fillna(0.0)
+    return (1.0 + clean).cumprod()
+
+
+def _series_drawdown(returns: pd.Series) -> pd.Series:
+    wealth = _series_growth(returns)
+    return wealth / wealth.cummax() - 1.0
+
+
+def _rolling_sharpe(returns: pd.Series, window: int = 63) -> pd.Series:
+    rolling_mean = returns.rolling(window).mean() * 252.0
+    rolling_vol = returns.rolling(window).std() * np.sqrt(252.0)
+    return rolling_mean / rolling_vol.replace(0.0, np.nan)
+
+
+def _rolling_vol(returns: pd.Series, window: int = 63) -> pd.Series:
+    return returns.rolling(window).std() * np.sqrt(252.0)
+
+
+def _histogram(values: pd.Series, bins: int = 12) -> list[dict[str, float]]:
+    numeric = pd.to_numeric(values, errors="coerce").dropna()
+    if numeric.empty:
+        return []
+    counts, edges = np.histogram(numeric, bins=bins)
+    hist: list[dict[str, float]] = []
+    for idx, count in enumerate(counts):
+        hist.append({"x0": float(edges[idx]), "x1": float(edges[idx + 1]), "count": int(count)})
+    return hist
+
+
+def _latest_non_null(frame: pd.DataFrame, column: str) -> Any:
+    if frame.empty or column not in frame.columns:
+        return None
+    series = frame[column].dropna()
+    if series.empty:
+        return None
+    return series.iloc[-1]
+
+
+def _read_workbook_meta(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        return {"available": False, "sheets": []}
+    try:
+        with zipfile.ZipFile(path) as workbook:
+            root = ET.fromstring(workbook.read("xl/workbook.xml"))
+            ns = {"x": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+            sheets_root = root.find("x:sheets", ns)
+            sheet_names = [sheet.attrib.get("name", "") for sheet in sheets_root] if sheets_root is not None else []
+        return {"available": True, "path": str(path), "sheets": sheet_names}
+    except Exception as exc:
+        return {"available": True, "path": str(path), "sheets": [], "warning": f"workbook metadata unavailable: {exc}"}
+
+
+def _build_live_market_panel(
+    paths: PathConfig,
+    dashboard_settings: DashboardSettings,
+    tickers: list[str],
+    *,
+    fmp_client: FMPClient | None,
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    end_date = pd.Timestamp.today().normalize().date().isoformat()
+    start_date = (pd.Timestamp.today().normalize() - pd.Timedelta(days=max(dashboard_settings.market_lookback_days * 2, 400))).date().isoformat()
+    unique_tickers = tuple(sorted({ticker for ticker in tickers if ticker and ticker != "DWBDS"}))
+    panel = load_fmp_market_proxy_panel(
+        paths,
+        tickers=unique_tickers,
+        start_date=start_date,
+        end_date=end_date,
+        fmp_client=fmp_client,
+    )
+    quote_rows: list[dict[str, Any]] = []
+    for ticker in unique_tickers:
+        if ticker not in panel.columns:
+            quote_rows.append({"ticker": ticker, "price": None, "return_1d": None, "return_20d": None, "source": "cache"})
+            continue
+        series = panel[ticker].dropna()
+        if series.empty:
+            quote_rows.append({"ticker": ticker, "price": None, "return_1d": None, "return_20d": None, "source": "cache"})
+            continue
+        quote_rows.append(
+            {
+                "ticker": ticker,
+                "price": float(series.iloc[-1]),
+                "return_1d": float(series.pct_change().iloc[-1]) if len(series) >= 2 else None,
+                "return_20d": float(series.iloc[-1] / series.iloc[-21] - 1.0) if len(series) >= 21 else None,
+                "source": "fmp_or_fallback",
+            }
+        )
+    return panel, {"quotes": quote_rows}
+
+
+def _build_performance_snapshot(paths: PathConfig, dashboard_settings: DashboardSettings) -> dict[str, Any]:
+    research_root = paths.output_root / "research" / "latest"
+    policy_root = paths.output_root / "policy" / "latest"
+    research_summary = _safe_json_load(research_root / "research_summary.json") or {}
+    policy_summary = _safe_json_load(policy_root / "policy_backtest_summary.json") or {}
+    research_daily = _safe_csv_load(research_root / "daily_returns.csv", index_col=0)
+    policy_daily = _safe_csv_load(policy_root / "policy_daily_returns.csv", index_col=0)
+
+    if not research_daily.empty:
+        research_daily.index = pd.to_datetime(research_daily.index)
+    if not policy_daily.empty:
+        policy_daily.index = pd.to_datetime(policy_daily.index)
+
+    merged = research_daily.copy()
+    if not policy_daily.empty:
+        merged = merged.join(policy_daily, how="outer")
+    merged = merged.sort_index().tail(dashboard_settings.chart_history_points)
+
+    growth_columns = [column for column in ["spy", "state_overlay", "policy_overlay", "meta_allocator", "selection_standalone", "trend_following", "vol_target"] if column in merged.columns]
+    growth = pd.DataFrame(index=merged.index)
+    drawdown = pd.DataFrame(index=merged.index)
+    rolling = pd.DataFrame(index=merged.index)
+    for column in growth_columns:
+        growth[f"{column}_growth"] = _series_growth(merged[column])
+        drawdown[f"{column}_drawdown"] = _series_drawdown(merged[column])
+        rolling[f"{column}_sharpe_63"] = _rolling_sharpe(merged[column])
+        rolling[f"{column}_vol_63"] = _rolling_vol(merged[column])
+
+    benchmark_table: list[dict[str, Any]] = []
+    for label, payload in [
+        ("Policy overlay", research_summary.get("policy_overlay") or policy_summary.get("policy_overlay")),
+        ("Heuristic state overlay", research_summary.get("state_overlay") or policy_summary.get("heuristic_state_overlay")),
+        ("SPY buy and hold", research_summary.get("benchmark_spy") or policy_summary.get("benchmark_spy")),
+        ("Vol target", research_summary.get("policy_benchmarks", {}).get("vol_target") or policy_summary.get("vol_target")),
+        ("Trend following", research_summary.get("policy_benchmarks", {}).get("trend_following") or policy_summary.get("trend_following")),
+    ]:
+        if payload:
+            benchmark_table.append({"label": label, **payload})
+
+    return {
+        "summary_metrics": research_summary,
+        "policy_summary": policy_summary,
+        "oos_blocks": research_summary.get("oos_blocks", []),
+        "regime_performance": research_summary.get("regime_performance", []),
+        "episode_performance": research_summary.get("episode_performance", []),
+        "confidence_split": research_summary.get("policy_high_vs_low_confidence", policy_summary.get("high_vs_low_confidence", {})),
+        "series": _frame_to_records(growth.join(drawdown).join(rolling).reset_index().rename(columns={"index": "date"})),
+        "benchmark_table": benchmark_table,
+        "as_of_date": str(merged.index.max().date()) if not merged.empty else None,
+        "stale_days": _staleness_days(_path_mtime(research_root / "research_summary.json"), pd.Timestamp.today().normalize()),
+    }
+
+
+def _build_portfolio_snapshot(
+    paths: PathConfig,
+    overview: dict[str, Any],
+    market_panel: pd.DataFrame,
+    market_quotes: dict[str, Any],
+) -> dict[str, Any]:
+    latest_root = paths.portfolio_manager_root / "output" / "latest"
+    portfolio_summary = _safe_json_load(latest_root / "portfolio_summary.json") or {}
+    holdings = _safe_semicolon_csv(latest_root / "holdings_normalized.csv")
+    valuation = _safe_semicolon_csv(latest_root / "valuation_summary.csv")
+    screener = _safe_semicolon_csv(latest_root / "screener.csv")
+    simulation = _safe_semicolon_csv(latest_root / "simulation_summary.csv")
+    workbook_meta = _read_workbook_meta(latest_root / "portfolio_snapshot.xlsx")
+
+    analytics = portfolio_summary.get("analytics", {})
+    macro = portfolio_summary.get("macro", {})
+
+    if not holdings.empty:
+        holdings["weight"] = pd.to_numeric(holdings.get("weight"), errors="coerce").fillna(0.0)
+        holdings["market_value_usd"] = pd.to_numeric(holdings.get("market_value_usd"), errors="coerce")
+        holdings["current_price_usd"] = pd.to_numeric(holdings.get("current_price_usd"), errors="coerce")
+        holdings["ticker"] = holdings["ticker"].astype(str)
+
+    if not valuation.empty:
+        valuation["upside"] = pd.to_numeric(valuation.get("upside"), errors="coerce")
+        valuation["current_price"] = pd.to_numeric(valuation.get("current_price"), errors="coerce")
+        valuation["fair_value"] = pd.to_numeric(valuation.get("fair_value"), errors="coerce")
+
+    if not screener.empty:
+        for column in ["composite_score", "quality_score", "value_score", "risk_score", "momentum_6m", "suggested_position", "valuation_gap"]:
+            if column in screener.columns:
+                screener[column] = pd.to_numeric(screener[column], errors="coerce")
+
+    merged_holdings = holdings.merge(
+        valuation[["ticker", "fair_value", "upside", "confidence"]].copy(),
+        on="ticker",
+        how="left",
+    ).merge(
+        screener[["ticker", "composite_score", "quality_score", "value_score", "risk_score", "momentum_6m", "thesis_bucket", "suggested_position", "analyst_consensus"]].copy(),
+        on="ticker",
+        how="left",
+    )
+    merged_holdings = merged_holdings.sort_values("weight", ascending=False)
+
+    sector_weights = (
+        merged_holdings.groupby("sector", dropna=False)["weight"].sum().sort_values(ascending=False).reset_index().rename(columns={"weight": "portfolio_weight"})
+        if not merged_holdings.empty
+        else pd.DataFrame(columns=["sector", "portfolio_weight"])
+    )
+    top_holdings = merged_holdings[["ticker", "sector", "industry", "weight", "market_value_usd", "current_price_usd", "upside", "composite_score", "momentum_6m", "thesis_bucket"]].head(12)
+
+    preferred_sectors = [sector for sector in (record.get("sector") for record in overview.get("sectors", {}).get("preferred", [])[:3]) if isinstance(sector, str) and sector]
+    current_regime = overview.get("regime")
+    selected_hedge = overview.get("selected_hedge")
+    top_sector_names = [sector for sector in (sector_weights["sector"].head(3).tolist() if not sector_weights.empty else []) if isinstance(sector, str) and sector]
+    mismatches = [sector for sector in top_sector_names if sector not in preferred_sectors]
+    selected_hedge_weight = float(merged_holdings.loc[merged_holdings["ticker"] == selected_hedge, "weight"].sum()) if selected_hedge else 0.0
+    beta_target = overview.get("beta_target")
+    portfolio_beta = analytics.get("Beta")
+    notes = []
+    if mismatches:
+        notes.append(f"Current top sectors diverge from the preferred map: {', '.join(mismatches[:3])}.")
+    if selected_hedge and selected_hedge_weight == 0:
+        notes.append(f"Selected hedge {selected_hedge} is not currently present in the portfolio.")
+    if beta_target is not None and portfolio_beta is not None and portfolio_beta > beta_target + 0.25:
+        notes.append("Portfolio beta is materially above the current system beta target.")
+    if current_regime in {"DEFENSIVE", "CRISIS"} and analytics.get("Holdings Count", 0) > 25:
+        notes.append("Regime is defensive while the live portfolio remains broadly invested.")
+
+    history_rows: list[dict[str, Any]] = []
+    liquid_holdings = merged_holdings.loc[(merged_holdings["asset_type"] != "cash") & merged_holdings["ticker"].isin(market_panel.columns)].copy()
+    if not liquid_holdings.empty and "SPY" in market_panel.columns:
+        weights = liquid_holdings.set_index("ticker")["weight"].fillna(0.0)
+        returns = market_panel.loc[:, weights.index.union(pd.Index(["SPY"]))].pct_change().fillna(0.0)
+        portfolio_returns = returns[weights.index].mul(weights, axis=1).sum(axis=1)
+        growth = pd.DataFrame(
+            {
+                "date": returns.index,
+                "portfolio_growth": _series_growth(portfolio_returns),
+                "spy_growth": _series_growth(returns["SPY"]),
+            }
+        ).tail(180)
+        history_rows = _frame_to_records(growth)
+
+    valuation_hist = _histogram(merged_holdings["upside"] if "upside" in merged_holdings.columns else pd.Series(dtype=float))
+    simulation_focus = simulation[["ticker", "prob_loss", "expected_return", "suggested_position", "var_95", "cvar_95"]].copy() if not simulation.empty else pd.DataFrame()
+    if not simulation_focus.empty:
+        simulation_focus = simulation_focus.sort_values(["suggested_position", "expected_return"], ascending=[False, False])
+
+    return {
+        "as_of": analytics.get("As of"),
+        "analytics": analytics,
+        "macro": macro,
+        "quotes": market_quotes.get("quotes", []),
+        "holdings": _frame_to_records(merged_holdings),
+        "top_holdings": _frame_to_records(top_holdings),
+        "sector_weights": _frame_to_records(sector_weights),
+        "current_mix_vs_spy": history_rows,
+        "valuation_histogram": valuation_hist,
+        "simulation_rank": _frame_to_records(simulation_focus, limit=15),
+        "alignment": {
+            "preferred_sectors": preferred_sectors,
+            "portfolio_top_sectors": top_sector_names,
+            "mismatched_sectors": mismatches,
+            "selected_hedge": selected_hedge,
+            "selected_hedge_weight": selected_hedge_weight,
+            "beta_target": beta_target,
+            "portfolio_beta": portfolio_beta,
+            "notes": notes,
+        },
+        "workbook": workbook_meta,
+        "stale_days": _staleness_days(_path_mtime(latest_root / "portfolio_summary.json"), pd.Timestamp.today().normalize()),
+    }
+
+
+def _build_screener_snapshot(paths: PathConfig, statement_overlay: pd.DataFrame | None = None) -> dict[str, Any]:
+    latest_root = paths.portfolio_manager_root / "output" / "latest"
+    screener_source = latest_root / "discovery_screener.csv" if (latest_root / "discovery_screener.csv").exists() else latest_root / "screener.csv"
+    screener = _load_preferred_screener(latest_root)
+    daily_hits = _safe_csv_load(latest_root / "daily_screener_hits.csv", sep=";", decimal=",", thousands=".")
+    if not screener.empty:
+        for column in ["composite_score", "quality_score", "value_score", "risk_score", "growth_score", "momentum_6m", "valuation_gap", "suggested_position", "fair_value", "current_price"]:
+            if column in screener.columns:
+                screener[column] = pd.to_numeric(screener[column], errors="coerce")
+        for column in ["discovery_score", "owner_elasticity_score", "market_cap", "current_volume", "avg_volume_20", "volume_ratio_20", "dollar_volume_20"]:
+            if column in screener.columns:
+                screener[column] = pd.to_numeric(screener[column], errors="coerce")
+        if statement_overlay is not None and not statement_overlay.empty:
+            overlay_columns = [
+                "ticker",
+                "statement_score",
+                "statement_conviction_score",
+                "statement_bucket",
+                "earnings_cash_kernel_score",
+                "earnings_cash_kernel_bucket",
+                "kernel_data_quality",
+            ]
+            available_overlay_columns = [column for column in overlay_columns if column in statement_overlay.columns]
+            screener = screener.merge(statement_overlay[available_overlay_columns].copy(), on="ticker", how="left")
+        primary_sort = "discovery_score" if "discovery_score" in screener.columns else "composite_score"
+        screener = screener.sort_values([primary_sort, "suggested_position"], ascending=[False, False])
+    owner_elasticity = summarize_owner_elasticity(screener)
+    return {
+        "rows": _frame_to_records(screener),
+        "columns": list(screener.columns),
+        "daily_hits": _frame_to_records(daily_hits),
+        "owner_elasticity_top_names": owner_elasticity.get("top_names", []),
+        "owner_elasticity_sector_breadth": owner_elasticity.get("sector_breadth", []),
+        "default_sort": {"column": "discovery_score" if "discovery_score" in screener.columns else "composite_score", "direction": "desc"},
+        "source_file": screener_source.name,
+        "as_of": _path_mtime(screener_source).isoformat() if _path_mtime(screener_source) is not None else None,
+        "stale_days": _staleness_days(_path_mtime(screener_source), pd.Timestamp.today().normalize()),
+    }
+
+
+def _build_risk_snapshot(
+    state_panel: pd.DataFrame,
+    proxy_prices: pd.DataFrame,
+    overview_payload: dict[str, Any],
+    policy_decision: dict[str, Any],
+    research_settings: ResearchSettings,
+    forecast_summary: dict[str, Any],
+    *,
+    fred_client: FREDClient | None,
+) -> dict[str, Any]:
+    as_of_date = pd.to_datetime(overview_payload.get("as_of_date") or pd.Timestamp.today().normalize())
+    latest_policy_state = build_policy_state_frame(pd.DatetimeIndex([as_of_date]), state_panel, proxy_prices, research_settings)
+    latest_row = latest_policy_state.iloc[-1].to_dict() if not latest_policy_state.empty else {}
+
+    macro = {
+        "term_spread": latest_row.get("fred_term_spread"),
+        "high_yield_spread": latest_row.get("fred_hy_spread"),
+        "hy_ig_gap": latest_row.get("fred_hy_ig_gap"),
+        "m2_yoy": latest_row.get("fred_m2_yoy"),
+        "balance_sheet_yoy": latest_row.get("fred_balance_sheet_yoy"),
+    }
+    if fred_client is not None:
+        try:
+            fred_panel = fred_client.get_macro_panel(research_settings.fred_series, (as_of_date - pd.Timedelta(days=500)).date().isoformat(), as_of_date.date().isoformat())
+            if not fred_panel.empty:
+                latest = fred_panel.sort_values("date").iloc[-1].to_dict()
+                macro.update(
+                    {
+                        "dgs10": latest.get("DGS10"),
+                        "dgs2": latest.get("DGS2"),
+                        "fedfunds": latest.get("FEDFUNDS"),
+                        "m2_level": latest.get("M2SL"),
+                        "walcl": latest.get("WALCL"),
+                    }
+                )
+        except Exception:
+            pass
+
+    historical_context = build_daily_regime_frame([as_of_date]).iloc[-1].to_dict()
+    if isinstance(historical_context.get("date"), pd.Timestamp):
+        historical_context["date"] = historical_context["date"].date().isoformat()
+
+    return {
+        "state": overview_payload.get("state", {}),
+        "tail_risk": overview_payload.get("tail_risk_latest", {}),
+        "historical_context": historical_context,
+        "structure": {
+            "crowding_pct": latest_row.get("crowding_pct"),
+            "breadth_20d": latest_row.get("breadth_20d"),
+            "dispersion_20d": latest_row.get("dispersion_20d"),
+            "mean_corr_20d": latest_row.get("mean_corr_20d"),
+            "effective_dimension_20d": latest_row.get("d_eff_20d"),
+            "avg_pair_corr_60d": latest_row.get("avg_pair_corr_60d"),
+            "pct_positive_20d": latest_row.get("pct_positive_20d"),
+            "advance_decline_ratio": latest_row.get("advance_decline_ratio"),
+            "momentum_concentration_60d": latest_row.get("momentum_concentration_60d"),
+            "realized_cross_sectional_vol": latest_row.get("realized_cross_sectional_vol"),
+            "spy_mom_20d": latest_row.get("spy_mom_20d"),
+            "spy_vol_20d": latest_row.get("spy_vol_20d"),
+            "spy_drawdown_20d": latest_row.get("spy_drawdown_20d"),
+            "gold_return_3m": latest_row.get("gold_return_3m"),
+            "dollar_return_3m": latest_row.get("dollar_return_3m"),
+            "oil_return_3m": latest_row.get("oil_return_3m"),
+            "gold_commodity_ratio": latest_row.get("gold_commodity_ratio"),
+        },
+        "macro": macro,
+        "explanation": policy_decision.get("explanation_fields", {}),
+        "forecast_baseline": forecast_summary,
+    }
+
+
+def _build_status(snapshot: dict[str, Any], warnings: list[str]) -> dict[str, Any]:
+    panels = []
+    for name in ["performance", "risk", "hedges", "sectors", "international", "portfolio", "screener", "forecast", "statement_intelligence"]:
+        payload = snapshot.get(name, {})
+        stale_days = payload.get("stale_days")
+        status = "fresh"
+        if stale_days is None:
+            status = "unknown"
+        elif stale_days > 30:
+            status = "stale"
+        elif stale_days > 7:
+            status = "aging"
+        panels.append({"name": name, "stale_days": stale_days, "status": status})
+    return {
+        "warnings": warnings,
+        "panels": panels,
+        "last_refresh": snapshot.get("generated_at"),
+    }
+
+
+def _extract_overview(payload: dict[str, Any]) -> dict[str, Any]:
+    overlay = payload.get("overlay_report", {})
+    policy = payload.get("policy_decision", {})
+    behavioral_state = policy.get("behavioral_state", payload.get("behavioral_state", {}))
+    weights = payload.get("weights", {})
+    return {
+        "as_of_date": overlay.get("as_of_date"),
+        "regime": overlay.get("state", {}).get("regime"),
+        "crash_prob": overlay.get("state", {}).get("crash_prob"),
+        "tail_risk_score": overlay.get("state", {}).get("tail_risk_score"),
+        "legitimacy_risk": overlay.get("state", {}).get("legitimacy_risk"),
+        "beta_target": payload.get("beta_target"),
+        "selected_hedge": payload.get("selected_hedge"),
+        "confidence": payload.get("policy_confidence"),
+        "expected_utility": payload.get("policy_expected_utility"),
+        "consensus_fragility_score": behavioral_state.get("consensus_fragility_score"),
+        "belief_capacity_misalignment": behavioral_state.get("belief_capacity_misalignment"),
+        "consensus_fragility_narrative": behavioral_state.get("consensus_fragility_narrative", []),
+        "alternative_action": payload.get("best_alternative_action"),
+        "recommended_action": payload.get("recommended_policy"),
+        "policy_recommended_action": policy.get("policy_recommended_action"),
+        "best_hedge_now": payload.get("best_hedge_now"),
+        "why_this_action": policy.get("explanation_fields", {}).get("why_this_action", []),
+        "conditions_that_flip": policy.get("explanation_fields", {}).get("conditions_that_flip_decision", []),
+        "scenario_narrative": policy.get("explanation_fields", {}).get("scenario_narrative", []),
+        "scenario_synthesis": policy.get("scenario_synthesis", {}),
+        "current_weights": weights,
+        "tail_risk_latest": payload.get("tail_risk", {}),
+    }
+
+
+def load_cached_snapshot(paths: PathConfig, dashboard_settings: DashboardSettings) -> dict[str, Any] | None:
+    snapshot_path = dashboard_settings.output_dir / "dashboard_snapshot.json"
+    return _safe_json_load(snapshot_path)
+
+
+def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
+    ensure_directory(output_dir)
+    files = {
+        "dashboard_snapshot.json": snapshot,
+        "overview.json": snapshot.get("overview", {}),
+        "performance.json": snapshot.get("performance", {}),
+        "risk.json": snapshot.get("risk", {}),
+        "forecast.json": snapshot.get("forecast", {}),
+        "hedges.json": snapshot.get("hedges", {}),
+        "sectors.json": snapshot.get("sectors", {}),
+        "international.json": snapshot.get("international", {}),
+        "portfolio.json": snapshot.get("portfolio", {}),
+        "screener.json": snapshot.get("screener", {}),
+        "statement_intelligence.json": snapshot.get("statement_intelligence", {}),
+        "statement_kernel.json": {
+            "top_kernel_names": snapshot.get("statement_intelligence", {}).get("top_kernel_names", []),
+            "cash_mismatch_names": snapshot.get("statement_intelligence", {}).get("cash_mismatch_names", []),
+            "kernel_sector_breadth": snapshot.get("statement_intelligence", {}).get("kernel_sector_breadth", []),
+            "kernel_research_utility": snapshot.get("statement_intelligence", {}).get("kernel_research_utility", {}),
+        },
+        "status.json": snapshot.get("status", {}),
+    }
+    for name, payload in files.items():
+        (output_dir / name).write_text(json.dumps(payload, indent=2, default=_json_default), encoding="utf-8")
+
+
+def build_dashboard_snapshot(
+    paths: PathConfig,
+    research_settings: ResearchSettings,
+    allocator_settings: AllocatorSettings,
+    dashboard_settings: DashboardSettings,
+    *,
+    refresh_outputs: bool = True,
+) -> dict[str, Any]:
+    warnings: list[str] = []
+    current_payload = None
+    if refresh_outputs:
+        try:
+            current_payload = run_production(paths, research_settings, allocator_settings)
+        except Exception as exc:
+            warnings.append(f"production refresh failed: {exc}")
+            current_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
+    else:
+        current_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
+
+    if current_payload is None:
+        cached = load_cached_snapshot(paths, dashboard_settings)
+        if cached is not None:
+            cached.setdefault("status", {})
+            cached["status"]["warnings"] = list(cached["status"].get("warnings", [])) + warnings + ["using cached snapshot because current payload is unavailable"]
+            return cached
+        raise FileNotFoundError("No current allocator payload or cached dashboard snapshot is available.")
+
+    overview = _extract_overview(current_payload)
+    fmp_client = FMPClient.from_env(paths.cache_root)
+    fred_client = FREDClient.from_env(paths.cache_root)
+    state_panel = load_state_panel(paths)
+    tail_risk_panel = _safe_csv_load(paths.output_root / "tail_risk" / "latest" / "tail_risk_predictions.csv")
+    if not tail_risk_panel.empty and "date" in tail_risk_panel.columns:
+        merge_cols = ["date"] + [column for column in tail_risk_panel.columns if column != "date" and column not in state_panel.columns]
+        state_panel = time_safe_join(state_panel, tail_risk_panel[merge_cols], on="date")
+    holdings = _safe_semicolon_csv(paths.portfolio_manager_root / "output" / "latest" / "holdings_normalized.csv")
+    holding_tickers = holdings["ticker"].astype(str).tolist() if not holdings.empty and "ticker" in holdings.columns else []
+    market_tickers = holding_tickers + ["SPY", *research_settings.hedge_tickers, *research_settings.market_proxy_tickers]
+    market_panel, market_quotes = _build_live_market_panel(paths, dashboard_settings, market_tickers, fmp_client=fmp_client)
+
+    production_root = paths.output_root / "production" / "latest"
+    sector_map = _safe_csv_load(production_root / "current_sector_map.csv")
+    international_map = _safe_csv_load(production_root / "current_international_map.csv")
+    hedge_ranking = _safe_csv_load(production_root / "current_hedge_ranking.csv")
+
+    sectors = {
+        "records": _frame_to_records(sector_map),
+        "preferred": _frame_to_records(sector_map.loc[sector_map.get("view", pd.Series(dtype=str)) == "preferred"], limit=6),
+        "deteriorating": _frame_to_records(sector_map.sort_values("defense_fit", ascending=False), limit=5) if "defense_fit" in sector_map.columns else [],
+        "cross_section_staleness_days": current_payload.get("overlay_report", {}).get("selection_context", {}).get("cross_section_staleness_days"),
+        "stale_days": _staleness_days(_path_mtime(production_root / "current_sector_map.csv"), pd.Timestamp.today().normalize()),
+    }
+    international = {
+        "records": _frame_to_records(international_map),
+        "preferred": _frame_to_records(international_map.loc[international_map.get("view", pd.Series(dtype=str)) == "preferred"], limit=6),
+        "stale_days": _staleness_days(_path_mtime(production_root / "current_international_map.csv"), pd.Timestamp.today().normalize()),
+    }
+    hedges = {
+        "selected_hedge": current_payload.get("selected_hedge"),
+        "best_hedge_now": current_payload.get("best_hedge_now"),
+        "alternative_hedge": current_payload.get("overlay_report", {}).get("hedge_summary", {}).get("secondary_hedge"),
+        "us_treasuries_best_hedge": current_payload.get("overlay_report", {}).get("hedge_summary", {}).get("us_treasuries_best_hedge"),
+        "ranking": _frame_to_records(hedge_ranking),
+        "stale_days": _staleness_days(_path_mtime(production_root / "current_hedge_ranking.csv"), pd.Timestamp.today().normalize()),
+    }
+    try:
+        forecast_artifacts = run_forecast_baselines(paths, research_settings, state_panel, market_panel)
+    except Exception as exc:
+        warnings.append(f"forecast baseline refresh failed: {exc}")
+        forecast_artifacts = type("ForecastFallback", (), {"summary": {"latest": {}, "metrics": [], "warnings": [str(exc)]}})()
+    forecast_latest = forecast_artifacts.summary.get("latest", {})
+    risk = _build_risk_snapshot(
+        state_panel,
+        market_panel,
+        current_payload.get("overlay_report", {}),
+        current_payload.get("policy_decision", {}),
+        research_settings,
+        forecast_latest,
+        fred_client=fred_client,
+    )
+    risk["stale_days"] = _staleness_days(_path_mtime(paths.output_root / "tail_risk" / "latest" / "tail_risk_summary.json"), pd.Timestamp.today().normalize())
+    performance = _build_performance_snapshot(paths, dashboard_settings)
+    overview["sectors"] = {"preferred": sectors["preferred"]}
+    overview["forecast_baseline"] = forecast_latest
+    try:
+        statement_artifacts = run_statement_intelligence(paths, research_settings)
+    except Exception as exc:
+        warnings.append(f"statement intelligence refresh failed: {exc}")
+        statement_artifacts = type("StatementFallback", (), {"summary": {"top_statement_names": [], "risk_names": [], "coverage": 0, "holdings_coverage": 0}, "panel": pd.DataFrame(columns=["ticker", "statement_score", "statement_bucket", "statement_commentary"])})()
+    if not sector_map.empty and statement_artifacts.summary.get("kernel_sector_breadth"):
+        kernel_sector = pd.DataFrame(statement_artifacts.summary["kernel_sector_breadth"])
+        if not kernel_sector.empty and "sector" in kernel_sector.columns:
+            sector_map = sector_map.merge(kernel_sector, on="sector", how="left")
+    portfolio = _build_portfolio_snapshot(paths, overview, market_panel, market_quotes)
+    portfolio["statement_intelligence"] = statement_artifacts.summary
+    screener = _build_screener_snapshot(paths, statement_artifacts.panel)
+    screener_overlay_columns = [
+        "ticker",
+        "statement_score",
+        "statement_conviction_score",
+        "statement_bucket",
+        "statement_commentary",
+        "earnings_cash_kernel_score",
+        "earnings_cash_kernel_bucket",
+        "earnings_cash_kernel_commentary",
+        "kernel_data_quality",
+    ]
+    available_screener_overlay_columns = [column for column in screener_overlay_columns if column in statement_artifacts.panel.columns]
+    screener["statement_overlay"] = _frame_to_records(statement_artifacts.panel[available_screener_overlay_columns], limit=200)
+
+    snapshot_dict = {
+        "generated_at": datetime.now(tz=UTC).isoformat(),
+        "as_of_date": overview.get("as_of_date"),
+        "overview": overview,
+        "performance": performance,
+        "risk": risk,
+        "forecast": {
+            "latest": forecast_latest,
+            "metrics": forecast_artifacts.summary.get("metrics", []),
+            "warnings": forecast_artifacts.summary.get("warnings", []),
+            "stale_days": _staleness_days(_path_mtime(research_settings.forecast_output_dir / "forecast_summary.json"), pd.Timestamp.today().normalize()),
+        },
+        "hedges": hedges,
+        "sectors": sectors,
+        "international": international,
+        "portfolio": portfolio,
+        "screener": screener,
+        "statement_intelligence": {
+            "top_statement_names": statement_artifacts.summary.get("top_statement_names", []),
+            "top_compounders": statement_artifacts.summary.get("top_compounders", []),
+            "top_cash_generators": statement_artifacts.summary.get("top_cash_generators", []),
+            "top_kernel_names": statement_artifacts.summary.get("top_kernel_names", []),
+            "cash_mismatch_names": statement_artifacts.summary.get("cash_mismatch_names", []),
+            "kernel_sector_breadth": statement_artifacts.summary.get("kernel_sector_breadth", []),
+            "kernel_research_utility": statement_artifacts.summary.get("kernel_research_utility", {}),
+            "risk_names": statement_artifacts.summary.get("risk_names", []),
+            "coverage": statement_artifacts.summary.get("coverage", 0),
+            "holdings_coverage": statement_artifacts.summary.get("holdings_coverage", 0),
+            "stale_days": _staleness_days(_path_mtime(research_settings.statement_output_dir / "statement_intelligence_summary.json"), pd.Timestamp.today().normalize()),
+        },
+    }
+    snapshot_dict["status"] = _build_status(snapshot_dict, warnings)
+    snapshot_dict["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
+    snapshot = DashboardSnapshot(**snapshot_dict)
+    payload = snapshot.__dict__
+    _write_snapshot_files(payload, dashboard_settings.output_dir)
+    return payload
+
+
+def apply_screener_query(snapshot: dict[str, Any], query_string: str) -> dict[str, Any]:
+    screener = snapshot.get("screener", {})
+    rows = pd.DataFrame(screener.get("rows", []))
+    params = parse_qs(query_string)
+    search = (params.get("search") or [""])[0].strip().lower()
+    sort_by = (params.get("sort_by") or [screener.get("default_sort", {}).get("column", "composite_score")])[0]
+    direction = (params.get("direction") or [screener.get("default_sort", {}).get("direction", "desc")])[0]
+    limit = int((params.get("limit") or ["100"])[0])
+    if not rows.empty and search:
+        mask = pd.Series(False, index=rows.index)
+        for column in ["ticker", "sector", "industry", "thesis_bucket", "analyst_consensus"]:
+            if column in rows.columns:
+                mask = mask | rows[column].astype(str).str.lower().str.contains(search, na=False)
+        rows = rows.loc[mask]
+    if not rows.empty and sort_by in rows.columns:
+        ascending = direction == "asc"
+        rows = rows.sort_values(sort_by, ascending=ascending, na_position="last")
+    return {
+        "rows": _frame_to_records(rows, limit=limit),
+        "count": int(len(rows)),
+        "sort_by": sort_by,
+        "direction": direction,
+        "search": search,
+    }

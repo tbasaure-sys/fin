@@ -1,0 +1,3487 @@
+{
+  "as_of": "2026-03-13",
+  "analytics": {
+    "As of": "2026-03-13",
+    "Annual Return": 0.0833006113012007,
+    "Annual Volatility": 0.2237979893118734,
+    "Sharpe Ratio": 0.19348078789420753,
+    "Sortino Ratio": 0.27478822558527277,
+    "Max Drawdown": -0.14656151326632094,
+    "VaR 95% (1d)": -0.022968830858663566,
+    "CVaR 95% (1d)": -0.03147793951670529,
+    "Ulcer Index": 6.767681308358099,
+    "Beta": 0.8320985041271206,
+    "Alpha (annual)": 0.016603685148931915,
+    "R^2": 0.5775835935280956,
+    "Tracking Error": 0.14944830325407993,
+    "Top Position Weight": 0.07595548738152845,
+    "Concentration HHI": 0.03554242269442164,
+    "Holdings Count": 36,
+    "Total Market Value (CLP)": 34984444.48665281
+  },
+  "macro": {
+    "risk_free_rate": null,
+    "implied_equity_risk_premium": 0.042300000000000004,
+    "damodaran_reference": "https://www.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html#2025",
+    "fred_reference": null
+  },
+  "quotes": [
+    {
+      "ticker": "ABEV",
+      "price": 2.859999895095825,
+      "return_1d": -0.003484317373521062,
+      "return_20d": -0.10625004610046673,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "ADUR",
+      "price": 11.15999984741211,
+      "return_1d": 0.008130095308852558,
+      "return_20d": 0.04887213226601883,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "ASML",
+      "price": 1345.68994140625,
+      "return_1d": -0.004357873629341702,
+      "return_20d": -0.04348664334535146,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "ASTS",
+      "price": 86.33999633789062,
+      "return_1d": -0.008611781278416442,
+      "return_20d": 0.05010940228677696,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "BABA",
+      "price": 135.2100067138672,
+      "return_1d": 0.007526153417235504,
+      "return_20d": -0.14817608295059792,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "BFLY",
+      "price": 3.799999952316284,
+      "return_1d": 0.04395600076948947,
+      "return_20d": 0.2459016431886898,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "BIDU",
+      "price": 124.06999969482422,
+      "return_1d": 0.007388730153105705,
+      "return_20d": -0.1034109313705166,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "BIL",
+      "price": 91.51000213623047,
+      "return_1d": 0.00032792717748186817,
+      "return_20d": 0.0030978417722244966,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "BROS",
+      "price": 47.29999923706055,
+      "return_1d": -0.018061012351161865,
+      "return_20d": -0.06926407868755202,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "COPX",
+      "price": 76.38999938964844,
+      "return_1d": -0.04201151948667392,
+      "return_20d": -0.12346531208074984,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "DBC",
+      "price": 28.709999084472656,
+      "return_1d": -0.005197557959340515,
+      "return_20d": 0.2063025212104388,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "EEM",
+      "price": 56.79999923706055,
+      "return_1d": -0.00263391613466879,
+      "return_20d": -0.06671050497164233,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "EFA",
+      "price": 96.30000305175781,
+      "return_1d": -0.011902278305065739,
+      "return_20d": -0.0753720437744837,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "EWC",
+      "price": 55.029998779296875,
+      "return_1d": -0.01468217935948879,
+      "return_20d": -0.00416213444122937,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "EWJ",
+      "price": 83.36000061035156,
+      "return_1d": -0.009858674509866439,
+      "return_20d": -0.10720790234309918,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "EWY",
+      "price": 124.1500015258789,
+      "return_1d": 0.005263170250031646,
+      "return_20d": -0.05084098907281742,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "EWZ",
+      "price": 35.4900016784668,
+      "return_1d": -0.017441784940415372,
+      "return_20d": -0.07794231928231765,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "FXI",
+      "price": 36.2400016784668,
+      "return_1d": 0.0022124400274412537,
+      "return_20d": -0.06259695236670593,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "GLD",
+      "price": 460.8399963378906,
+      "return_1d": -0.012936961278600778,
+      "return_20d": 0.020935291838064307,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "HYG",
+      "price": 79.19999694824219,
+      "return_1d": -0.0018903784343212715,
+      "return_20d": -0.014872238702857032,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "IBRX",
+      "price": 8.390000343322754,
+      "return_1d": 0.07289004592697834,
+      "return_20d": 0.2673716749791437,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "IEF",
+      "price": 95.58999633789062,
+      "return_1d": -0.0010451050367238368,
+      "return_20d": -0.009946702691289722,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "INDA",
+      "price": 48.060001373291016,
+      "return_1d": -0.009480607587237788,
+      "return_20d": -0.09508565579033834,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "IREN",
+      "price": 41.58000183105469,
+      "return_1d": 0.005076212342081332,
+      "return_20d": 0.0387210366980939,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "ISRG",
+      "price": 472.1600036621094,
+      "return_1d": -0.01483503143227205,
+      "return_20d": -0.013455918009356083,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "IWM",
+      "price": 246.58999633789062,
+      "return_1d": -0.003314366080923059,
+      "return_20d": -0.04989601518330011,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "LQD",
+      "price": 108.16999816894531,
+      "return_1d": -0.0036842730680967106,
+      "return_20d": -0.02407633346606708,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "MELI",
+      "price": 1670.0,
+      "return_1d": -0.005952380952380931,
+      "return_20d": -0.16791230692575987,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "NBIS",
+      "price": 112.94999694824219,
+      "return_1d": 0.045446093956939215,
+      "return_20d": 0.25877624788380604,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "NFLX",
+      "price": 95.30999755859375,
+      "return_1d": 0.010603329719934607,
+      "return_20d": 0.2563933138907477,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "NTR",
+      "price": 82.8499984741211,
+      "return_1d": -0.012985512694570489,
+      "return_20d": 0.17634528063508448,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "NU",
+      "price": 13.890000343322754,
+      "return_1d": -0.00572655133692912,
+      "return_20d": -0.184859178577521,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "ONDS",
+      "price": 10.15999984741211,
+      "return_1d": -0.01645692909482177,
+      "return_20d": 0.13266438628295285,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "OSCR",
+      "price": 13.229999542236328,
+      "return_1d": 0.017692272479717497,
+      "return_20d": -0.03501097699307676,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "PAGS",
+      "price": 9.369999885559082,
+      "return_1d": -0.003191461083897562,
+      "return_20d": -0.10334927688214013,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "PEP",
+      "price": 159.8800048828125,
+      "return_1d": 0.006420774698111531,
+      "return_20d": -0.035236855017715896,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "QQQ",
+      "price": 593.719970703125,
+      "return_1d": -0.005927132244948341,
+      "return_20d": -0.011521117102667344,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "REMX",
+      "price": 89.51000213623047,
+      "return_1d": -0.04583728317099145,
+      "return_20d": 0.026490886110459355,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "SGOV",
+      "price": 100.5199966430664,
+      "return_1d": 0.00029852502671512404,
+      "return_20d": 0.003109135316707423,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "SHY",
+      "price": 82.55000305175781,
+      "return_1d": 0.0006060975970643145,
+      "return_20d": -0.0019063414958130354,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "SPOT",
+      "price": 516.0599975585938,
+      "return_1d": 0.012696483971818662,
+      "return_20d": 0.15763024667833214,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "SPY",
+      "price": 681.76,
+      "return_1d": 0.0,
+      "return_20d": 0.0,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "STZ",
+      "price": 150.13999938964844,
+      "return_1d": 0.01227071180930639,
+      "return_20d": -0.07526485079308387,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "TLT",
+      "price": 86.54000091552734,
+      "return_1d": -0.004944237083365888,
+      "return_20d": -0.0269218128862716,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "UBER",
+      "price": 73.33000183105469,
+      "return_1d": 0.004933542611061714,
+      "return_20d": 0.02962651746962064,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "UNH",
+      "price": 282.0899963378906,
+      "return_1d": 0.0181916937989115,
+      "return_20d": -0.00030574219973455996,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "UUP",
+      "price": 27.889999389648438,
+      "return_1d": 0.007586672043258247,
+      "return_20d": 0.039895589373578844,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "VGK",
+      "price": 82.16000366210938,
+      "return_1d": -0.013685466361148979,
+      "return_20d": -0.07425347986355635,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLB",
+      "price": 49.189998626708984,
+      "return_1d": -0.009863157718534632,
+      "return_20d": -0.06890030433816918,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLC",
+      "price": 114.44999694824219,
+      "return_1d": -0.007113730534436868,
+      "return_20d": -0.0016573834823607747,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLE",
+      "price": 57.70000076293945,
+      "return_1d": 0.0033038158051050814,
+      "return_20d": 0.0689144359438616,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLF",
+      "price": 48.88999938964844,
+      "return_1d": 0.0012287027717372556,
+      "return_20d": -0.05416907160863704,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLI",
+      "price": 164.64999389648438,
+      "return_1d": -0.0035706340902058598,
+      "return_20d": -0.04688860262527139,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLK",
+      "price": 136.8000030517578,
+      "return_1d": -0.007544931179361392,
+      "return_20d": -0.01731200018589829,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLP",
+      "price": 84.73999786376953,
+      "return_1d": 0.005815998383021048,
+      "return_20d": -0.05010650450147969,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLRE",
+      "price": 42.25,
+      "return_1d": 0.002610360985875637,
+      "return_20d": -0.014462303413393385,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLU",
+      "price": 46.959999084472656,
+      "return_1d": 0.009892453429519499,
+      "return_20d": 0.037790035015970336,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLV",
+      "price": 149.7899932861328,
+      "return_1d": -0.002464107398459814,
+      "return_20d": -0.039807735345302464,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "XLY",
+      "price": 110.86000061035156,
+      "return_1d": -0.005918185550410682,
+      "return_20d": -0.04538014955400593,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "ZETA",
+      "price": 17.84000015258789,
+      "return_1d": -0.01163429880049427,
+      "return_20d": 0.19092127488306976,
+      "source": "fmp_or_fallback"
+    },
+    {
+      "ticker": "ZVRA",
+      "price": 9.979999542236328,
+      "return_1d": -0.020127723999454283,
+      "return_20d": 0.18809523755460633,
+      "source": "fmp_or_fallback"
+    }
+  ],
+  "holdings": [
+    {
+      "ticker": "SGOV",
+      "asset_type": "etf",
+      "quantity": 29.861,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 100.52,
+      "current_price_clp": null,
+      "current_price_usd": 100.52,
+      "market_value_clp": null,
+      "market_value_usd": 3005.21,
+      "weight": 0.075955,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.433333,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 1.0,
+      "momentum_6m": 0.019105,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "TLT",
+      "asset_type": "etf",
+      "quantity": 30.9971,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 88.96,
+      "current_price_clp": null,
+      "current_price_usd": 86.54,
+      "market_value_clp": null,
+      "market_value_usd": 2815.16,
+      "weight": 0.071152,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.239028,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.51325,
+      "momentum_6m": -0.016837,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "UNH",
+      "asset_type": "equity",
+      "quantity": 8.2416,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 285.51,
+      "current_price_clp": null,
+      "current_price_usd": 282.09,
+      "market_value_clp": null,
+      "market_value_usd": 2417.03,
+      "weight": 0.061089,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.202922,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.27725,
+      "momentum_6m": -0.183002,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.0,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "EWZ",
+      "asset_type": "etf",
+      "quantity": 39.7487,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 28.93,
+      "current_price_clp": null,
+      "current_price_usd": 35.49,
+      "market_value_clp": null,
+      "market_value_usd": 1539.47,
+      "weight": 0.038909,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.399199,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.67275,
+      "momentum_6m": 0.22323,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "BABA",
+      "asset_type": "equity",
+      "quantity": 10.0065,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 117.47,
+      "current_price_clp": null,
+      "current_price_usd": 135.21,
+      "market_value_clp": null,
+      "market_value_usd": 1442.03,
+      "weight": 0.036447,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.370196,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.77325,
+      "momentum_6m": -0.128015,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "ASML",
+      "asset_type": "equity",
+      "quantity": 0.992265,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 742.56,
+      "current_price_clp": null,
+      "current_price_usd": 1345.69,
+      "market_value_clp": null,
+      "market_value_usd": 1439.34,
+      "weight": 0.036379,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.553467,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.654,
+      "momentum_6m": 0.658564,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "UBER",
+      "asset_type": "equity",
+      "quantity": 18.7003,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 85.56,
+      "current_price_clp": null,
+      "current_price_usd": 73.33,
+      "market_value_clp": null,
+      "market_value_usd": 1410.38,
+      "weight": 0.035647,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.222522,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.46525,
+      "momentum_6m": -0.23527,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.073165,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "ASTS",
+      "asset_type": "equity",
+      "quantity": 17.585,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 39.21,
+      "current_price_clp": null,
+      "current_price_usd": 86.34,
+      "market_value_clp": null,
+      "market_value_usd": 1392.56,
+      "weight": 0.035196,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.650741,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.925,
+      "momentum_6m": 1.2299,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "COPX",
+      "asset_type": "etf",
+      "quantity": 14.2741,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 66.55,
+      "current_price_clp": null,
+      "current_price_usd": 76.39,
+      "market_value_clp": null,
+      "market_value_usd": 1366.03,
+      "weight": 0.034526,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.519847,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.82175,
+      "momentum_6m": 0.464067,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "REMX",
+      "asset_type": "etf",
+      "quantity": 12.7116,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 7.22,
+      "current_price_clp": null,
+      "current_price_usd": 89.51,
+      "market_value_clp": null,
+      "market_value_usd": 1269.38,
+      "weight": 0.032083,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.539708,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.77175,
+      "momentum_6m": 0.540111,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "BFLY",
+      "asset_type": "equity",
+      "quantity": 310.604,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 0.8,
+      "current_price_clp": null,
+      "current_price_usd": 3.8,
+      "market_value_clp": null,
+      "market_value_usd": 1177.19,
+      "weight": 0.029753,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.607237,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.7435,
+      "momentum_6m": 1.4204,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "OSCR",
+      "asset_type": "equity",
+      "quantity": 85.7514,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 2.77,
+      "current_price_clp": null,
+      "current_price_usd": 13.23,
+      "market_value_clp": null,
+      "market_value_usd": 1169.65,
+      "weight": 0.029562,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.16183,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.4785,
+      "momentum_6m": -0.315572,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "NFLX",
+      "asset_type": "equity",
+      "quantity": 12.0219,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 86.77,
+      "current_price_clp": null,
+      "current_price_usd": 95.31,
+      "market_value_clp": null,
+      "market_value_usd": 1156.99,
+      "weight": 0.029242,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.337893,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.75275,
+      "momentum_6m": -0.198024,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "BIDU",
+      "asset_type": "equity",
+      "quantity": 9.0808,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 108.23,
+      "current_price_clp": null,
+      "current_price_usd": 124.07,
+      "market_value_clp": null,
+      "market_value_usd": 1130.02,
+      "weight": 0.028561,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.397781,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.57025,
+      "momentum_6m": 0.080937,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "STZ",
+      "asset_type": "equity",
+      "quantity": 6.7039,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 134.24,
+      "current_price_clp": null,
+      "current_price_usd": 150.14,
+      "market_value_clp": null,
+      "market_value_usd": 1058.27,
+      "weight": 0.026747,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.291822,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.188,
+      "momentum_6m": 0.091858,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.0,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "PEP",
+      "asset_type": "equity",
+      "quantity": 6.1251,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 130.61,
+      "current_price_clp": null,
+      "current_price_usd": 159.88,
+      "market_value_clp": null,
+      "market_value_usd": 1039.68,
+      "weight": 0.026277,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.413285,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.53675,
+      "momentum_6m": 0.134858,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "ABEV",
+      "asset_type": "equity",
+      "quantity": 308.769,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 2.43,
+      "current_price_clp": null,
+      "current_price_usd": 2.86,
+      "market_value_clp": null,
+      "market_value_usd": 975.71,
+      "weight": 0.024661,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.472967,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.64525,
+      "momentum_6m": 0.243478,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "SPOT",
+      "asset_type": "equity",
+      "quantity": 1.8053,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 420.07,
+      "current_price_clp": null,
+      "current_price_usd": 516.06,
+      "market_value_clp": null,
+      "market_value_usd": 929.62,
+      "weight": 0.023496,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.310748,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.7905,
+      "momentum_6m": -0.25896,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "ZETA",
+      "asset_type": "equity",
+      "quantity": 53.9949,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 17.59,
+      "current_price_clp": null,
+      "current_price_usd": 17.84,
+      "market_value_clp": null,
+      "market_value_usd": 915.21,
+      "weight": 0.023132,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.351556,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.63,
+      "momentum_6m": -0.123342,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "NU",
+      "asset_type": "equity",
+      "quantity": 59.1217,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 13.53,
+      "current_price_clp": null,
+      "current_price_usd": 13.89,
+      "market_value_clp": null,
+      "market_value_usd": 885.64,
+      "weight": 0.022384,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.347641,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.57575,
+      "momentum_6m": -0.114723,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "XLE",
+      "asset_type": "etf",
+      "quantity": 15.3965,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 55.21,
+      "current_price_clp": null,
+      "current_price_usd": 57.7,
+      "market_value_clp": null,
+      "market_value_usd": 860.97,
+      "weight": 0.021761,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.461473,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.75325,
+      "momentum_6m": 0.324795,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "ISRG",
+      "asset_type": "equity",
+      "quantity": 1.676,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 447.47,
+      "current_price_clp": null,
+      "current_price_usd": 472.16,
+      "market_value_clp": null,
+      "market_value_usd": 843.88,
+      "weight": 0.021329,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.401774,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.62475,
+      "momentum_6m": 0.049991,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "MELI",
+      "asset_type": "equity",
+      "quantity": 0.462099,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 2164.6,
+      "current_price_clp": null,
+      "current_price_usd": 1670.0,
+      "market_value_clp": null,
+      "market_value_usd": 812.18,
+      "weight": 0.020528,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.203544,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.52925,
+      "momentum_6m": -0.28613,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "NBIS",
+      "asset_type": "equity",
+      "quantity": 8.8682,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 84.57,
+      "current_price_clp": null,
+      "current_price_usd": 112.95,
+      "market_value_clp": null,
+      "market_value_usd": 808.69,
+      "weight": 0.020439,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.558185,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.8775,
+      "momentum_6m": 0.249309,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "PAGS",
+      "asset_type": "equity",
+      "quantity": 74.2406,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 9.43,
+      "current_price_clp": null,
+      "current_price_usd": 9.37,
+      "market_value_clp": null,
+      "market_value_usd": 787.69,
+      "weight": 0.019909,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.287493,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.34075,
+      "momentum_6m": -0.01782,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.0,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "BROS",
+      "asset_type": "equity",
+      "quantity": 14.5413,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 51.58,
+      "current_price_clp": null,
+      "current_price_usd": 47.3,
+      "market_value_clp": null,
+      "market_value_usd": 779.56,
+      "weight": 0.019703,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.241785,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.6105,
+      "momentum_6m": -0.267235,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "NTR",
+      "asset_type": "equity",
+      "quantity": 10.2445,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 73.21,
+      "current_price_clp": null,
+      "current_price_usd": 82.85,
+      "market_value_clp": null,
+      "market_value_usd": 769.05,
+      "weight": 0.019437,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.57973,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.82175,
+      "momentum_6m": 0.454785,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "ONDS",
+      "asset_type": "equity",
+      "quantity": 74.2677,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 10.1,
+      "current_price_clp": null,
+      "current_price_usd": 10.16,
+      "market_value_clp": null,
+      "market_value_usd": 748.62,
+      "weight": 0.018921,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.595104,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.8295,
+      "momentum_6m": 0.54878,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "EEM",
+      "asset_type": "etf",
+      "quantity": 11.9582,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 62.72,
+      "current_price_clp": null,
+      "current_price_usd": 56.8,
+      "market_value_clp": null,
+      "market_value_usd": 748.34,
+      "weight": 0.018914,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.425407,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.8645,
+      "momentum_6m": 0.102427,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "INDA",
+      "asset_type": "etf",
+      "quantity": 14.1954,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 52.87,
+      "current_price_clp": null,
+      "current_price_usd": 48.06,
+      "market_value_clp": null,
+      "market_value_usd": 741.99,
+      "weight": 0.018754,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.175699,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.4295,
+      "momentum_6m": -0.095767,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.0,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "EWY",
+      "asset_type": "etf",
+      "quantity": 3.9837,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 133.01,
+      "current_price_clp": null,
+      "current_price_usd": 124.15,
+      "market_value_clp": null,
+      "market_value_usd": 603.01,
+      "weight": 0.015241,
+      "source_sheet": "Portfolio_Base",
+      "sector": "ETF",
+      "industry": "ETF",
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.21,
+      "composite_score": 0.610919,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.87975,
+      "momentum_6m": 0.613761,
+      "thesis_bucket": "tactical etf",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "ADUR",
+      "asset_type": "equity",
+      "quantity": 52.69,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 14.23,
+      "current_price_clp": null,
+      "current_price_usd": 11.16,
+      "market_value_clp": null,
+      "market_value_usd": 571.69,
+      "weight": 0.014449,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.383237,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.7735,
+      "momentum_6m": -0.126077,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "DWBDS",
+      "asset_type": "cash",
+      "quantity": 516.0,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 1.0,
+      "current_price_clp": null,
+      "current_price_usd": 1.0,
+      "market_value_clp": null,
+      "market_value_usd": 516.0,
+      "weight": 0.013042,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": null,
+      "composite_score": null,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": null,
+      "momentum_6m": null,
+      "thesis_bucket": null,
+      "suggested_position": null,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "IREN",
+      "asset_type": "equity",
+      "quantity": 12.0623,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 40.32,
+      "current_price_clp": null,
+      "current_price_usd": 41.58,
+      "market_value_clp": null,
+      "market_value_usd": 493.95,
+      "weight": 0.012484,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.525881,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.857,
+      "momentum_6m": 0.224382,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "ZVRA",
+      "asset_type": "equity",
+      "quantity": 53.4977,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 9.35,
+      "current_price_clp": null,
+      "current_price_usd": 9.98,
+      "market_value_clp": null,
+      "market_value_usd": 477.73,
+      "weight": 0.012074,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.500604,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.65075,
+      "momentum_6m": 0.287742,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    },
+    {
+      "ticker": "IBRX",
+      "asset_type": "equity",
+      "quantity": 47.8015,
+      "currency": "USD",
+      "avg_cost_clp": null,
+      "avg_cost_usd": 7.5529,
+      "current_price_clp": null,
+      "current_price_usd": 8.39,
+      "market_value_clp": null,
+      "market_value_usd": 467.49,
+      "weight": 0.011816,
+      "source_sheet": "Portfolio_Base",
+      "sector": null,
+      "industry": null,
+      "fair_value": null,
+      "upside": null,
+      "confidence": 0.35,
+      "composite_score": 0.574544,
+      "quality_score": null,
+      "value_score": null,
+      "risk_score": 0.59675,
+      "momentum_6m": 2.2269,
+      "thesis_bucket": "watchlist",
+      "suggested_position": 0.1,
+      "analyst_consensus": null
+    }
+  ],
+  "top_holdings": [
+    {
+      "ticker": "SGOV",
+      "sector": "ETF",
+      "industry": "ETF",
+      "weight": 0.075955,
+      "market_value_usd": 3005.21,
+      "current_price_usd": 100.52,
+      "upside": null,
+      "composite_score": 0.433333,
+      "momentum_6m": 0.019105,
+      "thesis_bucket": "tactical etf"
+    },
+    {
+      "ticker": "TLT",
+      "sector": "ETF",
+      "industry": "ETF",
+      "weight": 0.071152,
+      "market_value_usd": 2815.16,
+      "current_price_usd": 86.54,
+      "upside": null,
+      "composite_score": 0.239028,
+      "momentum_6m": -0.016837,
+      "thesis_bucket": "tactical etf"
+    },
+    {
+      "ticker": "UNH",
+      "sector": null,
+      "industry": null,
+      "weight": 0.061089,
+      "market_value_usd": 2417.03,
+      "current_price_usd": 282.09,
+      "upside": null,
+      "composite_score": 0.202922,
+      "momentum_6m": -0.183002,
+      "thesis_bucket": "watchlist"
+    },
+    {
+      "ticker": "EWZ",
+      "sector": "ETF",
+      "industry": "ETF",
+      "weight": 0.038909,
+      "market_value_usd": 1539.47,
+      "current_price_usd": 35.49,
+      "upside": null,
+      "composite_score": 0.399199,
+      "momentum_6m": 0.22323,
+      "thesis_bucket": "tactical etf"
+    },
+    {
+      "ticker": "BABA",
+      "sector": null,
+      "industry": null,
+      "weight": 0.036447,
+      "market_value_usd": 1442.03,
+      "current_price_usd": 135.21,
+      "upside": null,
+      "composite_score": 0.370196,
+      "momentum_6m": -0.128015,
+      "thesis_bucket": "watchlist"
+    },
+    {
+      "ticker": "ASML",
+      "sector": null,
+      "industry": null,
+      "weight": 0.036379,
+      "market_value_usd": 1439.34,
+      "current_price_usd": 1345.69,
+      "upside": null,
+      "composite_score": 0.553467,
+      "momentum_6m": 0.658564,
+      "thesis_bucket": "watchlist"
+    },
+    {
+      "ticker": "UBER",
+      "sector": null,
+      "industry": null,
+      "weight": 0.035647,
+      "market_value_usd": 1410.38,
+      "current_price_usd": 73.33,
+      "upside": null,
+      "composite_score": 0.222522,
+      "momentum_6m": -0.23527,
+      "thesis_bucket": "watchlist"
+    },
+    {
+      "ticker": "ASTS",
+      "sector": null,
+      "industry": null,
+      "weight": 0.035196,
+      "market_value_usd": 1392.56,
+      "current_price_usd": 86.34,
+      "upside": null,
+      "composite_score": 0.650741,
+      "momentum_6m": 1.2299,
+      "thesis_bucket": "watchlist"
+    },
+    {
+      "ticker": "COPX",
+      "sector": "ETF",
+      "industry": "ETF",
+      "weight": 0.034526,
+      "market_value_usd": 1366.03,
+      "current_price_usd": 76.39,
+      "upside": null,
+      "composite_score": 0.519847,
+      "momentum_6m": 0.464067,
+      "thesis_bucket": "tactical etf"
+    },
+    {
+      "ticker": "REMX",
+      "sector": "ETF",
+      "industry": "ETF",
+      "weight": 0.032083,
+      "market_value_usd": 1269.38,
+      "current_price_usd": 89.51,
+      "upside": null,
+      "composite_score": 0.539708,
+      "momentum_6m": 0.540111,
+      "thesis_bucket": "tactical etf"
+    },
+    {
+      "ticker": "BFLY",
+      "sector": null,
+      "industry": null,
+      "weight": 0.029753,
+      "market_value_usd": 1177.19,
+      "current_price_usd": 3.8,
+      "upside": null,
+      "composite_score": 0.607237,
+      "momentum_6m": 1.4204,
+      "thesis_bucket": "watchlist"
+    },
+    {
+      "ticker": "OSCR",
+      "sector": null,
+      "industry": null,
+      "weight": 0.029562,
+      "market_value_usd": 1169.65,
+      "current_price_usd": 13.23,
+      "upside": null,
+      "composite_score": 0.16183,
+      "momentum_6m": -0.315572,
+      "thesis_bucket": "watchlist"
+    }
+  ],
+  "sector_weights": [
+    {
+      "sector": null,
+      "portfolio_weight": 0.672704
+    },
+    {
+      "sector": "ETF",
+      "portfolio_weight": 0.327295
+    }
+  ],
+  "current_mix_vs_spy": [
+    {
+      "date": "2025-06-26T00:00:00.000",
+      "portfolio_growth": 1.1749925896,
+      "spy_growth": 1.0534407658
+    },
+    {
+      "date": "2025-06-27T00:00:00.000",
+      "portfolio_growth": 1.1724378975,
+      "spy_growth": 1.0586746552
+    },
+    {
+      "date": "2025-06-30T00:00:00.000",
+      "portfolio_growth": 1.1816930435,
+      "spy_growth": 1.0637363773
+    },
+    {
+      "date": "2025-07-01T00:00:00.000",
+      "portfolio_growth": 1.1755919728,
+      "spy_growth": 1.0633920424
+    },
+    {
+      "date": "2025-07-02T00:00:00.000",
+      "portfolio_growth": 1.169564144,
+      "spy_growth": 1.0682127301
+    },
+    {
+      "date": "2025-07-03T00:00:00.000",
+      "portfolio_growth": 1.1730101998,
+      "spy_growth": 1.0766317167
+    },
+    {
+      "date": "2025-07-07T00:00:00.000",
+      "portfolio_growth": 1.1631616913,
+      "spy_growth": 1.0686087151
+    },
+    {
+      "date": "2025-07-08T00:00:00.000",
+      "portfolio_growth": 1.1725641918,
+      "spy_growth": 1.0680233459
+    },
+    {
+      "date": "2025-07-09T00:00:00.000",
+      "portfolio_growth": 1.1669112931,
+      "spy_growth": 1.0744279738
+    },
+    {
+      "date": "2025-07-10T00:00:00.000",
+      "portfolio_growth": 1.1661695402,
+      "spy_growth": 1.0774581203
+    },
+    {
+      "date": "2025-07-11T00:00:00.000",
+      "portfolio_growth": 1.1604662628,
+      "spy_growth": 1.0736704371
+    },
+    {
+      "date": "2025-07-14T00:00:00.000",
+      "portfolio_growth": 1.1712337948,
+      "spy_growth": 1.0757192294
+    },
+    {
+      "date": "2025-07-15T00:00:00.000",
+      "portfolio_growth": 1.1760369536,
+      "spy_growth": 1.0711223594
+    },
+    {
+      "date": "2025-07-16T00:00:00.000",
+      "portfolio_growth": 1.1756710463,
+      "spy_growth": 1.0747034416
+    },
+    {
+      "date": "2025-07-17T00:00:00.000",
+      "portfolio_growth": 1.1850460256,
+      "spy_growth": 1.0812802369
+    },
+    {
+      "date": "2025-07-18T00:00:00.000",
+      "portfolio_growth": 1.1737030254,
+      "spy_growth": 1.0804882668
+    },
+    {
+      "date": "2025-07-21T00:00:00.000",
+      "portfolio_growth": 1.1744562183,
+      "spy_growth": 1.082537059
+    },
+    {
+      "date": "2025-07-22T00:00:00.000",
+      "portfolio_growth": 1.1791060972,
+      "spy_growth": 1.0826920097
+    },
+    {
+      "date": "2025-07-23T00:00:00.000",
+      "portfolio_growth": 1.1978283894,
+      "spy_growth": 1.0919029664
+    },
+    {
+      "date": "2025-07-24T00:00:00.000",
+      "portfolio_growth": 1.1850441531,
+      "spy_growth": 1.092264518
+    },
+    {
+      "date": "2025-07-25T00:00:00.000",
+      "portfolio_growth": 1.1771051301,
+      "spy_growth": 1.0968786048
+    },
+    {
+      "date": "2025-07-28T00:00:00.000",
+      "portfolio_growth": 1.1691387805,
+      "spy_growth": 1.0966031369
+    },
+    {
+      "date": "2025-07-29T00:00:00.000",
+      "portfolio_growth": 1.15017122,
+      "spy_growth": 1.0937107243
+    },
+    {
+      "date": "2025-07-30T00:00:00.000",
+      "portfolio_growth": 1.1530621176,
+      "spy_growth": 1.092333385
+    },
+    {
+      "date": "2025-07-31T00:00:00.000",
+      "portfolio_growth": 1.1381579989,
+      "spy_growth": 1.0882358005
+    },
+    {
+      "date": "2025-08-01T00:00:00.000",
+      "portfolio_growth": 1.1201624004,
+      "spy_growth": 1.0703992562
+    },
+    {
+      "date": "2025-08-04T00:00:00.000",
+      "portfolio_growth": 1.1405238621,
+      "spy_growth": 1.086669077
+    },
+    {
+      "date": "2025-08-05T00:00:00.000",
+      "portfolio_growth": 1.1458603873,
+      "spy_growth": 1.0811597197
+    },
+    {
+      "date": "2025-08-06T00:00:00.000",
+      "portfolio_growth": 1.1600169334,
+      "spy_growth": 1.0894409724
+    },
+    {
+      "date": "2025-08-07T00:00:00.000",
+      "portfolio_growth": 1.1766901721,
+      "spy_growth": 1.0885284851
+    },
+    {
+      "date": "2025-08-08T00:00:00.000",
+      "portfolio_growth": 1.1798569566,
+      "spy_growth": 1.0970163387
+    },
+    {
+      "date": "2025-08-11T00:00:00.000",
+      "portfolio_growth": 1.1783785121,
+      "spy_growth": 1.0948470293
+    },
+    {
+      "date": "2025-08-12T00:00:00.000",
+      "portfolio_growth": 1.2015658869,
+      "spy_growth": 1.1065027633
+    },
+    {
+      "date": "2025-08-13T00:00:00.000",
+      "portfolio_growth": 1.2059809716,
+      "spy_growth": 1.1102904464
+    },
+    {
+      "date": "2025-08-14T00:00:00.000",
+      "portfolio_growth": 1.1945416385,
+      "spy_growth": 1.1103937469
+    },
+    {
+      "date": "2025-08-15T00:00:00.000",
+      "portfolio_growth": 1.2158559323,
+      "spy_growth": 1.1077940189
+    },
+    {
+      "date": "2025-08-18T00:00:00.000",
+      "portfolio_growth": 1.2229562112,
+      "spy_growth": 1.1075529845
+    },
+    {
+      "date": "2025-08-19T00:00:00.000",
+      "portfolio_growth": 1.2025052667,
+      "spy_growth": 1.1015443417
+    },
+    {
+      "date": "2025-08-20T00:00:00.000",
+      "portfolio_growth": 1.197116506,
+      "spy_growth": 1.0986174957
+    },
+    {
+      "date": "2025-08-21T00:00:00.000",
+      "portfolio_growth": 1.1968333985,
+      "spy_growth": 1.0942100098
+    },
+    {
+      "date": "2025-08-22T00:00:00.000",
+      "portfolio_growth": 1.2322228677,
+      "spy_growth": 1.1110135496
+    },
+    {
+      "date": "2025-08-25T00:00:00.000",
+      "portfolio_growth": 1.239950691,
+      "spy_growth": 1.106123995
+    },
+    {
+      "date": "2025-08-26T00:00:00.000",
+      "portfolio_growth": 1.2444820859,
+      "spy_growth": 1.1107552985
+    },
+    {
+      "date": "2025-08-27T00:00:00.000",
+      "portfolio_growth": 1.2441628482,
+      "spy_growth": 1.1132861595
+    },
+    {
+      "date": "2025-08-28T00:00:00.000",
+      "portfolio_growth": 1.2535496819,
+      "spy_growth": 1.1172287933
+    },
+    {
+      "date": "2025-08-29T00:00:00.000",
+      "portfolio_growth": 1.259846638,
+      "spy_growth": 1.1105659143
+    },
+    {
+      "date": "2025-09-02T00:00:00.000",
+      "portfolio_growth": 1.2495494263,
+      "spy_growth": 1.1023363118
+    },
+    {
+      "date": "2025-09-03T00:00:00.000",
+      "portfolio_growth": 1.2434776506,
+      "spy_growth": 1.1083105212
+    },
+    {
+      "date": "2025-09-04T00:00:00.000",
+      "portfolio_growth": 1.2447326547,
+      "spy_growth": 1.1175731281
+    },
+    {
+      "date": "2025-09-05T00:00:00.000",
+      "portfolio_growth": 1.2592120512,
+      "spy_growth": 1.1143363807
+    },
+    {
+      "date": "2025-09-08T00:00:00.000",
+      "portfolio_growth": 1.27004624,
+      "spy_growth": 1.1170738426
+    },
+    {
+      "date": "2025-09-09T00:00:00.000",
+      "portfolio_growth": 1.2910775349,
+      "spy_growth": 1.1196563538
+    },
+    {
+      "date": "2025-09-10T00:00:00.000",
+      "portfolio_growth": 1.2850311324,
+      "spy_growth": 1.1228931013
+    },
+    {
+      "date": "2025-09-11T00:00:00.000",
+      "portfolio_growth": 1.3046543673,
+      "spy_growth": 1.1322245752
+    },
+    {
+      "date": "2025-09-12T00:00:00.000",
+      "portfolio_growth": 1.3054986445,
+      "spy_growth": 1.1318458069
+    },
+    {
+      "date": "2025-09-15T00:00:00.000",
+      "portfolio_growth": 1.3172304019,
+      "spy_growth": 1.1378716664
+    },
+    {
+      "date": "2025-09-16T00:00:00.000",
+      "portfolio_growth": 1.3196848172,
+      "spy_growth": 1.1363049429
+    },
+    {
+      "date": "2025-09-17T00:00:00.000",
+      "portfolio_growth": 1.3252473674,
+      "spy_growth": 1.1348931701
+    },
+    {
+      "date": "2025-09-18T00:00:00.000",
+      "portfolio_growth": 1.3380820416,
+      "spy_growth": 1.1401959265
+    },
+    {
+      "date": "2025-09-19T00:00:00.000",
+      "portfolio_growth": 1.3486022926,
+      "spy_growth": 1.1426751373
+    },
+    {
+      "date": "2025-09-22T00:00:00.000",
+      "portfolio_growth": 1.3674323607,
+      "spy_growth": 1.1480811942
+    },
+    {
+      "date": "2025-09-23T00:00:00.000",
+      "portfolio_growth": 1.3693570998,
+      "spy_growth": 1.141831517
+    },
+    {
+      "date": "2025-09-24T00:00:00.000",
+      "portfolio_growth": 1.3818494208,
+      "spy_growth": 1.1381987845
+    },
+    {
+      "date": "2025-09-25T00:00:00.000",
+      "portfolio_growth": 1.3701194455,
+      "spy_growth": 1.1329476783
+    },
+    {
+      "date": "2025-09-26T00:00:00.000",
+      "portfolio_growth": 1.3693561445,
+      "spy_growth": 1.1394383899
+    },
+    {
+      "date": "2025-09-29T00:00:00.000",
+      "portfolio_growth": 1.3848226901,
+      "spy_growth": 1.1426407038
+    },
+    {
+      "date": "2025-09-30T00:00:00.000",
+      "portfolio_growth": 1.3750442475,
+      "spy_growth": 1.1469448892
+    },
+    {
+      "date": "2025-10-01T00:00:00.000",
+      "portfolio_growth": 1.3832603063,
+      "spy_growth": 1.1508530895
+    },
+    {
+      "date": "2025-10-02T00:00:00.000",
+      "portfolio_growth": 1.410797088,
+      "spy_growth": 1.1521787786
+    },
+    {
+      "date": "2025-10-03T00:00:00.000",
+      "portfolio_growth": 1.4345737619,
+      "spy_growth": 1.1521615619
+    },
+    {
+      "date": "2025-10-06T00:00:00.000",
+      "portfolio_growth": 1.4523069392,
+      "spy_growth": 1.1562935799
+    },
+    {
+      "date": "2025-10-07T00:00:00.000",
+      "portfolio_growth": 1.4446497714,
+      "spy_growth": 1.1520066112
+    },
+    {
+      "date": "2025-10-08T00:00:00.000",
+      "portfolio_growth": 1.4618766475,
+      "spy_growth": 1.1588760911
+    },
+    {
+      "date": "2025-10-09T00:00:00.000",
+      "portfolio_growth": 1.4581124867,
+      "spy_growth": 1.1555188265
+    },
+    {
+      "date": "2025-10-10T00:00:00.000",
+      "portfolio_growth": 1.409341831,
+      "spy_growth": 1.1242876573
+    },
+    {
+      "date": "2025-10-13T00:00:00.000",
+      "portfolio_growth": 1.4517401554,
+      "spy_growth": 1.1415388324
+    },
+    {
+      "date": "2025-10-14T00:00:00.000",
+      "portfolio_growth": 1.4487974375,
+      "spy_growth": 1.1401442763
+    },
+    {
+      "date": "2025-10-15T00:00:00.000",
+      "portfolio_growth": 1.4525506372,
+      "spy_growth": 1.1452059983
+    },
+    {
+      "date": "2025-10-16T00:00:00.000",
+      "portfolio_growth": 1.4311296162,
+      "spy_growth": 1.1374068144
+    },
+    {
+      "date": "2025-10-17T00:00:00.000",
+      "portfolio_growth": 1.4182573474,
+      "spy_growth": 1.1438630925
+    },
+    {
+      "date": "2025-10-20T00:00:00.000",
+      "portfolio_growth": 1.4429235528,
+      "spy_growth": 1.1557598609
+    },
+    {
+      "date": "2025-10-21T00:00:00.000",
+      "portfolio_growth": 1.4288992668,
+      "spy_growth": 1.1557426441
+    },
+    {
+      "date": "2025-10-22T00:00:00.000",
+      "portfolio_growth": 1.4066253994,
+      "spy_growth": 1.1497340013
+    },
+    {
+      "date": "2025-10-23T00:00:00.000",
+      "portfolio_growth": 1.4260119119,
+      "spy_growth": 1.156551831
+    },
+    {
+      "date": "2025-10-24T00:00:00.000",
+      "portfolio_growth": 1.4374006106,
+      "spy_growth": 1.1660038221
+    },
+    {
+      "date": "2025-10-27T00:00:00.000",
+      "portfolio_growth": 1.4582994774,
+      "spy_growth": 1.1797599986
+    },
+    {
+      "date": "2025-10-28T00:00:00.000",
+      "portfolio_growth": 1.4459222013,
+      "spy_growth": 1.1828934456
+    },
+    {
+      "date": "2025-10-29T00:00:00.000",
+      "portfolio_growth": 1.4388985481,
+      "spy_growth": 1.1834615981
+    },
+    {
+      "date": "2025-10-30T00:00:00.000",
+      "portfolio_growth": 1.4213308081,
+      "spy_growth": 1.1704457414
+    },
+    {
+      "date": "2025-10-31T00:00:00.000",
+      "portfolio_growth": 1.4402442466,
+      "spy_growth": 1.1742850748
+    },
+    {
+      "date": "2025-11-03T00:00:00.000",
+      "portfolio_growth": 1.4285491797,
+      "spy_growth": 1.1764888177
+    },
+    {
+      "date": "2025-11-04T00:00:00.000",
+      "portfolio_growth": 1.40163172,
+      "spy_growth": 1.1625432571
+    },
+    {
+      "date": "2025-11-05T00:00:00.000",
+      "portfolio_growth": 1.4142787094,
+      "spy_growth": 1.1665719746
+    },
+    {
+      "date": "2025-11-06T00:00:00.000",
+      "portfolio_growth": 1.3881486548,
+      "spy_growth": 1.1540554035
+    },
+    {
+      "date": "2025-11-07T00:00:00.000",
+      "portfolio_growth": 1.3982288193,
+      "spy_growth": 1.1551917084
+    },
+    {
+      "date": "2025-11-10T00:00:00.000",
+      "portfolio_growth": 1.4058551478,
+      "spy_growth": 1.1732176368
+    },
+    {
+      "date": "2025-11-11T00:00:00.000",
+      "portfolio_growth": 1.4137812734,
+      "spy_growth": 1.1759034485
+    },
+    {
+      "date": "2025-11-12T00:00:00.000",
+      "portfolio_growth": 1.407702959,
+      "spy_growth": 1.1765576847
+    },
+    {
+      "date": "2025-11-13T00:00:00.000",
+      "portfolio_growth": 1.3817490909,
+      "spy_growth": 1.1570338998
+    },
+    {
+      "date": "2025-11-14T00:00:00.000",
+      "portfolio_growth": 1.3740674287,
+      "spy_growth": 1.1568445156
+    },
+    {
+      "date": "2025-11-17T00:00:00.000",
+      "portfolio_growth": 1.36149327,
+      "spy_growth": 1.1460668354
+    },
+    {
+      "date": "2025-11-18T00:00:00.000",
+      "portfolio_growth": 1.3729294878,
+      "spy_growth": 1.1364426769
+    },
+    {
+      "date": "2025-11-19T00:00:00.000",
+      "portfolio_growth": 1.3744275276,
+      "spy_growth": 1.140832946
+    },
+    {
+      "date": "2025-11-20T00:00:00.000",
+      "portfolio_growth": 1.3302069511,
+      "spy_growth": 1.123444037
+    },
+    {
+      "date": "2025-11-21T00:00:00.000",
+      "portfolio_growth": 1.3501303593,
+      "spy_growth": 1.134634919
+    },
+    {
+      "date": "2025-11-24T00:00:00.000",
+      "portfolio_growth": 1.3998805376,
+      "spy_growth": 1.1513351583
+    },
+    {
+      "date": "2025-11-25T00:00:00.000",
+      "portfolio_growth": 1.4072746783,
+      "spy_growth": 1.1621644887
+    },
+    {
+      "date": "2025-11-26T00:00:00.000",
+      "portfolio_growth": 1.423370603,
+      "spy_growth": 1.1701874903
+    },
+    {
+      "date": "2025-11-28T00:00:00.000",
+      "portfolio_growth": 1.434827606,
+      "spy_growth": 1.1765749014
+    },
+    {
+      "date": "2025-12-01T00:00:00.000",
+      "portfolio_growth": 1.4246642712,
+      "spy_growth": 1.1712032781
+    },
+    {
+      "date": "2025-12-02T00:00:00.000",
+      "portfolio_growth": 1.4255863769,
+      "spy_growth": 1.1733725875
+    },
+    {
+      "date": "2025-12-03T00:00:00.000",
+      "portfolio_growth": 1.4512356396,
+      "spy_growth": 1.1774357385
+    },
+    {
+      "date": "2025-12-04T00:00:00.000",
+      "portfolio_growth": 1.4623543662,
+      "spy_growth": 1.1782965756
+    },
+    {
+      "date": "2025-12-05T00:00:00.000",
+      "portfolio_growth": 1.4539156503,
+      "spy_growth": 1.180534752
+    },
+    {
+      "date": "2025-12-08T00:00:00.000",
+      "portfolio_growth": 1.4554771009,
+      "spy_growth": 1.1769881032
+    },
+    {
+      "date": "2025-12-09T00:00:00.000",
+      "portfolio_growth": 1.4489452734,
+      "spy_growth": 1.1759723155
+    },
+    {
+      "date": "2025-12-10T00:00:00.000",
+      "portfolio_growth": 1.4498411972,
+      "spy_growth": 1.1837714994
+    },
+    {
+      "date": "2025-12-11T00:00:00.000",
+      "portfolio_growth": 1.4657583847,
+      "spy_growth": 1.1865261781
+    },
+    {
+      "date": "2025-12-12T00:00:00.000",
+      "portfolio_growth": 1.4505327804,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-15T00:00:00.000",
+      "portfolio_growth": 1.4252123909,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-16T00:00:00.000",
+      "portfolio_growth": 1.4203159823,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-17T00:00:00.000",
+      "portfolio_growth": 1.3972694431,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-18T00:00:00.000",
+      "portfolio_growth": 1.4091961034,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-19T00:00:00.000",
+      "portfolio_growth": 1.4356722954,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-22T00:00:00.000",
+      "portfolio_growth": 1.455200938,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-23T00:00:00.000",
+      "portfolio_growth": 1.4558521953,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-24T00:00:00.000",
+      "portfolio_growth": 1.4566489591,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-26T00:00:00.000",
+      "portfolio_growth": 1.4566555704,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-29T00:00:00.000",
+      "portfolio_growth": 1.4454698864,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-30T00:00:00.000",
+      "portfolio_growth": 1.4548310862,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2025-12-31T00:00:00.000",
+      "portfolio_growth": 1.4468436611,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-02T00:00:00.000",
+      "portfolio_growth": 1.4851368973,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-05T00:00:00.000",
+      "portfolio_growth": 1.5263977526,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-06T00:00:00.000",
+      "portfolio_growth": 1.5453903649,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-07T00:00:00.000",
+      "portfolio_growth": 1.5278219241,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-08T00:00:00.000",
+      "portfolio_growth": 1.5445623201,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-09T00:00:00.000",
+      "portfolio_growth": 1.5558188822,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-12T00:00:00.000",
+      "portfolio_growth": 1.5748335255,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-13T00:00:00.000",
+      "portfolio_growth": 1.5715481337,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-14T00:00:00.000",
+      "portfolio_growth": 1.588205633,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-15T00:00:00.000",
+      "portfolio_growth": 1.5949870602,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-16T00:00:00.000",
+      "portfolio_growth": 1.5976163359,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-20T00:00:00.000",
+      "portfolio_growth": 1.5948403227,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-21T00:00:00.000",
+      "portfolio_growth": 1.6117515682,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-22T00:00:00.000",
+      "portfolio_growth": 1.6360085681,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-23T00:00:00.000",
+      "portfolio_growth": 1.6411547441,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-26T00:00:00.000",
+      "portfolio_growth": 1.6292987747,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-27T00:00:00.000",
+      "portfolio_growth": 1.6282878155,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-28T00:00:00.000",
+      "portfolio_growth": 1.6385650099,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-29T00:00:00.000",
+      "portfolio_growth": 1.6264888392,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-01-30T00:00:00.000",
+      "portfolio_growth": 1.5801301346,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-02T00:00:00.000",
+      "portfolio_growth": 1.5772274684,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-03T00:00:00.000",
+      "portfolio_growth": 1.585401965,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-04T00:00:00.000",
+      "portfolio_growth": 1.5382225348,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-05T00:00:00.000",
+      "portfolio_growth": 1.4958641198,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-06T00:00:00.000",
+      "portfolio_growth": 1.542633162,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-09T00:00:00.000",
+      "portfolio_growth": 1.5602262965,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-10T00:00:00.000",
+      "portfolio_growth": 1.5616435576,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-11T00:00:00.000",
+      "portfolio_growth": 1.5620516639,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-12T00:00:00.000",
+      "portfolio_growth": 1.5263465288,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-13T00:00:00.000",
+      "portfolio_growth": 1.5321716735,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-17T00:00:00.000",
+      "portfolio_growth": 1.5295834184,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-18T00:00:00.000",
+      "portfolio_growth": 1.5595014781,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-19T00:00:00.000",
+      "portfolio_growth": 1.5637747801,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-20T00:00:00.000",
+      "portfolio_growth": 1.5572435364,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-23T00:00:00.000",
+      "portfolio_growth": 1.5435225407,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-24T00:00:00.000",
+      "portfolio_growth": 1.5683622959,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-25T00:00:00.000",
+      "portfolio_growth": 1.5798193803,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-26T00:00:00.000",
+      "portfolio_growth": 1.6059904788,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-02-27T00:00:00.000",
+      "portfolio_growth": 1.5937576323,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-02T00:00:00.000",
+      "portfolio_growth": 1.6017240494,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-03T00:00:00.000",
+      "portfolio_growth": 1.5654985728,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-04T00:00:00.000",
+      "portfolio_growth": 1.6003064331,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-05T00:00:00.000",
+      "portfolio_growth": 1.5694991335,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-06T00:00:00.000",
+      "portfolio_growth": 1.5488860291,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-09T00:00:00.000",
+      "portfolio_growth": 1.56681165,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-10T00:00:00.000",
+      "portfolio_growth": 1.5662459031,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-11T00:00:00.000",
+      "portfolio_growth": 1.5756683214,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-12T00:00:00.000",
+      "portfolio_growth": 1.5433692803,
+      "spy_growth": 1.1737685726
+    },
+    {
+      "date": "2026-03-13T00:00:00.000",
+      "portfolio_growth": 1.5434705462,
+      "spy_growth": 1.1737685726
+    }
+  ],
+  "valuation_histogram": [],
+  "simulation_rank": [
+    {
+      "ticker": "ASTS",
+      "prob_loss": 0.075,
+      "expected_return": 9.8634,
+      "suggested_position": 0.1,
+      "var_95": -0.198264,
+      "cvar_95": -0.463944
+    },
+    {
+      "ticker": "ONDS",
+      "prob_loss": 0.1705,
+      "expected_return": 6.4369,
+      "suggested_position": 0.1,
+      "var_95": -0.576308,
+      "cvar_95": -0.724065
+    },
+    {
+      "ticker": "NBIS",
+      "prob_loss": 0.1225,
+      "expected_return": 5.4048,
+      "suggested_position": 0.1,
+      "var_95": -0.405916,
+      "cvar_95": -0.592953
+    },
+    {
+      "ticker": "IREN",
+      "prob_loss": 0.143,
+      "expected_return": 4.3608,
+      "suggested_position": 0.1,
+      "var_95": -0.45138,
+      "cvar_95": -0.619983
+    },
+    {
+      "ticker": "BFLY",
+      "prob_loss": 0.2565,
+      "expected_return": 2.0618,
+      "suggested_position": 0.1,
+      "var_95": -0.609504,
+      "cvar_95": -0.722573
+    },
+    {
+      "ticker": "ADUR",
+      "prob_loss": 0.2265,
+      "expected_return": 1.4348,
+      "suggested_position": 0.1,
+      "var_95": -0.489426,
+      "cvar_95": -0.613818
+    },
+    {
+      "ticker": "IBRX",
+      "prob_loss": 0.40325,
+      "expected_return": 1.2501,
+      "suggested_position": 0.1,
+      "var_95": -0.754212,
+      "cvar_95": -0.828489
+    },
+    {
+      "ticker": "ZETA",
+      "prob_loss": 0.37,
+      "expected_return": 0.76808,
+      "suggested_position": 0.1,
+      "var_95": -0.624439,
+      "cvar_95": -0.715445
+    },
+    {
+      "ticker": "TSM",
+      "prob_loss": 0.1225,
+      "expected_return": 0.716455,
+      "suggested_position": 0.1,
+      "var_95": -0.173982,
+      "cvar_95": -0.290236
+    },
+    {
+      "ticker": "SPOT",
+      "prob_loss": 0.2095,
+      "expected_return": 0.558261,
+      "suggested_position": 0.1,
+      "var_95": -0.292134,
+      "cvar_95": -0.397853
+    },
+    {
+      "ticker": "ZVRA",
+      "prob_loss": 0.34925,
+      "expected_return": 0.529271,
+      "suggested_position": 0.1,
+      "var_95": -0.516352,
+      "cvar_95": -0.612037
+    },
+    {
+      "ticker": "BABA",
+      "prob_loss": 0.22675,
+      "expected_return": 0.524257,
+      "suggested_position": 0.1,
+      "var_95": -0.313479,
+      "cvar_95": -0.416871
+    },
+    {
+      "ticker": "COPX",
+      "prob_loss": 0.17825,
+      "expected_return": 0.508074,
+      "suggested_position": 0.1,
+      "var_95": -0.229381,
+      "cvar_95": -0.330706
+    },
+    {
+      "ticker": "REMX",
+      "prob_loss": 0.22825,
+      "expected_return": 0.467725,
+      "suggested_position": 0.1,
+      "var_95": -0.295299,
+      "cvar_95": -0.394724
+    },
+    {
+      "ticker": "EWY",
+      "prob_loss": 0.12025,
+      "expected_return": 0.454517,
+      "suggested_position": 0.1,
+      "var_95": -0.124526,
+      "cvar_95": -0.216034
+    }
+  ],
+  "alignment": {
+    "preferred_sectors": [
+      "Technology",
+      "Unknown",
+      "Energy"
+    ],
+    "portfolio_top_sectors": [
+      "ETF"
+    ],
+    "mismatched_sectors": [
+      "ETF"
+    ],
+    "selected_hedge": "UUP",
+    "selected_hedge_weight": 0.0,
+    "beta_target": 1.0,
+    "portfolio_beta": 0.8320985041271206,
+    "notes": [
+      "Current top sectors diverge from the preferred map: ETF.",
+      "Selected hedge UUP is not currently present in the portfolio."
+    ]
+  },
+  "workbook": {
+    "available": true,
+    "path": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\portfolio_manager\\output\\latest\\portfolio_snapshot.xlsx",
+    "sheets": [
+      "Resumen",
+      "Analytics",
+      "Macro",
+      "Holdings",
+      "Valuation",
+      "MonteCarlo",
+      "Screener",
+      "DailyHits",
+      "DailyScreen",
+      "Flags"
+    ]
+  },
+  "stale_days": 0,
+  "statement_intelligence": {
+    "top_statement_names": [
+      {
+        "ticker": "ASML",
+        "sector": null,
+        "statement_score": 0.5838589744,
+        "statement_conviction_score": 0.6356456487,
+        "earnings_cash_kernel_score": 0.8192529488,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "NTR",
+        "sector": null,
+        "statement_score": 0.5910897436,
+        "statement_conviction_score": 0.6343559781,
+        "earnings_cash_kernel_score": 0.7877544457,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ABEV",
+        "sector": null,
+        "statement_score": 0.5431410256,
+        "statement_conviction_score": 0.6166770187,
+        "earnings_cash_kernel_score": 0.8773955396,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "PEP",
+        "sector": null,
+        "statement_score": 0.5140897436,
+        "statement_conviction_score": 0.5764148423,
+        "earnings_cash_kernel_score": 0.7973856469,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ZETA",
+        "sector": null,
+        "statement_score": 0.4738589744,
+        "statement_conviction_score": 0.5760106831,
+        "earnings_cash_kernel_score": 0.9381849231,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "EWY",
+        "sector": "ETF",
+        "statement_score": 0.5922820513,
+        "statement_conviction_score": 0.57198,
+        "earnings_cash_kernel_score": null,
+        "earnings_cash_kernel_bucket": "insufficient_history",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ONDS",
+        "sector": null,
+        "statement_score": 0.6050897436,
+        "statement_conviction_score": 0.5644321555,
+        "earnings_cash_kernel_score": 0.420282525,
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "STZ",
+        "sector": null,
+        "statement_score": 0.4688076923,
+        "statement_conviction_score": 0.556854816,
+        "earnings_cash_kernel_score": 0.869021891,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ISRG",
+        "sector": null,
+        "statement_score": 0.5052692308,
+        "statement_conviction_score": 0.55517307,
+        "earnings_cash_kernel_score": 0.7321048637,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "NBIS",
+        "sector": null,
+        "statement_score": 0.5789358974,
+        "statement_conviction_score": 0.54837,
+        "earnings_cash_kernel_score": 0.44,
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "NU",
+        "sector": null,
+        "statement_score": 0.4697820513,
+        "statement_conviction_score": 0.5455864017,
+        "earnings_cash_kernel_score": 0.8143472806,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "IBRX",
+        "sector": null,
+        "statement_score": 0.5931153846,
+        "statement_conviction_score": 0.541198856,
+        "earnings_cash_kernel_score": 0.3571311635,
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      }
+    ],
+    "top_compounders": [
+      {
+        "ticker": "IBRX",
+        "sector": null,
+        "compounder_score": 0.538974359,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "EWY",
+        "sector": "ETF",
+        "compounder_score": 0.538974359,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "BFLY",
+        "sector": null,
+        "compounder_score": 0.5358974359,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ASTS",
+        "sector": null,
+        "compounder_score": 0.5338461538,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ASML",
+        "sector": null,
+        "compounder_score": 0.5317948718,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "REMX",
+        "sector": "ETF",
+        "compounder_score": 0.5297435897,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ONDS",
+        "sector": null,
+        "compounder_score": 0.5276923077,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "NTR",
+        "sector": null,
+        "compounder_score": 0.5256410256,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "TSM",
+        "sector": null,
+        "compounder_score": 0.5235897436,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "COPX",
+        "sector": "ETF",
+        "compounder_score": 0.5215384615,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ZVRA",
+        "sector": null,
+        "compounder_score": 0.5194871795,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "NBIS",
+        "sector": null,
+        "compounder_score": 0.5174358974,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      }
+    ],
+    "top_cash_generators": [
+      {
+        "ticker": "ASML",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "NTR",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ABEV",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "PEP",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ZETA",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "EWY",
+        "sector": "ETF",
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ONDS",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "STZ",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "ISRG",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "NBIS",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "NU",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "IBRX",
+        "sector": null,
+        "cash_generation_score": 0.5,
+        "cash_conversion_proxy_score": 0.5,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      }
+    ],
+    "top_kernel_names": [
+      {
+        "ticker": "ZETA",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.9381849231,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.5760106831,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "UNH",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.8876197452,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.5215063439,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "ABEV",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.8773955396,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.6166770187,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "STZ",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.869021891,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.556854816,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "MELI",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.8319751979,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.5051045435,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: working capital is consuming cash."
+      },
+      {
+        "ticker": "RACE",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.8259117878,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.4879505933,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "ASML",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.8192529488,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.6356456487,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: working capital is consuming cash."
+      },
+      {
+        "ticker": "NU",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.8143472806,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.5455864017,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "PAGS",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.8035354636,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.530447802,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "PEP",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.7973856469,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.5764148423,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "NTR",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.7877544457,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.6343559781,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "SPOT",
+        "sector": null,
+        "earnings_cash_kernel_score": 0.7818366206,
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_conviction_score": 0.5270340565,
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+      }
+    ],
+    "cash_mismatch_names": [
+      {
+        "ticker": "ASTS",
+        "sector": null,
+        "statement_score": 0.6267051282,
+        "earnings_cash_kernel_score": 0.14,
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+      },
+      {
+        "ticker": "ZVRA",
+        "sector": null,
+        "statement_score": 0.5519102564,
+        "earnings_cash_kernel_score": 0.1655061294,
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+      },
+      {
+        "ticker": "BFLY",
+        "sector": null,
+        "statement_score": 0.6100641026,
+        "earnings_cash_kernel_score": 0.2356668446,
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+      },
+      {
+        "ticker": "IREN",
+        "sector": null,
+        "statement_score": 0.5621410256,
+        "earnings_cash_kernel_score": 0.24,
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: free cash flow support is weak, capex burden is heavy relative to revenue."
+      },
+      {
+        "ticker": "ADUR",
+        "sector": null,
+        "statement_score": 0.4858846154,
+        "earnings_cash_kernel_score": 0.24,
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+      },
+      {
+        "ticker": "IBRX",
+        "sector": null,
+        "statement_score": 0.5931153846,
+        "earnings_cash_kernel_score": 0.3571311635,
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+      },
+      {
+        "ticker": "ONDS",
+        "sector": null,
+        "statement_score": 0.6050897436,
+        "earnings_cash_kernel_score": 0.420282525,
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: cash is improving faster than accounting earnings, accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+      },
+      {
+        "ticker": "NBIS",
+        "sector": null,
+        "statement_score": 0.5789358974,
+        "earnings_cash_kernel_score": 0.44,
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "BIDU",
+        "sector": null,
+        "statement_score": 0.4982692308,
+        "earnings_cash_kernel_score": 0.44,
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "COST",
+        "sector": null,
+        "statement_score": 0.5262692308,
+        "earnings_cash_kernel_score": 0.5,
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "BABA",
+        "sector": null,
+        "statement_score": 0.4792435897,
+        "earnings_cash_kernel_score": 0.5292453547,
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, accrual intensity remains controlled. Risks: no major cash-conversion red flag."
+      },
+      {
+        "ticker": "TSM",
+        "sector": null,
+        "statement_score": 0.5940128205,
+        "earnings_cash_kernel_score": 0.6656066382,
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: capex burden is heavy relative to revenue."
+      }
+    ],
+    "kernel_sector_breadth": [
+      {
+        "sector": "Utilities",
+        "coverage": 1,
+        "median_kernel_score": 0.7576339669,
+        "mean_kernel_score": 0.7576339669,
+        "cash_confirmed_share": 1.0,
+        "earnings_only_share": 0.0
+      },
+      {
+        "sector": "Unknown",
+        "coverage": 30,
+        "median_kernel_score": 0.7174886272,
+        "mean_kernel_score": 0.6237266601,
+        "cash_confirmed_share": 0.5666666667,
+        "earnings_only_share": 0.2
+      },
+      {
+        "sector": "Industrials",
+        "coverage": 1,
+        "median_kernel_score": 0.6805761758,
+        "mean_kernel_score": 0.6805761758,
+        "cash_confirmed_share": 0.0,
+        "earnings_only_share": 0.0
+      },
+      {
+        "sector": "Energy",
+        "coverage": 2,
+        "median_kernel_score": 0.4730572588,
+        "mean_kernel_score": 0.4730572588,
+        "cash_confirmed_share": 0.0,
+        "earnings_only_share": 1.0
+      },
+      {
+        "sector": "Consumer Staples",
+        "coverage": 1,
+        "median_kernel_score": 0.44,
+        "mean_kernel_score": 0.44,
+        "cash_confirmed_share": 0.0,
+        "earnings_only_share": 1.0
+      },
+      {
+        "sector": "Finance",
+        "coverage": 1,
+        "median_kernel_score": 0.3,
+        "mean_kernel_score": 0.3,
+        "cash_confirmed_share": 0.0,
+        "earnings_only_share": 0.0
+      }
+    ],
+    "kernel_research_utility": {
+      "coverage": 63,
+      "score_corr_21d": 0.14397759103641455,
+      "score_corr_63d": -0.2734604105571847,
+      "top_bottom_spread_21d": -0.0007571750223728567,
+      "top_bottom_spread_63d": -0.35521988133794224,
+      "bucket_returns": [
+        {
+          "earnings_cash_kernel_bucket": "cash_confirmed",
+          "fwd_return_21d_mean": 0.0128774418,
+          "fwd_return_21d_median": 0.0240202955,
+          "fwd_return_21d_count": 13,
+          "fwd_return_63d_mean": 0.0084977592,
+          "fwd_return_63d_median": -0.0053993841,
+          "fwd_return_63d_count": 11
+        },
+        {
+          "earnings_cash_kernel_bucket": "cash_improving",
+          "fwd_return_21d_mean": null,
+          "fwd_return_21d_median": null,
+          "fwd_return_21d_count": 0,
+          "fwd_return_63d_mean": null,
+          "fwd_return_63d_median": null,
+          "fwd_return_63d_count": 0
+        },
+        {
+          "earnings_cash_kernel_bucket": "earnings_only",
+          "fwd_return_21d_mean": -0.0602396294,
+          "fwd_return_21d_median": -0.0603473802,
+          "fwd_return_21d_count": 14,
+          "fwd_return_63d_mean": 0.0111111625,
+          "fwd_return_63d_median": -0.0162064606,
+          "fwd_return_63d_count": 14
+        },
+        {
+          "earnings_cash_kernel_bucket": "fragile_conversion",
+          "fwd_return_21d_mean": 0.1052225431,
+          "fwd_return_21d_median": 0.0759897751,
+          "fwd_return_21d_count": 8,
+          "fwd_return_63d_mean": 0.718005565,
+          "fwd_return_63d_median": 0.3973757021,
+          "fwd_return_63d_count": 7
+        }
+      ],
+      "rank_returns": [
+        {
+          "kernel_rank_bucket": "low",
+          "fwd_return_21d_mean": 0.0084268499,
+          "fwd_return_21d_median": -0.0855856103,
+          "fwd_return_21d_count": 13,
+          "fwd_return_63d_mean": 0.4041323545,
+          "fwd_return_63d_median": 0.1645163637,
+          "fwd_return_63d_count": 12
+        },
+        {
+          "kernel_rank_bucket": "mid",
+          "fwd_return_21d_mean": -0.0009802958,
+          "fwd_return_21d_median": 0.0092264149,
+          "fwd_return_21d_count": 13,
+          "fwd_return_63d_mean": 0.0063919243,
+          "fwd_return_63d_median": -0.0194445997,
+          "fwd_return_63d_count": 13
+        },
+        {
+          "kernel_rank_bucket": "high",
+          "fwd_return_21d_mean": 0.0076696748,
+          "fwd_return_21d_median": 0.0240202955,
+          "fwd_return_21d_count": 9,
+          "fwd_return_63d_mean": 0.0489124731,
+          "fwd_return_63d_median": 0.1288604892,
+          "fwd_return_63d_count": 7
+        }
+      ],
+      "oos_blocks": [
+        {
+          "block": 1,
+          "start": "2025-11-14",
+          "end": "2025-11-14",
+          "spread_63d": -0.07280536610038271,
+          "mean_score": 0.616620142063228,
+          "observations": 21,
+          "directionally_positive": false
+        },
+        {
+          "block": 2,
+          "start": "2025-11-14",
+          "end": "2026-02-14",
+          "spread_63d": -0.7745040291855543,
+          "mean_score": 0.5356387150213967,
+          "observations": 21,
+          "directionally_positive": false
+        },
+        {
+          "block": 3,
+          "start": "2026-02-14",
+          "end": "2026-04-14",
+          "spread_63d": null,
+          "mean_score": 0.6263950883002346,
+          "observations": 21,
+          "directionally_positive": false
+        }
+      ],
+      "positive_oos_blocks_63d": 0,
+      "warnings": []
+    },
+    "risk_names": [
+      {
+        "ticker": "STZ",
+        "sector": null,
+        "risk_penalty_score": 0.6423076923,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "UNH",
+        "sector": null,
+        "risk_penalty_score": 0.6346153846,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "PAGS",
+        "sector": null,
+        "risk_penalty_score": 0.6269230769,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "RACE",
+        "sector": null,
+        "risk_penalty_score": 0.6192307692,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "INDA",
+        "sector": "ETF",
+        "risk_penalty_score": 0.6115384615,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "MSFT",
+        "sector": null,
+        "risk_penalty_score": 0.6038461538,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "UBER",
+        "sector": null,
+        "risk_penalty_score": 0.5961538462,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "OSCR",
+        "sector": null,
+        "risk_penalty_score": 0.5884615385,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "TLT",
+        "sector": "ETF",
+        "risk_penalty_score": 0.5807692308,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "MELI",
+        "sector": null,
+        "risk_penalty_score": 0.5730769231,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "PEP",
+        "sector": null,
+        "risk_penalty_score": 0.5653846154,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "BIDU",
+        "sector": null,
+        "risk_penalty_score": 0.5576923077,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+      }
+    ],
+    "coverage": 39,
+    "holdings_coverage": 35,
+    "warnings": [
+      "ABEV: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ABEV?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ABEV: using yfinance statement fallback.",
+      "ADUR: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ADUR?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ADUR: using yfinance statement fallback.",
+      "ASML: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ASML?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ASML: using yfinance statement fallback.",
+      "ASTS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ASTS?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ASTS: using yfinance statement fallback.",
+      "BABA: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/BABA?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "BABA: using yfinance statement fallback.",
+      "BFLY: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/BFLY?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "BFLY: using yfinance statement fallback.",
+      "BIDU: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/BIDU?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "BIDU: using yfinance statement fallback.",
+      "BROS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/BROS?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "BROS: using yfinance statement fallback.",
+      "IBRX: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/IBRX?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "IBRX: using yfinance statement fallback.",
+      "IREN: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/IREN?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "IREN: using yfinance statement fallback.",
+      "ISRG: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ISRG?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ISRG: using yfinance statement fallback.",
+      "MELI: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/MELI?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "MELI: using yfinance statement fallback.",
+      "NBIS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/NBIS?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "NBIS: using yfinance statement fallback.",
+      "NFLX: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/NFLX?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "NFLX: using yfinance statement fallback.",
+      "NTR: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/NTR?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "NTR: using yfinance statement fallback.",
+      "NU: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/NU?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "NU: using yfinance statement fallback.",
+      "ONDS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ONDS?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ONDS: using yfinance statement fallback.",
+      "OSCR: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/OSCR?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "OSCR: using yfinance statement fallback.",
+      "PAGS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/PAGS?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "PAGS: using yfinance statement fallback.",
+      "PEP: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/PEP?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "PEP: using yfinance statement fallback.",
+      "SPOT: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/SPOT?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "SPOT: using yfinance statement fallback.",
+      "STZ: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/STZ?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "STZ: using yfinance statement fallback.",
+      "UBER: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/UBER?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "UBER: using yfinance statement fallback.",
+      "UNH: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/UNH?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "UNH: using yfinance statement fallback.",
+      "ZETA: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ZETA?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ZETA: using yfinance statement fallback.",
+      "ZVRA: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ZVRA?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ZVRA: using yfinance statement fallback.",
+      "COST: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/COST?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "COST: using yfinance statement fallback.",
+      "MSFT: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/MSFT?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "MSFT: using yfinance statement fallback.",
+      "RACE: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/RACE?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "RACE: using yfinance statement fallback.",
+      "TSM: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/TSM?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "TSM: using yfinance statement fallback.",
+      "ABX: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ABX?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ABX: using yfinance statement fallback.",
+      "AMPY: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/AMPY?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "AMPY: using yfinance statement fallback.",
+      "ANDG: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ANDG?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "ANDG: using yfinance statement fallback.",
+      "AXIA: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/AXIA?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "AXIA: using yfinance statement fallback.",
+      "CIG: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/CIG?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "CIG: using yfinance statement fallback.",
+      "GPRK: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/GPRK?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "GPRK: using yfinance statement fallback.",
+      "LND: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/LND?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "LND: using yfinance statement fallback.",
+      "MOS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/MOS?period=quarter&limit=40&apikey=79fY9wvC9qtCJHcn6Yelf4ilE9TkRMoq)",
+      "MOS: using yfinance statement fallback."
+    ]
+  }
+}

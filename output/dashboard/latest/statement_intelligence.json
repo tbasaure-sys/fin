@@ -1,0 +1,760 @@
+{
+  "top_statement_names": [
+    {
+      "ticker": "ASML",
+      "sector": null,
+      "statement_score": 0.5838589744,
+      "statement_conviction_score": 0.6356456487,
+      "earnings_cash_kernel_score": 0.8192529488,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "NTR",
+      "sector": null,
+      "statement_score": 0.5910897436,
+      "statement_conviction_score": 0.6343559781,
+      "earnings_cash_kernel_score": 0.7877544457,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ABEV",
+      "sector": null,
+      "statement_score": 0.5431410256,
+      "statement_conviction_score": 0.6166770187,
+      "earnings_cash_kernel_score": 0.8773955396,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "PEP",
+      "sector": null,
+      "statement_score": 0.5140897436,
+      "statement_conviction_score": 0.5764148423,
+      "earnings_cash_kernel_score": 0.7973856469,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ZETA",
+      "sector": null,
+      "statement_score": 0.4738589744,
+      "statement_conviction_score": 0.5760106831,
+      "earnings_cash_kernel_score": 0.9381849231,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "EWY",
+      "sector": "ETF",
+      "statement_score": 0.5922820513,
+      "statement_conviction_score": 0.57198,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": "insufficient_history",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ONDS",
+      "sector": null,
+      "statement_score": 0.6050897436,
+      "statement_conviction_score": 0.5644321555,
+      "earnings_cash_kernel_score": 0.420282525,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "STZ",
+      "sector": null,
+      "statement_score": 0.4688076923,
+      "statement_conviction_score": 0.556854816,
+      "earnings_cash_kernel_score": 0.869021891,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ISRG",
+      "sector": null,
+      "statement_score": 0.5052692308,
+      "statement_conviction_score": 0.55517307,
+      "earnings_cash_kernel_score": 0.7321048637,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "NBIS",
+      "sector": null,
+      "statement_score": 0.5789358974,
+      "statement_conviction_score": 0.54837,
+      "earnings_cash_kernel_score": 0.44,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "NU",
+      "sector": null,
+      "statement_score": 0.4697820513,
+      "statement_conviction_score": 0.5455864017,
+      "earnings_cash_kernel_score": 0.8143472806,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "IBRX",
+      "sector": null,
+      "statement_score": 0.5931153846,
+      "statement_conviction_score": 0.541198856,
+      "earnings_cash_kernel_score": 0.3571311635,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    }
+  ],
+  "top_compounders": [
+    {
+      "ticker": "IBRX",
+      "sector": null,
+      "compounder_score": 0.538974359,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "EWY",
+      "sector": "ETF",
+      "compounder_score": 0.538974359,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "BFLY",
+      "sector": null,
+      "compounder_score": 0.5358974359,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ASTS",
+      "sector": null,
+      "compounder_score": 0.5338461538,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ASML",
+      "sector": null,
+      "compounder_score": 0.5317948718,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "REMX",
+      "sector": "ETF",
+      "compounder_score": 0.5297435897,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ONDS",
+      "sector": null,
+      "compounder_score": 0.5276923077,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "NTR",
+      "sector": null,
+      "compounder_score": 0.5256410256,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "TSM",
+      "sector": null,
+      "compounder_score": 0.5235897436,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "COPX",
+      "sector": "ETF",
+      "compounder_score": 0.5215384615,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ZVRA",
+      "sector": null,
+      "compounder_score": 0.5194871795,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "NBIS",
+      "sector": null,
+      "compounder_score": 0.5174358974,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    }
+  ],
+  "top_cash_generators": [
+    {
+      "ticker": "ASML",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "NTR",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ABEV",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "PEP",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ZETA",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "EWY",
+      "sector": "ETF",
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ONDS",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "STZ",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "ISRG",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "NBIS",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "NU",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "IBRX",
+      "sector": null,
+      "cash_generation_score": 0.5,
+      "cash_conversion_proxy_score": 0.5,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    }
+  ],
+  "top_kernel_names": [
+    {
+      "ticker": "ZETA",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.9381849231,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.5760106831,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "UNH",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.8876197452,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.5215063439,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "ABEV",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.8773955396,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.6166770187,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "STZ",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.869021891,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.556854816,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "MELI",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.8319751979,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.5051045435,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: working capital is consuming cash."
+    },
+    {
+      "ticker": "RACE",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.8259117878,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.4879505933,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "ASML",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.8192529488,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.6356456487,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: working capital is consuming cash."
+    },
+    {
+      "ticker": "NU",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.8143472806,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.5455864017,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "PAGS",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.8035354636,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.530447802,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "PEP",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.7973856469,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.5764148423,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "NTR",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.7877544457,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.6343559781,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "SPOT",
+      "sector": null,
+      "earnings_cash_kernel_score": 0.7818366206,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.5270340565,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    }
+  ],
+  "cash_mismatch_names": [
+    {
+      "ticker": "ASTS",
+      "sector": null,
+      "statement_score": 0.6267051282,
+      "earnings_cash_kernel_score": 0.14,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "ZVRA",
+      "sector": null,
+      "statement_score": 0.5519102564,
+      "earnings_cash_kernel_score": 0.1655061294,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "BFLY",
+      "sector": null,
+      "statement_score": 0.6100641026,
+      "earnings_cash_kernel_score": 0.2356668446,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "IREN",
+      "sector": null,
+      "statement_score": 0.5621410256,
+      "earnings_cash_kernel_score": 0.24,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: free cash flow support is weak, capex burden is heavy relative to revenue."
+    },
+    {
+      "ticker": "ADUR",
+      "sector": null,
+      "statement_score": 0.4858846154,
+      "earnings_cash_kernel_score": 0.24,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "IBRX",
+      "sector": null,
+      "statement_score": 0.5931153846,
+      "earnings_cash_kernel_score": 0.3571311635,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "ONDS",
+      "sector": null,
+      "statement_score": 0.6050897436,
+      "earnings_cash_kernel_score": 0.420282525,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: cash is improving faster than accounting earnings, accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "NBIS",
+      "sector": null,
+      "statement_score": 0.5789358974,
+      "earnings_cash_kernel_score": 0.44,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "BIDU",
+      "sector": null,
+      "statement_score": 0.4982692308,
+      "earnings_cash_kernel_score": 0.44,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "COST",
+      "sector": null,
+      "statement_score": 0.5262692308,
+      "earnings_cash_kernel_score": 0.5,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "BABA",
+      "sector": null,
+      "statement_score": 0.4792435897,
+      "earnings_cash_kernel_score": 0.5292453547,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, accrual intensity remains controlled. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "TSM",
+      "sector": null,
+      "statement_score": 0.5940128205,
+      "earnings_cash_kernel_score": 0.6656066382,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: capex burden is heavy relative to revenue."
+    }
+  ],
+  "kernel_sector_breadth": [
+    {
+      "sector": "Utilities",
+      "coverage": 1,
+      "median_kernel_score": 0.7576339669,
+      "mean_kernel_score": 0.7576339669,
+      "cash_confirmed_share": 1.0,
+      "earnings_only_share": 0.0
+    },
+    {
+      "sector": "Unknown",
+      "coverage": 30,
+      "median_kernel_score": 0.7174886272,
+      "mean_kernel_score": 0.6237266601,
+      "cash_confirmed_share": 0.5666666667,
+      "earnings_only_share": 0.2
+    },
+    {
+      "sector": "Industrials",
+      "coverage": 1,
+      "median_kernel_score": 0.6805761758,
+      "mean_kernel_score": 0.6805761758,
+      "cash_confirmed_share": 0.0,
+      "earnings_only_share": 0.0
+    },
+    {
+      "sector": "Energy",
+      "coverage": 2,
+      "median_kernel_score": 0.4730572588,
+      "mean_kernel_score": 0.4730572588,
+      "cash_confirmed_share": 0.0,
+      "earnings_only_share": 1.0
+    },
+    {
+      "sector": "Consumer Staples",
+      "coverage": 1,
+      "median_kernel_score": 0.44,
+      "mean_kernel_score": 0.44,
+      "cash_confirmed_share": 0.0,
+      "earnings_only_share": 1.0
+    },
+    {
+      "sector": "Finance",
+      "coverage": 1,
+      "median_kernel_score": 0.3,
+      "mean_kernel_score": 0.3,
+      "cash_confirmed_share": 0.0,
+      "earnings_only_share": 0.0
+    }
+  ],
+  "kernel_research_utility": {
+    "coverage": 63,
+    "score_corr_21d": 0.14397759103641455,
+    "score_corr_63d": -0.2734604105571847,
+    "top_bottom_spread_21d": -0.0007571750223728567,
+    "top_bottom_spread_63d": -0.35521988133794224,
+    "bucket_returns": [
+      {
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "fwd_return_21d_mean": 0.0128774418,
+        "fwd_return_21d_median": 0.0240202955,
+        "fwd_return_21d_count": 13,
+        "fwd_return_63d_mean": 0.0084977592,
+        "fwd_return_63d_median": -0.0053993841,
+        "fwd_return_63d_count": 11
+      },
+      {
+        "earnings_cash_kernel_bucket": "cash_improving",
+        "fwd_return_21d_mean": null,
+        "fwd_return_21d_median": null,
+        "fwd_return_21d_count": 0,
+        "fwd_return_63d_mean": null,
+        "fwd_return_63d_median": null,
+        "fwd_return_63d_count": 0
+      },
+      {
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "fwd_return_21d_mean": -0.0602396294,
+        "fwd_return_21d_median": -0.0603473802,
+        "fwd_return_21d_count": 14,
+        "fwd_return_63d_mean": 0.0111111625,
+        "fwd_return_63d_median": -0.0162064606,
+        "fwd_return_63d_count": 14
+      },
+      {
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "fwd_return_21d_mean": 0.1052225431,
+        "fwd_return_21d_median": 0.0759897751,
+        "fwd_return_21d_count": 8,
+        "fwd_return_63d_mean": 0.718005565,
+        "fwd_return_63d_median": 0.3973757021,
+        "fwd_return_63d_count": 7
+      }
+    ],
+    "rank_returns": [
+      {
+        "kernel_rank_bucket": "low",
+        "fwd_return_21d_mean": 0.0084268499,
+        "fwd_return_21d_median": -0.0855856103,
+        "fwd_return_21d_count": 13,
+        "fwd_return_63d_mean": 0.4041323545,
+        "fwd_return_63d_median": 0.1645163637,
+        "fwd_return_63d_count": 12
+      },
+      {
+        "kernel_rank_bucket": "mid",
+        "fwd_return_21d_mean": -0.0009802958,
+        "fwd_return_21d_median": 0.0092264149,
+        "fwd_return_21d_count": 13,
+        "fwd_return_63d_mean": 0.0063919243,
+        "fwd_return_63d_median": -0.0194445997,
+        "fwd_return_63d_count": 13
+      },
+      {
+        "kernel_rank_bucket": "high",
+        "fwd_return_21d_mean": 0.0076696748,
+        "fwd_return_21d_median": 0.0240202955,
+        "fwd_return_21d_count": 9,
+        "fwd_return_63d_mean": 0.0489124731,
+        "fwd_return_63d_median": 0.1288604892,
+        "fwd_return_63d_count": 7
+      }
+    ],
+    "oos_blocks": [
+      {
+        "block": 1,
+        "start": "2025-11-14",
+        "end": "2025-11-14",
+        "spread_63d": -0.07280536610038271,
+        "mean_score": 0.616620142063228,
+        "observations": 21,
+        "directionally_positive": false
+      },
+      {
+        "block": 2,
+        "start": "2025-11-14",
+        "end": "2026-02-14",
+        "spread_63d": -0.7745040291855543,
+        "mean_score": 0.5356387150213967,
+        "observations": 21,
+        "directionally_positive": false
+      },
+      {
+        "block": 3,
+        "start": "2026-02-14",
+        "end": "2026-04-14",
+        "spread_63d": null,
+        "mean_score": 0.6263950883002346,
+        "observations": 21,
+        "directionally_positive": false
+      }
+    ],
+    "positive_oos_blocks_63d": 0,
+    "warnings": []
+  },
+  "risk_names": [
+    {
+      "ticker": "STZ",
+      "sector": null,
+      "risk_penalty_score": 0.6423076923,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "UNH",
+      "sector": null,
+      "risk_penalty_score": 0.6346153846,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "PAGS",
+      "sector": null,
+      "risk_penalty_score": 0.6269230769,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "RACE",
+      "sector": null,
+      "risk_penalty_score": 0.6192307692,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "INDA",
+      "sector": "ETF",
+      "risk_penalty_score": 0.6115384615,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "MSFT",
+      "sector": null,
+      "risk_penalty_score": 0.6038461538,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "UBER",
+      "sector": null,
+      "risk_penalty_score": 0.5961538462,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "OSCR",
+      "sector": null,
+      "risk_penalty_score": 0.5884615385,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "TLT",
+      "sector": "ETF",
+      "risk_penalty_score": 0.5807692308,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "MELI",
+      "sector": null,
+      "risk_penalty_score": 0.5730769231,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "PEP",
+      "sector": null,
+      "risk_penalty_score": 0.5653846154,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    },
+    {
+      "ticker": "BIDU",
+      "sector": null,
+      "risk_penalty_score": 0.5576923077,
+      "statement_bucket": "speculative",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+    }
+  ],
+  "coverage": 39,
+  "holdings_coverage": 35,
+  "stale_days": 0
+}

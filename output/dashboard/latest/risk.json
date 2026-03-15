@@ -1,0 +1,123 @@
+{
+  "state": {
+    "regime": "RISK_ON",
+    "crash_prob": 0.4511833746540071,
+    "tail_risk_score": 0.0029293688438510814,
+    "legitimacy_risk": 0.4419574221623469
+  },
+  "tail_risk": {
+    "date": "2026-03-13",
+    "tail_loss_5d": 0.001622995655952495,
+    "tail_loss_10d": 0.0015943739026385558,
+    "tail_loss_20d": 0.0022919752404237195,
+    "tail_risk_score": 0.001880569876081106
+  },
+  "historical_context": {
+    "date": "2026-03-13",
+    "regime_label": "normal",
+    "episode_name": null,
+    "episode_group": null,
+    "active_episodes": null,
+    "active_regimes": null
+  },
+  "structure": {
+    "crowding_pct": 0.5648944487881157,
+    "breadth_20d": 0.7096774193548387,
+    "dispersion_20d": 0.0102940751272363,
+    "mean_corr_20d": 0.4624554711180206,
+    "effective_dimension_20d": 8.31088886250206,
+    "avg_pair_corr_60d": 0.2824934765029795,
+    "pct_positive_20d": 0.7096774193548387,
+    "advance_decline_ratio": 6.75,
+    "momentum_concentration_60d": 2.1546273334452968,
+    "realized_cross_sectional_vol": 0.1558904858335935,
+    "spy_mom_20d": 0.0016098176035759,
+    "spy_vol_20d": 0.008446233086408,
+    "spy_drawdown_20d": -0.0070022504788981,
+    "gold_return_3m": 0.2037105174099724,
+    "dollar_return_3m": -0.0087842970252509,
+    "oil_return_3m": NaN,
+    "gold_commodity_ratio": 18.96959546494304
+  },
+  "macro": {
+    "term_spread": NaN,
+    "high_yield_spread": NaN,
+    "hy_ig_gap": NaN,
+    "m2_yoy": NaN,
+    "balance_sheet_yoy": NaN,
+    "dgs10": NaN,
+    "dgs2": NaN,
+    "fedfunds": NaN,
+    "m2_level": NaN,
+    "walcl": NaN
+  },
+  "explanation": {
+    "why_this_action": [
+      "Scenario weighting confirmed beta near 100% with soft landing as the dominant world.",
+      "tlt_score supported beta target 100%",
+      "tail_loss_5d supported beta target 100%",
+      "memory_p_fail supported beta target 100%"
+    ],
+    "conditions_that_flip_decision": [
+      "crash_prob moving higher would favor beta target 25%",
+      "bil_score moving higher would favor beta target 25%",
+      "tlt_score moving higher would favor beta target 25%"
+    ],
+    "top_feature_contributions": {
+      "tlt_score": 0.7941421530237815,
+      "tail_loss_5d": 0.7007444373988917,
+      "memory_p_fail": 0.4154548451203788
+    },
+    "scenario_narrative": [
+      "Posterior leans to soft landing at 63%.",
+      "Growth holds up, fragility is contained, and broad participation supports risk.",
+      "Secondary scenario is reflation qe at 14%."
+    ],
+    "scenario_top_posteriors": {
+      "soft_landing": 0.6296598423578105,
+      "reflation_qe": 0.14453950064768706,
+      "mania_rotation": 0.10899543379042848,
+      "tightening_stress": 0.10465727301187232,
+      "recession_crash": 0.012147950192201742
+    }
+  },
+  "forecast_baseline": {
+    "IEF": {
+      "predicted_5d": 0.004672114059532731,
+      "predicted_10d": 0.010027618861160319,
+      "predicted_20d": 0.014671049533684807,
+      "date": "2026-03-13"
+    },
+    "SHY": {
+      "predicted_5d": 0.001980948426252074,
+      "predicted_10d": 0.004060705107048383,
+      "predicted_20d": 0.008076532637982402,
+      "date": "2026-03-13"
+    },
+    "GLD": {
+      "predicted_5d": 0.027490641698735233,
+      "predicted_10d": 0.03817987712979476,
+      "predicted_20d": 0.06098842582521683,
+      "date": "2026-03-13"
+    },
+    "BIL": {
+      "predicted_5d": 0.0007329753707388024,
+      "predicted_10d": 0.0014304243962523343,
+      "predicted_20d": 0.0028976623820436403,
+      "date": "2026-03-13"
+    },
+    "SPY": {
+      "predicted_5d": -0.009021972650935753,
+      "predicted_10d": -0.016755682476424772,
+      "predicted_20d": -0.02006343006415561,
+      "date": "2026-03-13"
+    },
+    "UUP": {
+      "predicted_5d": -0.012456283276621667,
+      "predicted_10d": -0.0234481120809357,
+      "predicted_20d": -0.04230953023131339,
+      "date": "2026-03-13"
+    }
+  },
+  "stale_days": 0
+}
