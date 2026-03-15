@@ -22,6 +22,7 @@ venv/
 .env.*
 !.env.example
 README.local.md
+WEB_GUIDE.local.md
 
 # editor and system
 .DS_Store
