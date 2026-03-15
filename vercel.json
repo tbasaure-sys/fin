@@ -1,42 +1,31 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "functions": {
-    "api/[...path].js": {
-      "runtime": "@vercel/node@3.2.22"
-    }
-  },
+
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store"
-        }
+        { "key": "Cache-Control", "value": "no-store" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
   ],
+
   "rewrites": [
     {
-      "source": "/",
-      "destination": "/src/meta_alpha_allocator/dashboard/static/index.html"
+      "source": "/api/:path*",
+      "destination": "/api/[...path]"
     },
     {
-      "source": "/app.js",
-      "destination": "/src/meta_alpha_allocator/dashboard/static/app.js"
-    },
-    {
-      "source": "/styles.css",
-      "destination": "/src/meta_alpha_allocator/dashboard/static/styles.css"
-    },
-    {
-      "source": "/config.js",
-      "destination": "/src/meta_alpha_allocator/dashboard/static/config.js"
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/[...path].js"
+      "source": "/:path*",
+      "destination": "/index.html"
     }
-  ]
+  ],
+
+  "functions": {
+    "api/[...path].js": {
+      "runtime": "@vercel/node@3.2.22"
+    }
+  }
 }

@@ -9,20 +9,73 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FINANCE_ROOT = PROJECT_ROOT.parent
 CT_ROOT = FINANCE_ROOT.parent
 
+# When running on Railway/Vercel/any cloud host, set META_ALLOCATOR_CLOUD=1
+# to activate safe defaults that don't assume a local filesystem layout.
+_IS_CLOUD = os.environ.get("META_ALLOCATOR_CLOUD", "").strip() in {"1", "true", "yes"}
+
+# In cloud mode the "local-only" roots fall back to subdirs inside the project
+# so the server boots without FileNotFoundError even when those dirs are absent.
+_SAFE_FINANCE_ROOT = PROJECT_ROOT / "_local_data" / "finance"
+_SAFE_CT_ROOT = PROJECT_ROOT / "_local_data" / "ct"
+
 
 def _env_path(name: str, default: Path) -> Path:
     return Path(os.environ.get(name, str(default))).expanduser()
 
 
+def _cloud_path(name: str, local_default: Path, cloud_default: Path) -> Path:
+    """Return env-var path if set, else cloud_default (cloud) or local_default (dev)."""
+    if name in os.environ:
+        return Path(os.environ[name]).expanduser()
+    return cloud_default if _IS_CLOUD else local_default
+
+
 @dataclass(frozen=True)
 class PathConfig:
     project_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_PROJECT_ROOT", PROJECT_ROOT))
-    finance_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_FINANCE_ROOT", FINANCE_ROOT))
-    ct_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_CT_ROOT", CT_ROOT))
-    fin_model_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_FIN_MODEL_ROOT", FINANCE_ROOT / "Fin_model"))
-    portfolio_manager_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_PORTFOLIO_MANAGER_ROOT", FINANCE_ROOT / "portfolio_manager"))
-    polymarket_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_POLYMARKET_ROOT", CT_ROOT / "polymarket_paper_trader"))
-    caria_data_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_CARIA_DATA_ROOT", CT_ROOT / "01_Framework_Core" / "manuscripts" / "research" / "caria_publication" / "data"))
+
+    # These two are only needed when running the full research pipeline locally.
+    # In cloud (dashboard-serve only) they default to safe no-op paths so
+    # load_state_panel() and other adapters can fall back gracefully instead
+    # of raising FileNotFoundError at import time.
+    finance_root: Path = field(
+        default_factory=lambda: _cloud_path(
+            "META_ALLOCATOR_FINANCE_ROOT", FINANCE_ROOT, _SAFE_FINANCE_ROOT
+        )
+    )
+    ct_root: Path = field(
+        default_factory=lambda: _cloud_path(
+            "META_ALLOCATOR_CT_ROOT", CT_ROOT, _SAFE_CT_ROOT
+        )
+    )
+    fin_model_root: Path = field(
+        default_factory=lambda: _cloud_path(
+            "META_ALLOCATOR_FIN_MODEL_ROOT",
+            FINANCE_ROOT / "Fin_model",
+            _SAFE_FINANCE_ROOT / "Fin_model",
+        )
+    )
+    portfolio_manager_root: Path = field(
+        default_factory=lambda: _cloud_path(
+            "META_ALLOCATOR_PORTFOLIO_MANAGER_ROOT",
+            FINANCE_ROOT / "portfolio_manager",
+            _SAFE_FINANCE_ROOT / "portfolio_manager",
+        )
+    )
+    polymarket_root: Path = field(
+        default_factory=lambda: _cloud_path(
+            "META_ALLOCATOR_POLYMARKET_ROOT",
+            CT_ROOT / "polymarket_paper_trader",
+            _SAFE_CT_ROOT / "polymarket_paper_trader",
+        )
+    )
+    caria_data_root: Path = field(
+        default_factory=lambda: _cloud_path(
+            "META_ALLOCATOR_CARIA_DATA_ROOT",
+            CT_ROOT / "01_Framework_Core" / "manuscripts" / "research" / "caria_publication" / "data",
+            _SAFE_CT_ROOT / "caria_data",
+        )
+    )
     output_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_OUTPUT_ROOT", PROJECT_ROOT / "output"))
     cache_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_CACHE_ROOT", PROJECT_ROOT / "cache"))
 
@@ -171,7 +224,14 @@ class AllocatorSettings:
 
 @dataclass(frozen=True)
 class DashboardSettings:
-    host: str = field(default_factory=lambda: os.environ.get("META_ALLOCATOR_HOST", "127.0.0.1"))
+    # In cloud mode default to 0.0.0.0 so Railway/Render/Fly can bind the port.
+    # Locally keep 127.0.0.1 unless overridden.
+    host: str = field(
+        default_factory=lambda: os.environ.get(
+            "META_ALLOCATOR_HOST",
+            "0.0.0.0" if _IS_CLOUD else "127.0.0.1",
+        )
+    )
     port: int = field(default_factory=lambda: int(os.environ.get("PORT", os.environ.get("META_ALLOCATOR_PORT", "8765"))))
     auto_refresh_seconds: int = 300
     market_lookback_days: int = 252

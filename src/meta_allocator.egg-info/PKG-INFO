@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: meta-allocator
+Version: 0.1.0
+Summary: Meta allocator routing engine for liquid US markets
+Requires-Python: >=3.10
+Provides-Extra: serve
+Requires-Dist: gunicorn>=22.0; extra == "serve"

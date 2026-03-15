@@ -2,6 +2,26 @@
 builder = "NIXPACKS"
 
 [deploy]
-startCommand = "python3 -m meta_alpha_allocator.cli dashboard serve --host 0.0.0.0 --port ${PORT:-8000}"
+# gunicorn serves the WSGI app defined in wsgi.py.
+# --workers 1: single worker keeps memory predictable on Railway free tier.
+# --threads 4: handles concurrent API requests without extra processes.
+# --timeout 120: allows the background snapshot refresh to complete before
+#                gunicorn kills a worker as unresponsive.
+# --preload: loads the app before forking so the background thread starts
+#            inside the worker process (important for DashboardService).
+startCommand = "gunicorn 'meta_alpha_allocator.dashboard.wsgi:create_app()' --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT:-8000} --preload --log-level info"
+
+# Railway will GET /health every 10s after deploy.
+# The server must respond within 30s — boot is now instant (cache served first).
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+
 restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 5
+restartPolicyMaxRetries = 3
+
+[deploy.environmentVariables]
+# Tell PathConfig we are in cloud mode so local-only paths fall back safely.
+META_ALLOCATOR_CLOUD = "1"
+# Disable background refresh on boot if no pipeline data is available in cloud.
+# Set to "5" (seconds) to enable a post-boot refresh attempt.
+META_ALLOCATOR_BOOT_REFRESH_DELAY = "-1"

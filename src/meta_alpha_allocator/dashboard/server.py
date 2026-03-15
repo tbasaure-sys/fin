@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 import os
 import threading
+import time
 import webbrowser
-from functools import partial
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -17,35 +17,86 @@ from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cache
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
 CORS_ORIGIN = os.environ.get("META_ALLOCATOR_CORS_ORIGIN", "*")
 
+# How long to wait after startup before auto-refreshing in background (seconds).
+# Set to 0 to disable background refresh on boot.
+_BOOT_REFRESH_DELAY = int(os.environ.get("META_ALLOCATOR_BOOT_REFRESH_DELAY", "5"))
+
 
 class DashboardService:
+    """Serves a pre-built snapshot immediately on startup.
+
+    On construction the service loads the cached snapshot from disk (if
+    available) and returns it right away so the HTTP server can start
+    accepting requests without running any heavy pipeline.  A background
+    thread then refreshes the snapshot after ``boot_refresh_delay`` seconds.
+    """
+
     def __init__(
         self,
         paths: PathConfig,
         research_settings: ResearchSettings,
         allocator_settings: AllocatorSettings,
         dashboard_settings: DashboardSettings,
+        *,
+        boot_refresh_delay: int = _BOOT_REFRESH_DELAY,
     ) -> None:
         self.paths = paths
         self.research_settings = research_settings
         self.allocator_settings = allocator_settings
         self.dashboard_settings = dashboard_settings
         self._lock = threading.Lock()
+        self._refreshing = False
+        self._started_at = time.monotonic()
+
+        # Always load cached snapshot first — never block startup.
         self._snapshot = load_cached_snapshot(paths, dashboard_settings)
+
         if self._snapshot is None:
-            self._snapshot = build_dashboard_snapshot(
-                paths,
-                research_settings,
-                allocator_settings,
-                dashboard_settings,
+            # No cache at all: build a lightweight empty shell so the server
+            # can still respond while the background refresh runs.
+            from .snapshot import _empty_snapshot
+            from datetime import UTC, datetime
+            self._snapshot = _empty_snapshot(
+                generated_at=datetime.now(tz=UTC).isoformat(),
+                warnings=["snapshot not yet available — refresh in progress"],
+            )
+            self._snapshot["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
+
+        if boot_refresh_delay >= 0:
+            t = threading.Thread(target=self._background_refresh, args=(boot_refresh_delay,), daemon=True)
+            t.start()
+
+    def _background_refresh(self, delay: int) -> None:
+        if delay > 0:
+            time.sleep(delay)
+        try:
+            with self._lock:
+                self._refreshing = True
+            new_snapshot = build_dashboard_snapshot(
+                self.paths,
+                self.research_settings,
+                self.allocator_settings,
+                self.dashboard_settings,
                 refresh_outputs=True,
             )
+            with self._lock:
+                self._snapshot = new_snapshot
+                self._refreshing = False
+        except Exception as exc:  # noqa: BLE001
+            with self._lock:
+                self._refreshing = False
+            print(f"[dashboard] background refresh failed: {exc}")
 
     def snapshot(self) -> dict:
         with self._lock:
             return self._snapshot
 
+    def is_refreshing(self) -> bool:
+        with self._lock:
+            return self._refreshing
+
     def refresh(self) -> dict:
+        """Trigger a synchronous refresh (called via POST /api/refresh)."""
         with self._lock:
             self._snapshot = build_dashboard_snapshot(
                 self.paths,
@@ -101,6 +152,20 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
 
         def do_GET(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
+
+            # ── Health check ─────────────────────────────────────────────────
+            # Railway/Vercel/K8s hit this before declaring the deploy alive.
+            # It MUST respond instantly, even when the snapshot isn't ready.
+            if parsed.path in {"/health", "/healthz", "/ping"}:
+                self._send_json(
+                    {
+                        "ok": True,
+                        "refreshing": service.is_refreshing(),
+                        "uptime_seconds": round(time.monotonic() - service._started_at, 1),
+                    }
+                )
+                return
+
             if parsed.path in {"/", "/index.html"}:
                 self._send_static(STATIC_ROOT / "index.html")
                 return
@@ -135,7 +200,10 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                     "kernel_sector_breadth": snapshot.get("statement_intelligence", {}).get("kernel_sector_breadth", []),
                     "kernel_research_utility": snapshot.get("statement_intelligence", {}).get("kernel_research_utility", {}),
                 },
-                "/api/status": snapshot.get("status", {}),
+                "/api/status": {
+                    **snapshot.get("status", {}),
+                    "refreshing": service.is_refreshing(),
+                },
             }
             if parsed.path == "/api/screener":
                 self._send_json(apply_screener_query(snapshot, parsed.query))
@@ -180,14 +248,26 @@ def run_dashboard_server(
     open_browser: bool = False,
 ) -> None:
     service = DashboardService(paths, research_settings, allocator_settings, dashboard_settings)
-    server = ThreadingHTTPServer((dashboard_settings.host, dashboard_settings.port), _build_handler(service))
     url = f"http://{dashboard_settings.host}:{dashboard_settings.port}"
     print(f"Dashboard available at {url}")
     if open_browser:
-        webbrowser.open(url)
+        threading.Timer(1.5, lambda: webbrowser.open(url)).start()
+
+    # ── Prefer waitress in production, fall back to stdlib for local dev ──
     try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    finally:
-        server.server_close()
+        from waitress import serve as waitress_serve  # type: ignore[import]
+        wsgi_app = _make_wsgi_app(service)
+        print("[dashboard] serving via waitress")
+        waitress_serve(wsgi_app, host=dashboard_settings.host, port=dashboard_settings.port, threads=4)
+    except ImportError:
+        print("[dashboard] waitress not installed — falling back to stdlib ThreadingHTTPServer")
+        server = ThreadingHTTPServer(
+            (dashboard_settings.host, dashboard_settings.port),
+            _build_handler(service),
+        )
+        try:
+            server.serve_forever()
+        except KeyboardInterrupt:
+            pass
+        finally:
+            server.server_close()
