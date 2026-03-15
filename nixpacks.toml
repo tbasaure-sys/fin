@@ -1,12 +1,11 @@
 # nixpacks.toml — Railway build configuration
-# Forces Python 3.11 to ensure datetime.UTC is available (added in 3.11).
-# Without this, Railway may pick Python 3.10 and the server will crash.
+#
+# We only need to declare the Python version here.
+# Nixpacks handles the virtualenv creation and `pip install -r requirements.txt`
+# automatically — do NOT add a custom [phases.install] with pip commands, as
+# that would try to install into the immutable /nix/store and fail.
+#
+# Python 3.11 required: datetime.UTC was added in 3.11; 3.10 will crash on boot.
 
-[phases.setup]
-nixPkgs = ["python311", "python311Packages.pip"]
-
-[phases.install]
-cmds = ["pip install -r requirements.txt"]
-
-[start]
-cmd = "python -m gunicorn 'meta_alpha_allocator.dashboard.wsgi:create_app()' --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT:-8000} --preload --log-level info"
+[variables]
+NIXPACKS_PYTHON_VERSION = "3.11"
