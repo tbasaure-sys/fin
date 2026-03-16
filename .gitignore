@@ -9,6 +9,8 @@ data/
 datasets/
 analysis/
 .ipynb_checkpoints/
+!src/meta_alpha_allocator/data/
+!src/meta_alpha_allocator/data/**
 
 # python
 __pycache__/
