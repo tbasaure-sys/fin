@@ -1,0 +1,405 @@
+{
+  "top_kernel_names": [
+    {
+      "ticker": "ZETA",
+      "sector": "Technology",
+      "earnings_cash_kernel_score": 0.9381849231,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.6044451844,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "UNH",
+      "sector": "Healthcare",
+      "earnings_cash_kernel_score": 0.8876197452,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.5578387093,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "ABEV",
+      "sector": "Consumer Staples",
+      "earnings_cash_kernel_score": 0.8773955396,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.8256400324,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "STZ",
+      "sector": "Consumer Staples",
+      "earnings_cash_kernel_score": 0.869021891,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.733118351,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "MELI",
+      "sector": "Consumer Discretionary",
+      "earnings_cash_kernel_score": 0.8319751979,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.6239291581,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: working capital is consuming cash."
+    },
+    {
+      "ticker": "RACE",
+      "sector": "Consumer Discretionary",
+      "earnings_cash_kernel_score": 0.8259117878,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.6270250179,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "ASML",
+      "sector": "Technology",
+      "earnings_cash_kernel_score": 0.8192529488,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.7239770975,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: working capital is consuming cash."
+    },
+    {
+      "ticker": "NU",
+      "sector": "Financials",
+      "earnings_cash_kernel_score": 0.8143472806,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.4963992933,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "PAGS",
+      "sector": "Technology",
+      "earnings_cash_kernel_score": 0.8035354636,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.7967148774,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "PEP",
+      "sector": "Consumer Staples",
+      "earnings_cash_kernel_score": 0.7973856469,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.6741883347,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "NTR",
+      "sector": "Materials",
+      "earnings_cash_kernel_score": 0.7877544457,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.6544643172,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "SPOT",
+      "sector": "Communication Services",
+      "earnings_cash_kernel_score": 0.7818366206,
+      "earnings_cash_kernel_bucket": "cash_confirmed",
+      "statement_conviction_score": 0.5354896226,
+      "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+    }
+  ],
+  "cash_mismatch_names": [
+    {
+      "ticker": "ASTS",
+      "sector": "Technology",
+      "statement_score": 0.4666439886,
+      "earnings_cash_kernel_score": 0.14,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: strong gross margin. Risks: negative ROIC, negative free cash flow yield, stretched valuation.",
+      "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "ZVRA",
+      "sector": "Healthcare",
+      "statement_score": 0.4820784384,
+      "earnings_cash_kernel_score": 0.1655061294,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: strong gross margin. Risks: elevated leverage, negative EBITDA margin, negative ROIC.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "BFLY",
+      "sector": "Healthcare",
+      "statement_score": 0.4563491515,
+      "earnings_cash_kernel_score": 0.2356668446,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: strong gross margin. Risks: negative EBITDA margin, negative ROIC, negative free cash flow yield.",
+      "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "IREN",
+      "sector": "Financials",
+      "statement_score": 0.3529858034,
+      "earnings_cash_kernel_score": 0.24,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin. Risks: elevated leverage, negative ROIC, negative free cash flow yield.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: free cash flow support is weak, capex burden is heavy relative to revenue."
+    },
+    {
+      "ticker": "ADUR",
+      "sector": "Industrials",
+      "statement_score": 0.3954604918,
+      "earnings_cash_kernel_score": 0.24,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: strong gross margin. Risks: negative ROIC, negative free cash flow yield, stretched valuation.",
+      "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "ABX",
+      "sector": null,
+      "statement_score": 0.5251082331,
+      "earnings_cash_kernel_score": 0.3,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: cash is improving faster than accounting earnings. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "IBRX",
+      "sector": "Healthcare",
+      "statement_score": 0.5367866115,
+      "earnings_cash_kernel_score": 0.3571311635,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: strong gross margin. Risks: negative EBITDA margin, negative ROIC, negative free cash flow yield.",
+      "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "ONDS",
+      "sector": "Technology",
+      "statement_score": 0.4299518909,
+      "earnings_cash_kernel_score": 0.420282525,
+      "earnings_cash_kernel_bucket": "fragile_conversion",
+      "statement_commentary": "Strengths: limited accounting support. Risks: negative EBITDA margin, negative ROIC, negative free cash flow yield.",
+      "earnings_cash_kernel_commentary": "Cash view: cash is improving faster than accounting earnings, accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
+    },
+    {
+      "ticker": "GPRK",
+      "sector": null,
+      "statement_score": 0.5034375578,
+      "earnings_cash_kernel_score": 0.44,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "NBIS",
+      "sector": "Communication Services",
+      "statement_score": 0.4601365817,
+      "earnings_cash_kernel_score": 0.44,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: strong gross margin. Risks: negative EBITDA margin, negative ROIC, negative free cash flow yield.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "LND",
+      "sector": null,
+      "statement_score": 0.436239593,
+      "earnings_cash_kernel_score": 0.44,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+    },
+    {
+      "ticker": "BIDU",
+      "sector": "Communication Services",
+      "statement_score": 0.4331540215,
+      "earnings_cash_kernel_score": 0.44,
+      "earnings_cash_kernel_bucket": "earnings_only",
+      "statement_commentary": "Strengths: limited accounting support. Risks: elevated leverage, negative free cash flow yield, stretched valuation.",
+      "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
+    }
+  ],
+  "kernel_sector_breadth": [
+    {
+      "sector": "Consumer Staples",
+      "coverage": 5,
+      "median_kernel_score": 0.7973856469,
+      "mean_kernel_score": 0.6967606155,
+      "cash_confirmed_share": 0.6,
+      "earnings_only_share": 0.4
+    },
+    {
+      "sector": "Materials",
+      "coverage": 1,
+      "median_kernel_score": 0.7877544457,
+      "mean_kernel_score": 0.7877544457,
+      "cash_confirmed_share": 1.0,
+      "earnings_only_share": 0.0
+    },
+    {
+      "sector": "Consumer Discretionary",
+      "coverage": 4,
+      "median_kernel_score": 0.7684089717,
+      "mean_kernel_score": 0.724509624,
+      "cash_confirmed_share": 0.75,
+      "earnings_only_share": 0.25
+    },
+    {
+      "sector": "Utilities",
+      "coverage": 1,
+      "median_kernel_score": 0.7576339669,
+      "mean_kernel_score": 0.7576339669,
+      "cash_confirmed_share": 1.0,
+      "earnings_only_share": 0.0
+    },
+    {
+      "sector": "Technology",
+      "coverage": 8,
+      "median_kernel_score": 0.7136122602,
+      "mean_kernel_score": 0.6517608774,
+      "cash_confirmed_share": 0.625,
+      "earnings_only_share": 0.125
+    },
+    {
+      "sector": "Communication Services",
+      "coverage": 4,
+      "median_kernel_score": 0.5643965643,
+      "mean_kernel_score": 0.5876574373,
+      "cash_confirmed_share": 0.25,
+      "earnings_only_share": 0.5
+    },
+    {
+      "sector": "Healthcare",
+      "coverage": 6,
+      "median_kernel_score": 0.5446180136,
+      "mean_kernel_score": 0.5205232893,
+      "cash_confirmed_share": 0.5,
+      "earnings_only_share": 0.0
+    },
+    {
+      "sector": "Financials",
+      "coverage": 2,
+      "median_kernel_score": 0.5271736403,
+      "mean_kernel_score": 0.5271736403,
+      "cash_confirmed_share": 0.5,
+      "earnings_only_share": 0.5
+    },
+    {
+      "sector": "Energy",
+      "coverage": 2,
+      "median_kernel_score": 0.4730572588,
+      "mean_kernel_score": 0.4730572588,
+      "cash_confirmed_share": 0.0,
+      "earnings_only_share": 1.0
+    },
+    {
+      "sector": "Industrials",
+      "coverage": 2,
+      "median_kernel_score": 0.4602880879,
+      "mean_kernel_score": 0.4602880879,
+      "cash_confirmed_share": 0.0,
+      "earnings_only_share": 0.0
+    },
+    {
+      "sector": "Finance",
+      "coverage": 1,
+      "median_kernel_score": 0.3,
+      "mean_kernel_score": 0.3,
+      "cash_confirmed_share": 0.0,
+      "earnings_only_share": 0.0
+    }
+  ],
+  "kernel_research_utility": {
+    "coverage": 63,
+    "score_corr_21d": 0.14397759103641455,
+    "score_corr_63d": -0.2734604105571847,
+    "top_bottom_spread_21d": -0.0007571750223728567,
+    "top_bottom_spread_63d": -0.35521988133794224,
+    "bucket_returns": [
+      {
+        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "fwd_return_21d_mean": 0.0128774495,
+        "fwd_return_21d_median": 0.0240202955,
+        "fwd_return_21d_count": 13,
+        "fwd_return_63d_mean": 0.0084977671,
+        "fwd_return_63d_median": -0.0053993841,
+        "fwd_return_63d_count": 11
+      },
+      {
+        "earnings_cash_kernel_bucket": "cash_improving",
+        "fwd_return_21d_mean": null,
+        "fwd_return_21d_median": null,
+        "fwd_return_21d_count": 0,
+        "fwd_return_63d_mean": null,
+        "fwd_return_63d_median": null,
+        "fwd_return_63d_count": 0
+      },
+      {
+        "earnings_cash_kernel_bucket": "earnings_only",
+        "fwd_return_21d_mean": -0.0602396294,
+        "fwd_return_21d_median": -0.0603473802,
+        "fwd_return_21d_count": 14,
+        "fwd_return_63d_mean": 0.0111111625,
+        "fwd_return_63d_median": -0.0162064606,
+        "fwd_return_63d_count": 14
+      },
+      {
+        "earnings_cash_kernel_bucket": "fragile_conversion",
+        "fwd_return_21d_mean": 0.1052225431,
+        "fwd_return_21d_median": 0.0759897751,
+        "fwd_return_21d_count": 8,
+        "fwd_return_63d_mean": 0.718005565,
+        "fwd_return_63d_median": 0.3973757021,
+        "fwd_return_63d_count": 7
+      }
+    ],
+    "rank_returns": [
+      {
+        "kernel_rank_bucket": "low",
+        "fwd_return_21d_mean": 0.0084268499,
+        "fwd_return_21d_median": -0.0855856103,
+        "fwd_return_21d_count": 13,
+        "fwd_return_63d_mean": 0.4041323545,
+        "fwd_return_63d_median": 0.1645163637,
+        "fwd_return_63d_count": 12
+      },
+      {
+        "kernel_rank_bucket": "mid",
+        "fwd_return_21d_mean": -0.000980288,
+        "fwd_return_21d_median": 0.0092264149,
+        "fwd_return_21d_count": 13,
+        "fwd_return_63d_mean": 0.006391931,
+        "fwd_return_63d_median": -0.0194445997,
+        "fwd_return_63d_count": 13
+      },
+      {
+        "kernel_rank_bucket": "high",
+        "fwd_return_21d_mean": 0.0076696748,
+        "fwd_return_21d_median": 0.0240202955,
+        "fwd_return_21d_count": 9,
+        "fwd_return_63d_mean": 0.0489124731,
+        "fwd_return_63d_median": 0.1288604892,
+        "fwd_return_63d_count": 7
+      }
+    ],
+    "oos_blocks": [
+      {
+        "block": 1,
+        "start": "2025-11-14",
+        "end": "2025-11-14",
+        "spread_63d": -0.08071653897192774,
+        "mean_score": 0.6038834849601322,
+        "observations": 21,
+        "directionally_positive": false
+      },
+      {
+        "block": 2,
+        "start": "2025-11-14",
+        "end": "2026-02-14",
+        "spread_63d": -0.8094523505197626,
+        "mean_score": 0.5642136342417712,
+        "observations": 21,
+        "directionally_positive": false
+      },
+      {
+        "block": 3,
+        "start": "2026-02-14",
+        "end": "2026-04-14",
+        "spread_63d": null,
+        "mean_score": 0.6105568261829561,
+        "observations": 21,
+        "directionally_positive": false
+      }
+    ],
+    "positive_oos_blocks_63d": 0,
+    "warnings": []
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "warnings": [],
+  "panels": [
+    {
+      "name": "performance",
+      "stale_days": 0,
+      "status": "fresh"
+    },
+    {
+      "name": "risk",
+      "stale_days": 0,
+      "status": "fresh"
+    },
+    {
+      "name": "hedges",
+      "stale_days": 0,
+      "status": "fresh"
+    },
+    {
+      "name": "sectors",
+      "stale_days": 0,
+      "status": "fresh"
+    },
+    {
+      "name": "international",
+      "stale_days": 0,
+      "status": "fresh"
+    },
+    {
+      "name": "portfolio",
+      "stale_days": 0,
+      "status": "fresh"
+    },
+    {
+      "name": "screener",
+      "stale_days": 0,
+      "status": "fresh"
+    },
+    {
+      "name": "forecast",
+      "stale_days": 0,
+      "status": "fresh"
+    },
+    {
+      "name": "statement_intelligence",
+      "stale_days": 0,
+      "status": "fresh"
+    }
+  ],
+  "last_refresh": "2026-03-15T06:52:32.262634+00:00",
+  "auto_refresh_seconds": 300
+}

@@ -1,0 +1,188 @@
+{
+  "latest": {
+    "IEF": {
+      "predicted_5d": 0.004559095851506036,
+      "predicted_10d": 0.009318239036936467,
+      "predicted_20d": 0.013191468341030164,
+      "date": "2026-03-13"
+    },
+    "SHY": {
+      "predicted_5d": 0.0021276704578128405,
+      "predicted_10d": 0.004202752001743599,
+      "predicted_20d": 0.008433829623607555,
+      "date": "2026-03-13"
+    },
+    "GLD": {
+      "predicted_5d": 0.0208735475832912,
+      "predicted_10d": 0.03007717199976758,
+      "predicted_20d": 0.04983321053212942,
+      "date": "2026-03-13"
+    },
+    "BIL": {
+      "predicted_5d": 0.0007427102378652944,
+      "predicted_10d": 0.0014452505794984396,
+      "predicted_20d": 0.0029330562240461057,
+      "date": "2026-03-13"
+    },
+    "SPY": {
+      "predicted_5d": -0.008576454207040927,
+      "predicted_10d": -0.016485105947145463,
+      "predicted_20d": -0.019029269457001757,
+      "date": "2026-03-13"
+    },
+    "UUP": {
+      "predicted_5d": -0.012212197702546806,
+      "predicted_10d": -0.02228332204748895,
+      "predicted_20d": -0.042758054037010225,
+      "date": "2026-03-13"
+    }
+  },
+  "metrics": [
+    {
+      "ticker": "BIL",
+      "horizon_days": 5,
+      "ic": 0.3178778736471879,
+      "mae": 0.00013506873268490102,
+      "directional_accuracy": 1.0,
+      "sample_size": 87
+    },
+    {
+      "ticker": "GLD",
+      "horizon_days": 5,
+      "ic": 0.06406530834344329,
+      "mae": 0.03421682668132784,
+      "directional_accuracy": 0.4942528735632184,
+      "sample_size": 87
+    },
+    {
+      "ticker": "IEF",
+      "horizon_days": 5,
+      "ic": 0.204400932721983,
+      "mae": 0.004533362784094065,
+      "directional_accuracy": 0.5747126436781609,
+      "sample_size": 87
+    },
+    {
+      "ticker": "SHY",
+      "horizon_days": 5,
+      "ic": 0.3305705131682027,
+      "mae": 0.0009729250777293123,
+      "directional_accuracy": 0.6781609195402298,
+      "sample_size": 87
+    },
+    {
+      "ticker": "SPY",
+      "horizon_days": 5,
+      "ic": 0.1795130336553889,
+      "mae": 0.012357515731889467,
+      "directional_accuracy": 0.1724137931034483,
+      "sample_size": 87
+    },
+    {
+      "ticker": "UUP",
+      "horizon_days": 5,
+      "ic": -0.08004974553257196,
+      "mae": 0.009058297618893471,
+      "directional_accuracy": 0.45977011494252873,
+      "sample_size": 87
+    },
+    {
+      "ticker": "BIL",
+      "horizon_days": 10,
+      "ic": 0.3470537121226254,
+      "mae": 0.0001754002363287807,
+      "directional_accuracy": 1.0,
+      "sample_size": 82
+    },
+    {
+      "ticker": "GLD",
+      "horizon_days": 10,
+      "ic": 0.0063982283847370015,
+      "mae": 0.04100616509705103,
+      "directional_accuracy": 0.5609756097560976,
+      "sample_size": 82
+    },
+    {
+      "ticker": "IEF",
+      "horizon_days": 10,
+      "ic": 0.3222499764612035,
+      "mae": 0.006550794658694625,
+      "directional_accuracy": 0.6463414634146342,
+      "sample_size": 82
+    },
+    {
+      "ticker": "SHY",
+      "horizon_days": 10,
+      "ic": 0.30418168498701204,
+      "mae": 0.001406670807158288,
+      "directional_accuracy": 0.7804878048780488,
+      "sample_size": 82
+    },
+    {
+      "ticker": "SPY",
+      "horizon_days": 10,
+      "ic": 0.04372483527851645,
+      "mae": 0.02121711860177023,
+      "directional_accuracy": 0.15853658536585366,
+      "sample_size": 82
+    },
+    {
+      "ticker": "UUP",
+      "horizon_days": 10,
+      "ic": -0.1550052235134302,
+      "mae": 0.011818807228634825,
+      "directional_accuracy": 0.47560975609756095,
+      "sample_size": 82
+    },
+    {
+      "ticker": "BIL",
+      "horizon_days": 20,
+      "ic": 0.3707393014505504,
+      "mae": 0.00023998782111608576,
+      "directional_accuracy": 1.0,
+      "sample_size": 72
+    },
+    {
+      "ticker": "GLD",
+      "horizon_days": 20,
+      "ic": 0.4999262881769381,
+      "mae": 0.05523331517112752,
+      "directional_accuracy": 0.7222222222222222,
+      "sample_size": 72
+    },
+    {
+      "ticker": "IEF",
+      "horizon_days": 20,
+      "ic": 0.34242062825233943,
+      "mae": 0.00887177750853977,
+      "directional_accuracy": 0.6527777777777778,
+      "sample_size": 72
+    },
+    {
+      "ticker": "SHY",
+      "horizon_days": 20,
+      "ic": 0.47124665370871716,
+      "mae": 0.0019996862083214014,
+      "directional_accuracy": 0.9583333333333334,
+      "sample_size": 72
+    },
+    {
+      "ticker": "SPY",
+      "horizon_days": 20,
+      "ic": 0.41809084064495594,
+      "mae": 0.02550065682804208,
+      "directional_accuracy": 0.2361111111111111,
+      "sample_size": 72
+    },
+    {
+      "ticker": "UUP",
+      "horizon_days": 20,
+      "ic": 0.09134101105386251,
+      "mae": 0.012975533822467076,
+      "directional_accuracy": 0.4444444444444444,
+      "sample_size": 72
+    }
+  ],
+  "warnings": [],
+  "stale_days": 0
+}
