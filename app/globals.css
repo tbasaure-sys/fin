@@ -162,6 +162,7 @@ a {
 .hero-panel-side,
 .hero-panel-copy,
 .cockpit-note-list,
+.mini-framework,
 .edge-lane-stack,
 .watchlist-stack,
 .alerts-list,
@@ -253,6 +254,7 @@ a {
 .hero-edge-callout,
 .identity-card,
 .saved-view,
+.mini-framework-card,
 .watchlist-row,
 .status-row,
 .scenario-row,
@@ -277,6 +279,7 @@ a {
 .hero-edge-callout,
 .identity-card,
 .saved-view,
+.mini-framework-card,
 .mini-stat,
 .pulse-idea,
 .metric-tile,
@@ -290,6 +293,7 @@ a {
 .hero-edge-callout,
 .identity-card,
 .saved-view,
+.mini-framework-card,
 .watchlist-row div,
 .scenario-row div,
 .pulse-idea,
@@ -431,6 +435,16 @@ a {
   background: rgba(255, 124, 114, 0.14);
 }
 
+.mini-framework {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mini-framework-card {
+  padding: 12px;
+}
+
 .command-trigger,
 .ghost-button,
 .primary-button,
@@ -563,6 +577,24 @@ a {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
+}
+
+.cluster-balance {
+  display: grid;
+  gap: 10px;
+}
+
+.cluster-balance-row {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.cluster-balance-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .risk-metric-row,
@@ -825,6 +857,34 @@ a {
 
 .panel-block {
   padding: 14px;
+}
+
+.framework-state-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.framework-state-row strong {
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.framework-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.framework-metric-grid div {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .intro-block {
@@ -1321,7 +1381,9 @@ a {
   .hero-grid,
   .metric-band,
   .cockpit-kpis,
-  .risk-metric-stack {
+  .risk-metric-stack,
+  .framework-metric-grid,
+  .mini-framework {
     grid-template-columns: 1fr;
   }
 
@@ -1356,7 +1418,8 @@ a {
 
   .command-input-row,
   .edge-row,
-  .metric-row {
+  .metric-row,
+  .cluster-balance-row {
     grid-template-columns: 1fr;
   }
 
