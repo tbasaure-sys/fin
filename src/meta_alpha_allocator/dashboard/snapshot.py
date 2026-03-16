@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 import numpy as np
 import pandas as pd
 
-from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
+from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
 from ..data.adapters import load_fmp_market_proxy_panel, load_state_panel
 from ..data.fred_client import FREDClient
 from ..data.fmp_client import FMPClient
@@ -60,11 +60,12 @@ def _safe_semicolon_csv(path: Path) -> pd.DataFrame:
 
 
 def _artifact_snapshot_candidates(paths: PathConfig, dashboard_settings: DashboardSettings) -> list[Path]:
-    return [
-        dashboard_settings.output_dir / "dashboard_snapshot.json",
+    artifact_paths = [
         paths.artifact_root / "dashboard" / "latest" / "dashboard_snapshot.json",
         paths.artifact_root / "dashboard_snapshot.json",
     ]
+    local_cache = dashboard_settings.output_dir / "dashboard_snapshot.json"
+    return [*artifact_paths, local_cache] if artifact_only_mode() else [local_cache, *artifact_paths]
 
 
 def _load_preferred_screener(latest_root: Path) -> pd.DataFrame:
