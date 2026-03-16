@@ -1020,7 +1020,8 @@ a {
 
 .line-portfolio,
 .line-benchmark,
-.line-area {
+.line-area,
+.line-secondary {
   fill: none;
   vector-effect: non-scaling-stroke;
 }
@@ -1040,6 +1041,16 @@ a {
 
 .line-benchmark {
   stroke: rgba(82, 208, 163, 0.95);
+}
+
+.line-secondary {
+  stroke: rgba(140, 160, 189, 0.95);
+  stroke-width: 2;
+  stroke-dasharray: 3 3;
+}
+
+.compact-chart {
+  height: 180px;
 }
 
 .chart-scale {

@@ -474,6 +474,49 @@ function ClusterBalance({ cluster }) {
   );
 }
 
+function ScoreHistoryChart({ title, subtitle, rows = [], primaryLabel = "Score", secondaryLabel = "" }) {
+  if (!rows.length) {
+    return <p className="chart-empty">{subtitle}</p>;
+  }
+
+  const allValues = rows.flatMap((row) => [Number(row.value), Number(row.secondary)]).filter(Number.isFinite);
+  const min = Math.min(...allValues, 0);
+  const max = Math.max(...allValues, 1);
+  const range = max - min || 1;
+
+  function linePath(key) {
+    return rows
+      .map((row, index) => {
+        const value = Number(row[key]);
+        const x = 8 + ((index / Math.max(rows.length - 1, 1)) * 84);
+        const y = 92 - ((((value - min) / range)) * 78);
+        return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+      })
+      .join(" ");
+  }
+
+  const hasSecondary = rows.some((row) => Number.isFinite(Number(row.secondary)));
+
+  return (
+    <div className="chart-shell">
+      <div className="chart-header">
+        <strong>{title}</strong>
+        <span>{subtitle}</span>
+      </div>
+      <svg className="line-chart compact-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path className="line-grid" d="M 8 20 L 92 20 M 8 46 L 92 46 M 8 72 L 92 72 M 8 92 L 92 92" />
+        <path className="line-axis" d="M 8 8 L 8 92 L 92 92" />
+        {hasSecondary ? <path className="line-secondary" d={linePath("secondary")} /> : null}
+        <path className="line-portfolio" d={linePath("value")} />
+      </svg>
+      <div className="chart-legend compact">
+        <span><i className="swatch portfolio" />{primaryLabel}</span>
+        {hasSecondary ? <span><i className="swatch benchmark" />{secondaryLabel}</span> : null}
+      </div>
+    </div>
+  );
+}
+
 function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRefresh, isPending }) {
   const topEdge = dashboard.edge_board?.drilldowns?.[0];
 
@@ -858,6 +901,17 @@ function RiskModule({ module }) {
             <div><span>Expected horizon</span><strong>{module.reboundConfidence?.horizon}</strong></div>
           </div>
           <p className="support-copy">{module.reboundConfidence?.note}</p>
+          <ScoreHistoryChart
+            title="Confidence history"
+            subtitle="Confidence vs VIX backdrop"
+            rows={(module.reboundConfidence?.history || []).map((row) => ({
+              date: row.date,
+              value: row.value,
+              secondary: Number.isFinite(Number(row.vix)) ? Math.max(0, Math.min(1, Number(row.vix) / 50)) : null,
+            }))}
+            primaryLabel="Confidence"
+            secondaryLabel="VIX / 50"
+          />
         </div>
       </div>
       <div className="panel-block">
@@ -900,6 +954,17 @@ function SpectralModule({ module }) {
           ))}
         </div>
         <p className="support-copy">{module.reboundQuality?.note}</p>
+        <ScoreHistoryChart
+          title="Quality history"
+          subtitle="Quality vs compression"
+          rows={(module.reboundQuality?.history || []).map((row) => ({
+            date: row.date,
+            value: row.value,
+            secondary: row.compression,
+          }))}
+          primaryLabel="Quality"
+          secondaryLabel="Compression"
+        />
       </div>
       <div className="panel-block">
         <p className="block-title">Balance read</p>

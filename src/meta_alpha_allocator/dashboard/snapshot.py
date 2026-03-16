@@ -645,6 +645,7 @@ def _build_risk_snapshot(
                         "dgs10": latest.get("DGS10"),
                         "dgs2": latest.get("DGS2"),
                         "fedfunds": latest.get("FEDFUNDS"),
+                        "vix": latest.get("VIXCLS"),
                         "m2_level": latest.get("M2SL"),
                         "walcl": latest.get("WALCL"),
                     }
@@ -739,6 +740,7 @@ def _extract_overview(payload: dict[str, Any]) -> dict[str, Any]:
         "freedom_score": payload.get("spectral", {}).get("latest", {}).get("freedom_score"),
         "structural_beta_ceiling": payload.get("spectral", {}).get("latest", {}).get("structural_beta_ceiling"),
         "structural_suggested_stance": payload.get("spectral", {}).get("latest", {}).get("suggested_stance"),
+        "vix": overlay.get("macro", {}).get("vix") or payload.get("risk", {}).get("macro", {}).get("vix"),
     }
 
 
@@ -957,6 +959,7 @@ def build_dashboard_snapshot(
     overview["freedom_score"] = spectral_artifacts.summary.get("latest", {}).get("freedom_score")
     overview["structural_beta_ceiling"] = spectral_artifacts.summary.get("latest", {}).get("structural_beta_ceiling")
     overview["structural_suggested_stance"] = spectral_artifacts.summary.get("latest", {}).get("suggested_stance")
+    overview["vix"] = risk.get("macro", {}).get("vix")
     try:
         statement_artifacts = run_statement_intelligence(paths, research_settings)
     except Exception as exc:
