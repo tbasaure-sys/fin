@@ -8,9 +8,19 @@ export default async function handler(req, res) {
     return;
   }
 
-  const rawPath = Array.isArray(req.query.path) ? req.query.path.join("/") : "";
-  const search = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
-  const backendUrl = `${backendBase.replace(/\/$/, "")}/api/${rawPath}${search}`;
+  const normalizedBase = /^https?:\/\//i.test(backendBase)
+    ? backendBase
+    : `https://${backendBase}`;
+  const pathParam = req.query?.path;
+  const rawPath = Array.isArray(pathParam)
+    ? pathParam.join("/")
+    : typeof pathParam === "string"
+      ? pathParam
+      : "";
+  const query = new URLSearchParams(req.query ?? {});
+  query.delete("path");
+  const search = query.toString();
+  const backendUrl = `${normalizedBase.replace(/\/$/, "")}/api/${rawPath}${search ? `?${search}` : ""}`;
 
   const headers = { ...req.headers };
   delete headers.host;
