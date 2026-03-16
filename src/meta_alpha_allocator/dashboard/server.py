@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
+from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
 from ..research.chrono_fragility import latest_chrono_alert
 from ..research.decision_audit import DecisionAudit, AuditSummary
 from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cached_snapshot
@@ -49,6 +49,7 @@ class DashboardService:
         self._lock = threading.Lock()
         self._refreshing = False
         self._started_at = time.monotonic()
+        self._artifact_only = artifact_only_mode()
 
         # Always load cached snapshot first — never block startup.
         self._snapshot = load_cached_snapshot(paths, dashboard_settings)
@@ -86,6 +87,12 @@ class DashboardService:
         if delay > 0:
             time.sleep(delay)
         try:
+            if self._artifact_only:
+                cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+                if cached is not None:
+                    with self._lock:
+                        self._snapshot = cached
+                return
             with self._lock:
                 self._refreshing = True
             new_snapshot = build_dashboard_snapshot(
@@ -142,6 +149,12 @@ class DashboardService:
     def refresh(self) -> dict:
         """Trigger a synchronous refresh (called via POST /api/refresh)."""
         with self._lock:
+            if self._artifact_only:
+                cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+                if cached is not None:
+                    self._snapshot = cached
+                return self._snapshot
+
             self._snapshot = build_dashboard_snapshot(
                 self.paths,
                 self.research_settings,
