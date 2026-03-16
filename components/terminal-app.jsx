@@ -447,6 +447,33 @@ function SignalBars({ bars = [] }) {
   );
 }
 
+function ClusterBalance({ cluster }) {
+  if (!cluster) return null;
+
+  return (
+    <div className="cluster-balance">
+      <div className="cluster-balance-row">
+        <div className="cluster-balance-copy">
+          <strong>Structural G</strong>
+          <span>{cluster.gLabel}</span>
+        </div>
+        <div className="risk-bar-track">
+          <div className="risk-bar-fill tone-warn" style={{ width: `${Math.max(cluster.gScore * 100, 10)}%` }} />
+        </div>
+      </div>
+      <div className="cluster-balance-row">
+        <div className="cluster-balance-copy">
+          <strong>Regime R</strong>
+          <span>{cluster.rLabel}</span>
+        </div>
+        <div className="risk-bar-track">
+          <div className="risk-bar-fill tone-bad" style={{ width: `${Math.max(cluster.rScore * 100, 10)}%` }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRefresh, isPending }) {
   const topEdge = dashboard.edge_board?.drilldowns?.[0];
 
@@ -546,6 +573,17 @@ function RiskPulse({ module }) {
       <div className="cockpit-note-list">
         {(module.narrative || []).slice(0, 2).map((line) => <p key={line}>{line}</p>)}
       </div>
+      <div className="mini-framework">
+        <div className="mini-framework-card">
+          <span>Cluster</span>
+          <strong>{module.clusterDecomposition?.dominant || "-"}</strong>
+        </div>
+        <div className="mini-framework-card">
+          <span>Rebound confidence</span>
+          <strong>{module.reboundConfidence?.state || "-"}</strong>
+        </div>
+      </div>
+      <ClusterBalance cluster={module.clusterDecomposition} />
       <SignalBars bars={(module.signalBars || []).slice(0, 4)} />
     </section>
   );
@@ -786,6 +824,28 @@ function RiskModule({ module }) {
           </div>
         ))}
       </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <p className="block-title">Volatility Cluster Decomposition</p>
+          <div className="framework-state-row">
+            <span className="section-chip">{module.clusterDecomposition?.dominant}</span>
+            <strong>{module.clusterDecomposition?.stance}</strong>
+          </div>
+          <ClusterBalance cluster={module.clusterDecomposition} />
+          <ul className="signal-list">
+            {(module.clusterDecomposition?.drivers || []).map((line) => <li key={line}>{line}</li>)}
+          </ul>
+        </div>
+        <div className="panel-block">
+          <p className="block-title">Rebound Confidence</p>
+          <div className="framework-metric-grid">
+            <div><span>Confidence</span><strong>{module.reboundConfidence?.state}</strong></div>
+            <div><span>Score</span><strong>{module.reboundConfidence?.scoreLabel}</strong></div>
+            <div><span>Expected horizon</span><strong>{module.reboundConfidence?.horizon}</strong></div>
+          </div>
+          <p className="support-copy">{module.reboundConfidence?.note}</p>
+        </div>
+      </div>
       <div className="panel-block">
         <SignalBars bars={module.signalBars} />
         <p className="support-copy chart-source">{module.chartSource}</p>
@@ -810,6 +870,22 @@ function SpectralModule({ module }) {
         <div className="metric-tile"><span>Room to diversify</span><strong>{module.freedomScore}</strong></div>
         <div className="metric-tile"><span>True variety</span><strong>{module.effectiveDimension ?? "-"}</strong></div>
         <div className="metric-tile"><span>Top factor share</span><strong>{module.eig1Share}</strong></div>
+      </div>
+      <div className="panel-block">
+        <p className="block-title">Rebound Quality</p>
+        <div className="framework-state-row">
+          <span className="section-chip">{module.reboundQuality?.state}</span>
+          <strong>{module.reboundQuality?.scoreLabel}</strong>
+        </div>
+        <div className="framework-metric-grid">
+          {(module.reboundQuality?.pillars || []).map((pillar) => (
+            <div key={pillar.label}>
+              <span>{pillar.label}</span>
+              <strong>{pillar.value}</strong>
+            </div>
+          ))}
+        </div>
+        <p className="support-copy">{module.reboundQuality?.note}</p>
       </div>
       <div className="panel-block">
         <p className="block-title">Balance read</p>
@@ -1250,6 +1326,20 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <section className="rail-card premium-card">
             <p className="rail-title">Alpha Pulse</p>
             <p className="pulse-copy">{dashboard.alpha_briefing.pulse}</p>
+            <div className="mini-framework">
+              <div className="mini-framework-card">
+                <span>Cluster</span>
+                <strong>{dashboard.alpha_briefing.frameworkSignal?.cluster}</strong>
+              </div>
+              <div className="mini-framework-card">
+                <span>Rebound confidence</span>
+                <strong>{dashboard.alpha_briefing.frameworkSignal?.reboundConfidence}</strong>
+              </div>
+              <div className="mini-framework-card">
+                <span>Rebound quality</span>
+                <strong>{dashboard.alpha_briefing.frameworkSignal?.reboundQuality}</strong>
+              </div>
+            </div>
             <div className="mini-stat-grid">
               {dashboard.alpha_briefing.stats.map((item) => (
                 <div className="mini-stat" key={item.label}>
