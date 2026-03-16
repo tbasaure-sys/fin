@@ -494,6 +494,7 @@ function PortfolioModule({ module }) {
       <div className="grid-two">
         <div className="panel-block">
           <SparklineComparison series={module.charts?.growthComparison} />
+          <p className="support-copy chart-source">{module.chartSource}</p>
         </div>
         <div className="panel-block">
           <DistributionBars
@@ -502,6 +503,7 @@ function PortfolioModule({ module }) {
             rows={module.charts?.sectorExposure}
             tone="good"
           />
+          <p className="support-copy chart-source">{module.chartSource}</p>
         </div>
       </div>
       <div className="panel-block">
@@ -511,6 +513,7 @@ function PortfolioModule({ module }) {
           rows={module.charts?.valuationDistribution}
           tone="accent"
         />
+        <p className="support-copy chart-source">{module.chartSource}</p>
       </div>
     </>
   );
@@ -522,6 +525,7 @@ function ScannerModule({ module }) {
       <div className="panel-block">
         <p className="block-title">Idea summary</p>
         <p className="support-copy">{module.insight}</p>
+        <p className="support-copy chart-source">{module.sourceLabel}</p>
       </div>
       <div className="grid-two">
         <div className="panel-block">
@@ -559,6 +563,7 @@ function RiskModule({ module }) {
       </div>
       <div className="panel-block">
         <SignalBars bars={module.signalBars} />
+        <p className="support-copy chart-source">{module.chartSource}</p>
       </div>
       <div className="panel-block">
         <p className="block-title">Risk read</p>
@@ -1074,6 +1079,36 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 </div>
               ))}
             </div>
+          </section>
+
+          <section className="rail-card">
+            <p className="rail-title">Data & Refresh</p>
+            <div className="mini-stat-grid">
+              <div className="mini-stat">
+                <span>Analysis source</span>
+                <strong>{dashboard.data_control.analysisSource}</strong>
+              </div>
+              <div className="mini-stat">
+                <span>Screener source</span>
+                <strong>{dashboard.data_control.screenerSource}</strong>
+              </div>
+              <div className="mini-stat">
+                <span>Last refresh</span>
+                <strong>{dashboard.data_control.lastRefreshLabel}</strong>
+              </div>
+              <div className="mini-stat">
+                <span>Connection</span>
+                <strong>{connectionState}</strong>
+              </div>
+            </div>
+            <div className="rail-actions">
+              <button className="primary-button" onClick={() => refreshTerminal()} disabled={isPending}>
+                {isPending ? "Refreshing..." : "Refresh analysis"}
+              </button>
+            </div>
+            <ul className="signal-list rail-notes">
+              {(dashboard.data_control.notes || []).map((note) => <li key={note}>{note}</li>)}
+            </ul>
           </section>
 
           <section className="rail-card">
