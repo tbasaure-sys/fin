@@ -1,0 +1,35 @@
+name: Validate Dashboard Artifact
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "artifacts/dashboard/latest/**"
+      - ".github/workflows/validate-dashboard-artifact.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate dashboard snapshot JSON
+        shell: bash
+        run: |
+          test -f artifacts/dashboard/latest/dashboard_snapshot.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("artifacts/dashboard/latest/dashboard_snapshot.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+          required = ["generated_at", "overview", "portfolio", "screener", "status"]
+          missing = [key for key in required if key not in payload]
+          if missing:
+              raise SystemExit(f"Missing keys: {missing}")
+          print("dashboard artifact ok")
+          PY
