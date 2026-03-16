@@ -100,6 +100,7 @@ class DashboardSnapshot:
     sectors: dict
     international: dict
     portfolio: dict
+    protocol: dict
     screener: dict
     statement_intelligence: dict
     status: dict

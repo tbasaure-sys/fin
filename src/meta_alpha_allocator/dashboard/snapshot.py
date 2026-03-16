@@ -354,6 +354,216 @@ def _build_portfolio_snapshot(
     }
 
 
+def _number_or(value: Any, fallback: float | None = None) -> float | None:
+    try:
+        if value is None or pd.isna(value):
+            return fallback
+        return float(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _clamp01(value: float) -> float:
+    return max(0.0, min(1.0, float(value)))
+
+
+def _humanize_label(value: str) -> str:
+    return value.replace("_", " ").strip().title()
+
+
+def _describe_trust_state(trust_score: float) -> str:
+    if trust_score >= 0.75:
+        return "Act"
+    if trust_score >= 0.55:
+        return "Stage"
+    if trust_score >= 0.35:
+        return "Observe"
+    return "Protect"
+
+
+def _describe_decision_rights(trust_score: float, autonomy_score: float) -> str:
+    if trust_score >= 0.78 and autonomy_score >= 0.70:
+        return "Sleeve automation allowed"
+    if trust_score >= 0.62 and autonomy_score >= 0.55:
+        return "Stage position"
+    if trust_score >= 0.48 and autonomy_score >= 0.40:
+        return "Guardrail required"
+    if trust_score >= 0.34:
+        return "Suggest only"
+    return "Explain only"
+
+
+def _describe_recoverability(frontier_distance: float) -> str:
+    if frontier_distance >= 0.05:
+        return "Healthy"
+    if frontier_distance >= -0.02:
+        return "Narrow"
+    return "Tight"
+
+
+def _pick_shadow_sleeve(screener: dict[str, Any]) -> list[str]:
+    rows = screener.get("rows", [])
+    sectors = {
+        str(row.get("sector"))
+        for row in rows[:12]
+        if not row.get("is_current_holding") and row.get("sector")
+    }
+    sleeves: list[str] = []
+    if "Utilities" not in sectors and "Consumer Staples" not in sectors:
+        sleeves.append("Defensive dividend quality")
+    if "Financials" not in sectors:
+        sleeves.append("Broadening basket")
+    sleeves.append("Rate-sensitive cash generators")
+    return sleeves[:3]
+
+
+def _pick_trim_signal(portfolio: dict[str, Any], screener: dict[str, Any]) -> dict[str, Any] | None:
+    screener_rows = screener.get("rows", [])
+    held_rows = [row for row in screener_rows if row.get("is_current_holding")]
+    if held_rows:
+        return min(
+            held_rows,
+            key=lambda row: (
+                _number_or(row.get("valuation_gap"), 0.0),
+                -_number_or(row.get("discovery_score"), _number_or(row.get("composite_score"), 0.0)),
+            ),
+        )
+    holdings = portfolio.get("holdings") or portfolio.get("top_holdings") or []
+    with_upside = [row for row in holdings if _number_or(row.get("upside")) is not None]
+    if not with_upside:
+        return None
+    return min(with_upside, key=lambda row: _number_or(row.get("upside"), 0.0))
+
+
+def _build_protocol_snapshot(
+    overview: dict[str, Any],
+    risk: dict[str, Any],
+    hedges: dict[str, Any],
+    portfolio: dict[str, Any],
+    screener: dict[str, Any],
+    *,
+    warnings: list[str],
+) -> dict[str, Any]:
+    confidence = _number_or(overview.get("confidence"), 0.5) or 0.5
+    stale_days = [
+        _number_or(payload.get("stale_days"))
+        for payload in (risk, hedges, portfolio, screener)
+        if isinstance(payload, dict)
+    ]
+    stale_days = [int(value) for value in stale_days if value is not None]
+    has_stale = any(value > 30 for value in stale_days)
+    has_aging = any(value > 7 for value in stale_days)
+    freshness = 0.72 if warnings else 0.92
+    if has_aging:
+        freshness -= 0.08
+    if has_stale:
+        freshness -= 0.12
+    freshness = _clamp01(max(freshness, 0.35))
+    drift_penalty = 0.20 if has_stale else 0.12 if has_aging else 0.08
+    trust_score = _clamp01(confidence * freshness * (1.0 - drift_penalty))
+
+    crash_prob = _number_or(overview.get("crash_prob"), 0.35) or 0.35
+    tail_risk = _number_or(overview.get("tail_risk_score"), 0.35) or 0.35
+    compression = (
+        _number_or(risk.get("spectral", {}).get("latest", {}).get("compression_score"))
+        or _number_or(overview.get("compression_score"))
+        or 0.45
+    )
+    alignment = portfolio.get("alignment", {})
+    analytics = portfolio.get("analytics", {})
+    beta_target = _number_or(overview.get("beta_target"), _number_or(alignment.get("beta_target")))
+    current_beta = _number_or(alignment.get("portfolio_beta"), _number_or(analytics.get("Beta")))
+    beta_penalty = max((current_beta or 0.0) - (beta_target or 0.0), 0.0) if beta_target is not None and current_beta is not None else 0.08
+    hedge_weight = _number_or(alignment.get("selected_hedge_weight"), 0.06) or 0.06
+    mismatch_count = len(alignment.get("mismatched_sectors") or []) or 1
+
+    autonomy_score = _clamp01(
+        0.68
+        + hedge_weight * 0.90
+        - crash_prob * 0.28
+        - tail_risk * 0.18
+        - compression * 0.16
+        - mismatch_count * 0.04
+        - beta_penalty * 0.35
+    )
+    reserve_target = 0.52 + crash_prob * 0.18 + mismatch_count * 0.03
+    frontier_distance = autonomy_score - reserve_target
+    trust_state = _describe_trust_state(trust_score)
+    decision_rights = _describe_decision_rights(trust_score, autonomy_score)
+    recoverability_budget = _describe_recoverability(frontier_distance)
+
+    trim_signal = _pick_trim_signal(portfolio, screener) or {}
+    support_dependency = {
+        "passive_flows": _clamp01(compression * 0.55 + crash_prob * 0.12),
+        "valuation_tolerance": _clamp01(abs(_number_or(trim_signal.get("valuation_gap"), 0.18) or 0.18)),
+        "cheap_refinancing": _clamp01(0.12 + beta_penalty * 0.60 + tail_risk * 0.12),
+        "narrative_breadth": _clamp01(0.15 + mismatch_count * 0.07),
+    }
+    top_hedge_score = _number_or((hedges.get("ranking") or [{}])[0].get("score"), 0.08) or 0.08
+    protective_value = {
+        "cash": _clamp01(hedge_weight),
+        "duration": _clamp01(hedge_weight + 0.04),
+        "convexity": _clamp01(top_hedge_score),
+        "quality": _clamp01(0.08 + confidence * 0.08),
+    }
+
+    if trust_state == "Protect":
+        protocol = "protect_and_rebuild"
+    elif frontier_distance < -0.05:
+        protocol = "wean_and_rebuild"
+    elif trust_state == "Stage":
+        protocol = "challenge_and_stage"
+    else:
+        protocol = "preserve_and_compound"
+
+    step_down_trials = []
+    for name, shock, sensitivity in [
+        ("Flow withdrawal", "Reduce passive support by 20%", support_dependency["passive_flows"] * 0.22),
+        ("Valuation compression", "Compress valuation tolerance by 1 standard deviation", support_dependency["valuation_tolerance"] * 0.26),
+        ("Breadth collapse", "Narrow idea breadth across the book", support_dependency["narrative_breadth"] * 0.21),
+    ]:
+        trial_score = _clamp01(autonomy_score - sensitivity)
+        verdict = "Still recoverable" if trial_score >= 0.55 else "Needs staged response" if trial_score >= 0.40 else "Protection first"
+        step_down_trials.append(
+            {
+                "name": name,
+                "shock": shock,
+                "autonomy_score": trial_score,
+                "verdict": verdict,
+            }
+        )
+
+    stability_gap = _clamp01(compression * 0.45 + crash_prob * 0.30 + tail_risk * 0.25)
+    recoverability_gap = max(-frontier_distance, 0.0)
+    epistemic_gap = _clamp01(1.0 - trust_score)
+
+    return {
+        "protocol": protocol,
+        "protocol_label": _humanize_label(protocol),
+        "trust_score": trust_score,
+        "trust_state": trust_state,
+        "decision_rights": decision_rights,
+        "autonomy_score": autonomy_score,
+        "frontier_distance": frontier_distance,
+        "recoverability_budget": recoverability_budget,
+        "support_dependency": support_dependency,
+        "protective_value": protective_value,
+        "step_down_trials": step_down_trials,
+        "disproof_sleeve": _pick_shadow_sleeve(screener),
+        "gaps": {
+            "stability_gap": stability_gap,
+            "recoverability_gap": recoverability_gap,
+            "epistemic_gap": epistemic_gap,
+        },
+        "notes": [
+            f"Decision rights are currently {decision_rights.lower()}.",
+            f"Trust is in {trust_state.lower()} mode, so the system should {'speak clearly' if trust_state == 'Act' else 'add in stages' if trust_state == 'Stage' else 'watch more than add' if trust_state == 'Observe' else 'protect capital first'}.",
+            f"Recoverability budget is {recoverability_budget.lower()}, with frontier distance {frontier_distance:+.1%}.",
+        ],
+        "stale_days": max(stale_days) if stale_days else None,
+    }
+
+
 def _build_screener_snapshot(paths: PathConfig, statement_overlay: pd.DataFrame | None = None) -> dict[str, Any]:
     latest_root = paths.portfolio_manager_root / "output" / "latest"
     screener_source = latest_root / "discovery_screener.csv" if (latest_root / "discovery_screener.csv").exists() else latest_root / "screener.csv"
@@ -469,7 +679,7 @@ def _build_risk_snapshot(
 
 def _build_status(snapshot: dict[str, Any], warnings: list[str]) -> dict[str, Any]:
     panels = []
-    for name in ["performance", "risk", "hedges", "sectors", "international", "portfolio", "screener", "forecast", "statement_intelligence"]:
+    for name in ["performance", "risk", "hedges", "sectors", "international", "portfolio", "protocol", "screener", "forecast", "statement_intelligence"]:
         payload = snapshot.get(name, {})
         stale_days = payload.get("stale_days")
         status = "fresh"
@@ -540,6 +750,45 @@ def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]
         "sectors": {"records": [], "preferred": [], "deteriorating": []},
         "international": {"records": [], "preferred": []},
         "portfolio": {"top_holdings": [], "sector_weights": [], "alignment": {"notes": ["No portfolio data is available yet."]}},
+        "protocol": {
+            "protocol": "protect_and_rebuild",
+            "protocol_label": "Protect And Rebuild",
+            "trust_score": 0.24,
+            "trust_state": "Protect",
+            "decision_rights": "Explain only",
+            "autonomy_score": 0.22,
+            "frontier_distance": -0.22,
+            "recoverability_budget": "Tight",
+            "support_dependency": {
+                "passive_flows": 0.18,
+                "valuation_tolerance": 0.14,
+                "cheap_refinancing": 0.12,
+                "narrative_breadth": 0.10,
+            },
+            "protective_value": {
+                "cash": 0.04,
+                "duration": 0.06,
+                "convexity": 0.03,
+                "quality": 0.05,
+            },
+            "step_down_trials": [],
+            "disproof_sleeve": [
+                "Defensive dividend quality",
+                "Broadening basket",
+                "Rate-sensitive cash generators",
+            ],
+            "gaps": {
+                "stability_gap": 0.32,
+                "recoverability_gap": 0.22,
+                "epistemic_gap": 0.76,
+            },
+            "notes": [
+                "Decision rights are currently explain only.",
+                "Trust is in protect mode, so the system should protect capital first.",
+                "Recoverability budget is tight until fresh portfolio and research data arrive.",
+            ],
+            "stale_days": None,
+        },
         "screener": {"rows": [], "count": 0, "default_sort": {"column": "discovery_score", "direction": "desc"}},
         "statement_intelligence": {
             "top_statement_names": [],
@@ -571,6 +820,7 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
         "sectors.json": snapshot.get("sectors", {}),
         "international.json": snapshot.get("international", {}),
         "portfolio.json": snapshot.get("portfolio", {}),
+        "protocol.json": snapshot.get("protocol", {}),
         "screener.json": snapshot.get("screener", {}),
         "statement_intelligence.json": snapshot.get("statement_intelligence", {}),
         "statement_kernel.json": {
@@ -707,6 +957,14 @@ def build_dashboard_snapshot(
     portfolio = _build_portfolio_snapshot(paths, overview, market_panel, market_quotes)
     portfolio["statement_intelligence"] = statement_artifacts.summary
     screener = _build_screener_snapshot(paths, statement_artifacts.panel)
+    protocol = _build_protocol_snapshot(
+        overview,
+        risk,
+        hedges,
+        portfolio,
+        screener,
+        warnings=warnings,
+    )
     screener_overlay_columns = [
         "ticker",
         "statement_score",
@@ -737,6 +995,7 @@ def build_dashboard_snapshot(
         "sectors": sectors,
         "international": international,
         "portfolio": portfolio,
+        "protocol": protocol,
         "screener": screener,
         "statement_intelligence": {
             "top_statement_names": statement_artifacts.summary.get("top_statement_names", []),
