@@ -69,7 +69,7 @@ function ModuleCard({ moduleRef, status, focused, onFocus, children }) {
   );
 }
 
-function EdgeBoard({ board }) {
+function EdgeBoard({ board, onSelect }) {
   const lanes = [
     { id: "sectors", title: "Sector edge", rows: board?.sectors || [] },
     { id: "countries", title: "Country edge", rows: board?.countries || [] },
@@ -91,22 +91,81 @@ function EdgeBoard({ board }) {
             <p className="block-title">{lane.title}</p>
             <div className="edge-lane-stack">
               {lane.rows.map((row) => (
-                <div className="edge-row" key={`${lane.id}-${row.label}`}>
+                <button className="edge-row edge-row-button" key={row.id || `${lane.id}-${row.label}`} onClick={() => onSelect(row)}>
                   <div>
                     <strong>{row.label}</strong>
                     <span>{row.note}</span>
                   </div>
                   <div className="edge-score">
                     <strong>{row.scoreLabel}</strong>
-                    {row.ticker ? <span>{row.ticker}</span> : null}
+                    <span>{row.ticker || row.expression || "Open"}</span>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
         ))}
       </div>
     </section>
+  );
+}
+
+function EdgeDetailOverlay({ edge, onClose, onJump }) {
+  if (!edge) return null;
+
+  const laneTitleMap = {
+    sectors: "Sector edge",
+    countries: "Country edge",
+    currencies: "Currency edge",
+    stocks: "Stock edge",
+  };
+
+  return (
+    <div className="focus-overlay" onClick={onClose}>
+      <div className="focus-surface edge-detail-surface" onClick={(event) => event.stopPropagation()}>
+        <section className="terminal-module is-focused">
+          <header className="module-header">
+            <div>
+              <p className="module-kicker">{laneTitleMap[edge.lane] || "Edge"}</p>
+              <h2>{edge.label}</h2>
+            </div>
+            <div className="module-header-actions">
+              <span className="status-pill is-good">{edge.scoreLabel}</span>
+              <button className="ghost-button" onClick={onClose}>Close</button>
+            </div>
+          </header>
+          <div className="module-body">
+            <div className="hero-strip">
+              <div>
+                <p className="eyebrow">Why this edge</p>
+                <div className="hero-readout edge-expression">{edge.expression || edge.ticker || edge.label}</div>
+                <p className="support-copy">{edge.note}</p>
+              </div>
+              <div className="hero-grid">
+                <div><span>Lane</span><strong>{laneTitleMap[edge.lane] || "Edge"}</strong></div>
+                <div><span>Edge score</span><strong>{edge.scoreLabel}</strong></div>
+                <div><span>Expression</span><strong>{edge.ticker || edge.expression || edge.label}</strong></div>
+                <div><span>Use case</span><strong>{edge.lane === "stocks" ? "Name selection" : edge.lane === "currencies" ? "Macro expression" : "Allocation tilt"}</strong></div>
+              </div>
+            </div>
+            <div className="panel-block">
+              <p className="block-title">Confirming signals</p>
+              <ul className="signal-list">
+                {(edge.support || []).map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </div>
+            <div className="edge-detail-actions">
+              <button className="primary-button" onClick={() => onJump(edge.lane === "stocks" ? "scanner" : edge.lane === "currencies" ? "risk" : edge.lane === "countries" ? "international" : "themes")}>
+                Open supporting module
+              </button>
+              <button className="ghost-button" onClick={() => onJump("actions")}>
+                Compare with next moves
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }
 
@@ -608,6 +667,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [dashboard, setDashboard] = useState(initialDashboard);
   const [activeModule, setActiveModule] = useState(initialDashboard.module_refs[0]?.id || "command");
   const [focusedModule, setFocusedModule] = useState(null);
+  const [selectedEdge, setSelectedEdge] = useState(null);
   const [alertsOpen, setAlertsOpen] = useState(true);
   const [density, setDensity] = useState("dense");
   const [connectionState, setConnectionState] = useState("connected");
@@ -632,6 +692,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   function jumpToModule(moduleId, focus = false) {
     setActiveModule(moduleId);
     setFocusedModule(focus ? moduleId : null);
+    setSelectedEdge(null);
     setTimeout(() => {
       document.getElementById(`module-${moduleId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 40);
@@ -750,6 +811,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
       if (event.key === "Escape") {
         setFocusedModule(null);
+        setSelectedEdge(null);
         setCommandOpen(false);
       }
     }
@@ -869,6 +931,22 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       return;
     }
 
+    if (normalized.startsWith("edge ")) {
+      const target = normalized.replace(/^edge\s+/, "").trim();
+      const match = (dashboard.edge_board?.drilldowns || []).find((item) => {
+        const haystack = [item.label, item.ticker, item.expression].filter(Boolean).join(" ").toLowerCase();
+        return haystack.includes(target);
+      });
+      if (match) {
+        await rememberCommand(value);
+        setSelectedEdge(match);
+        setCommandFeedback(`Opened edge drilldown for ${match.label}.`);
+        setCommandText("");
+        setCommandOpen(false);
+        return;
+      }
+    }
+
     setCommandFeedback("Command not recognized. Try `focus actions`, `view portfolio`, `refresh`, or a ticker.");
   }
 
@@ -885,6 +963,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     { label: "Compact", command: "compact" },
     { label: "Add NVDA", command: "add NVDA" },
     { label: "Alerts", command: "alerts" },
+    { label: "Edge TSM", command: "edge TSM" },
   ];
 
   return (
@@ -959,7 +1038,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </div>
       </section>
 
-      <EdgeBoard board={dashboard.edge_board} />
+      <EdgeBoard board={dashboard.edge_board} onSelect={setSelectedEdge} />
 
       <div className="terminal-layout">
         <aside className="workspace-rail">
@@ -1121,6 +1200,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </div>
         </div>
       ) : null}
+
+      <EdgeDetailOverlay edge={selectedEdge} onClose={() => setSelectedEdge(null)} onJump={jumpToModule} />
 
       {commandOpen ? (
         <div className="command-overlay" onClick={() => setCommandOpen(false)}>

@@ -285,4 +285,7 @@ test("normalizeWorkspaceDashboard exposes explicit edge board lanes", () => {
   assert.equal(dashboard.edge_board.countries[0].label, "Taiwan");
   assert.equal(dashboard.edge_board.currencies[0].label, "TWD");
   assert.equal(dashboard.edge_board.stocks[0].label, "TSM");
+  assert.ok(dashboard.edge_board.stocks[0].expression);
+  assert.ok(dashboard.edge_board.stocks[0].support.length >= 2);
+  assert.ok(dashboard.edge_board.drilldowns.length >= 4);
 });
