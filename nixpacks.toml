@@ -1,21 +1,16 @@
 [phases.setup]
-nixPkgs = [
-  "python311",
-  "python311Packages.pip",
-  "gcc-unwrapped",
-  "zlib"
-]
+nixPkgs = ["python311", "python311Packages.pip"]
 
 [phases.install]
 cmds = [
-  "python3.11 -m venv /app/.venv",
-  "/app/.venv/bin/pip install --upgrade pip",
-  "/app/.venv/bin/pip install -r requirements.txt",
-  "echo export LD_LIBRARY_PATH=$(dirname $(find /nix/store -name 'libstdc++.so.6' 2>/dev/null | head -1)):$LD_LIBRARY_PATH > /app/.env.runtime"
+  "pip3.11 install -r requirements.txt --target /app/site-packages"
 ]
 
 [phases.build]
 cmds = []
 
+[variables]
+PYTHONPATH = "/app/site-packages:/app/src"
+
 [start]
-cmd = "source /app/.env.runtime && /app/.venv/bin/python -m gunicorn 'meta_alpha_allocator.dashboard.wsgi:create_app()' --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT:-8000} --preload --log-level info"
+cmd = "python3.11 -m gunicorn 'meta_alpha_allocator.dashboard.wsgi:create_app()' --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT:-8000} --preload --log-level info"
