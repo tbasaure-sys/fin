@@ -239,6 +239,20 @@ input {
   align-items: start;
 }
 
+.edge-row-button {
+  width: 100%;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.edge-row-button:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  background: linear-gradient(180deg, rgba(246, 186, 82, 0.08), rgba(255, 255, 255, 0.02));
+}
+
 .edge-row div:first-child,
 .edge-score {
   display: flex;
@@ -251,6 +265,20 @@ input {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.45;
+}
+
+.edge-expression {
+  font-size: clamp(32px, 4vw, 48px);
+}
+
+.edge-detail-surface {
+  max-width: 980px;
+}
+
+.edge-detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .tape-copy,
