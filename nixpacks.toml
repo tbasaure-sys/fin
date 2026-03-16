@@ -7,10 +7,10 @@ cmds = [
 ]
 
 [phases.build]
-cmds = []
+cmds = ["chmod +x /app/start.sh"]
 
 [variables]
 PYTHONPATH = "/app/site-packages:/app/src"
 
 [start]
-cmd = "python3.11 -m gunicorn 'meta_alpha_allocator.dashboard.wsgi:create_app()' --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:${PORT:-8000} --preload --log-level info"
+cmd = "/bin/bash /app/start.sh"
