@@ -34,6 +34,13 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   assert.equal(dashboard.modules.portfolio.holdings[0].ticker, "SGOV");
   assert.equal(dashboard.alpha_briefing.topIdeas[0].symbol, "TSM");
   assert.ok(dashboard.modules.command.supportDependency.length > 0);
+  assert.ok(dashboard.modules.portfolio.charts.growthComparison.length > 0);
+  assert.ok(dashboard.modules.portfolio.charts.sectorExposure.length > 0);
+  assert.ok(dashboard.modules.portfolio.charts.valuationDistribution.length > 0);
+  assert.ok(dashboard.modules.scanner.rows.length > 0);
+  assert.ok(dashboard.modules.scanner.ideaMap.length > 0);
+  assert.ok(dashboard.modules.risk.signalBars.length > 0);
+  assert.match(dashboard.data_control.analysisSource, /fallback/i);
 });
 
 test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quotes exist", () => {
@@ -234,6 +241,7 @@ test("normalizeWorkspaceDashboard filters current holdings out of stock ideas", 
   assert.match(dashboard.modules.scanner.insight, /excludes names already sitting in the portfolio/i);
   assert.ok(dashboard.modules.scanner.ideaMap.length >= 1);
   assert.equal(dashboard.modules.scanner.confirmation[0].ticker, "TSM");
+  assert.match(dashboard.modules.scanner.sourceLabel, /live screener/i);
 });
 
 test("normalizeWorkspaceDashboard exposes explicit edge board lanes", () => {

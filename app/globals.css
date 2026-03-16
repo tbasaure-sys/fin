@@ -162,6 +162,12 @@ input {
   border-color: var(--border-strong);
 }
 
+.primary-button:disabled {
+  opacity: 0.65;
+  cursor: progress;
+  transform: none;
+}
+
 .command-trigger:hover,
 .ghost-button:hover,
 .primary-button:hover,
@@ -448,6 +454,20 @@ input {
   gap: 10px;
 }
 
+.rail-actions {
+  display: flex;
+  margin-top: 14px;
+}
+
+.rail-actions .primary-button {
+  width: 100%;
+  justify-content: center;
+}
+
+.rail-notes {
+  margin-top: 14px;
+}
+
 .rail-link,
 .shortcut-card,
 .legacy-anchor {
@@ -612,6 +632,11 @@ input {
 .signal-list li {
   color: var(--muted);
   line-height: 1.5;
+}
+
+.chart-source {
+  margin: 10px 0 0;
+  font-size: 12px;
 }
 
 .scenario-row,
