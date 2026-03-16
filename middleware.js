@@ -16,16 +16,25 @@ function isStaticAsset(pathname) {
   );
 }
 
+function safeDecode(value) {
+  if (!value) return "";
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export function middleware(request) {
-  const token = process.env.BLS_PRIME_SHARED_ACCESS_TOKEN || "";
+  const token = (process.env.BLS_PRIME_SHARED_ACCESS_TOKEN || "").trim();
   if (!token || isStaticAsset(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
 
-  const queryKey = process.env.BLS_PRIME_SHARED_ACCESS_QUERY_KEY || "alpha";
-  const cookieName = process.env.BLS_PRIME_SHARED_ACCESS_COOKIE_NAME || "bls_prime_access";
+  const queryKey = (process.env.BLS_PRIME_SHARED_ACCESS_QUERY_KEY || "alpha").trim() || "alpha";
+  const cookieName = (process.env.BLS_PRIME_SHARED_ACCESS_COOKIE_NAME || "bls_prime_access").trim() || "bls_prime_access";
   const queryToken = request.nextUrl.searchParams.get(queryKey);
-  const cookieToken = request.cookies.get(cookieName)?.value;
+  const cookieToken = safeDecode(request.cookies.get(cookieName)?.value);
   const authorized = queryToken === token || cookieToken === token;
 
   if (request.nextUrl.pathname === "/access") {
@@ -37,23 +46,31 @@ export function middleware(request) {
 
   if (!authorized) {
     if (request.nextUrl.pathname.startsWith("/api/")) {
-      return NextResponse.json(
-        { error: "Private alpha access required. Open the shared invitation link first." },
-        { status: 401 },
+      return new Response(
+        JSON.stringify({ error: "Private alpha access required. Open the shared invitation link first." }),
+        {
+          status: 401,
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+          },
+        },
       );
     }
 
-    const accessUrl = new URL("/access", request.url);
+    const accessUrl = request.nextUrl.clone();
+    accessUrl.pathname = "/access";
+    accessUrl.search = "";
     accessUrl.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
-    return NextResponse.rewrite(accessUrl);
+    return NextResponse.redirect(accessUrl);
   }
 
   const response = NextResponse.next();
   if (queryToken === token && cookieToken !== token) {
-    response.cookies.set(cookieName, token, {
+    response.cookies.set(cookieName, encodeURIComponent(token), {
       httpOnly: true,
       sameSite: "lax",
-      secure: request.nextUrl.protocol === "https:",
+      secure: true,
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
