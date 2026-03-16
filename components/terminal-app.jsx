@@ -1,12 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useEffect, useState, useTransition } from "react";
+import { startTransition, useEffect, useMemo, useState, useTransition } from "react";
 
-function formatPct(value) {
+function formatPct(value, digits = 1) {
   const number = Number(value);
   if (!Number.isFinite(number)) return value || "-";
-  return `${(number * 100).toFixed(1)}%`;
+  return `${(number * 100).toFixed(digits)}%`;
+}
+
+function formatSignedPct(value, digits = 1) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return value || "-";
+  const sign = number > 0 ? "+" : "";
+  return `${sign}${(number * 100).toFixed(digits)}%`;
 }
 
 function formatNumber(value, digits = 2) {
@@ -33,6 +40,14 @@ function statusClass(status) {
   return "is-neutral";
 }
 
+function scoreTone(score) {
+  const numeric = Number(score);
+  if (!Number.isFinite(numeric)) return "neutral";
+  if (numeric >= 0.72) return "good";
+  if (numeric >= 0.5) return "warn";
+  return "bad";
+}
+
 function resolveModuleId(moduleRefs, rawValue) {
   const value = rawValue.trim().toLowerCase();
   if (!value) return null;
@@ -42,6 +57,23 @@ function resolveModuleId(moduleRefs, rawValue) {
     const kicker = item.kicker.toLowerCase();
     return item.id === value || title === value || title.includes(value) || kicker === value;
   })?.id || null;
+}
+
+function polarPoint(cx, cy, radius, angle) {
+  const radians = ((angle - 90) * Math.PI) / 180;
+  return {
+    x: cx + (radius * Math.cos(radians)),
+    y: cy + (radius * Math.sin(radians)),
+  };
+}
+
+function describeRiskState(metrics = []) {
+  const drawdown = Number.parseFloat(metrics.find((item) => /drop/i.test(item.label))?.value || "");
+  const stress = Number.parseFloat(metrics.find((item) => /stress/i.test(item.label))?.value || "");
+
+  if (Number.isFinite(drawdown) && drawdown <= -15) return "Pressure";
+  if (Number.isFinite(stress) && stress <= -3) return "Guarded";
+  return "Contained";
 }
 
 function ModuleCard({ moduleRef, status, focused, onFocus, children }) {
@@ -69,36 +101,85 @@ function ModuleCard({ moduleRef, status, focused, onFocus, children }) {
   );
 }
 
+function DonutGauge({ value = 0, label, valueLabel, tone = "accent" }) {
+  const ratio = Math.max(0, Math.min(1, Number(value) || 0));
+  const endAngle = 360 * ratio;
+  const start = polarPoint(40, 40, 31, 0);
+  const end = polarPoint(40, 40, 31, endAngle);
+  const largeArc = ratio > 0.5 ? 1 : 0;
+  const path = ratio === 0
+    ? ""
+    : `M ${start.x} ${start.y} A 31 31 0 ${largeArc} 1 ${end.x} ${end.y}`;
+
+  return (
+    <div className={`donut-card tone-${tone}`}>
+      <svg viewBox="0 0 80 80" className="donut-gauge" aria-hidden="true">
+        <circle cx="40" cy="40" r="31" className="donut-track" />
+        {path ? <path d={path} className="donut-progress" /> : null}
+      </svg>
+      <div>
+        <span>{label}</span>
+        <strong>{valueLabel}</strong>
+      </div>
+    </div>
+  );
+}
+
+function TopHoldingsStrip({ holdings = [] }) {
+  return (
+    <div className="holding-strip">
+      {holdings.slice(0, 4).map((holding) => (
+        <div className="holding-chip" key={holding.ticker}>
+          <div>
+            <strong>{holding.ticker}</strong>
+            <span>{holding.sector}</span>
+          </div>
+          <b>{holding.weight}</b>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function EdgeBoard({ board, onSelect }) {
   const lanes = [
     { id: "sectors", title: "Sector edge", rows: board?.sectors || [] },
     { id: "countries", title: "Country edge", rows: board?.countries || [] },
-    { id: "currencies", title: "Currency edge", rows: board?.currencies || [] },
+    { id: "currencies", title: "FX edge", rows: board?.currencies || [] },
     { id: "stocks", title: "Stock edge", rows: board?.stocks || [] },
   ];
 
   return (
-    <section className="edge-board">
-      <div className="edge-board-header">
+    <section className="edge-board premium-card">
+      <div className="section-topline">
         <div>
-          <p className="eyebrow">Edge Board</p>
+          <p className="eyebrow">Edge Radar</p>
           <strong>{board?.headline}</strong>
         </div>
       </div>
       <div className="edge-board-grid">
         {lanes.map((lane) => (
           <div className="edge-lane" key={lane.id}>
-            <p className="block-title">{lane.title}</p>
+            <div className="edge-lane-header">
+              <p className="block-title">{lane.title}</p>
+              <span>{lane.rows.length} live</span>
+            </div>
             <div className="edge-lane-stack">
-              {lane.rows.map((row) => (
+              {lane.rows.map((row, index) => (
                 <button className="edge-row edge-row-button" key={row.id || `${lane.id}-${row.label}`} onClick={() => onSelect(row)}>
-                  <div>
-                    <strong>{row.label}</strong>
-                    <span>{row.note}</span>
+                  <div className="edge-row-copy">
+                    <span className="edge-rank">0{index + 1}</span>
+                    <div>
+                      <strong>{row.label}</strong>
+                      <span>{row.note}</span>
+                    </div>
                   </div>
-                  <div className="edge-score">
+                  <div className="edge-score-block">
                     <strong>{row.scoreLabel}</strong>
                     <span>{row.ticker || row.expression || "Open"}</span>
+                    <div className="edge-score-meter">
+                      <div className={`edge-score-fill tone-${scoreTone(row.score)}`} style={{ width: `${Math.max((Number(row.score) || 0) * 100, 8)}%` }} />
+                    </div>
                   </div>
                 </button>
               ))}
@@ -116,7 +197,7 @@ function EdgeDetailOverlay({ edge, onClose, onJump }) {
   const laneTitleMap = {
     sectors: "Sector edge",
     countries: "Country edge",
-    currencies: "Currency edge",
+    currencies: "FX edge",
     stocks: "Stock edge",
   };
 
@@ -178,15 +259,25 @@ function SparklineComparison({ series = [] }) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min || 1;
+  const paddedMin = min - (range * 0.1);
+  const paddedMax = max + (range * 0.1);
+  const paddedRange = paddedMax - paddedMin || 1;
 
-  function toPath(key) {
+  function yFor(value) {
+    return 92 - (((Number(value) - paddedMin) / paddedRange) * 78);
+  }
+
+  function linePath(key) {
     return series
       .map((point, index) => {
-        const x = (index / Math.max(series.length - 1, 1)) * 100;
-        const y = 100 - (((Number(point[key]) - min) / range) * 100);
-        return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+        const x = 8 + ((index / Math.max(series.length - 1, 1)) * 84);
+        return `${index === 0 ? "M" : "L"} ${x} ${yFor(point[key])}`;
       })
       .join(" ");
+  }
+
+  function areaPath(key) {
+    return `${linePath(key)} L 92 92 L 8 92 Z`;
   }
 
   return (
@@ -196,10 +287,23 @@ function SparklineComparison({ series = [] }) {
         <span>Last {series.length} sessions</span>
       </div>
       <svg className="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        <path className="line-grid" d="M 0 20 L 100 20 M 0 50 L 100 50 M 0 80 L 100 80" />
-        <path className="line-portfolio" d={toPath("portfolio")} />
-        <path className="line-benchmark" d={toPath("benchmark")} />
+        <defs>
+          <linearGradient id="portfolioArea" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="rgba(250, 200, 111, 0.38)" />
+            <stop offset="100%" stopColor="rgba(250, 200, 111, 0)" />
+          </linearGradient>
+        </defs>
+        <path className="line-grid" d="M 8 20 L 92 20 M 8 46 L 92 46 M 8 72 L 92 72 M 8 92 L 92 92" />
+        <path className="line-axis" d="M 8 8 L 8 92 L 92 92" />
+        <path className="line-area" d={areaPath("portfolio")} />
+        <path className="line-benchmark" d={linePath("benchmark")} />
+        <path className="line-portfolio" d={linePath("portfolio")} />
       </svg>
+      <div className="chart-scale">
+        <span>{formatNumber(paddedMax, 2)}</span>
+        <span>{formatNumber((paddedMax + paddedMin) / 2, 2)}</span>
+        <span>{formatNumber(paddedMin, 2)}</span>
+      </div>
       <div className="chart-legend">
         <span><i className="swatch portfolio" />Portfolio</span>
         <span><i className="swatch benchmark" />SPY</span>
@@ -213,20 +317,29 @@ function DistributionBars({ title, subtitle, rows = [], tone = "accent" }) {
     return <p className="chart-empty">{subtitle}</p>;
   }
 
+  const max = Math.max(...rows.map((row) => Number(row.ratio) || 0), 1);
+
   return (
     <div className="chart-shell">
       <div className="chart-header">
         <strong>{title}</strong>
         <span>{subtitle}</span>
       </div>
-      <div className="mini-bars">
-        {rows.map((row) => (
-          <div className="mini-bar-card" key={row.id || row.label}>
-            <div className={`mini-bar-fill tone-${tone}`} style={{ height: `${Math.max(row.ratio * 100, 6)}%` }} />
-            <span>{row.label}</span>
-            <strong>{row.valueLabel || row.count}</strong>
-          </div>
-        ))}
+      <div className="bar-list">
+        {rows.map((row) => {
+          const width = ((Number(row.ratio) || 0) / max) * 100;
+          return (
+            <div className="bar-list-row" key={row.id || row.label}>
+              <div className="bar-list-copy">
+                <strong>{row.label}</strong>
+                <span>{row.valueLabel || row.count}</span>
+              </div>
+              <div className="bar-list-track">
+                <div className={`bar-list-fill tone-${tone}`} style={{ width: `${Math.max(width, 8)}%` }} />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -253,10 +366,14 @@ function IdeaScatter({ points = [] }) {
         <span>Value gap vs momentum</span>
       </div>
       <svg className="scatter-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <rect x="0" y="0" width="50" height="50" className="quadrant preferred" />
+        <rect x="50" y="0" width="50" height="50" className="quadrant chase" />
+        <rect x="0" y="50" width="50" height="50" className="quadrant cold" />
+        <rect x="50" y="50" width="50" height="50" className="quadrant avoid" />
         <path className="line-grid" d="M 50 0 L 50 100 M 0 50 L 100 50" />
         {points.map((point) => {
-          const cx = ((Number(point.x) - minX) / rangeX) * 100;
-          const cy = 100 - (((Number(point.y) - minY) / rangeY) * 100);
+          const cx = 8 + (((Number(point.x) - minX) / rangeX) * 84);
+          const cy = 92 - (((Number(point.y) - minY) / rangeY) * 84);
           const radius = 4 + ((Number(point.size) || 0) * 6);
           return (
             <g key={point.ticker}>
@@ -267,8 +384,8 @@ function IdeaScatter({ points = [] }) {
         })}
       </svg>
       <div className="chart-legend compact">
-        <span>Left = cheaper</span>
-        <span>Up = stronger momentum</span>
+        <span>Top left = cheap + strong</span>
+        <span>Bottom right = expensive + weak</span>
       </div>
     </div>
   );
@@ -313,12 +430,16 @@ function SignalBars({ bars = [] }) {
         <strong>Live risk stack</strong>
         <span>Main conditions now</span>
       </div>
-      <div className="signal-bar-grid">
+      <div className="risk-bars">
         {bars.map((bar) => (
-          <div className="signal-bar-card" key={bar.id}>
-            <div className={`signal-bar-fill tone-${bar.tone}`} style={{ height: `${Math.max(bar.ratio * 100, 8)}%` }} />
-            <span>{bar.label}</span>
-            <strong>{bar.valueLabel}</strong>
+          <div className="risk-bar-row" key={bar.id}>
+            <div className="risk-bar-copy">
+              <strong>{bar.label}</strong>
+              <span>{bar.valueLabel}</span>
+            </div>
+            <div className="risk-bar-track">
+              <div className={`risk-bar-fill tone-${bar.tone}`} style={{ width: `${Math.max((Number(bar.ratio) || 0) * 100, 10)}%` }} />
+            </div>
           </div>
         ))}
       </div>
@@ -326,10 +447,114 @@ function SignalBars({ bars = [] }) {
   );
 }
 
+function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRefresh, isPending }) {
+  const topEdge = dashboard.edge_board?.drilldowns?.[0];
+
+  return (
+    <section className="hero-panel premium-card">
+      <div className="hero-panel-main">
+        <div className="hero-panel-copy">
+          <p className="eyebrow">Retail Decision Terminal</p>
+          <h1>BLS Prime</h1>
+          <strong>{dashboard.alpha_briefing.pulse}</strong>
+          <p>{dashboard.market_brief.headline}</p>
+        </div>
+        <div className="hero-cta-row">
+          <button className="command-trigger" onClick={onOpenCommand}>Cmd Palette</button>
+          <button className="primary-button" onClick={onRefresh} disabled={isPending}>
+            {isPending ? "Refreshing..." : "Refresh"}
+          </button>
+        </div>
+      </div>
+      <div className="hero-panel-side">
+        <div className="hero-badge-grid">
+          <div className="hero-badge">
+            <span>Workspace</span>
+            <strong>{dashboard.workspace_summary.mode}</strong>
+          </div>
+          <div className="hero-badge">
+            <span>Connection</span>
+            <strong>{connectionState}</strong>
+          </div>
+          <div className="hero-badge">
+            <span>Stance</span>
+            <strong>{dashboard.workspace_summary.primary_stance}</strong>
+          </div>
+          <div className="hero-badge">
+            <span>Access</span>
+            <strong>{session.access.provider === "shared-link" ? "Private link" : "Invite alpha"}</strong>
+          </div>
+        </div>
+        {topEdge ? (
+          <button className="hero-edge-callout" onClick={onOpenCommand}>
+            <span>Top edge now</span>
+            <strong>{topEdge.label}</strong>
+            <b>{topEdge.scoreLabel}</b>
+          </button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function PortfolioPulse({ module }) {
+  const analytics = module?.analytics || {};
+  const holdings = module?.holdings || [];
+
+  return (
+    <section className="cockpit-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">Portfolio Pulse</p>
+          <strong>What the book is doing structurally</strong>
+        </div>
+        <span className="section-chip">{analytics.holdingsCount} holdings</span>
+      </div>
+      <div className="cockpit-kpis">
+        <DonutGauge value={Math.min(Math.abs(Number(analytics.annualReturn) || 0) / 0.2, 1)} label="Annual return" valueLabel={module.analytics?.annualReturn || analytics.annualReturn ? formatPct(analytics.annualReturn) : "-"} tone="good" />
+        <DonutGauge value={Math.min((Number(analytics.annualVolatility) || 0) / 0.35, 1)} label="Volatility" valueLabel={analytics.annualVolatility ? formatPct(analytics.annualVolatility) : "-"} tone="warn" />
+        <DonutGauge value={Math.min(Math.abs(Number(analytics.maxDrawdown) || 0) / 0.25, 1)} label="Max drawdown" valueLabel={analytics.maxDrawdown ? formatPct(analytics.maxDrawdown) : "-"} tone="bad" />
+      </div>
+      <div className="cockpit-note-list">
+        {(module.notes || []).slice(0, 2).map((note) => <p key={note}>{note}</p>)}
+      </div>
+      <TopHoldingsStrip holdings={holdings} />
+    </section>
+  );
+}
+
+function RiskPulse({ module }) {
+  const riskState = describeRiskState(module?.metrics || []);
+
+  return (
+    <section className="cockpit-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">Risk Pulse</p>
+          <strong>Pressure map for the current book</strong>
+        </div>
+        <span className={`section-chip is-${riskState === "Contained" ? "good" : riskState === "Guarded" ? "warn" : "bad"}`}>{riskState}</span>
+      </div>
+      <div className="risk-metric-stack">
+        {(module.metrics || []).map((metric) => (
+          <div className="risk-metric-row" key={metric.label}>
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+          </div>
+        ))}
+      </div>
+      <div className="cockpit-note-list">
+        {(module.narrative || []).slice(0, 2).map((line) => <p key={line}>{line}</p>)}
+      </div>
+      <SignalBars bars={(module.signalBars || []).slice(0, 4)} />
+    </section>
+  );
+}
+
 function ActionsModule({ module }) {
   return (
     <>
-      <div className="panel-block">
+      <div className="panel-block intro-block">
         <p className="block-title">What the terminal would do next</p>
         <p className="support-copy">{module.subtitle}</p>
       </div>
@@ -455,7 +680,7 @@ function ProtocolModule({ module }) {
 function PortfolioModule({ module }) {
   return (
     <>
-      <div className="metric-band">
+      <div className="metric-band emphasis-band">
         <div><span>Annual return</span><strong>{module.analytics.annualReturn}</strong></div>
         <div><span>Typical swings</span><strong>{module.analytics.annualVolatility}</strong></div>
         <div><span>Reward vs risk</span><strong>{module.analytics.sharpeRatio}</strong></div>
@@ -522,7 +747,7 @@ function PortfolioModule({ module }) {
 function ScannerModule({ module }) {
   return (
     <>
-      <div className="panel-block">
+      <div className="panel-block intro-block">
         <p className="block-title">Idea summary</p>
         <p className="support-copy">{module.insight}</p>
         <p className="support-copy chart-source">{module.sourceLabel}</p>
@@ -955,10 +1180,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     setCommandFeedback("Command not recognized. Try `focus actions`, `view portfolio`, `refresh`, or a ticker.");
   }
 
-  const orderedModules = [
+  const orderedModules = useMemo(() => ([
     ...dashboard.module_refs.filter((item) => item.id === activeModule),
     ...dashboard.module_refs.filter((item) => item.id !== activeModule),
-  ];
+  ]), [activeModule, dashboard.module_refs]);
+
   const commandPresets = [
     { label: "Refresh", command: "refresh" },
     { label: "Next Moves", command: "focus actions" },
@@ -974,37 +1200,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   return (
     <main className={`terminal-root density-${density}`}>
       <div className="terminal-noise" />
-      <header className="top-shell">
-        <div className="brand-cluster">
-          <div className="brand-mark" />
-          <div>
-            <p className="eyebrow">Retail decision terminal</p>
-            <h1>BLS Prime</h1>
-          </div>
-        </div>
-        <div className="workspace-strip">
-          <div className="workspace-metadata">
-            <span className={`status-pill ${statusClass(dashboard.workspace_summary.backend_status)}`}>
-              {dashboard.workspace_summary.backend_status}
-            </span>
-            <span>{dashboard.workspace_summary.mode}</span>
-            <span>{session.access.provider === "shared-link" ? "Private link alpha" : "Invite alpha"}</span>
-            <span>{dashboard.workspace_summary.last_updated_label}</span>
-          </div>
-          <div className="top-actions">
-            <button className="command-trigger" onClick={() => setCommandOpen(true)}>Cmd Palette</button>
-            <button className="ghost-button" onClick={() => setDensity((current) => current === "dense" ? "compact" : "dense")}>
-              {density === "dense" ? "Compact" : "Dense"}
-            </button>
-            <button className="ghost-button" onClick={() => setAlertsOpen((current) => !current)}>
-              {alertsOpen ? "Hide alerts" : "Show alerts"}
-            </button>
-            <button className="primary-button" onClick={refreshTerminal} disabled={isPending}>
-              {isPending ? "Refreshing..." : "Refresh"}
-            </button>
-          </div>
-        </div>
-      </header>
+
+      <OverviewHero
+        dashboard={dashboard}
+        session={session}
+        connectionState={connectionState}
+        onOpenCommand={() => setCommandOpen(true)}
+        onRefresh={refreshTerminal}
+        isPending={isPending}
+      />
 
       <section className="market-ribbon">
         {dashboard.market_ribbon.map((item) => (
@@ -1015,39 +1219,22 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
             <div>
               <strong>{item.price ? formatNumber(item.price, 2) : "-"}</strong>
-              <span className={Number(item.changePct) >= 0 ? "up" : "down"}>{formatPct(item.changePct)}</span>
+              <span className={Number(item.changePct) >= 0 ? "up" : "down"}>{formatSignedPct(item.changePct)}</span>
             </div>
           </article>
         ))}
       </section>
 
-      <section className="tape-brief">
-        <div className="tape-copy">
-          <p className="eyebrow">Market Tape</p>
-          <strong>{dashboard.market_brief.headline}</strong>
-          <span>{dashboard.alpha_briefing.asOf}</span>
-        </div>
-        <div className="tape-metrics">
-          <div className="tape-pill">
-            <span>Tone</span>
-            <strong>{dashboard.market_brief.bias}</strong>
-          </div>
-          <div className="tape-pill">
-            <span>Leading</span>
-            <strong>{dashboard.market_brief.leader}</strong>
-          </div>
-          <div className="tape-pill">
-            <span>Cooling</span>
-            <strong>{dashboard.market_brief.laggard}</strong>
-          </div>
-        </div>
+      <section className="cockpit-grid">
+        <PortfolioPulse module={dashboard.modules.portfolio} />
+        <RiskPulse module={dashboard.modules.risk} />
       </section>
 
       <EdgeBoard board={dashboard.edge_board} onSelect={setSelectedEdge} />
 
       <div className="terminal-layout">
         <aside className="workspace-rail">
-          <section className="rail-card">
+          <section className="rail-card premium-card">
             <p className="rail-title">Workspace</p>
             <div className="identity-card">
               <strong>{session.user.name}</strong>
@@ -1056,11 +1243,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
             <div className="connection-state">
               <span className={`status-pill ${statusClass(connectionState)}`}>{connectionState}</span>
-              <span>{session.access.provider === "shared-link" ? "Private link access" : "Invite-only alpha"}</span>
+              <span>{dashboard.workspace_summary.last_updated_label}</span>
             </div>
           </section>
 
-          <section className="rail-card">
+          <section className="rail-card premium-card">
             <p className="rail-title">Alpha Pulse</p>
             <p className="pulse-copy">{dashboard.alpha_briefing.pulse}</p>
             <div className="mini-stat-grid">
@@ -1081,7 +1268,87 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
           </section>
 
-          <section className="rail-card">
+          <section className="rail-card premium-card">
+            <p className="rail-title">Navigation</p>
+            <p className="rail-hint">`1-9` jump, `Shift+1-9` focus, `[` and `]` cycle, `/` opens commands.</p>
+            <nav className="rail-nav">
+              {dashboard.module_refs.map((item) => (
+                <button
+                  className={`rail-link ${activeModule === item.id ? "is-active" : ""}`}
+                  key={item.id}
+                  onClick={() => {
+                    jumpToModule(item.id);
+                  }}
+                >
+                  <span>{item.kicker}</span>
+                  <strong>{item.title}</strong>
+                </button>
+              ))}
+            </nav>
+          </section>
+
+          <section className="rail-card premium-card">
+            <p className="rail-title">Saved views</p>
+            {(dashboard.saved_views || []).map((view) => (
+              <button className="saved-view saved-view-button" key={view.id} onClick={() => applySavedView(view.id)}>
+                <strong>{view.name}</strong>
+                <span>{view.description}</span>
+              </button>
+            ))}
+          </section>
+
+          <section className="rail-card premium-card">
+            <p className="rail-title">Watchlist</p>
+            <div className="watchlist-stack">
+              {(dashboard.watchlist || []).slice(0, 5).map((item) => (
+                <div className="watchlist-row" key={item.symbol}>
+                  <div>
+                    <strong>{item.symbol}</strong>
+                    <span>{item.lastSignal || item.conviction}</span>
+                  </div>
+                  <span className={Number(item.changePct) >= 0 ? "up" : "down"}>{formatSignedPct(item.changePct)}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </aside>
+
+        <section className="module-grid">
+          {orderedModules.map((moduleRef) => renderModule(
+            moduleRef,
+            dashboard.modules[moduleRef.id],
+            dashboard.module_status.find((item) => item.id === moduleRef.id),
+            focusedModule === moduleRef.id,
+            (moduleId) => setFocusedModule((current) => current === moduleId ? null : moduleId),
+          ))}
+        </section>
+
+        <aside className={`alerts-drawer ${alertsOpen ? "is-open" : ""}`}>
+          <section className="rail-card premium-card">
+            <div className="section-topline">
+              <div>
+                <p className="rail-title">Live alerts</p>
+              </div>
+              <button className="ghost-button mini-button" onClick={() => setAlertsOpen((current) => !current)}>
+                {alertsOpen ? "Hide" : "Show"}
+              </button>
+            </div>
+            <div className="alerts-list">
+              {dashboard.alerts.map((alert) => (
+                <article className={`alert-card ${severityClass(alert.severity)}`} key={alert.id}>
+                  <div className="alert-topline">
+                    <span className={`status-pill ${severityClass(alert.severity)}`}>{alert.severity}</span>
+                    <span>{alert.source}</span>
+                  </div>
+                  <strong>{alert.title}</strong>
+                  <p>{alert.body}</p>
+                  <span className="alert-action">{alert.action}</span>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="rail-card premium-card">
             <p className="rail-title">Data & Refresh</p>
             <div className="mini-stat-grid">
               <div className="mini-stat">
@@ -1111,80 +1378,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </ul>
           </section>
 
-          <section className="rail-card">
-            <p className="rail-title">Navigation</p>
-            <p className="rail-hint">`1-9` jump, `Shift+1-9` focus, `[` and `]` cycle, `/` opens commands.</p>
-            <nav className="rail-nav">
-              {dashboard.module_refs.map((item) => (
-                <button
-                  className={`rail-link ${activeModule === item.id ? "is-active" : ""}`}
-                  key={item.id}
-                  onClick={() => {
-                    jumpToModule(item.id);
-                  }}
-                >
-                  <span>{item.kicker}</span>
-                  <strong>{item.title}</strong>
-                </button>
-              ))}
-            </nav>
-          </section>
-
-          <section className="rail-card">
-            <p className="rail-title">Saved views</p>
-            {(dashboard.saved_views || []).map((view) => (
-              <button className="saved-view saved-view-button" key={view.id} onClick={() => applySavedView(view.id)}>
-                <strong>{view.name}</strong>
-                <span>{view.description}</span>
-              </button>
-            ))}
-          </section>
-
-          <section className="rail-card">
-            <p className="rail-title">Watchlist</p>
-            <div className="watchlist-stack">
-              {(dashboard.watchlist || []).slice(0, 5).map((item) => (
-                <div className="watchlist-row" key={item.symbol}>
-                  <div>
-                    <strong>{item.symbol}</strong>
-                    <span>{item.lastSignal || item.conviction}</span>
-                  </div>
-                  <span className={Number(item.changePct) >= 0 ? "up" : "down"}>{formatPct(item.changePct)}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-        </aside>
-
-        <section className="module-grid">
-          {orderedModules.map((moduleRef) => renderModule(
-            moduleRef,
-            dashboard.modules[moduleRef.id],
-            dashboard.module_status.find((item) => item.id === moduleRef.id),
-            focusedModule === moduleRef.id,
-            (moduleId) => setFocusedModule((current) => current === moduleId ? null : moduleId),
-          ))}
-        </section>
-
-        <aside className={`alerts-drawer ${alertsOpen ? "is-open" : ""}`}>
-          <section className="rail-card">
-            <p className="rail-title">Live alerts</p>
-            <div className="alerts-list">
-              {dashboard.alerts.map((alert) => (
-                <article className={`alert-card ${severityClass(alert.severity)}`} key={alert.id}>
-                  <div className="alert-topline">
-                    <span className={`status-pill ${severityClass(alert.severity)}`}>{alert.severity}</span>
-                    <span>{alert.source}</span>
-                  </div>
-                  <strong>{alert.title}</strong>
-                  <p>{alert.body}</p>
-                  <span className="alert-action">{alert.action}</span>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="rail-card">
+          <section className="rail-card premium-card">
             <p className="rail-title">Alpha status</p>
             <div className="status-stack">
               {dashboard.module_status.map((item) => (
@@ -1199,7 +1393,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <Link href="/legacy" className="legacy-anchor">Open legacy workstation</Link>
           </section>
 
-          <section className="rail-card">
+          <section className="rail-card premium-card">
             <p className="rail-title">Recent commands</p>
             <div className="command-history-list">
               {(dashboard.command_history || []).length
