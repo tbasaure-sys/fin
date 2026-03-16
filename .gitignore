@@ -19,6 +19,12 @@ __pycache__/
 .venv/
 venv/
 
+# node / next
+node_modules/
+.next/
+.vercel/
+.playwright-cli/
+
 # environment variables
 .env
 .env.*
