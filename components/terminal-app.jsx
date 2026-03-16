@@ -113,50 +113,82 @@ function ActionsModule({ module }) {
   );
 }
 
-function CommandModule({ module }) {
+function ProtocolModule({ module }) {
   return (
     <>
       <div className="hero-strip">
         <div>
-          <p className="eyebrow">Current posture</p>
-          <div className="hero-readout">{module.betaTarget}</div>
-          <p className="support-copy">{module.headline}</p>
+          <p className="eyebrow">Capital protocol</p>
+          <div className="hero-readout">{module.protocolLabel}</div>
+          <p className="support-copy">{module.notes?.[0]}</p>
         </div>
         <div className="hero-grid">
-          <div><span>Market backdrop</span><strong>{module.regime}</strong></div>
-          <div><span>Confidence</span><strong>{module.confidence}</strong></div>
-          <div><span>Shock absorber</span><strong>{module.hedge}</strong></div>
-          <div><span>Diversification</span><strong>{module.structureState}</strong></div>
+          <div><span>Trust state</span><strong>{module.trustState}</strong></div>
+          <div><span>Decision rights</span><strong>{module.decisionRights}</strong></div>
+          <div><span>Autonomy</span><strong>{module.autonomyScore}</strong></div>
+          <div><span>Frontier</span><strong>{module.frontierDistance}</strong></div>
         </div>
       </div>
       <div className="grid-two">
         <div className="panel-block">
-          <p className="block-title">Why this makes sense</p>
-          <ul className="signal-list">
-            {(module.summary || []).map((item) => <li key={item}>{item}</li>)}
-          </ul>
+          <p className="block-title">Support dependency</p>
+          <div className="metric-list">
+            {(module.supportDependency || []).map((item) => (
+              <div className="metric-row" key={item.id}>
+                <div>
+                  <strong>{item.label}</strong>
+                  <span>{item.value}</span>
+                </div>
+                <div className="metric-bar-track">
+                  <div className="metric-bar-fill" style={{ width: `${item.numeric * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="panel-block">
-          <p className="block-title">What would change this view</p>
-          <ul className="signal-list">
-            {(module.flips || []).length
-              ? module.flips.map((item) => <li key={item}>{item}</li>)
-              : <li>Waiting for live policy thresholds.</li>}
-          </ul>
+          <p className="block-title">Protective value</p>
+          <div className="metric-list">
+            {(module.protectiveValue || []).map((item) => (
+              <div className="metric-row" key={item.id}>
+                <div>
+                  <strong>{item.label}</strong>
+                  <span>{item.value}</span>
+                </div>
+                <div className="metric-bar-track">
+                  <div className="metric-bar-fill is-good" style={{ width: `${item.numeric * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <div className="panel-block">
-        <p className="block-title">Possible paths</p>
+        <p className="block-title">Step-down trials</p>
         <div className="scenario-list">
-          {(module.scenarios || []).map((scenario) => (
+          {(module.stepDownTrials || []).map((scenario) => (
             <div className="scenario-row" key={scenario.name}>
               <div>
                 <strong>{scenario.name}</strong>
-                <span>{scenario.stance}</span>
+                <span>{scenario.shock}</span>
               </div>
-              <strong>{formatPct(scenario.probability)}</strong>
+              <strong>{scenario.verdict}</strong>
             </div>
           ))}
+        </div>
+      </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <p className="block-title">Disproof sleeve</p>
+          <ul className="signal-list">
+            {(module.disproofSleeve || []).map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="panel-block">
+          <p className="block-title">Market playbook</p>
+          <ul className="signal-list">
+            {(module.playbook?.summary || []).map((item) => <li key={item}>{item}</li>)}
+          </ul>
         </div>
       </div>
     </>
@@ -187,6 +219,20 @@ function PortfolioModule({ module }) {
         <ul className="signal-list">
           {(module.notes || []).map((note) => <li key={note}>{note}</li>)}
         </ul>
+      </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <p className="block-title">Hidden assets</p>
+          <ul className="signal-list">
+            {(module.shadowBalance?.assets || []).map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
+        <div className="panel-block">
+          <p className="block-title">Hidden liabilities</p>
+          <ul className="signal-list">
+            {(module.shadowBalance?.liabilities || []).map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        </div>
       </div>
     </>
   );
@@ -303,7 +349,7 @@ function AuditModule({ module }) {
 function renderModule(moduleRef, moduleData, status, focused, onFocus) {
   const bodyById = {
     actions: <ActionsModule module={moduleData} />,
-    command: <CommandModule module={moduleData} />,
+    command: <ProtocolModule module={moduleData} />,
     portfolio: <PortfolioModule module={moduleData} />,
     scanner: <ScannerModule module={moduleData} />,
     risk: <RiskModule module={moduleData} />,

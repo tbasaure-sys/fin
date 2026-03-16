@@ -145,6 +145,7 @@ def create_app(
             "/api/sectors": snapshot.get("sectors", {}),
             "/api/international": snapshot.get("international", {}),
             "/api/portfolio": snapshot.get("portfolio", {}),
+            "/api/protocol": snapshot.get("protocol", {}),
             "/api/statement-intelligence": snapshot.get("statement_intelligence", {}),
             "/api/statement-kernel": {
                 "top_kernel_names": snapshot.get("statement_intelligence", {}).get("top_kernel_names", []),

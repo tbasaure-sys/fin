@@ -26,11 +26,14 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   assert.equal(dashboard.module_refs.length, 9);
   assert.equal(dashboard.module_refs[0].id, "portfolio");
   assert.equal(dashboard.module_refs[1].id, "actions");
+  assert.equal(dashboard.module_refs[2].title, "Capital Protocol");
   assert.equal(dashboard.modules.actions.title, "Next Best Moves");
+  assert.equal(dashboard.modules.command.title, "Capital Protocol");
   assert.ok(dashboard.alerts.length >= 1);
   assert.equal(dashboard.portfolio_state.watchlist_count, 0);
   assert.equal(dashboard.modules.portfolio.holdings[0].ticker, "SGOV");
   assert.equal(dashboard.alpha_briefing.topIdeas[0].symbol, "TSM");
+  assert.ok(dashboard.modules.command.supportDependency.length > 0);
 });
 
 test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quotes exist", () => {
@@ -124,4 +127,61 @@ test("normalizeWorkspaceDashboard builds live next best moves from screener and 
   assert.equal(dashboard.modules.actions.actions[2].ticker, "TLT");
   assert.match(dashboard.modules.actions.actions[0].whyNow, /Portfolio risk is/);
   assert.ok(dashboard.modules.actions.actions[0].invalidation);
+  assert.ok(dashboard.modules.command.decisionRights);
+  assert.ok(dashboard.modules.command.stepDownTrials.length === 3);
+});
+
+test("normalizeWorkspaceDashboard prefers backend protocol payload when it exists", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      overview: {
+        recommended_action: "beta_040",
+      },
+      protocol: {
+        protocol: "challenge_and_stage",
+        protocol_label: "Challenge And Stage",
+        trust_score: 0.61,
+        trust_state: "Stage",
+        decision_rights: "Stage position",
+        autonomy_score: 0.49,
+        frontier_distance: -0.04,
+        recoverability_budget: "Tight",
+        support_dependency: {
+          passive_flows: 0.33,
+          valuation_tolerance: 0.27,
+        },
+        protective_value: {
+          cash: 0.12,
+          duration: 0.18,
+        },
+        step_down_trials: [
+          {
+            name: "Flow withdrawal",
+            shock: "Reduce passive support by 20%",
+            autonomy_score: 0.42,
+            verdict: "Needs staged response",
+          },
+        ],
+        disproof_sleeve: ["Defensive dividend quality"],
+        notes: ["Decision rights are currently stage position."],
+      },
+      screener: { rows: [] },
+      portfolio: {},
+      status: { warnings: [], panels: [] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  assert.equal(dashboard.modules.command.protocolLabel, "Challenge And Stage");
+  assert.equal(dashboard.modules.command.trustState, "Stage");
+  assert.equal(dashboard.modules.command.decisionRights, "Stage position");
+  assert.equal(dashboard.modules.command.supportDependency[0].label, "Passive Flows");
+  assert.equal(dashboard.modules.command.stepDownTrials[0].verdict, "Needs staged response");
 });
