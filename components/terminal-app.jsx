@@ -595,6 +595,20 @@ function ActionsModule({ module }) {
       <div className="panel-block intro-block">
         <p className="block-title">What the terminal would do next</p>
         <p className="support-copy">{module.subtitle}</p>
+        <div className="mini-framework">
+          <div className="mini-framework-card">
+            <span>Cluster</span>
+            <strong>{module.framework?.cluster?.dominant || "-"}</strong>
+          </div>
+          <div className="mini-framework-card">
+            <span>Rebound confidence</span>
+            <strong>{module.framework?.reboundConfidence?.state || "-"}</strong>
+          </div>
+          <div className="mini-framework-card">
+            <span>Rebound quality</span>
+            <strong>{module.framework?.reboundQuality?.state || "-"}</strong>
+          </div>
+        </div>
       </div>
       <div className="action-stack">
         {(module.actions || []).map((action) => (
