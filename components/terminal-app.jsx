@@ -69,6 +69,204 @@ function ModuleCard({ moduleRef, status, focused, onFocus, children }) {
   );
 }
 
+function EdgeBoard({ board }) {
+  const lanes = [
+    { id: "sectors", title: "Sector edge", rows: board?.sectors || [] },
+    { id: "countries", title: "Country edge", rows: board?.countries || [] },
+    { id: "currencies", title: "Currency edge", rows: board?.currencies || [] },
+    { id: "stocks", title: "Stock edge", rows: board?.stocks || [] },
+  ];
+
+  return (
+    <section className="edge-board">
+      <div className="edge-board-header">
+        <div>
+          <p className="eyebrow">Edge Board</p>
+          <strong>{board?.headline}</strong>
+        </div>
+      </div>
+      <div className="edge-board-grid">
+        {lanes.map((lane) => (
+          <div className="edge-lane" key={lane.id}>
+            <p className="block-title">{lane.title}</p>
+            <div className="edge-lane-stack">
+              {lane.rows.map((row) => (
+                <div className="edge-row" key={`${lane.id}-${row.label}`}>
+                  <div>
+                    <strong>{row.label}</strong>
+                    <span>{row.note}</span>
+                  </div>
+                  <div className="edge-score">
+                    <strong>{row.scoreLabel}</strong>
+                    {row.ticker ? <span>{row.ticker}</span> : null}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SparklineComparison({ series = [] }) {
+  if (!series.length) {
+    return <p className="chart-empty">Portfolio vs benchmark will appear after live history is promoted.</p>;
+  }
+
+  const values = series.flatMap((point) => [Number(point.portfolio), Number(point.benchmark)]).filter(Number.isFinite);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+
+  function toPath(key) {
+    return series
+      .map((point, index) => {
+        const x = (index / Math.max(series.length - 1, 1)) * 100;
+        const y = 100 - (((Number(point[key]) - min) / range) * 100);
+        return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+      })
+      .join(" ");
+  }
+
+  return (
+    <div className="chart-shell">
+      <div className="chart-header">
+        <strong>Portfolio vs SPY</strong>
+        <span>Last {series.length} sessions</span>
+      </div>
+      <svg className="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path className="line-grid" d="M 0 20 L 100 20 M 0 50 L 100 50 M 0 80 L 100 80" />
+        <path className="line-portfolio" d={toPath("portfolio")} />
+        <path className="line-benchmark" d={toPath("benchmark")} />
+      </svg>
+      <div className="chart-legend">
+        <span><i className="swatch portfolio" />Portfolio</span>
+        <span><i className="swatch benchmark" />SPY</span>
+      </div>
+    </div>
+  );
+}
+
+function DistributionBars({ title, subtitle, rows = [], tone = "accent" }) {
+  if (!rows.length) {
+    return <p className="chart-empty">{subtitle}</p>;
+  }
+
+  return (
+    <div className="chart-shell">
+      <div className="chart-header">
+        <strong>{title}</strong>
+        <span>{subtitle}</span>
+      </div>
+      <div className="mini-bars">
+        {rows.map((row) => (
+          <div className="mini-bar-card" key={row.id || row.label}>
+            <div className={`mini-bar-fill tone-${tone}`} style={{ height: `${Math.max(row.ratio * 100, 6)}%` }} />
+            <span>{row.label}</span>
+            <strong>{row.valueLabel || row.count}</strong>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function IdeaScatter({ points = [] }) {
+  if (!points.length) {
+    return <p className="chart-empty">Value-vs-momentum map will appear when live idea rows are populated.</p>;
+  }
+
+  const xs = points.map((point) => Number(point.x)).filter(Number.isFinite);
+  const ys = points.map((point) => Number(point.y)).filter(Number.isFinite);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const rangeX = maxX - minX || 1;
+  const rangeY = maxY - minY || 1;
+
+  return (
+    <div className="chart-shell">
+      <div className="chart-header">
+        <strong>Idea map</strong>
+        <span>Value gap vs momentum</span>
+      </div>
+      <svg className="scatter-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path className="line-grid" d="M 50 0 L 50 100 M 0 50 L 100 50" />
+        {points.map((point) => {
+          const cx = ((Number(point.x) - minX) / rangeX) * 100;
+          const cy = 100 - (((Number(point.y) - minY) / rangeY) * 100);
+          const radius = 4 + ((Number(point.size) || 0) * 6);
+          return (
+            <g key={point.ticker}>
+              <circle cx={cx} cy={cy} r={radius} className="scatter-dot" />
+              <text x={cx} y={Math.max(cy - radius - 2, 6)} className="scatter-label">{point.ticker}</text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="chart-legend compact">
+        <span>Left = cheaper</span>
+        <span>Up = stronger momentum</span>
+      </div>
+    </div>
+  );
+}
+
+function ConfirmationMatrix({ rows = [] }) {
+  if (!rows.length) {
+    return <p className="chart-empty">Fundamental confirmation bars will appear with richer screener signals.</p>;
+  }
+
+  return (
+    <div className="confirmation-stack">
+      {rows.map((row) => (
+        <div className="confirmation-card" key={row.ticker}>
+          <div className="confirmation-topline">
+            <strong>{row.ticker}</strong>
+          </div>
+          <div className="confirmation-grid">
+            {row.signals.map((signal) => (
+              <div className="confirmation-row" key={`${row.ticker}-${signal.id}`}>
+                <span>{signal.label}</span>
+                <div className="metric-bar-track">
+                  <div className="metric-bar-fill is-good" style={{ width: `${signal.value * 100}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SignalBars({ bars = [] }) {
+  if (!bars.length) {
+    return <p className="chart-empty">Live risk bars will appear when structural inputs are populated.</p>;
+  }
+
+  return (
+    <div className="chart-shell">
+      <div className="chart-header">
+        <strong>Live risk stack</strong>
+        <span>Main conditions now</span>
+      </div>
+      <div className="signal-bar-grid">
+        {bars.map((bar) => (
+          <div className="signal-bar-card" key={bar.id}>
+            <div className={`signal-bar-fill tone-${bar.tone}`} style={{ height: `${Math.max(bar.ratio * 100, 8)}%` }} />
+            <span>{bar.label}</span>
+            <strong>{bar.valueLabel}</strong>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ActionsModule({ module }) {
   return (
     <>
@@ -234,6 +432,27 @@ function PortfolioModule({ module }) {
           </ul>
         </div>
       </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <SparklineComparison series={module.charts?.growthComparison} />
+        </div>
+        <div className="panel-block">
+          <DistributionBars
+            title="Sector exposure"
+            subtitle="Largest sleeves in the book"
+            rows={module.charts?.sectorExposure}
+            tone="good"
+          />
+        </div>
+      </div>
+      <div className="panel-block">
+        <DistributionBars
+          title="Valuation spread"
+          subtitle="How upside is distributed across holdings"
+          rows={module.charts?.valuationDistribution}
+          tone="accent"
+        />
+      </div>
     </>
   );
 }
@@ -244,6 +463,15 @@ function ScannerModule({ module }) {
       <div className="panel-block">
         <p className="block-title">Idea summary</p>
         <p className="support-copy">{module.insight}</p>
+      </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <IdeaScatter points={module.ideaMap} />
+        </div>
+        <div className="panel-block">
+          <p className="block-title">Fundamental confirmation</p>
+          <ConfirmationMatrix rows={module.confirmation} />
+        </div>
       </div>
       <div className="data-table">
         <div className="data-row data-head">
@@ -269,6 +497,9 @@ function RiskModule({ module }) {
             <strong>{metric.value}</strong>
           </div>
         ))}
+      </div>
+      <div className="panel-block">
+        <SignalBars bars={module.signalBars} />
       </div>
       <div className="panel-block">
         <p className="block-title">Risk read</p>
@@ -727,6 +958,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </div>
         </div>
       </section>
+
+      <EdgeBoard board={dashboard.edge_board} />
 
       <div className="terminal-layout">
         <aside className="workspace-rail">
