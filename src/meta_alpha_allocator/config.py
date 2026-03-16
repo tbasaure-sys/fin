@@ -185,6 +185,7 @@ class ResearchSettings:
         "DGS2",
         "T10Y2Y",
         "FEDFUNDS",
+        "VIXCLS",
         "M2SL",
         "WALCL",
         "BAMLC0A0CM",
