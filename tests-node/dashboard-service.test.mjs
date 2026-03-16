@@ -185,3 +185,104 @@ test("normalizeWorkspaceDashboard prefers backend protocol payload when it exist
   assert.equal(dashboard.modules.command.supportDependency[0].label, "Passive Flows");
   assert.equal(dashboard.modules.command.stepDownTrials[0].verdict, "Needs staged response");
 });
+
+test("normalizeWorkspaceDashboard filters current holdings out of stock ideas", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      portfolio: {
+        top_holdings: [
+          { ticker: "ASML", sector: "Technology", weight: 0.04 },
+        ],
+      },
+      screener: {
+        source_file: "discovery_screener.csv",
+        rows: [
+          {
+            ticker: "ASML",
+            sector: "Technology",
+            is_current_holding: true,
+            discovery_score: 0.9,
+            valuation_gap: -0.2,
+            momentum_6m: 0.3,
+          },
+          {
+            ticker: "TSM",
+            sector: "Technology",
+            is_current_holding: false,
+            screen_origin: "discovery",
+            discovery_score: 0.8,
+            valuation_gap: -0.1,
+            momentum_6m: 0.2,
+          },
+        ],
+      },
+      status: { warnings: [], panels: [] },
+      overview: {},
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  assert.equal(dashboard.modules.scanner.rows[0].ticker, "TSM");
+  assert.ok(!dashboard.modules.scanner.rows.some((row) => row.ticker === "ASML"));
+  assert.match(dashboard.modules.scanner.insight, /excludes names already sitting in the portfolio/i);
+  assert.ok(dashboard.modules.scanner.ideaMap.length >= 1);
+  assert.equal(dashboard.modules.scanner.confirmation[0].ticker, "TSM");
+});
+
+test("normalizeWorkspaceDashboard exposes explicit edge board lanes", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      overview: {},
+      portfolio: {
+        top_holdings: [{ ticker: "ASML", sector: "Technology", weight: 0.04 }],
+      },
+      screener: {
+        rows: [
+          {
+            ticker: "TSM",
+            is_current_holding: false,
+            screen_origin: "discovery",
+            discovery_score: 0.82,
+            valuation_gap: -0.12,
+            momentum_6m: 0.25,
+          },
+        ],
+      },
+      sectors: {
+        preferred: [
+          { sector: "Semiconductors", score: 0.84, view: "preferred" },
+        ],
+      },
+      international: {
+        preferred: [
+          { label: "Taiwan", ticker: "TSM", score: 0.78, momentum: 0.25 },
+        ],
+      },
+      risk: {
+        spectral: {},
+        macro: {
+          dollar_return_3m: -0.04,
+          gold_commodity_ratio: 1.2,
+        },
+      },
+      status: { warnings: [], panels: [] },
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  assert.equal(dashboard.edge_board.sectors[0].label, "Semiconductors");
+  assert.equal(dashboard.edge_board.countries[0].label, "Taiwan");
+  assert.equal(dashboard.edge_board.currencies[0].label, "TWD");
+  assert.equal(dashboard.edge_board.stocks[0].label, "TSM");
+});

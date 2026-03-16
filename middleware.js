@@ -27,15 +27,22 @@ function safeDecode(value) {
 
 export function middleware(request) {
   const token = (process.env.BLS_PRIME_SHARED_ACCESS_TOKEN || "").trim();
+  const refreshToken = (process.env.BLS_PRIME_REFRESH_TOKEN || "").trim();
   if (!token || isStaticAsset(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
 
   const queryKey = (process.env.BLS_PRIME_SHARED_ACCESS_QUERY_KEY || "alpha").trim() || "alpha";
   const cookieName = (process.env.BLS_PRIME_SHARED_ACCESS_COOKIE_NAME || "bls_prime_access").trim() || "bls_prime_access";
+  const refreshQueryToken = request.nextUrl.searchParams.get("refresh");
+  const refreshHeaderToken = request.headers.get("x-bls-refresh-token");
   const queryToken = request.nextUrl.searchParams.get(queryKey);
   const cookieToken = safeDecode(request.cookies.get(cookieName)?.value);
   const authorized = queryToken === token || cookieToken === token;
+  const refreshAuthorized =
+    request.nextUrl.pathname === "/api/refresh"
+    && Boolean(refreshToken)
+    && (refreshQueryToken === refreshToken || refreshHeaderToken === refreshToken);
 
   if (request.nextUrl.pathname === "/access") {
     if (authorized) {
@@ -45,6 +52,9 @@ export function middleware(request) {
   }
 
   if (!authorized) {
+    if (refreshAuthorized) {
+      return NextResponse.next();
+    }
     if (request.nextUrl.pathname.startsWith("/api/")) {
       return new Response(
         JSON.stringify({ error: "Private alpha access required. Open the shared invitation link first." }),
