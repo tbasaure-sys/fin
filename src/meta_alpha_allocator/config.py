@@ -33,6 +33,7 @@ def _cloud_path(name: str, local_default: Path, cloud_default: Path) -> Path:
 @dataclass(frozen=True)
 class PathConfig:
     project_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_PROJECT_ROOT", PROJECT_ROOT))
+    artifact_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_ARTIFACT_ROOT", PROJECT_ROOT / "artifacts"))
 
     # These two are only needed when running the full research pipeline locally.
     # In cloud (dashboard-serve only) they default to safe no-op paths so
@@ -244,3 +245,7 @@ class DashboardSettings:
     market_lookback_days: int = 252
     chart_history_points: int = 260
     output_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "output" / "dashboard" / "latest")
+
+
+def artifact_only_mode() -> bool:
+    return os.environ.get("META_ALLOCATOR_ARTIFACT_ONLY", "").strip().lower() in {"1", "true", "yes"}

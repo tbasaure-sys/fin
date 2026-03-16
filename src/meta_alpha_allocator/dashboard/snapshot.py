@@ -59,6 +59,14 @@ def _safe_semicolon_csv(path: Path) -> pd.DataFrame:
     return _safe_csv_load(path, sep=";", decimal=",", thousands=".")
 
 
+def _artifact_snapshot_candidates(paths: PathConfig, dashboard_settings: DashboardSettings) -> list[Path]:
+    return [
+        dashboard_settings.output_dir / "dashboard_snapshot.json",
+        paths.artifact_root / "dashboard" / "latest" / "dashboard_snapshot.json",
+        paths.artifact_root / "dashboard_snapshot.json",
+    ]
+
+
 def _load_preferred_screener(latest_root: Path) -> pd.DataFrame:
     discovery_path = latest_root / "discovery_screener.csv"
     if discovery_path.exists():
@@ -734,8 +742,11 @@ def _extract_overview(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_cached_snapshot(paths: PathConfig, dashboard_settings: DashboardSettings) -> dict[str, Any] | None:
-    snapshot_path = dashboard_settings.output_dir / "dashboard_snapshot.json"
-    return _safe_json_load(snapshot_path)
+    for snapshot_path in _artifact_snapshot_candidates(paths, dashboard_settings):
+        payload = _safe_json_load(snapshot_path)
+        if payload is not None:
+            return payload
+    return None
 
 
 def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]:
