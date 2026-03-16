@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   const normalizedBase = /^https?:\/\//i.test(backendBase)
     ? backendBase
     : `https://${backendBase}`;
-  const pathParam = req.query?.path;
+  const pathParam = req.query?.path ?? req.query?.["...path"];
   const rawPath = Array.isArray(pathParam)
     ? pathParam.join("/")
     : typeof pathParam === "string"
@@ -19,6 +19,7 @@ export default async function handler(req, res) {
       : "";
   const query = new URLSearchParams(req.query ?? {});
   query.delete("path");
+  query.delete("...path");
   const search = query.toString();
   const backendUrl = `${normalizedBase.replace(/\/$/, "")}/api/${rawPath}${search ? `?${search}` : ""}`;
 
