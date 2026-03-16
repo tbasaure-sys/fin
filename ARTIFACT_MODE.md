@@ -35,6 +35,19 @@ That command:
 3. copies the deployable JSON artifacts into:
    - `artifacts/dashboard/latest`
 
+If you want the full one-command publish flow:
+
+```powershell
+& .\scripts\publish_blsprime_artifact.ps1 -PythonExe 'C:\conda\python.exe' -Push
+```
+
+That command:
+
+1. runs the local refresh
+2. stages `artifacts/dashboard/latest`
+3. commits only if the artifact changed
+4. pushes to `origin`
+
 ## Deploy Flow
 
 After publishing the artifact:
