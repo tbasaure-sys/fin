@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
+from ..chile.desk import build_chile_market_snapshot
 from ..data.adapters import load_fmp_market_proxy_panel, load_state_panel
 from ..data.fred_client import FREDClient
 from ..data.fmp_client import FMPClient
@@ -689,7 +690,7 @@ def _build_risk_snapshot(
 
 def _build_status(snapshot: dict[str, Any], warnings: list[str]) -> dict[str, Any]:
     panels = []
-    for name in ["performance", "risk", "hedges", "sectors", "international", "portfolio", "protocol", "screener", "forecast", "statement_intelligence"]:
+    for name in ["performance", "risk", "hedges", "sectors", "international", "chile_market", "portfolio", "protocol", "screener", "forecast", "statement_intelligence"]:
         payload = snapshot.get(name, {})
         stale_days = payload.get("stale_days")
         status = "fresh"
@@ -763,6 +764,7 @@ def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]
         "hedges": {"ranking": []},
         "sectors": {"records": [], "preferred": [], "deteriorating": []},
         "international": {"records": [], "preferred": []},
+        "chile_market": {"headline": "Chile desk is waiting for market data.", "benchmark": {}, "fx": {}, "leaders": [], "laggards": [], "sector_map": [], "preferred": [], "rows": [], "stale_days": None},
         "portfolio": {"top_holdings": [], "sector_weights": [], "alignment": {"notes": ["No portfolio data is available yet."]}},
         "protocol": {
             "protocol": "protect_and_rebuild",
@@ -833,6 +835,7 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
         "hedges.json": snapshot.get("hedges", {}),
         "sectors.json": snapshot.get("sectors", {}),
         "international.json": snapshot.get("international", {}),
+        "chile_market.json": snapshot.get("chile_market", {}),
         "portfolio.json": snapshot.get("portfolio", {}),
         "protocol.json": snapshot.get("protocol", {}),
         "screener.json": snapshot.get("screener", {}),
@@ -858,6 +861,9 @@ def build_dashboard_snapshot(
     refresh_outputs: bool = True,
 ) -> dict[str, Any]:
     warnings: list[str] = []
+    chile_market = build_chile_market_snapshot(paths, refresh=refresh_outputs)
+    if chile_market.get("warnings"):
+        warnings.extend(chile_market["warnings"])
     current_payload = None
     if refresh_outputs:
         try:
@@ -878,6 +884,8 @@ def build_dashboard_snapshot(
             generated_at=datetime.now(tz=UTC).isoformat(),
             warnings=warnings + ["no current allocator payload or cached snapshot is available"],
         )
+        empty["chile_market"] = chile_market
+        empty["status"] = _build_status(empty, empty["status"].get("warnings", []))
         empty["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
         _write_snapshot_files(empty, dashboard_settings.output_dir)
         return empty
@@ -1009,6 +1017,7 @@ def build_dashboard_snapshot(
         "hedges": hedges,
         "sectors": sectors,
         "international": international,
+        "chile_market": chile_market,
         "portfolio": portfolio,
         "protocol": protocol,
         "screener": screener,

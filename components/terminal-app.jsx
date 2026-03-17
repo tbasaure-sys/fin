@@ -1010,6 +1010,67 @@ function InternationalModule({ module }) {
   );
 }
 
+function ChileModule({ module }) {
+  return (
+    <>
+      <div className="hero-strip">
+        <div>
+          <p className="eyebrow">Chile market view</p>
+          <div className="hero-readout">Structural local map</div>
+          <p className="support-copy">{module.headline}</p>
+        </div>
+        <div className="hero-grid">
+          <div><span>{module.benchmarkLabel}</span><strong>{module.benchmarkPrice}</strong></div>
+          <div><span>IPSA 1m</span><strong>{module.benchmarkReturn1m}</strong></div>
+          <div><span>{module.fxLabel}</span><strong>{module.fxPrice}</strong></div>
+          <div><span>Coverage</span><strong>{module.coverageCount}</strong></div>
+          <div><span>XBRL coverage</span><strong>{module.xbrlCoverage}</strong></div>
+          <div><span>CMF coverage</span><strong>{module.cmfCoverage}</strong></div>
+          <div><span>CMF period</span><strong>{module.cmfPeriod}</strong></div>
+        </div>
+      </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <DistributionBars
+            title="Sector opportunity map"
+            subtitle="Average score by local sector"
+            rows={module.charts?.sectorMap}
+            tone="accent"
+          />
+        </div>
+        <div className="panel-block">
+          <IdeaScatter points={module.charts?.opportunityMap} />
+        </div>
+      </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <p className="block-title">Leaders</p>
+          <ul className="signal-list">
+            {(module.leaders || []).map((row) => <li key={`leader-${row.ticker}`}>{row.ticker}: {row.detail}</li>)}
+          </ul>
+        </div>
+        <div className="panel-block">
+          <p className="block-title">Laggards</p>
+          <ul className="signal-list">
+            {(module.laggards || []).map((row) => <li key={`laggard-${row.ticker}`}>{row.ticker}: {row.detail}</li>)}
+          </ul>
+        </div>
+      </div>
+      <div className="data-table">
+        <div className="data-row data-head">
+          <span>Ticker</span><span>Sector</span><span>Score</span><span>3m</span><span>Independence</span><span>Base</span>
+        </div>
+        {(module.rows || []).map((row) => (
+          <div className="data-row" key={row.ticker}>
+            <span>{row.ticker}</span><span>{row.sector}</span><span>{row.score}</span><span>{row.return3m}</span><span>{row.independence}</span><span>{row.cmf}</span>
+          </div>
+        ))}
+      </div>
+      <p className="support-copy">{module.note}</p>
+    </>
+  );
+}
+
 function AuditModule({ module }) {
   return (
     <div className="panel-block">
@@ -1031,6 +1092,7 @@ function renderModule(moduleRef, moduleData, status, focused, onFocus) {
     spectral: <SpectralModule module={moduleData} />,
     themes: <ThemesModule module={moduleData} />,
     international: <InternationalModule module={moduleData} />,
+    chile: <ChileModule module={moduleData} />,
     audit: <AuditModule module={moduleData} />,
   };
 

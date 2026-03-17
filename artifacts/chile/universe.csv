@@ -1,0 +1,14 @@
+ticker,name,sector,theme,cmf_entity,cmf_aliases
+SQM-B.SN,SQM B,Basic Materials,Lithium and fertilizers,SOCIEDAD QUIMICA Y MINERA DE CHILE S.A.,SOQUIMICH
+COPEC.SN,Copec,Energy,Energy platform,EMPRESAS COPEC S.A.,
+FALABELLA.SN,Falabella,Consumer Cyclical,Retail and credit,FALABELLA S.A.,
+CENCOSUD.SN,Cencosud,Consumer Cyclical,Retail and malls,CENCOSUD S.A.,
+BSANTANDER.SN,Santander Chile,Financial Services,Banking,BANCO SANTANDER-CHILE,SANTANDER CHILE
+CHILE.SN,Banco de Chile,Financial Services,Banking,BANCO DE CHILE,
+BCI.SN,BCI,Financial Services,Banking,BANCO DE CREDITO E INVERSIONES,BCI
+ENELAM.SN,Enel Americas,Utilities,Regional utilities,ENEL AMERICAS S.A.,ENEL AMERICAS
+ENELCHILE.SN,Enel Chile,Utilities,Regulated utilities,ENEL CHILE S.A.,ENEL CHILE
+CMPC.SN,CMPC,Basic Materials,Forestry and pulp,EMPRESAS CMPC S.A.,CMPC
+CAP.SN,CAP,Basic Materials,Iron ore and steel,CAP S.A.,
+SONDA.SN,Sonda,Technology,IT services,SONDA S.A.,
+CCU.SN,CCU,Consumer Defensive,Beverages,COMPANIA CERVECERIAS UNIDAS S.A.,COMPAÑIA CERVECERIAS UNIDAS S.A.
