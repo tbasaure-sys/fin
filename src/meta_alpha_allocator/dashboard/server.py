@@ -169,6 +169,51 @@ def _json_bytes(payload: dict) -> bytes:
     return json.dumps(payload, indent=2).encode("utf-8")
 
 
+def _bls_contract_routes(snapshot: dict) -> dict[str, dict]:
+    bls_state = snapshot.get("bls_state_v1") or {}
+    return {
+        "/api/state": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "measured_state": bls_state.get("measured_state", {}),
+            "probabilistic_state": bls_state.get("probabilistic_state", {}),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "/api/policy": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "policy_state": bls_state.get("policy_state", {}),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "/api/repairs": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "baseline_recoverability": bls_state.get("probabilistic_state", {}).get("p_portfolio_recoverability"),
+            "baseline_phantom_rebound": bls_state.get("probabilistic_state", {}).get("p_phantom_rebound"),
+            "repair_candidates": bls_state.get("repair_candidates", []),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "/api/analogs": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "analogs": bls_state.get("analogs", []),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+    }
+
+
 def _content_type(path: Path) -> str:
     if path.suffix == ".js":
         return "application/javascript; charset=utf-8"
@@ -264,6 +309,7 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                 "/api/audit": service.audit_summary(),
                 "/api/chrono": service.chrono_alert(),
             }
+            route_map.update(_bls_contract_routes(snapshot))
             if parsed.path == "/api/screener":
                 self._send_json(apply_screener_query(snapshot, parsed.query))
                 return

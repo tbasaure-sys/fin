@@ -567,6 +567,54 @@ function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRe
   );
 }
 
+function StressModeCard({ stressMode }) {
+  if (!stressMode) return null;
+
+  return (
+    <section className="stress-mode-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">Stress Mode</p>
+          <strong>{stressMode.active ? "Canonical recoverability control is active" : "Legacy stress read is active"}</strong>
+        </div>
+        <span className={`section-chip ${stressMode.contractStatus === "canonical" ? "is-good" : "is-warn"}`}>
+          {stressMode.contractStatus}
+        </span>
+      </div>
+      <div className="stress-mode-grid">
+        <div className="metric-tile">
+          <span>Mode</span>
+          <strong>{stressMode.mode}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Recoverability</span>
+          <strong>{stressMode.recoverability}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Phantom rebound</span>
+          <strong>{stressMode.phantom}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Authority</span>
+          <strong>{stressMode.authority}</strong>
+        </div>
+      </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <p className="block-title">What the terminal is allowed to do</p>
+          <p className="support-copy">Top move: {stressMode.topMove}</p>
+          <p className="support-copy">Review cadence: {stressMode.cadence}</p>
+        </div>
+        <div className="panel-block">
+          <p className="block-title">What must confirm</p>
+          <p className="support-copy">{stressMode.confirmation}</p>
+          {stressMode.invalidation ? <p className="support-copy">First invalidation: {stressMode.invalidation}</p> : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function PortfolioPulse({ module }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
@@ -1364,6 +1412,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         onRefresh={refreshTerminal}
         isPending={isPending}
       />
+
+      <StressModeCard stressMode={dashboard.stress_mode} />
 
       <section className="market-ribbon">
         {dashboard.market_ribbon.map((item) => (

@@ -104,3 +104,4 @@ class DashboardSnapshot:
     screener: dict
     statement_intelligence: dict
     status: dict
+    bls_state_v1: dict | None = None

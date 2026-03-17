@@ -28,6 +28,7 @@ from ..research.spectral_structure import run_spectral_structure_pipeline
 from ..research.statement_intel import run_statement_intelligence
 from ..policy.engine import build_policy_state_frame
 from ..research.regime_labels import build_daily_regime_frame
+from ..state_contract import build_bls_state_contract_v1
 from ..runtime import run_production
 from ..utils import ensure_directory, time_safe_join
 
@@ -700,10 +701,14 @@ def _build_status(snapshot: dict[str, Any], warnings: list[str]) -> dict[str, An
         elif stale_days > 7:
             status = "aging"
         panels.append({"name": name, "stale_days": stale_days, "status": status})
+    bls_state = snapshot.get("bls_state_v1") or {}
     return {
         "warnings": warnings,
         "panels": panels,
         "last_refresh": snapshot.get("generated_at"),
+        "contract_status": "canonical" if bls_state else "fallback_legacy",
+        "contract_version": bls_state.get("contract_version"),
+        "model_version": bls_state.get("model_version"),
     }
 
 
@@ -816,6 +821,7 @@ def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]
             "coverage": 0,
             "holdings_coverage": 0,
         },
+        "bls_state_v1": None,
     }
     snapshot["status"] = _build_status(snapshot, warnings)
     return snapshot
@@ -823,6 +829,7 @@ def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]
 
 def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
     ensure_directory(output_dir)
+    bls_state = snapshot.get("bls_state_v1") or {}
     files = {
         "dashboard_snapshot.json": snapshot,
         "overview.json": snapshot.get("overview", {}),
@@ -842,6 +849,46 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
             "cash_mismatch_names": snapshot.get("statement_intelligence", {}).get("cash_mismatch_names", []),
             "kernel_sector_breadth": snapshot.get("statement_intelligence", {}).get("kernel_sector_breadth", []),
             "kernel_research_utility": snapshot.get("statement_intelligence", {}).get("kernel_research_utility", {}),
+        },
+        "bls_state_v1.json": bls_state,
+        "state.json": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "measured_state": bls_state.get("measured_state", {}),
+            "probabilistic_state": bls_state.get("probabilistic_state", {}),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "policy.json": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "policy_state": bls_state.get("policy_state", {}),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "repairs.json": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "baseline_recoverability": bls_state.get("probabilistic_state", {}).get("p_portfolio_recoverability"),
+            "baseline_phantom_rebound": bls_state.get("probabilistic_state", {}).get("p_phantom_rebound"),
+            "repair_candidates": bls_state.get("repair_candidates", []),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "analogs.json": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "analogs": bls_state.get("analogs", []),
+            "uncertainty": bls_state.get("uncertainty", {}),
         },
         "status.json": snapshot.get("status", {}),
     }
@@ -1026,6 +1073,7 @@ def build_dashboard_snapshot(
             "stale_days": _staleness_days(_path_mtime(research_settings.statement_output_dir / "statement_intelligence_summary.json"), pd.Timestamp.today().normalize()),
         },
     }
+    snapshot_dict["bls_state_v1"] = build_bls_state_contract_v1(snapshot_dict, paths=paths)
     snapshot_dict["status"] = _build_status(snapshot_dict, warnings)
     snapshot_dict["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
     snapshot = DashboardSnapshot(**snapshot_dict)

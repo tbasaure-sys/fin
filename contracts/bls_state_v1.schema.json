@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bls.local/contracts/bls_state_v1.schema.json",
+  "title": "BLS State Contract V1",
+  "type": "object",
+  "required": [
+    "contract_version",
+    "model_version",
+    "as_of",
+    "portfolio_id",
+    "horizon_days",
+    "measured_state",
+    "probabilistic_state",
+    "policy_state",
+    "repair_candidates",
+    "analogs",
+    "uncertainty"
+  ],
+  "properties": {
+    "contract_version": {"type": "string", "const": "state_contract_v1"},
+    "model_version": {"type": "string"},
+    "as_of": {"type": ["string", "null"]},
+    "portfolio_id": {"type": "string"},
+    "horizon_days": {"type": "integer", "minimum": 1},
+    "measured_state": {
+      "type": "object",
+      "required": [
+        "market_effective_dimension",
+        "market_dominance_share",
+        "market_compression",
+        "breadth",
+        "median_pairwise_corr",
+        "portfolio_hhi",
+        "portfolio_factor_dimension",
+        "portfolio_fragility_exposure",
+        "portfolio_liquidity_buffer",
+        "portfolio_drawdown",
+        "benchmark_drawdown"
+      ],
+      "additionalProperties": true
+    },
+    "probabilistic_state": {
+      "type": "object",
+      "required": [
+        "horizon_days",
+        "p_structural_dominance",
+        "p_regime_shock_dominance",
+        "cluster_type",
+        "p_visible_correction",
+        "p_structural_restoration",
+        "p_phantom_rebound",
+        "p_portfolio_recoverability",
+        "p_extreme_drawdown",
+        "authority_score"
+      ],
+      "properties": {
+        "cluster_type": {
+          "type": "string",
+          "enum": ["G-dominated", "R-dominated", "mixed", "compound"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "policy_state": {
+      "type": "object",
+      "required": [
+        "mode",
+        "max_gross_add",
+        "max_single_name_add",
+        "hedge_floor",
+        "allowed_sleeves",
+        "forbidden_sleeves",
+        "review_cadence",
+        "rebalance_delay",
+        "required_confirmation",
+        "invalidation_rules"
+      ],
+      "properties": {
+        "mode": {"type": "string", "enum": ["act", "stage", "observe", "protect"]}
+      },
+      "additionalProperties": true
+    },
+    "repair_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "trade_set",
+          "delta_recoverability",
+          "delta_phantom",
+          "delta_extreme_drawdown",
+          "repair_efficiency",
+          "classification",
+          "binding_constraints",
+          "funding_source",
+          "invalidation"
+        ],
+        "properties": {
+          "classification": {
+            "type": "string",
+            "enum": ["real_repair", "cosmetic_de_risking", "optionality_preserving_defense"]
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "analogs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "analog_id",
+          "as_of",
+          "distance",
+          "cluster_type",
+          "p_visible_correction_realized",
+          "p_structural_restoration_realized",
+          "days_to_visible_correction",
+          "days_to_structural_restoration",
+          "max_drawdown_from_state",
+          "summary_tags"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "uncertainty": {
+      "type": "object",
+      "required": [
+        "calibration_component",
+        "coverage_component",
+        "stability_component",
+        "data_component",
+        "evidence_tier",
+        "model_version",
+        "contract_version"
+      ],
+      "properties": {
+        "evidence_tier": {"type": "string", "enum": ["alpha", "beta", "production"]}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
