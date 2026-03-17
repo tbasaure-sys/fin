@@ -702,13 +702,17 @@ def _build_status(snapshot: dict[str, Any], warnings: list[str]) -> dict[str, An
             status = "aging"
         panels.append({"name": name, "stale_days": stale_days, "status": status})
     bls_state = snapshot.get("bls_state_v1") or {}
+    contract_status = "fallback_legacy"
+    if bls_state:
+        contract_status = bls_state.get("status", {}).get("contract_status", "canonical_valid")
     return {
         "warnings": warnings,
         "panels": panels,
         "last_refresh": snapshot.get("generated_at"),
-        "contract_status": "canonical" if bls_state else "fallback_legacy",
+        "contract_status": contract_status,
         "contract_version": bls_state.get("contract_version"),
         "model_version": bls_state.get("model_version"),
+        "contract_validation": bls_state.get("status", {}).get("contract_validation", {}),
     }
 
 
@@ -851,6 +855,7 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
             "kernel_research_utility": snapshot.get("statement_intelligence", {}).get("kernel_research_utility", {}),
         },
         "bls_state_v1.json": bls_state,
+        "state-contract.json": bls_state,
         "state.json": {
             "as_of": bls_state.get("as_of"),
             "portfolio_id": bls_state.get("portfolio_id"),
@@ -920,6 +925,18 @@ def build_dashboard_snapshot(
         if cached is not None:
             cached.setdefault("status", {})
             cached["status"]["warnings"] = list(cached["status"].get("warnings", [])) + warnings + ["using cached snapshot because current payload is unavailable"]
+            if not cached.get("bls_state_v1"):
+                try:
+                    cached["_output_root"] = str(paths.output_root)
+                    cached["bls_state_v1"] = build_bls_state_contract_v1(cached, paths=paths)
+                except Exception as exc:  # noqa: BLE001
+                    cached["status"]["warnings"].append(f"bls state contract build failed on cached snapshot: {exc}")
+                    cached["bls_state_v1"] = None
+                finally:
+                    cached.pop("_output_root", None)
+            cached["status"] = _build_status(cached, cached["status"]["warnings"])
+            cached["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
+            _write_snapshot_files(cached, dashboard_settings.output_dir)
             return cached
         empty = _empty_snapshot(
             generated_at=datetime.now(tz=UTC).isoformat(),
@@ -1044,6 +1061,7 @@ def build_dashboard_snapshot(
     snapshot_dict = {
         "generated_at": datetime.now(tz=UTC).isoformat(),
         "as_of_date": overview.get("as_of_date"),
+        "_output_root": str(paths.output_root),
         "overview": overview,
         "performance": performance,
         "risk": risk,
@@ -1073,7 +1091,12 @@ def build_dashboard_snapshot(
             "stale_days": _staleness_days(_path_mtime(research_settings.statement_output_dir / "statement_intelligence_summary.json"), pd.Timestamp.today().normalize()),
         },
     }
-    snapshot_dict["bls_state_v1"] = build_bls_state_contract_v1(snapshot_dict, paths=paths)
+    try:
+        snapshot_dict["bls_state_v1"] = build_bls_state_contract_v1(snapshot_dict, paths=paths)
+    except Exception as exc:  # noqa: BLE001
+        warnings.append(f"bls state contract build failed: {exc}")
+        snapshot_dict["bls_state_v1"] = None
+    snapshot_dict.pop("_output_root", None)
     snapshot_dict["status"] = _build_status(snapshot_dict, warnings)
     snapshot_dict["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
     snapshot = DashboardSnapshot(**snapshot_dict)

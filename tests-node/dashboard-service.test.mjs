@@ -23,10 +23,9 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   });
 
   assert.equal(dashboard.workspace_summary.id, "alpha-retail");
-  assert.equal(dashboard.module_refs.length, 9);
-  assert.equal(dashboard.module_refs[0].id, "portfolio");
-  assert.equal(dashboard.module_refs[1].id, "actions");
-  assert.equal(dashboard.module_refs[2].title, "Capital Protocol");
+  assert.equal(dashboard.module_refs.length, 2);
+  assert.equal(dashboard.module_refs[0].id, "actions");
+  assert.equal(dashboard.module_refs[1].id, "command");
   assert.equal(dashboard.modules.actions.title, "Next Best Moves");
   assert.equal(dashboard.modules.command.title, "Capital Protocol");
   assert.ok(dashboard.alerts.length >= 1);
@@ -306,7 +305,7 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
       overview: { recommended_action: "beta_040", vix: 24.3 },
       portfolio: {},
       screener: { rows: [] },
-      status: { warnings: [], panels: [], contract_status: "canonical" },
+      status: { warnings: [], panels: [], contract_status: "canonical_valid" },
       risk: { spectral: {} },
       international: {},
       sectors: {},
@@ -342,6 +341,7 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
           p_portfolio_recoverability: 0.46,
           p_extreme_drawdown: 0.18,
           authority_score: 0.52,
+          source: "research_artifact_neighbors_v1",
         },
         policy_state: {
           mode: "observe",
@@ -391,6 +391,23 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
           evidence_tier: "beta",
           model_version: "bls_state_v1.0",
           contract_version: "state_contract_v1",
+          authority: {
+            evidence_authority: 0.52,
+            hygiene_authority: 0.71,
+            authority_policy_gate: 0.52,
+            evidence_tier: "beta",
+          },
+        },
+        research_provenance: {
+          artifacts: [],
+          coverage_ratio: 0.4,
+          missing_required: [],
+          root_family: "linux_local",
+          root_conflict: false,
+        },
+        status: {
+          contract_status: "canonical_valid",
+          contract_validation: { valid: true, error_count: 0, errors: [], mode: "warn" },
         },
       },
     },
@@ -399,7 +416,8 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
     savedViews: [],
   });
 
-  assert.equal(dashboard.contract_status, "canonical");
+  assert.equal(dashboard.contract_status, "canonical_valid");
+  assert.equal(dashboard.stress_mode.topMove.source, "canonical_repair_candidate");
   assert.equal(dashboard.modules.risk.clusterDecomposition.dominant, "G-dominated");
   assert.equal(dashboard.modules.risk.reboundConfidence.state, "Conditional");
   assert.equal(dashboard.modules.spectral.reboundQuality.state, "Palliative");

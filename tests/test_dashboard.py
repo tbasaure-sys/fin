@@ -6,7 +6,12 @@ from pathlib import Path
 import pandas as pd
 
 from meta_alpha_allocator.config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
-from meta_alpha_allocator.dashboard.server import DashboardService, _bls_contract_routes
+from meta_alpha_allocator.dashboard.server import DashboardService, _bls_contract_routes, _build_handler
+from meta_alpha_allocator.state_contract.model_registry import load_probability_manifest, save_probability_package
+from meta_alpha_allocator.state_contract.probabilistic import _ensure_probability_package
+from meta_alpha_allocator.state_contract.probability_models import _temporal_folds
+from meta_alpha_allocator.state_contract.repairs import _bundle_to_candidate, build_repair_candidates
+from meta_alpha_allocator.state_contract.research_artifacts import build_probability_artifact_fingerprint
 from meta_alpha_allocator.dashboard.snapshot import apply_screener_query, build_dashboard_snapshot
 from meta_alpha_allocator.dashboard.wsgi import create_app
 
@@ -194,9 +199,13 @@ def test_build_dashboard_snapshot_from_existing_outputs(tmp_path: Path, monkeypa
     assert snapshot["screener"]["source_file"] == "discovery_screener.csv"
     assert snapshot["portfolio"]["current_mix_vs_spy"]
     assert snapshot["status"]["auto_refresh_seconds"] == 300
-    assert snapshot["status"]["contract_status"] == "canonical"
+    assert snapshot["status"]["contract_status"] == "canonical_valid"
     assert snapshot["bls_state_v1"]["contract_version"] == "state_contract_v1"
     assert "probabilistic_state" in snapshot["bls_state_v1"]
+    assert "research_provenance" in snapshot["bls_state_v1"]
+    assert snapshot["bls_state_v1"]["status"]["contract_status"] == "canonical_valid"
+    assert snapshot["bls_state_v1"]["probabilistic_state"]["source"] in {"offline_probability_package_v1", "offline_probability_package_v1+research_restoration", "research_artifact_neighbors_v1", "heuristic_fallback_v1"}
+    assert (paths.output_root / "state_contract" / "latest" / "probability_models_v1.json").exists()
 
 
 def test_apply_screener_query_filters_and_sorts() -> None:
@@ -256,3 +265,148 @@ def test_dashboard_server_exposes_overview_endpoint(tmp_path: Path, monkeypatch)
     state_payload = _bls_contract_routes(snapshot)["/api/state"]
     assert state_payload["contract_version"] == "state_contract_v1"
     assert "probabilistic_state" in state_payload
+    contract_payload = _bls_contract_routes(snapshot)["/api/state-contract"]
+    assert contract_payload["status"]["contract_status"] == "canonical_valid"
+
+
+def test_probability_temporal_folds_respect_embargo() -> None:
+    dates = pd.date_range("2025-01-01", periods=120, freq="B")
+    folds = _temporal_folds(pd.Series(dates), embargo_days=20)
+
+    assert folds
+    for train_idx, valid_idx in folds:
+        train_max = dates[max(train_idx)]
+        valid_min = dates[min(valid_idx)]
+        assert valid_min > train_max
+        assert (valid_min - train_max).days >= 20
+
+
+def test_probability_package_is_invalidated_on_artifact_fingerprint_change(tmp_path: Path, monkeypatch) -> None:
+    snapshot = {"_output_root": tmp_path / "output"}
+    stale_package = {"feature_columns": ["D_eff"], "targets": {"portfolio_recoverability": {"dummy": True}}, "metrics": []}
+    old_fingerprint = {"fingerprint_hash": "old-hash", "artifacts": [{"artifact_key": "recoverability_episodes"}], "complete": True}
+    save_probability_package(snapshot, stale_package, artifact_fingerprint=old_fingerprint)
+
+    research_artifacts = {
+        "recoverability_episodes": {"metadata": {"sha256": "new-1", "row_count": 10, "mtime_utc": "2026-03-17T00:00:00Z"}},
+        "prob_recoverability_challenge": {"metadata": {"sha256": "new-2", "row_count": 10, "mtime_utc": "2026-03-17T00:00:00Z"}},
+        "prob_recoverability_action_epochs": {"metadata": {"sha256": "new-3", "row_count": 10, "mtime_utc": "2026-03-17T00:00:00Z"}},
+        "phantom_detector": {"metadata": {"sha256": "new-4", "row_count": 10, "mtime_utc": "2026-03-17T00:00:00Z"}},
+        "daily_spectral_metrics": {"metadata": {"sha256": "new-5", "row_count": 10, "mtime_utc": "2026-03-17T00:00:00Z"}},
+        "structural_recovery": {"metadata": {"sha256": "new-6", "row_count": 10, "mtime_utc": "2026-03-17T00:00:00Z"}},
+    }
+
+    monkeypatch.setattr('meta_alpha_allocator.state_contract.probabilistic.build_episode_frame', lambda artifacts: pd.DataFrame({'as_of': pd.to_datetime(['2026-01-01']*80), 'D_eff': [4.0]*80, 'stress_score': [0.4]*80, 'eq_breadth_20': [0.5]*80, 'cross_corr_60': [0.4]*80, 'VIX': [20.0]*80, 'phantom_score': [0.3]*80, 'fragility_pct': [0.4]*80, 'y_g_dominance': ([0,1]*40), 'y_r_dominance': ([1,0]*40), 'y_visible_correction': ([0,1]*40), 'y_structural_restoration': ([1,0]*40), 'y_phantom_rebound': ([0,1]*40), 'y_portfolio_recoverability': ([1,0]*40), 'y_extreme_drawdown': ([0,1]*40)}))
+    monkeypatch.setattr('meta_alpha_allocator.state_contract.probabilistic.build_training_probability_frame', lambda frame: frame)
+    rebuilt = {"feature_columns": ["D_eff"], "targets": {"portfolio_recoverability": {"rebuilt": True}}, "metrics": []}
+    monkeypatch.setattr('meta_alpha_allocator.state_contract.probabilistic.build_probability_packages', lambda frame, embargo_days=20: rebuilt)
+
+    package = _ensure_probability_package(snapshot, research_artifacts)
+    manifest = load_probability_manifest(snapshot)
+    fingerprint = build_probability_artifact_fingerprint(research_artifacts)
+
+    assert package is rebuilt
+    assert package['_package_meta']['package_invalidation_reason'] == 'artifact_fingerprint_mismatch'
+    assert manifest['artifact_fingerprint_hash'] == fingerprint['fingerprint_hash']
+
+
+def test_repair_candidate_preserves_negative_recoverability_delta(monkeypatch) -> None:
+    snapshot = {}
+    holdings = [{"ticker": "AAA", "weight": 1.0, "sector": "Technology", "asset_type": "equity", "momentum_6m": 0.1, "upside": 0.2}]
+    measured_state = {"portfolio_hhi": 1.0, "portfolio_factor_dimension": 1.0, "portfolio_fragility_exposure": 0.7, "portfolio_liquidity_buffer": 0.05}
+    probabilistic_state = {"p_portfolio_recoverability": 0.60, "p_phantom_rebound": 0.20, "p_extreme_drawdown": 0.10}
+    bundle = [{"id": "trim-aaa", "kind": "trim", "ticker": "AAA", "weight": 0.2, "label": "Trim AAA by 20%"}]
+
+    monkeypatch.setattr('meta_alpha_allocator.state_contract.repairs._score_from_package', lambda *args, **kwargs: {
+        'p_portfolio_recoverability': 0.42,
+        'p_phantom_rebound': 0.27,
+        'p_extreme_drawdown': 0.18,
+    })
+
+    candidate = _bundle_to_candidate(bundle, snapshot, holdings, measured_state, probabilistic_state, ['turnover_budget'], 'AAA')
+
+    assert candidate is not None
+    assert candidate['delta_recoverability'] < 0
+    assert candidate['repair_efficiency'] < 0
+
+
+def test_repair_candidates_respect_turnover_cap(monkeypatch) -> None:
+    snapshot = {
+        'portfolio': {
+            'holdings': [
+                {'ticker': 'AAA', 'weight': 0.50, 'sector': 'Technology', 'asset_type': 'equity', 'momentum_6m': 0.12, 'upside': -0.2},
+                {'ticker': 'BBB', 'weight': 0.30, 'sector': 'Healthcare', 'asset_type': 'equity', 'momentum_6m': -0.08, 'upside': 0.15},
+                {'ticker': 'SGOV', 'weight': 0.20, 'sector': 'ETF', 'asset_type': 'etf', 'momentum_6m': 0.0, 'upside': 0.0},
+            ],
+            'simulation_rank': [{'ticker': 'AAA', 'prob_loss': 0.70, 'suggested_position': 0.0}],
+        },
+        'screener': {
+            'rows': [
+                {'ticker': 'XYZ', 'is_current_holding': False, 'sector': 'Industrials', 'asset_type': 'equity', 'discovery_score': 0.8, 'momentum_6m': -0.09, 'upside': 0.3},
+                {'ticker': 'FAST', 'is_current_holding': False, 'sector': 'Technology', 'asset_type': 'equity', 'discovery_score': 0.7, 'momentum_6m': 0.14, 'upside': 0.2},
+            ],
+        },
+        'hedges': {'selected_hedge': 'SHY'},
+    }
+    measured_state = {'portfolio_hhi': 0.38, 'portfolio_factor_dimension': 1.8, 'portfolio_fragility_exposure': 0.62, 'portfolio_liquidity_buffer': 0.10}
+    probabilistic_state = {'p_portfolio_recoverability': 0.58, 'p_phantom_rebound': 0.24, 'p_extreme_drawdown': 0.18}
+    policy_state = {
+        'mode': 'observe',
+        'max_single_name_add': 0.01,
+        'max_gross_add': 0.04,
+        'max_turnover': 0.05,
+        'hedge_floor': 0.10,
+        'allowed_sleeves': ['defensive_compounders', 'oversold_rebound', 'index_hedge', 'cash_equivalents'],
+        'forbidden_sleeves': ['crowded_thematic_growth'],
+    }
+
+    monkeypatch.setattr('meta_alpha_allocator.state_contract.repairs._score_from_package', lambda *args, **kwargs: {
+        'p_portfolio_recoverability': 0.66,
+        'p_phantom_rebound': 0.18,
+        'p_extreme_drawdown': 0.14,
+    })
+
+    candidates = build_repair_candidates(snapshot, measured_state, probabilistic_state, policy_state)
+
+    assert candidates
+    assert all(candidate['turnover'] <= 0.05 for candidate in candidates)
+
+
+def test_dashboard_server_contract_routes_emit_probability_headers(tmp_path: Path, monkeypatch) -> None:
+    paths = _paths(tmp_path)
+    _seed_outputs(paths)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.load_fmp_market_proxy_panel", _fake_market_panel)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.FMPClient.from_env", lambda cache_root: None)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.FREDClient.from_env", lambda cache_root: None)
+
+    dashboard_settings = DashboardSettings(output_dir=paths.output_root / "dashboard" / "latest")
+    snapshot = build_dashboard_snapshot(
+        paths,
+        ResearchSettings(),
+        AllocatorSettings(),
+        dashboard_settings,
+        refresh_outputs=False,
+    )
+    assert snapshot["bls_state_v1"]["contract_version"] == "state_contract_v1"
+    service = DashboardService(paths, ResearchSettings(), AllocatorSettings(), dashboard_settings, boot_refresh_delay=-1)
+    service._snapshot = snapshot
+    handler_cls = _build_handler(service)
+    handler = object.__new__(handler_cls)
+    handler.path = "/api/state-contract"
+    captured = {}
+    chunks = []
+    handler.send_response = lambda status: captured.update({"status": f"{status} OK"})
+    handler.send_header = lambda key, value: captured.setdefault("headers", {}).update({key: value})
+    handler.end_headers = lambda: None
+    handler.wfile = type("W", (), {"write": lambda self, data: chunks.append(data)})()
+    handler.send_error = lambda code: (_ for _ in ()).throw(AssertionError(f"unexpected error {code}"))
+
+    handler.do_GET()
+    payload = json.loads(b"".join(chunks).decode("utf-8"))
+
+    assert captured["status"] == "200 OK"
+    assert captured["headers"]["X-BLS-Contract-Version"] == payload["contract_version"]
+    assert captured["headers"]["X-BLS-Contract-Status"] == payload["status"]["contract_status"]
+    assert "X-BLS-Fold-Count" in captured["headers"]
+    assert "X-BLS-Brier-OOF" in captured["headers"]
+    assert "X-BLS-Sample-Count" in captured["headers"]

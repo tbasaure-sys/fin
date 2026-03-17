@@ -1,4 +1,4 @@
-import { getWorkspacePolicy } from "@/lib/server/dashboard-service";
+import { getWorkspaceStateContract } from "@/lib/server/dashboard-service";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -22,6 +22,6 @@ function buildContractHeaders(payload) {
 }
 
 export async function GET(_request, { params }) {
-  const payload = await getWorkspacePolicy(params.workspaceId);
+  const payload = await getWorkspaceStateContract(params.workspaceId);
   return Response.json(payload, { headers: buildContractHeaders(payload) });
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { startTransition, useEffect, useMemo, useState, useTransition } from "react";
+import { startTransition, useEffect, useState, useTransition } from "react";
 
 function formatPct(value, digits = 1) {
   const number = Number(value);
@@ -569,6 +569,7 @@ function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRe
 
 function StressModeCard({ stressMode }) {
   if (!stressMode) return null;
+  const blocked = stressMode.repairState === "frontier_blocked";
 
   return (
     <section className="stress-mode-card premium-card">
@@ -577,7 +578,7 @@ function StressModeCard({ stressMode }) {
           <p className="eyebrow">Stress Mode</p>
           <strong>{stressMode.active ? "Canonical recoverability control is active" : "Legacy stress read is active"}</strong>
         </div>
-        <span className={`section-chip ${stressMode.contractStatus === "canonical" ? "is-good" : "is-warn"}`}>
+        <span className={`section-chip ${String(stressMode.contractStatus).startsWith("canonical") ? "is-good" : "is-warn"}`}>
           {stressMode.contractStatus}
         </span>
       </div>
@@ -602,15 +603,55 @@ function StressModeCard({ stressMode }) {
       <div className="grid-two">
         <div className="panel-block">
           <p className="block-title">What the terminal is allowed to do</p>
-          <p className="support-copy">Top move: {stressMode.topMove}</p>
+          <p className="support-copy">Top move: {stressMode.topMove?.summary || "No repair candidate yet"}</p>
+          <p className="support-copy">Source: {stressMode.topMove?.source || "legacy"}</p>
+          {blocked ? <p className="support-copy">Repair state: no valid repair under the current frontier.</p> : null}
+          {stressMode.topMove?.reason ? <p className="support-copy">{stressMode.topMove.reason}</p> : null}
+          {stressMode.topMove?.classification ? <p className="support-copy">Classification: {stressMode.topMove.classification}</p> : null}
+          {stressMode.topMove?.firstConstraint ? <p className="support-copy">First constraint: {stressMode.topMove.firstConstraint}</p> : null}
+          {stressMode.topMove?.firstInvalidation ? <p className="support-copy">Re-open condition: {stressMode.topMove.firstInvalidation}</p> : null}
           <p className="support-copy">Review cadence: {stressMode.cadence}</p>
+          <p className="support-copy">Probability engine: {stressMode.probabilitySource}</p>
+          {stressMode.packageVersion ? <p className="support-copy">Model package: {stressMode.packageVersion}</p> : null}
+          <p className="support-copy">Package folds: {stressMode.packageFoldCount}</p>
+          <p className="support-copy">OOF Brier: {stressMode.packageBrier}</p>
+          <p className="support-copy">Sample count: {stressMode.packageSamples}</p>
         </div>
         <div className="panel-block">
           <p className="block-title">What must confirm</p>
           <p className="support-copy">{stressMode.confirmation}</p>
           {stressMode.invalidation ? <p className="support-copy">First invalidation: {stressMode.invalidation}</p> : null}
+          <p className="support-copy">Evidence tier: {stressMode.evidenceTier}</p>
+          <p className="support-copy">Model coverage: {stressMode.modelCoverage}</p>
+          <p className="support-copy">Artifact coverage: {stressMode.artifactCoverage}</p>
+          <p className="support-copy">Phantom fragility prior: {stressMode.phantomFragilityPrior} (decile {stressMode.phantomFragilityDecile})</p>
+          <p className="support-copy">Research root: {stressMode.provenanceRoot}</p>
+          <p className="support-copy">Closest analog: {stressMode.topAnalog}</p>
         </div>
       </div>
+      {Array.isArray(stressMode.diagnostics) && stressMode.diagnostics.length ? (
+        <div className="panel-block diagnostics-block">
+          <p className="block-title">Probability package diagnostics</p>
+          <div className="diagnostics-table">
+            <div className="diagnostics-row diagnostics-head">
+              <span>Target</span>
+              <span>Folds</span>
+              <span>OOF Brier</span>
+              <span>Samples</span>
+              <span>Pos rate</span>
+            </div>
+            {stressMode.diagnostics.slice(0, 7).map((row) => (
+              <div className="diagnostics-row" key={row.target}>
+                <span>{row.target}</span>
+                <span>{row.folds}</span>
+                <span>{row.brier}</span>
+                <span>{row.samples}</span>
+                <span>{row.positiveRate}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -686,6 +727,7 @@ function ActionsModule({ module }) {
       <div className="panel-block intro-block">
         <p className="block-title">What the terminal would do next</p>
         <p className="support-copy">{module.subtitle}</p>
+        {module.blocked ? <p className="support-copy">The canonical frontier is closed. No fallback legacy action is being injected.</p> : null}
         <div className="mini-framework">
           <div className="mini-framework-card">
             <span>Cluster</span>
@@ -817,6 +859,71 @@ function ProtocolModule({ module }) {
         </div>
       </div>
     </>
+  );
+}
+
+function DecisionWorkflow({ dashboard, activeModule, onJump, onFocus }) {
+  const sections = [
+    {
+      id: "actions",
+      eyebrow: "Stage 01",
+      title: "Next moves",
+      status: dashboard.module_status.find((item) => item.id === "actions"),
+      body: <ActionsModule module={dashboard.modules.actions} />,
+    },
+    {
+      id: "command",
+      eyebrow: "Stage 02",
+      title: "Capital protocol",
+      status: dashboard.module_status.find((item) => item.id === "command"),
+      body: <ProtocolModule module={dashboard.modules.command} />,
+    },
+  ];
+
+  return (
+    <section className="workflow-shell premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">Decision Workflow</p>
+          <strong>Move from posture to permission, then to action</strong>
+        </div>
+      </div>
+      <div className="workflow-nav">
+        {sections.map((section, index) => (
+          <button
+            className={`workflow-tab ${activeModule === section.id ? "is-active" : ""}`}
+            key={section.id}
+            onClick={() => onJump(section.id)}
+          >
+            <span>{`0${index + 1}`}</span>
+            <strong>{section.title}</strong>
+          </button>
+        ))}
+      </div>
+      <div className="workflow-stack">
+        {sections.map((section) => (
+          <section className={`workflow-stage ${activeModule === section.id ? "is-active" : ""}`} id={`module-${section.id}`} key={section.id}>
+            <header className="workflow-stage-header">
+              <div>
+                <p className="module-kicker">{section.eyebrow}</p>
+                <h2>{section.title}</h2>
+              </div>
+              <div className="module-header-actions">
+                <span className={`status-pill ${statusClass(section.status?.status)}`}>
+                  {section.status?.status || "unknown"}
+                </span>
+                <button className="ghost-button" onClick={() => onFocus(section.id)}>
+                  Focus
+                </button>
+              </div>
+            </header>
+            <div className="module-body">
+              {section.body}
+            </div>
+          </section>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -1098,7 +1205,7 @@ function renderModule(moduleRef, moduleData, status, focused, onFocus) {
 export default function TerminalApp({ initialSession, initialDashboard }) {
   const [session] = useState(initialSession);
   const [dashboard, setDashboard] = useState(initialDashboard);
-  const [activeModule, setActiveModule] = useState(initialDashboard.module_refs[0]?.id || "command");
+  const [activeModule, setActiveModule] = useState(initialDashboard.module_refs[0]?.id || "actions");
   const [focusedModule, setFocusedModule] = useState(null);
   const [selectedEdge, setSelectedEdge] = useState(null);
   const [alertsOpen, setAlertsOpen] = useState(true);
@@ -1380,20 +1487,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       }
     }
 
-    setCommandFeedback("Command not recognized. Try `focus actions`, `view portfolio`, `refresh`, or a ticker.");
+    setCommandFeedback("Command not recognized. Try `view actions`, `view command`, `refresh`, or a ticker.");
   }
-
-  const orderedModules = useMemo(() => ([
-    ...dashboard.module_refs.filter((item) => item.id === activeModule),
-    ...dashboard.module_refs.filter((item) => item.id !== activeModule),
-  ]), [activeModule, dashboard.module_refs]);
 
   const commandPresets = [
     { label: "Refresh", command: "refresh" },
-    { label: "Next Moves", command: "focus actions" },
-    { label: "Focus Risk", command: "focus risk" },
-    { label: "View Scanner", command: "view scanner" },
-    { label: "Founder Tape", command: "view:founder-tape" },
+    { label: "Next Moves", command: "view actions" },
+    { label: "Protocol", command: "view command" },
     { label: "Compact", command: "compact" },
     { label: "Add NVDA", command: "add NVDA" },
     { label: "Alerts", command: "alerts" },
@@ -1434,8 +1534,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <PortfolioPulse module={dashboard.modules.portfolio} />
         <RiskPulse module={dashboard.modules.risk} />
       </section>
-
-      <EdgeBoard board={dashboard.edge_board} onSelect={setSelectedEdge} />
 
       <div className="terminal-layout">
         <aside className="workspace-rail">
@@ -1487,60 +1585,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
           </section>
 
-          <section className="rail-card premium-card">
-            <p className="rail-title">Navigation</p>
-            <p className="rail-hint">`1-9` jump, `Shift+1-9` focus, `[` and `]` cycle, `/` opens commands.</p>
-            <nav className="rail-nav">
-              {dashboard.module_refs.map((item) => (
-                <button
-                  className={`rail-link ${activeModule === item.id ? "is-active" : ""}`}
-                  key={item.id}
-                  onClick={() => {
-                    jumpToModule(item.id);
-                  }}
-                >
-                  <span>{item.kicker}</span>
-                  <strong>{item.title}</strong>
-                </button>
-              ))}
-            </nav>
-          </section>
-
-          <section className="rail-card premium-card">
-            <p className="rail-title">Saved views</p>
-            {(dashboard.saved_views || []).map((view) => (
-              <button className="saved-view saved-view-button" key={view.id} onClick={() => applySavedView(view.id)}>
-                <strong>{view.name}</strong>
-                <span>{view.description}</span>
-              </button>
-            ))}
-          </section>
-
-          <section className="rail-card premium-card">
-            <p className="rail-title">Watchlist</p>
-            <div className="watchlist-stack">
-              {(dashboard.watchlist || []).slice(0, 5).map((item) => (
-                <div className="watchlist-row" key={item.symbol}>
-                  <div>
-                    <strong>{item.symbol}</strong>
-                    <span>{item.lastSignal || item.conviction}</span>
-                  </div>
-                  <span className={Number(item.changePct) >= 0 ? "up" : "down"}>{formatSignedPct(item.changePct)}</span>
-                </div>
-              ))}
-            </div>
-          </section>
+          <EdgeBoard board={dashboard.edge_board} onSelect={setSelectedEdge} />
         </aside>
 
-        <section className="module-grid">
-          {orderedModules.map((moduleRef) => renderModule(
-            moduleRef,
-            dashboard.modules[moduleRef.id],
-            dashboard.module_status.find((item) => item.id === moduleRef.id),
-            focusedModule === moduleRef.id,
-            (moduleId) => setFocusedModule((current) => current === moduleId ? null : moduleId),
-          ))}
-        </section>
+        <DecisionWorkflow
+          dashboard={dashboard}
+          activeModule={activeModule}
+          onJump={jumpToModule}
+          onFocus={(moduleId) => setFocusedModule(moduleId)}
+        />
 
         <aside className={`alerts-drawer ${alertsOpen ? "is-open" : ""}`}>
           <section className="rail-card premium-card">
@@ -1568,7 +1621,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </section>
 
           <section className="rail-card premium-card">
-            <p className="rail-title">Data & Refresh</p>
+            <p className="rail-title">Controls</p>
             <div className="mini-stat-grid">
               <div className="mini-stat">
                 <span>Analysis source</span>
@@ -1598,39 +1651,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </section>
 
           <section className="rail-card premium-card">
-            <p className="rail-title">Alpha status</p>
-            <div className="status-stack">
-              {dashboard.module_status.map((item) => (
-                <div className="status-row" key={item.id}>
-                  <span>{item.title}</span>
-                  <span className={`status-pill ${statusClass(item.status)}`}>
-                    {item.staleDays === null ? item.status : `${item.status} ${item.staleDays}d`}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <p className="rail-title">Legacy</p>
             <Link href="/legacy" className="legacy-anchor">Open legacy workstation</Link>
-          </section>
-
-          <section className="rail-card premium-card">
-            <p className="rail-title">Recent commands</p>
-            <div className="command-history-list">
-              {(dashboard.command_history || []).length
-                ? dashboard.command_history.slice(0, 6).map((entry) => (
-                  <button
-                    className="history-row"
-                    key={entry.id}
-                    onClick={() => {
-                      setCommandText(entry.command);
-                      setCommandOpen(true);
-                    }}
-                  >
-                    <strong>{entry.command}</strong>
-                    <span>{new Date(entry.createdAt).toLocaleTimeString()}</span>
-                  </button>
-                ))
-                : <p className="empty-copy">No command history yet. Open the palette with `Cmd/Ctrl+K` or `/`.</p>}
-            </div>
           </section>
         </aside>
       </div>
@@ -1669,7 +1691,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     runCommand();
                   }
                 }}
-                placeholder="Try focus actions, view portfolio, refresh, or add NVDA"
+                placeholder="Try view actions, view command, refresh, or add NVDA"
               />
               <button className="primary-button" onClick={() => runCommand()}>Run</button>
             </div>
