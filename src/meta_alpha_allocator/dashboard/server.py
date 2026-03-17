@@ -169,10 +169,28 @@ def _json_bytes(payload: dict) -> bytes:
     return json.dumps(payload, indent=2).encode("utf-8")
 
 
+def _contract_headers(bls_state: dict) -> dict[str, str]:
+    probabilistic = bls_state.get("probabilistic_state", {}) if bls_state else {}
+    uncertainty = bls_state.get("uncertainty", {}) if bls_state else {}
+    metrics = uncertainty.get("probability_package_metrics") or []
+    recoverability_metric = next((row for row in metrics if row.get("target") == "portfolio_recoverability"), metrics[0] if metrics else {})
+    return {
+        "X-BLS-Contract-Version": str(bls_state.get("contract_version") or ""),
+        "X-BLS-Model-Version": str(bls_state.get("model_version") or ""),
+        "X-BLS-Contract-Status": str(bls_state.get("status", {}).get("contract_status") or ""),
+        "X-BLS-Probability-Source": str(probabilistic.get("source") or ""),
+        "X-BLS-Model-Package": str(probabilistic.get("model_package_version") or ""),
+        "X-BLS-Fold-Count": str(recoverability_metric.get("fold_count") or ""),
+        "X-BLS-Brier-OOF": str(recoverability_metric.get("brier_oof_calibrated") or ""),
+        "X-BLS-Sample-Count": str(recoverability_metric.get("sample_count") or ""),
+    }
+
+
 def _bls_contract_routes(snapshot: dict) -> dict[str, dict]:
     bls_state = snapshot.get("bls_state_v1") or {}
     bls_state_v2 = snapshot.get("bls_state_v2") or {}
     return {
+        "/api/state-contract": bls_state,
         "/api/state": {
             "as_of": bls_state.get("as_of"),
             "portfolio_id": bls_state.get("portfolio_id"),
@@ -273,13 +291,16 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
 
-        def _send_json(self, payload: dict, status: int = 200) -> None:
+        def _send_json(self, payload: dict, status: int = 200, extra_headers: dict[str, str] | None = None) -> None:
             body = _json_bytes(payload)
             self.send_response(status)
             self._send_cors_headers()
             self.send_header("Content-Type", "application/json; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("Cache-Control", "no-store")
+            for key, value in (extra_headers or {}).items():
+                if value:
+                    self.send_header(key, value)
             self.end_headers()
             self.wfile.write(body)
 
@@ -358,7 +379,8 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                 self._send_json(apply_screener_query(snapshot, parsed.query))
                 return
             if parsed.path in route_map:
-                self._send_json(route_map[parsed.path])
+                extra_headers = _contract_headers(snapshot.get("bls_state_v1") or {}) if parsed.path.startswith("/api/state") or parsed.path.startswith("/api/policy") or parsed.path.startswith("/api/repairs") or parsed.path.startswith("/api/analogs") else None
+                self._send_json(route_map[parsed.path], extra_headers=extra_headers)
                 return
             self.send_error(HTTPStatus.NOT_FOUND)
 

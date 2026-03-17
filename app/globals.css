@@ -104,6 +104,7 @@ a {
 .hero-panel,
 .cockpit-card,
 .edge-board,
+.workflow-shell,
 .ticker-card,
 .rail-card,
 .terminal-module,
@@ -172,6 +173,7 @@ a {
 .chart-shell,
 .confirmation-stack,
 .rail-nav,
+.workflow-stack,
 .command-header,
 .command-presets,
 .command-shortcuts,
@@ -233,6 +235,8 @@ a {
 .edge-board-grid,
 .terminal-layout,
 .module-grid,
+.decision-stack,
+.workflow-nav,
 .metric-grid,
 .theme-grid,
 .grid-two,
@@ -800,8 +804,69 @@ a {
   border-color: var(--border-strong);
 }
 
-.module-grid {
+.module-grid,
+.decision-stack {
+  grid-template-columns: 1fr;
+}
+
+.decision-stack {
+  gap: 18px;
+}
+
+.decision-stack .terminal-module:first-child {
+  border-color: var(--border-strong);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.36);
+}
+
+.workflow-shell {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workflow-nav {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workflow-tab,
+.workflow-stage {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
+}
+
+.workflow-tab {
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workflow-tab span {
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.workflow-tab.is-active,
+.workflow-stage.is-active {
+  border-color: var(--border-strong);
+  background: linear-gradient(180deg, rgba(248, 200, 111, 0.12), rgba(255, 255, 255, 0.02));
+}
+
+.workflow-stage-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .terminal-module.is-focused {
@@ -869,6 +934,40 @@ a {
 
 .panel-block {
   padding: 14px;
+}
+
+.diagnostics-block {
+  margin-top: 14px;
+}
+
+.diagnostics-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.diagnostics-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.6fr 0.8fr 0.8fr 0.8fr;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.16);
+  font-size: 13px;
+}
+
+.diagnostics-row span:last-child,
+.diagnostics-row span:nth-child(n + 2) {
+  text-align: right;
+}
+
+.diagnostics-head {
+  background: rgba(248, 200, 111, 0.08);
+  color: rgba(255, 247, 224, 0.82);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .framework-state-row {
@@ -1347,14 +1446,22 @@ a {
   gap: 10px;
 }
 
-.module-grid .terminal-module:nth-child(2) { animation-delay: 40ms; }
-.module-grid .terminal-module:nth-child(3) { animation-delay: 80ms; }
-.module-grid .terminal-module:nth-child(4) { animation-delay: 120ms; }
-.module-grid .terminal-module:nth-child(5) { animation-delay: 160ms; }
-.module-grid .terminal-module:nth-child(6) { animation-delay: 200ms; }
-.module-grid .terminal-module:nth-child(7) { animation-delay: 240ms; }
-.module-grid .terminal-module:nth-child(8) { animation-delay: 280ms; }
-.module-grid .terminal-module:nth-child(9) { animation-delay: 320ms; }
+.module-grid .terminal-module:nth-child(2),
+.decision-stack .terminal-module:nth-child(2) { animation-delay: 40ms; }
+.module-grid .terminal-module:nth-child(3),
+.decision-stack .terminal-module:nth-child(3) { animation-delay: 80ms; }
+.module-grid .terminal-module:nth-child(4),
+.decision-stack .terminal-module:nth-child(4) { animation-delay: 120ms; }
+.module-grid .terminal-module:nth-child(5),
+.decision-stack .terminal-module:nth-child(5) { animation-delay: 160ms; }
+.module-grid .terminal-module:nth-child(6),
+.decision-stack .terminal-module:nth-child(6) { animation-delay: 200ms; }
+.module-grid .terminal-module:nth-child(7),
+.decision-stack .terminal-module:nth-child(7) { animation-delay: 240ms; }
+.module-grid .terminal-module:nth-child(8),
+.decision-stack .terminal-module:nth-child(8) { animation-delay: 280ms; }
+.module-grid .terminal-module:nth-child(9),
+.decision-stack .terminal-module:nth-child(9) { animation-delay: 320ms; }
 
 @keyframes module-rise {
   from {
@@ -1393,6 +1500,7 @@ a {
   .stress-mode-grid,
   .terminal-layout,
   .module-grid,
+  .decision-stack,
   .hero-strip,
   .grid-two,
   .command-shortcuts,

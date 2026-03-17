@@ -21,7 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
-from .server import DashboardService, CORS_ORIGIN, _bls_contract_routes
+from .server import DashboardService, CORS_ORIGIN, _bls_contract_routes, _contract_headers
 from .snapshot import apply_screener_query
 # chrono_alert is exposed via service.chrono_alert() — no extra import needed here
 
@@ -36,12 +36,13 @@ def _cors_headers() -> list[tuple[str, str]]:
     ]
 
 
-def _json_response(start_response, payload: dict, status: int = 200) -> list[bytes]:
+def _json_response(start_response, payload: dict, status: int = 200, extra_headers: list[tuple[str, str]] | None = None) -> list[bytes]:
     body = json.dumps(payload, indent=2).encode("utf-8")
     headers = [
         ("Content-Type", "application/json; charset=utf-8"),
         ("Content-Length", str(len(body))),
         ("Cache-Control", "no-store"),
+        *(extra_headers or []),
         *_cors_headers(),
     ]
     status_map = {200: "200 OK", 404: "404 Not Found", 405: "405 Method Not Allowed"}
@@ -164,7 +165,10 @@ def create_app(
         route_map.update(_bls_contract_routes(snapshot))
 
         if path_info in route_map:
-            return _json_response(start_response, route_map[path_info])
+            extra_headers = None
+            if path_info.startswith("/api/state") or path_info.startswith("/api/policy") or path_info.startswith("/api/repairs") or path_info.startswith("/api/analogs"):
+                extra_headers = list(_contract_headers(snapshot.get("bls_state_v1") or {}).items())
+            return _json_response(start_response, route_map[path_info], extra_headers=extra_headers)
 
         return _json_response(start_response, {"error": "Not found"}, status=404)
 
