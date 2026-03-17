@@ -14,6 +14,7 @@
     "policy_state",
     "repair_candidates",
     "analogs",
+    "research_provenance",
     "uncertainty"
   ],
   "properties": {
@@ -54,10 +55,23 @@
         "authority_score"
       ],
       "properties": {
+        "horizon_days": {"type": "integer", "minimum": 1},
+        "p_structural_dominance": {"type": "number", "minimum": 0, "maximum": 1},
+        "p_regime_shock_dominance": {"type": "number", "minimum": 0, "maximum": 1},
+        "p_visible_correction": {"type": "number", "minimum": 0, "maximum": 1},
+        "p_structural_restoration": {"type": "number", "minimum": 0, "maximum": 1},
+        "p_phantom_rebound": {"type": "number", "minimum": 0, "maximum": 1},
+        "p_portfolio_recoverability": {"type": "number", "minimum": 0, "maximum": 1},
+        "p_extreme_drawdown": {"type": "number", "minimum": 0, "maximum": 1},
+        "authority_score": {"type": "number", "minimum": 0, "maximum": 1},
         "cluster_type": {
           "type": "string",
           "enum": ["G-dominated", "R-dominated", "mixed", "compound"]
-        }
+        },
+        "source": {"type": "string"},
+        "feature_coverage": {"type": ["integer", "number", "null"]},
+        "neighbor_count": {"type": ["integer", "number", "null"]},
+        "model_package_version": {"type": ["string", "null"]}
       },
       "additionalProperties": true
     },
@@ -76,7 +90,10 @@
         "invalidation_rules"
       ],
       "properties": {
-        "mode": {"type": "string", "enum": ["act", "stage", "observe", "protect"]}
+        "mode": {"type": "string", "enum": ["act", "stage", "observe", "protect"]},
+        "max_gross_add": {"type": "number", "minimum": 0, "maximum": 1},
+        "max_single_name_add": {"type": "number", "minimum": 0, "maximum": 1},
+        "hedge_floor": {"type": "number", "minimum": 0, "maximum": 1}
       },
       "additionalProperties": true
     },
@@ -124,6 +141,11 @@
         "additionalProperties": true
       }
     },
+    "research_provenance": {
+      "type": "object",
+      "required": ["artifacts", "coverage_ratio", "missing_required", "root_family", "root_conflict"],
+      "additionalProperties": true
+    },
     "uncertainty": {
       "type": "object",
       "required": [
@@ -133,13 +155,19 @@
         "data_component",
         "evidence_tier",
         "model_version",
-        "contract_version"
+        "contract_version",
+        "authority"
       ],
       "properties": {
+        "calibration_component": {"type": "number", "minimum": 0, "maximum": 1},
+        "coverage_component": {"type": "number", "minimum": 0, "maximum": 1},
+        "stability_component": {"type": "number", "minimum": 0, "maximum": 1},
+        "data_component": {"type": "number", "minimum": 0, "maximum": 1},
         "evidence_tier": {"type": "string", "enum": ["alpha", "beta", "production"]}
       },
       "additionalProperties": true
-    }
+    },
+    "status": {"type": "object", "additionalProperties": true}
   },
   "additionalProperties": false
 }

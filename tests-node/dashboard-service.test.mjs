@@ -23,11 +23,10 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   });
 
   assert.equal(dashboard.workspace_summary.id, "alpha-retail");
-  assert.equal(dashboard.module_refs.length, 4);
+  assert.equal(dashboard.module_refs.length, 2);
   assert.equal(dashboard.module_refs[0].id, "actions");
   assert.equal(dashboard.module_refs[1].id, "command");
-  assert.equal(dashboard.module_refs[2].title, "Portfolio");
-  assert.equal(dashboard.modules.actions.title, "What to do now");
+  assert.equal(dashboard.modules.actions.title, "Next Best Moves");
   assert.equal(dashboard.modules.command.title, "Capital Protocol");
   assert.ok(dashboard.alerts.length >= 1);
   assert.equal(dashboard.portfolio_state.watchlist_count, 0);
@@ -40,7 +39,6 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   assert.ok(dashboard.modules.scanner.rows.length > 0);
   assert.ok(dashboard.modules.scanner.ideaMap.length > 0);
   assert.ok(dashboard.modules.risk.signalBars.length > 0);
-  assert.equal(dashboard.modules.chile.title, "Chile Desk");
   assert.match(dashboard.data_control.analysisSource, /fallback/i);
 });
 
@@ -299,50 +297,6 @@ test("normalizeWorkspaceDashboard exposes explicit edge board lanes", () => {
   assert.ok(dashboard.edge_board.drilldowns.length >= 4);
 });
 
-test("normalizeWorkspaceDashboard exposes Chile Desk when chile market payload exists", () => {
-  const dashboard = normalizeWorkspaceDashboard({
-    workspaceId: "alpha-retail",
-    snapshot: {
-      generated_at: "2026-03-16T01:36:46.568441+00:00",
-      chile_market: {
-        headline: "Chile breadth is constructive, with SQM-B.SN leading the opportunity map.",
-        benchmark: { ticker: "^IPSA", price: 7123.4, return_1m: 0.03, return_3m: 0.07 },
-        fx: { ticker: "CLP=X", price: 0.00103, return_1m: -0.02 },
-        overview: { coverage_count: 12 },
-        sector_map: [
-          { sector: "Basic Materials", avg_score: 0.72, avg_return_3m: 0.09 },
-          { sector: "Financial Services", avg_score: 0.64, avg_return_3m: 0.05 },
-        ],
-        preferred: [
-          { ticker: "SQM-B.SN", sector: "Basic Materials", opportunity_score: 0.74, return_3m: 0.11, quality_score: 0.61, independence_score: 0.58, theme: "Lithium" },
-        ],
-        rows: [
-          { ticker: "SQM-B.SN", sector: "Basic Materials", opportunity_score: 0.74, return_3m: 0.11, quality_score: 0.61, independence_score: 0.58, value_score: 0.52, momentum_score: 0.68, theme: "Lithium" },
-          { ticker: "BSANTANDER.SN", sector: "Financial Services", opportunity_score: 0.66, return_3m: 0.07, quality_score: 0.54, independence_score: 0.47, value_score: 0.59, momentum_score: 0.55, theme: "Banking" },
-        ],
-        leaders: [{ ticker: "SQM-B.SN", sector: "Basic Materials", return_1m: 0.06 }],
-        laggards: [{ ticker: "FALABELLA.SN", sector: "Consumer Cyclical", return_1m: -0.04 }],
-      },
-      screener: { rows: [] },
-      portfolio: {},
-      status: { warnings: [], panels: [{ name: "chile_market", status: "fresh", stale_days: 0 }] },
-      risk: { spectral: {} },
-      international: {},
-      sectors: {},
-      forecast: {},
-    },
-    watchlist: [],
-    alerts: [],
-    savedViews: [],
-    commandHistory: [],
-  });
-
-  assert.equal(dashboard.modules.chile.title, "Chile Desk");
-  assert.equal(dashboard.modules.chile.rows[0].ticker, "SQM-B.SN");
-  assert.equal(dashboard.modules.chile.benchmarkLabel, "^IPSA");
-  assert.ok(dashboard.modules.chile.charts.opportunityMap.length >= 1);
-});
-
 test("normalizeWorkspaceDashboard prefers canonical BLS contract data when present", () => {
   const dashboard = normalizeWorkspaceDashboard({
     workspaceId: "alpha-retail",
@@ -351,7 +305,7 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
       overview: { recommended_action: "beta_040", vix: 24.3 },
       portfolio: {},
       screener: { rows: [] },
-      status: { warnings: [], panels: [], contract_status: "canonical" },
+      status: { warnings: [], panels: [], contract_status: "canonical_valid" },
       risk: { spectral: {} },
       international: {},
       sectors: {},
@@ -387,6 +341,7 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
           p_portfolio_recoverability: 0.46,
           p_extreme_drawdown: 0.18,
           authority_score: 0.52,
+          source: "research_artifact_neighbors_v1",
         },
         policy_state: {
           mode: "observe",
@@ -436,6 +391,23 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
           evidence_tier: "beta",
           model_version: "bls_state_v1.0",
           contract_version: "state_contract_v1",
+          authority: {
+            evidence_authority: 0.52,
+            hygiene_authority: 0.71,
+            authority_policy_gate: 0.52,
+            evidence_tier: "beta",
+          },
+        },
+        research_provenance: {
+          artifacts: [],
+          coverage_ratio: 0.4,
+          missing_required: [],
+          root_family: "linux_local",
+          root_conflict: false,
+        },
+        status: {
+          contract_status: "canonical_valid",
+          contract_validation: { valid: true, error_count: 0, errors: [], mode: "warn" },
         },
       },
     },
@@ -444,10 +416,11 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
     savedViews: [],
   });
 
-  assert.equal(dashboard.contract_status, "canonical");
+  assert.equal(dashboard.contract_status, "canonical_valid");
+  assert.equal(dashboard.stress_mode.topMove.source, "canonical_repair_candidate");
   assert.equal(dashboard.modules.risk.clusterDecomposition.dominant, "G-dominated");
   assert.equal(dashboard.modules.risk.reboundConfidence.state, "Conditional");
   assert.equal(dashboard.modules.spectral.reboundQuality.state, "Palliative");
-  assert.equal(dashboard.modules.command.protocolLabel, "Observe now");
+  assert.equal(dashboard.modules.command.protocolLabel, "Observe Mode");
   assert.equal(dashboard.modules.actions.actions[0].sourceLabel, "Canonical contract");
 });
