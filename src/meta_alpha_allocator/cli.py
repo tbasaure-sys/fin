@@ -4,6 +4,7 @@ import argparse
 import json
 
 from .config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
+from .chile.desk import build_chile_market_snapshot
 from .dashboard.server import run_dashboard_server
 from .dashboard.snapshot import build_dashboard_snapshot, load_cached_snapshot
 from .data.adapters import load_fmp_market_proxy_panel, load_state_panel
@@ -69,6 +70,13 @@ def main() -> None:
     dashboard_snapshot.add_argument("--end-date", default=None)
     dashboard_snapshot.add_argument("--json", action="store_true")
 
+    chile_parser = subparsers.add_parser("chile", help="Refresh the Chile market desk data")
+    chile_subparsers = chile_parser.add_subparsers(dest="chile_command", required=True)
+    chile_refresh = chile_subparsers.add_parser("refresh", help="Refresh Chile market data")
+    chile_refresh.add_argument("--json", action="store_true")
+    chile_snapshot = chile_subparsers.add_parser("snapshot", help="Print cached Chile market data")
+    chile_snapshot.add_argument("--json", action="store_true")
+
     tail_parser = subparsers.add_parser("tail-risk", help="Run multi-horizon tail-risk model")
     tail_parser.add_argument("--start-date", default=ResearchSettings.start_date)
     tail_parser.add_argument("--end-date", default=None)
@@ -95,7 +103,11 @@ def main() -> None:
 
     args = parser.parse_args()
     paths = PathConfig()
-    research_settings = ResearchSettings(start_date=args.start_date, end_date=args.end_date, top_n=getattr(args, "top_n", ResearchSettings.top_n))
+    research_settings = ResearchSettings(
+        start_date=getattr(args, "start_date", ResearchSettings.start_date),
+        end_date=getattr(args, "end_date", ResearchSettings.end_date),
+        top_n=getattr(args, "top_n", ResearchSettings.top_n),
+    )
     allocator_settings = AllocatorSettings()
 
     dashboard_settings = DashboardSettings(
@@ -170,6 +182,9 @@ def main() -> None:
                     refresh_outputs=True,
                 )
             print(json.dumps(snapshot if args.json else snapshot["overview"], indent=2))
+    elif args.command == "chile":
+        payload = build_chile_market_snapshot(paths, refresh=args.chile_command == "refresh")
+        print(json.dumps(payload if args.json or args.chile_command == "refresh" else payload.get("overview", {}), indent=2))
     else:
         payload = run_production(paths, research_settings, allocator_settings)
         print(json.dumps(payload, indent=2))

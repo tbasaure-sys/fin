@@ -144,6 +144,7 @@ def create_app(
             "/api/hedges": snapshot.get("hedges", {}),
             "/api/sectors": snapshot.get("sectors", {}),
             "/api/international": snapshot.get("international", {}),
+            "/api/chile": snapshot.get("chile_market", {}),
             "/api/portfolio": snapshot.get("portfolio", {}),
             "/api/protocol": snapshot.get("protocol", {}),
             "/api/statement-intelligence": snapshot.get("statement_intelligence", {}),

@@ -99,6 +99,7 @@ class DashboardSnapshot:
     hedges: dict
     sectors: dict
     international: dict
+    chile_market: dict
     portfolio: dict
     protocol: dict
     screener: dict

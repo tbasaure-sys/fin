@@ -23,7 +23,7 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   });
 
   assert.equal(dashboard.workspace_summary.id, "alpha-retail");
-  assert.equal(dashboard.module_refs.length, 9);
+  assert.equal(dashboard.module_refs.length, 10);
   assert.equal(dashboard.module_refs[0].id, "portfolio");
   assert.equal(dashboard.module_refs[1].id, "actions");
   assert.equal(dashboard.module_refs[2].title, "Capital Protocol");
@@ -40,6 +40,7 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   assert.ok(dashboard.modules.scanner.rows.length > 0);
   assert.ok(dashboard.modules.scanner.ideaMap.length > 0);
   assert.ok(dashboard.modules.risk.signalBars.length > 0);
+  assert.equal(dashboard.modules.chile.title, "Chile Desk");
   assert.match(dashboard.data_control.analysisSource, /fallback/i);
 });
 
@@ -296,4 +297,49 @@ test("normalizeWorkspaceDashboard exposes explicit edge board lanes", () => {
   assert.ok(dashboard.edge_board.stocks[0].expression);
   assert.ok(dashboard.edge_board.stocks[0].support.length >= 2);
   assert.ok(dashboard.edge_board.drilldowns.length >= 4);
+});
+
+test("normalizeWorkspaceDashboard exposes Chile Desk when chile market payload exists", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      generated_at: "2026-03-16T01:36:46.568441+00:00",
+      chile_market: {
+        headline: "Chile breadth is constructive, with SQM-B.SN leading the opportunity map.",
+        benchmark: { ticker: "^IPSA", price: 7123.4, return_1m: 0.03, return_3m: 0.07 },
+        fx: { ticker: "CLP=X", price: 0.00103, return_1m: -0.02 },
+        overview: { coverage_count: 12 },
+        sector_map: [
+          { sector: "Basic Materials", avg_score: 0.72, avg_return_3m: 0.09 },
+          { sector: "Financial Services", avg_score: 0.64, avg_return_3m: 0.05 },
+        ],
+        preferred: [
+          { ticker: "SQM-B.SN", sector: "Basic Materials", opportunity_score: 0.74, return_3m: 0.11, quality_score: 0.61, independence_score: 0.58, theme: "Lithium" },
+        ],
+        rows: [
+          { ticker: "SQM-B.SN", sector: "Basic Materials", opportunity_score: 0.74, return_3m: 0.11, quality_score: 0.61, independence_score: 0.58, value_score: 0.52, momentum_score: 0.68, theme: "Lithium" },
+          { ticker: "BSANTANDER.SN", sector: "Financial Services", opportunity_score: 0.66, return_3m: 0.07, quality_score: 0.54, independence_score: 0.47, value_score: 0.59, momentum_score: 0.55, theme: "Banking" },
+        ],
+        leaders: [{ ticker: "SQM-B.SN", sector: "Basic Materials", return_1m: 0.06 }],
+        laggards: [{ ticker: "FALABELLA.SN", sector: "Consumer Cyclical", return_1m: -0.04 }],
+      },
+      screener: { rows: [] },
+      portfolio: {},
+      status: { warnings: [], panels: [{ name: "chile_market", status: "fresh", stale_days: 0 }] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+    commandHistory: [],
+  });
+
+  assert.equal(dashboard.modules.chile.title, "Chile Desk");
+  assert.equal(dashboard.modules.chile.rows[0].ticker, "SQM-B.SN");
+  assert.equal(dashboard.modules.chile.benchmarkLabel, "^IPSA");
+  assert.ok(dashboard.modules.chile.charts.opportunityMap.length >= 1);
+  assert.equal(dashboard.module_status.find((item) => item.id === "chile")?.status, "fresh");
 });
