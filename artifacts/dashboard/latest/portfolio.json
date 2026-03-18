@@ -1,457 +1,495 @@
 {
-  "as_of": "2026-03-13",
-  "analytics": {
-    "As of": "2026-03-13",
-    "Annual Return": 0.08330060100468506,
-    "Annual Volatility": 0.22379801840405444,
-    "Sharpe Ratio": 0.1934807167349816,
-    "Sortino Ratio": 0.2747881266015172,
-    "Max Drawdown": -0.14656151162641506,
-    "VaR 95% (1d)": -0.022968833615624944,
-    "CVaR 95% (1d)": -0.0314779432907961,
-    "Ulcer Index": 6.767680768383398,
-    "Beta": 0.8320984405480837,
-    "Alpha (annual)": 0.016603751941957512,
-    "R^2": 0.5775837181932253,
-    "Tracking Error": 0.1494483062285401,
-    "Top Position Weight": 0.07595548738152845,
-    "Concentration HHI": 0.03554242269442164,
-    "Holdings Count": 36,
-    "Total Market Value (CLP)": 34984444.48665281
-  },
-  "macro": {
-    "risk_free_rate": null,
-    "implied_equity_risk_premium": 0.042300000000000004,
-    "damodaran_reference": "https://www.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histimpl.html#2025",
-    "fred_reference": null
-  },
+  "as_of": null,
+  "analytics": {},
+  "macro": {},
   "quotes": [
     {
       "ticker": "ABEV",
-      "price": 2.859999895095825,
-      "return_1d": -0.003484317373521062,
-      "return_20d": -0.10625004610046673,
-      "source": "fmp_or_fallback"
+      "price": 2.9000000953674316,
+      "return_1d": 0.0,
+      "return_20d": -0.058441504154985724,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "ADUR",
-      "price": 11.15999984741211,
-      "return_1d": 0.008130095308852558,
-      "return_20d": 0.04887213226601883,
-      "source": "fmp_or_fallback"
+      "price": 12.119999885559082,
+      "return_1d": 0.05025995889283541,
+      "return_20d": 0.11602212419105618,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "ASML",
-      "price": 1345.68994140625,
-      "return_1d": -0.004357873629341702,
-      "return_20d": -0.04348664334535146,
-      "source": "fmp_or_fallback"
+      "price": 1389.1600341796875,
+      "return_1d": 0.009886864263739081,
+      "return_20d": -0.021566717720597595,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "ASTS",
-      "price": 86.33999633789062,
-      "return_1d": -0.008611781278416442,
-      "return_20d": 0.05010940228677696,
-      "source": "fmp_or_fallback"
+      "price": 95.69999694824219,
+      "return_1d": 0.0739534989647963,
+      "return_20d": 0.15259542761916212,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "BABA",
-      "price": 135.2100067138672,
-      "return_1d": 0.007526153417235504,
-      "return_20d": -0.14817608295059792,
-      "source": "fmp_or_fallback"
+      "price": 136.57000732421875,
+      "return_1d": -0.0010240610253311466,
+      "return_20d": -0.12134070797328955,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "BFLY",
-      "price": 3.799999952316284,
-      "return_1d": 0.04395600076948947,
-      "return_20d": 0.2459016431886898,
-      "source": "fmp_or_fallback"
+      "price": 4.269999980926514,
+      "return_1d": 0.09207158240236768,
+      "return_20d": 0.40460527450919503,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "BIDU",
-      "price": 124.06999969482422,
-      "return_1d": 0.007388730153105705,
-      "return_20d": -0.1034109313705166,
-      "source": "fmp_or_fallback"
+      "price": 120.69000244140625,
+      "return_1d": -0.009113305275369132,
+      "return_20d": -0.12116798345433066,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "BIL",
-      "price": 91.51000213623047,
-      "return_1d": 0.00032792717748186817,
-      "return_20d": 0.0030978417722244966,
-      "source": "fmp_or_fallback"
+      "price": 91.5199966430664,
+      "return_1d": 0.00010921764400206868,
+      "return_20d": 0.0026593350508901104,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "BROS",
-      "price": 47.29999923706055,
-      "return_1d": -0.018061012351161865,
-      "return_20d": -0.06926407868755202,
-      "source": "fmp_or_fallback"
+      "price": 51.290000915527344,
+      "return_1d": 0.020696535632384938,
+      "return_20d": -0.04327550211548126,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "COPX",
-      "price": 76.38999938964844,
-      "return_1d": -0.04201151948667392,
-      "return_20d": -0.12346531208074984,
-      "source": "fmp_or_fallback"
+      "price": 77.91000366210938,
+      "return_1d": -0.009534705887145445,
+      "return_20d": -0.0810332061347604,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "DBC",
-      "price": 28.709999084472656,
-      "return_1d": -0.005197557959340515,
-      "return_20d": 0.2063025212104388,
-      "source": "fmp_or_fallback"
+      "price": 28.760000228881836,
+      "return_1d": 0.015895470555582936,
+      "return_20d": 0.21916066311372107,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "EEM",
-      "price": 56.79999923706055,
-      "return_1d": -0.00263391613466879,
-      "return_20d": -0.06671050497164233,
-      "source": "fmp_or_fallback"
+      "price": 58.75,
+      "return_1d": 0.006337768501461172,
+      "return_20d": -0.03482830571850515,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "EFA",
-      "price": 96.30000305175781,
-      "return_1d": -0.011902278305065739,
-      "return_20d": -0.0753720437744837,
-      "source": "fmp_or_fallback"
+      "price": 98.37000274658203,
+      "return_1d": 0.0027523371728916946,
+      "return_20d": -0.056131245496080506,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "EWC",
-      "price": 55.029998779296875,
-      "return_1d": -0.01468217935948879,
-      "return_20d": -0.00416213444122937,
-      "source": "fmp_or_fallback"
+      "price": 55.900001525878906,
+      "return_1d": 0.0008953098142157057,
+      "return_20d": 0.0007160922858981955,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "EWJ",
-      "price": 83.36000061035156,
-      "return_1d": -0.009858674509866439,
-      "return_20d": -0.10720790234309918,
-      "source": "fmp_or_fallback"
+      "price": 85.08000183105469,
+      "return_1d": 0.00011757536459788831,
+      "return_20d": -0.07390879190737765,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "EWY",
-      "price": 124.1500015258789,
-      "return_1d": 0.005263170250031646,
-      "return_20d": -0.05084098907281742,
-      "source": "fmp_or_fallback"
+      "price": 134.42999267578125,
+      "return_1d": 0.009992385509218105,
+      "return_20d": 0.028696053031651125,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "EWZ",
-      "price": 35.4900016784668,
-      "return_1d": -0.017441784940415372,
-      "return_20d": -0.07794231928231765,
-      "source": "fmp_or_fallback"
+      "price": 36.709999084472656,
+      "return_1d": 0.004927465403524511,
+      "return_20d": -0.027292065399716847,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "FXI",
-      "price": 36.2400016784668,
-      "return_1d": 0.0022124400274412537,
-      "return_20d": -0.06259695236670593,
-      "source": "fmp_or_fallback"
+      "price": 36.88999938964844,
+      "return_1d": 0.0002711041551961557,
+      "return_20d": -0.042315707392124646,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "GLD",
-      "price": 460.8399963378906,
-      "return_1d": -0.012936961278600778,
-      "return_20d": 0.020935291838064307,
-      "source": "fmp_or_fallback"
+      "price": 459.2699890136719,
+      "return_1d": -0.002519392047785618,
+      "return_20d": 0.024698742760246084,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "HYG",
-      "price": 79.19999694824219,
-      "return_1d": -0.0018903784343212715,
-      "return_20d": -0.014872238702857032,
-      "source": "fmp_or_fallback"
+      "price": 79.80999755859375,
+      "return_1d": 0.004531159523971873,
+      "return_20d": -0.007530387388204551,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "IBRX",
-      "price": 8.390000343322754,
-      "return_1d": 0.07289004592697834,
-      "return_20d": 0.2673716749791437,
-      "source": "fmp_or_fallback"
+      "price": 8.210000038146973,
+      "return_1d": 0.0,
+      "return_20d": 0.363787386072949,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "IEF",
-      "price": 95.58999633789062,
-      "return_1d": -0.0010451050367238368,
-      "return_20d": -0.009946702691289722,
-      "source": "fmp_or_fallback"
+      "price": 96.19000244140625,
+      "return_1d": 0.0017705249352570895,
+      "return_20d": -0.007524597344144901,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "INDA",
-      "price": 48.060001373291016,
-      "return_1d": -0.009480607587237788,
-      "return_20d": -0.09508565579033834,
-      "source": "fmp_or_fallback"
+      "price": 48.52000045776367,
+      "return_1d": -0.000823742059227861,
+      "return_20d": -0.08916838669386051,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "IREN",
-      "price": 41.58000183105469,
-      "return_1d": 0.005076212342081332,
-      "return_20d": 0.0387210366980939,
-      "source": "fmp_or_fallback"
+      "price": 42.959999084472656,
+      "return_1d": -0.044058736153578026,
+      "return_20d": 0.048572072357272456,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "ISRG",
-      "price": 472.1600036621094,
-      "return_1d": -0.01483503143227205,
-      "return_20d": -0.013455918009356083,
-      "source": "fmp_or_fallback"
+      "price": 482.760009765625,
+      "return_1d": -0.0014478585649794207,
+      "return_20d": -0.021465483342202774,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "IWM",
-      "price": 246.58999633789062,
-      "return_1d": -0.003314366080923059,
-      "return_20d": -0.04989601518330011,
-      "source": "fmp_or_fallback"
+      "price": 250.0500030517578,
+      "return_1d": 0.006326540964050276,
+      "return_20d": -0.047693163288195395,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "LQD",
-      "price": 108.16999816894531,
-      "return_1d": -0.0036842730680967106,
-      "return_20d": -0.02407633346606708,
-      "source": "fmp_or_fallback"
+      "price": 109.30000305175781,
+      "return_1d": 0.005612297328638105,
+      "return_20d": -0.018118803473457734,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "MELI",
-      "price": 1670.0,
-      "return_1d": -0.005952380952380931,
-      "return_20d": -0.16791230692575987,
-      "source": "fmp_or_fallback"
+      "price": 1728.1400146484375,
+      "return_1d": -0.0024186739896783216,
+      "return_20d": -0.12521829496907255,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "NBIS",
-      "price": 112.94999694824219,
-      "return_1d": 0.045446093956939215,
-      "return_20d": 0.25877624788380604,
-      "source": "fmp_or_fallback"
+      "price": 116.33000183105469,
+      "return_1d": -0.10412016663043411,
+      "return_20d": 0.19288357091351127,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "NFLX",
-      "price": 95.30999755859375,
-      "return_1d": 0.010603329719934607,
-      "return_20d": 0.2563933138907477,
-      "source": "fmp_or_fallback"
+      "price": 94.36000061035156,
+      "return_1d": -0.008823491227077596,
+      "return_20d": 0.22545455338118914,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "NTR",
-      "price": 82.8499984741211,
-      "return_1d": -0.012985512694570489,
-      "return_20d": 0.17634528063508448,
-      "source": "fmp_or_fallback"
+      "price": 79.55000305175781,
+      "return_1d": 0.022625043264129285,
+      "return_20d": 0.13870601713064445,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "NU",
-      "price": 13.890000343322754,
-      "return_1d": -0.00572655133692912,
-      "return_20d": -0.184859178577521,
-      "source": "fmp_or_fallback"
+      "price": 14.25,
+      "return_1d": -0.001401573729648331,
+      "return_20d": -0.15279427713753457,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "ONDS",
-      "price": 10.15999984741211,
-      "return_1d": -0.01645692909482177,
-      "return_20d": 0.13266438628295285,
-      "source": "fmp_or_fallback"
+      "price": 11.279999732971191,
+      "return_1d": 0.07122507303125802,
+      "return_20d": 0.12238801183011616,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "OSCR",
-      "price": 13.229999542236328,
-      "return_1d": 0.017692272479717497,
-      "return_20d": -0.03501097699307676,
-      "source": "fmp_or_fallback"
+      "price": 13.510000228881836,
+      "return_1d": 0.017319314799352448,
+      "return_20d": 0.008961903098002821,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "PAGS",
-      "price": 9.369999885559082,
-      "return_1d": -0.003191461083897562,
-      "return_20d": -0.10334927688214013,
-      "source": "fmp_or_fallback"
+      "price": 9.729999542236328,
+      "return_1d": 0.014598476269122695,
+      "return_20d": -0.05442180968831156,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "PEP",
-      "price": 159.8800048828125,
-      "return_1d": 0.006420774698111531,
-      "return_20d": -0.035236855017715896,
-      "source": "fmp_or_fallback"
+      "price": 156.5,
+      "return_1d": -0.0077352346643463354,
+      "return_20d": -0.024838309488911192,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "QQQ",
-      "price": null,
-      "return_1d": null,
-      "return_20d": null,
-      "source": "cache"
+      "price": 603.3099975585938,
+      "return_1d": 0.0048802302740798,
+      "return_20d": 0.003342773667770471,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "REMX",
-      "price": 89.51000213623047,
-      "return_1d": -0.04583728317099145,
-      "return_20d": 0.026490886110459355,
-      "source": "fmp_or_fallback"
+      "price": 90.12000274658203,
+      "return_1d": 0.00022202300554630128,
+      "return_20d": 0.012698111135392542,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "SGOV",
-      "price": 100.5199966430664,
-      "return_1d": 0.00029852502671512404,
-      "return_20d": 0.003109135316707423,
-      "source": "fmp_or_fallback"
+      "price": 100.54000091552734,
+      "return_1d": 0.00019900789026050525,
+      "return_20d": 0.0029095687375435553,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "SHY",
-      "price": 82.55000305175781,
-      "return_1d": 0.0006060975970643145,
-      "return_20d": -0.0019063414958130354,
-      "source": "fmp_or_fallback"
+      "price": 82.66000366210938,
+      "return_1d": 0.0001210179799855382,
+      "return_20d": -0.0017799409253831389,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "SPOT",
-      "price": 516.0599975585938,
-      "return_1d": 0.012696483971818662,
-      "return_20d": 0.15763024667833214,
-      "source": "fmp_or_fallback"
+      "price": 525.22998046875,
+      "return_1d": 0.0023472909708970313,
+      "return_20d": 0.1348471806682534,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "SPY",
       "price": 681.76,
       "return_1d": 0.0,
       "return_20d": 0.0,
-      "source": "fmp_or_fallback"
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "STZ",
-      "price": 150.13999938964844,
-      "return_1d": 0.01227071180930639,
-      "return_20d": -0.07526485079308387,
-      "source": "fmp_or_fallback"
+      "price": 151.66000366210938,
+      "return_1d": 0.004237845130064866,
+      "return_20d": -0.006810696181515419,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "TLT",
-      "price": 86.54000091552734,
-      "return_1d": -0.004944237083365888,
-      "return_20d": -0.0269218128862716,
-      "source": "fmp_or_fallback"
+      "price": 87.44999694824219,
+      "return_1d": 0.0027519535178193166,
+      "return_20d": -0.023692120907965575,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "UBER",
-      "price": 73.33000183105469,
-      "return_1d": 0.004933542611061714,
-      "return_20d": 0.02962651746962064,
-      "source": "fmp_or_fallback"
+      "price": 77.79000091552734,
+      "return_1d": 0.04192334717238255,
+      "return_20d": 0.10293495337988778,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "UNH",
-      "price": 282.0899963378906,
-      "return_1d": 0.0181916937989115,
-      "return_20d": -0.00030574219973455996,
-      "source": "fmp_or_fallback"
+      "price": 287.57000732421875,
+      "return_1d": 0.007285779400308057,
+      "return_20d": 0.0024755782661463055,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "UUP",
-      "price": 27.889999389648438,
-      "return_1d": 0.007586672043258247,
-      "return_20d": 0.039895589373578844,
-      "source": "fmp_or_fallback"
+      "price": 27.68000030517578,
+      "return_1d": -0.0018030738509170474,
+      "return_20d": 0.028613915352278196,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "VGK",
-      "price": 82.16000366210938,
-      "return_1d": -0.013685466361148979,
-      "return_20d": -0.07425347986355635,
-      "source": "fmp_or_fallback"
+      "price": 83.9000015258789,
+      "return_1d": 0.0044295792169188886,
+      "return_20d": -0.059733291836086444,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLB",
-      "price": 49.189998626708984,
-      "return_1d": -0.009863157718534632,
-      "return_20d": -0.06890030433816918,
-      "source": "fmp_or_fallback"
+      "price": 49.52000045776367,
+      "return_1d": 0.002429128100773559,
+      "return_20d": -0.060341560894474844,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLC",
-      "price": 114.44999694824219,
-      "return_1d": -0.007113730534436868,
-      "return_20d": -0.0016573834823607747,
-      "source": "fmp_or_fallback"
+      "price": 115.37000274658203,
+      "return_1d": 0.00034683876608232467,
+      "return_20d": 0.008479031536408721,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLE",
-      "price": 57.70000076293945,
-      "return_1d": 0.0033038158051050814,
-      "return_20d": 0.0689144359438616,
-      "source": "fmp_or_fallback"
+      "price": 58.5099983215332,
+      "return_1d": 0.010535350251789755,
+      "return_20d": 0.08855810830759459,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLF",
-      "price": 48.88999938964844,
-      "return_1d": 0.0012287027717372556,
-      "return_20d": -0.05416907160863704,
-      "source": "fmp_or_fallback"
+      "price": 49.560001373291016,
+      "return_1d": 0.005273877084261969,
+      "return_20d": -0.050574700211934887,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLI",
-      "price": 164.64999389648438,
-      "return_1d": -0.0035706340902058598,
-      "return_20d": -0.04688860262527139,
-      "source": "fmp_or_fallback"
+      "price": 166.5,
+      "return_1d": 0.0026496594476401736,
+      "return_20d": -0.04900617855449907,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLK",
-      "price": 136.8000030517578,
-      "return_1d": -0.007544931179361392,
-      "return_20d": -0.01731200018589829,
-      "source": "fmp_or_fallback"
+      "price": 139.5399932861328,
+      "return_1d": 0.005476253880392079,
+      "return_20d": 0.00043015170943183634,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLP",
-      "price": 84.73999786376953,
-      "return_1d": 0.005815998383021048,
-      "return_20d": -0.05010650450147969,
-      "source": "fmp_or_fallback"
+      "price": 84.69999694824219,
+      "return_1d": -0.003294968199934245,
+      "return_20d": -0.03968254105557256,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLRE",
-      "price": 42.25,
-      "return_1d": 0.002610360985875637,
-      "return_20d": -0.014462303413393385,
-      "source": "fmp_or_fallback"
+      "price": 42.720001220703125,
+      "return_1d": 0.0032879141293584713,
+      "return_20d": -0.027765076106859077,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLU",
-      "price": 46.959999084472656,
-      "return_1d": 0.009892453429519499,
-      "return_20d": 0.037790035015970336,
-      "source": "fmp_or_fallback"
+      "price": 47.130001068115234,
+      "return_1d": -0.0027506825652749978,
+      "return_20d": 0.016170762887618872,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLV",
-      "price": 149.7899932861328,
-      "return_1d": -0.002464107398459814,
-      "return_20d": -0.039807735345302464,
-      "source": "fmp_or_fallback"
+      "price": 149.63999938964844,
+      "return_1d": -0.009072214866715167,
+      "return_20d": -0.049119882870828246,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "XLY",
-      "price": 110.86000061035156,
-      "return_1d": -0.005918185550410682,
-      "return_20d": -0.04538014955400593,
-      "source": "fmp_or_fallback"
+      "price": 113.18000030517578,
+      "return_1d": 0.00873443300881438,
+      "return_20d": -0.024646678626222496,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "ZETA",
-      "price": 17.84000015258789,
-      "return_1d": -0.01163429880049427,
-      "return_20d": 0.19092127488306976,
-      "source": "fmp_or_fallback"
+      "price": 18.030000686645508,
+      "return_1d": 0.006700214419641082,
+      "return_20d": 0.1776616716184849,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     },
     {
       "ticker": "ZVRA",
-      "price": 9.979999542236328,
-      "return_1d": -0.020127723999454283,
-      "return_20d": 0.18809523755460633,
-      "source": "fmp_or_fallback"
+      "price": 9.899999618530273,
+      "return_1d": 0.0030394866584633196,
+      "return_20d": 0.15250284547989468,
+      "source": "fmp_or_fallback",
+      "as_of": "2026-03-17"
     }
   ],
   "holdings": [
@@ -1618,904 +1656,904 @@
   ],
   "current_mix_vs_spy": [
     {
-      "date": "2025-06-26T00:00:00.000",
-      "portfolio_growth": 1.1749925904,
-      "spy_growth": 1.0534407658
-    },
-    {
-      "date": "2025-06-27T00:00:00.000",
-      "portfolio_growth": 1.1724378964,
-      "spy_growth": 1.0586746552
-    },
-    {
       "date": "2025-06-30T00:00:00.000",
-      "portfolio_growth": 1.1816930423,
-      "spy_growth": 1.0637363773
+      "portfolio_growth": 1.1921825075,
+      "spy_growth": 1.0652402545
     },
     {
       "date": "2025-07-01T00:00:00.000",
-      "portfolio_growth": 1.1755919695,
-      "spy_growth": 1.0633920424
+      "portfolio_growth": 1.1860272637,
+      "spy_growth": 1.0648954328
     },
     {
       "date": "2025-07-02T00:00:00.000",
-      "portfolio_growth": 1.1695641461,
-      "spy_growth": 1.0682127301
+      "portfolio_growth": 1.1799459541,
+      "spy_growth": 1.0697229358
     },
     {
       "date": "2025-07-03T00:00:00.000",
-      "portfolio_growth": 1.1730101949,
-      "spy_growth": 1.0766317167
+      "portfolio_growth": 1.1834225712,
+      "spy_growth": 1.0781538249
     },
     {
       "date": "2025-07-07T00:00:00.000",
-      "portfolio_growth": 1.1631616896,
-      "spy_growth": 1.0686087151
+      "portfolio_growth": 1.1734866519,
+      "spy_growth": 1.0701194807
     },
     {
       "date": "2025-07-08T00:00:00.000",
-      "portfolio_growth": 1.1725641819,
-      "spy_growth": 1.0680233459
+      "portfolio_growth": 1.1829726073,
+      "spy_growth": 1.0695332839
     },
     {
       "date": "2025-07-09T00:00:00.000",
-      "portfolio_growth": 1.1669112792,
-      "spy_growth": 1.0744279738
+      "portfolio_growth": 1.177269534,
+      "spy_growth": 1.0759469664
     },
     {
       "date": "2025-07-10T00:00:00.000",
-      "portfolio_growth": 1.1661695442,
-      "spy_growth": 1.0774581203
+      "portfolio_growth": 1.1765212034,
+      "spy_growth": 1.0789813969
     },
     {
       "date": "2025-07-11T00:00:00.000",
-      "portfolio_growth": 1.1604662515,
-      "spy_growth": 1.0736704371
+      "portfolio_growth": 1.1707672977,
+      "spy_growth": 1.0751883588
     },
     {
       "date": "2025-07-14T00:00:00.000",
-      "portfolio_growth": 1.1712337833,
-      "spy_growth": 1.0757192294
+      "portfolio_growth": 1.1816303982,
+      "spy_growth": 1.0772400476
     },
     {
       "date": "2025-07-15T00:00:00.000",
-      "portfolio_growth": 1.1760369575,
-      "spy_growth": 1.0711223594
+      "portfolio_growth": 1.186476211,
+      "spy_growth": 1.0726366787
     },
     {
       "date": "2025-07-16T00:00:00.000",
-      "portfolio_growth": 1.1756710305,
-      "spy_growth": 1.0747034416
+      "portfolio_growth": 1.1861070454,
+      "spy_growth": 1.0762228237
     },
     {
       "date": "2025-07-17T00:00:00.000",
-      "portfolio_growth": 1.1850459931,
-      "spy_growth": 1.0812802369
+      "portfolio_growth": 1.1955652227,
+      "spy_growth": 1.0828089171
     },
     {
       "date": "2025-07-18T00:00:00.000",
-      "portfolio_growth": 1.1737030004,
-      "spy_growth": 1.0804882668
+      "portfolio_growth": 1.1841215423,
+      "spy_growth": 1.0820158273
     },
     {
       "date": "2025-07-21T00:00:00.000",
-      "portfolio_growth": 1.1744562053,
-      "spy_growth": 1.082537059
+      "portfolio_growth": 1.1848814253,
+      "spy_growth": 1.0840675161
     },
     {
       "date": "2025-07-22T00:00:00.000",
-      "portfolio_growth": 1.179106103,
-      "spy_growth": 1.0826920097
+      "portfolio_growth": 1.1895725831,
+      "spy_growth": 1.0842226858
     },
     {
       "date": "2025-07-23T00:00:00.000",
-      "portfolio_growth": 1.1978283912,
-      "spy_growth": 1.0919029664
+      "portfolio_growth": 1.2084610735,
+      "spy_growth": 1.0934466647
     },
     {
       "date": "2025-07-24T00:00:00.000",
-      "portfolio_growth": 1.1850441461,
-      "spy_growth": 1.092264518
+      "portfolio_growth": 1.1955633487,
+      "spy_growth": 1.0938087274
     },
     {
       "date": "2025-07-25T00:00:00.000",
-      "portfolio_growth": 1.1771051189,
-      "spy_growth": 1.0968786048
+      "portfolio_growth": 1.1875538472,
+      "spy_growth": 1.0984293374
     },
     {
       "date": "2025-07-28T00:00:00.000",
-      "portfolio_growth": 1.1691387743,
-      "spy_growth": 1.0966031369
+      "portfolio_growth": 1.1795167831,
+      "spy_growth": 1.0981534801
     },
     {
       "date": "2025-07-29T00:00:00.000",
-      "portfolio_growth": 1.1501712,
-      "spy_growth": 1.0937107243
+      "portfolio_growth": 1.1603808508,
+      "spy_growth": 1.0952569783
     },
     {
       "date": "2025-07-30T00:00:00.000",
-      "portfolio_growth": 1.1530621005,
-      "spy_growth": 1.092333385
+      "portfolio_growth": 1.1632974313,
+      "spy_growth": 1.0938776918
     },
     {
       "date": "2025-07-31T00:00:00.000",
-      "portfolio_growth": 1.1381579783,
-      "spy_growth": 1.0882358005
+      "portfolio_growth": 1.1482609828,
+      "spy_growth": 1.0897743142
     },
     {
       "date": "2025-08-01T00:00:00.000",
-      "portfolio_growth": 1.1201623999,
-      "spy_growth": 1.0703992562
+      "portfolio_growth": 1.1301056786,
+      "spy_growth": 1.0719125532
     },
     {
       "date": "2025-08-04T00:00:00.000",
-      "portfolio_growth": 1.1405238583,
-      "spy_growth": 1.086669077
+      "portfolio_growth": 1.150647871,
+      "spy_growth": 1.0882053758
     },
     {
       "date": "2025-08-05T00:00:00.000",
-      "portfolio_growth": 1.1458603914,
-      "spy_growth": 1.0811597197
+      "portfolio_growth": 1.1560317632,
+      "spy_growth": 1.0826882295
     },
     {
       "date": "2025-08-06T00:00:00.000",
-      "portfolio_growth": 1.1600169091,
-      "spy_growth": 1.0894409724
+      "portfolio_growth": 1.1703139565,
+      "spy_growth": 1.09098119
     },
     {
       "date": "2025-08-07T00:00:00.000",
-      "portfolio_growth": 1.1766901743,
-      "spy_growth": 1.0885284851
+      "portfolio_growth": 1.1871352131,
+      "spy_growth": 1.0900674126
     },
     {
       "date": "2025-08-08T00:00:00.000",
-      "portfolio_growth": 1.1798569576,
-      "spy_growth": 1.0970163387
+      "portfolio_growth": 1.190330103,
+      "spy_growth": 1.0985672661
     },
     {
       "date": "2025-08-11T00:00:00.000",
-      "portfolio_growth": 1.1783785141,
-      "spy_growth": 1.0948470293
+      "portfolio_growth": 1.1888385401,
+      "spy_growth": 1.0963948897
     },
     {
       "date": "2025-08-12T00:00:00.000",
-      "portfolio_growth": 1.2015658863,
-      "spy_growth": 1.1065027633
+      "portfolio_growth": 1.2122317317,
+      "spy_growth": 1.1080671023
     },
     {
       "date": "2025-08-13T00:00:00.000",
-      "portfolio_growth": 1.2059809649,
-      "spy_growth": 1.1102904464
+      "portfolio_growth": 1.216686011,
+      "spy_growth": 1.1118601403
     },
     {
       "date": "2025-08-14T00:00:00.000",
-      "portfolio_growth": 1.1945416163,
-      "spy_growth": 1.1103937469
+      "portfolio_growth": 1.2051451344,
+      "spy_growth": 1.1119635868
     },
     {
       "date": "2025-08-15T00:00:00.000",
-      "portfolio_growth": 1.2158559196,
-      "spy_growth": 1.1077940189
+      "portfolio_growth": 1.2266486454,
+      "spy_growth": 1.1093601834
     },
     {
       "date": "2025-08-18T00:00:00.000",
-      "portfolio_growth": 1.2229562054,
-      "spy_growth": 1.1075529845
+      "portfolio_growth": 1.2338119385,
+      "spy_growth": 1.1091188083
     },
     {
       "date": "2025-08-19T00:00:00.000",
-      "portfolio_growth": 1.202505261,
-      "spy_growth": 1.1015443417
+      "portfolio_growth": 1.2131794586,
+      "spy_growth": 1.1031016707
     },
     {
       "date": "2025-08-20T00:00:00.000",
-      "portfolio_growth": 1.1971164819,
-      "spy_growth": 1.0986174957
+      "portfolio_growth": 1.2077428411,
+      "spy_growth": 1.1001706867
     },
     {
       "date": "2025-08-21T00:00:00.000",
-      "portfolio_growth": 1.1968333873,
-      "spy_growth": 1.0942100098
+      "portfolio_growth": 1.2074572283,
+      "spy_growth": 1.0957569697
     },
     {
       "date": "2025-08-22T00:00:00.000",
-      "portfolio_growth": 1.2322228363,
-      "spy_growth": 1.1110135496
+      "portfolio_growth": 1.2431608287,
+      "spy_growth": 1.1125842658
     },
     {
       "date": "2025-08-25T00:00:00.000",
-      "portfolio_growth": 1.2399506542,
-      "spy_growth": 1.106123995
+      "portfolio_growth": 1.2509572533,
+      "spy_growth": 1.1076877985
     },
     {
       "date": "2025-08-26T00:00:00.000",
-      "portfolio_growth": 1.2444820385,
-      "spy_growth": 1.1107552985
+      "portfolio_growth": 1.2555288667,
+      "spy_growth": 1.1123256496
     },
     {
       "date": "2025-08-27T00:00:00.000",
-      "portfolio_growth": 1.2441628205,
-      "spy_growth": 1.1132861595
+      "portfolio_growth": 1.2552068114,
+      "spy_growth": 1.1148600886
     },
     {
       "date": "2025-08-28T00:00:00.000",
-      "portfolio_growth": 1.2535496668,
-      "spy_growth": 1.1172287933
+      "portfolio_growth": 1.2646769956,
+      "spy_growth": 1.1188082964
     },
     {
       "date": "2025-08-29T00:00:00.000",
-      "portfolio_growth": 1.2598466349,
-      "spy_growth": 1.1105659143
+      "portfolio_growth": 1.2710298395,
+      "spy_growth": 1.1121359977
     },
     {
       "date": "2025-09-02T00:00:00.000",
-      "portfolio_growth": 1.2495494339,
-      "spy_growth": 1.1023363118
+      "portfolio_growth": 1.2606412296,
+      "spy_growth": 1.1038947604
     },
     {
       "date": "2025-09-03T00:00:00.000",
-      "portfolio_growth": 1.2434776392,
-      "spy_growth": 1.1083105212
+      "portfolio_growth": 1.2545155338,
+      "spy_growth": 1.1098774159
     },
     {
       "date": "2025-09-04T00:00:00.000",
-      "portfolio_growth": 1.2447326337,
-      "spy_growth": 1.1175731281
+      "portfolio_growth": 1.2557816636,
+      "spy_growth": 1.119153118
     },
     {
       "date": "2025-09-05T00:00:00.000",
-      "portfolio_growth": 1.259212026,
-      "spy_growth": 1.1143363807
+      "portfolio_growth": 1.2703896076,
+      "spy_growth": 1.1159117946
     },
     {
       "date": "2025-09-08T00:00:00.000",
-      "portfolio_growth": 1.2700462173,
-      "spy_growth": 1.1170738426
+      "portfolio_growth": 1.281319964,
+      "spy_growth": 1.1186531267
     },
     {
       "date": "2025-09-09T00:00:00.000",
-      "portfolio_growth": 1.2910775172,
-      "spy_growth": 1.1196563538
+      "portfolio_growth": 1.302537961,
+      "spy_growth": 1.121239289
     },
     {
       "date": "2025-09-10T00:00:00.000",
-      "portfolio_growth": 1.2850311071,
-      "spy_growth": 1.1228931013
+      "portfolio_growth": 1.2964378641,
+      "spy_growth": 1.1244806124
     },
     {
       "date": "2025-09-11T00:00:00.000",
-      "portfolio_growth": 1.3046543407,
-      "spy_growth": 1.1322245752
+      "portfolio_growth": 1.3162352878,
+      "spy_growth": 1.1338252789
     },
     {
       "date": "2025-09-12T00:00:00.000",
-      "portfolio_growth": 1.3054986221,
-      "spy_growth": 1.1318458069
+      "portfolio_growth": 1.317087063,
+      "spy_growth": 1.1334459751
     },
     {
       "date": "2025-09-15T00:00:00.000",
-      "portfolio_growth": 1.3172303767,
-      "spy_growth": 1.1378716664
+      "portfolio_growth": 1.3289229587,
+      "spy_growth": 1.1394803538
     },
     {
       "date": "2025-09-16T00:00:00.000",
-      "portfolio_growth": 1.3196848009,
-      "spy_growth": 1.1363049429
+      "portfolio_growth": 1.3313991676,
+      "spy_growth": 1.1379114153
     },
     {
       "date": "2025-09-17T00:00:00.000",
-      "portfolio_growth": 1.3252473463,
-      "spy_growth": 1.1348931701
+      "portfolio_growth": 1.337011084,
+      "spy_growth": 1.1364976466
     },
     {
       "date": "2025-09-18T00:00:00.000",
-      "portfolio_growth": 1.3380820236,
-      "spy_growth": 1.1401959265
+      "portfolio_growth": 1.3499596978,
+      "spy_growth": 1.1418078999
     },
     {
       "date": "2025-09-19T00:00:00.000",
-      "portfolio_growth": 1.3486022906,
-      "spy_growth": 1.1426751373
+      "portfolio_growth": 1.3605733416,
+      "spy_growth": 1.1442906157
     },
     {
       "date": "2025-09-22T00:00:00.000",
-      "portfolio_growth": 1.367432351,
-      "spy_growth": 1.1480811942
+      "portfolio_growth": 1.3795705527,
+      "spy_growth": 1.1497043154
     },
     {
       "date": "2025-09-23T00:00:00.000",
-      "portfolio_growth": 1.3693570693,
-      "spy_growth": 1.141831517
+      "portfolio_growth": 1.3815123696,
+      "spy_growth": 1.1434458027
     },
     {
       "date": "2025-09-24T00:00:00.000",
-      "portfolio_growth": 1.381849402,
-      "spy_growth": 1.1381987845
+      "portfolio_growth": 1.3941155838,
+      "spy_growth": 1.1398079343
     },
     {
       "date": "2025-09-25T00:00:00.000",
-      "portfolio_growth": 1.3701194278,
-      "spy_growth": 1.1329476783
+      "portfolio_growth": 1.38228149,
+      "spy_growth": 1.1345494043
     },
     {
       "date": "2025-09-26T00:00:00.000",
-      "portfolio_growth": 1.3693561297,
-      "spy_growth": 1.1394383899
+      "portfolio_growth": 1.3815114181,
+      "spy_growth": 1.1410492923
     },
     {
       "date": "2025-09-29T00:00:00.000",
-      "portfolio_growth": 1.3848226679,
-      "spy_growth": 1.1426407038
+      "portfolio_growth": 1.3971152338,
+      "spy_growth": 1.1442561335
     },
     {
       "date": "2025-09-30T00:00:00.000",
-      "portfolio_growth": 1.3750442248,
-      "spy_growth": 1.1469448892
+      "portfolio_growth": 1.387249991,
+      "spy_growth": 1.148566404
     },
     {
       "date": "2025-10-01T00:00:00.000",
-      "portfolio_growth": 1.3832603074,
-      "spy_growth": 1.1508530895
+      "portfolio_growth": 1.3955390021,
+      "spy_growth": 1.1524801297
     },
     {
       "date": "2025-10-02T00:00:00.000",
-      "portfolio_growth": 1.4107970692,
-      "spy_growth": 1.1521787786
+      "portfolio_growth": 1.423320209,
+      "spy_growth": 1.153807693
     },
     {
       "date": "2025-10-03T00:00:00.000",
-      "portfolio_growth": 1.4345737424,
-      "spy_growth": 1.1521615619
+      "portfolio_growth": 1.4473079392,
+      "spy_growth": 1.1537904519
     },
     {
       "date": "2025-10-06T00:00:00.000",
-      "portfolio_growth": 1.4523069377,
-      "spy_growth": 1.1562935799
+      "portfolio_growth": 1.4651985367,
+      "spy_growth": 1.1579283116
     },
     {
       "date": "2025-10-07T00:00:00.000",
-      "portfolio_growth": 1.4446497632,
-      "spy_growth": 1.1520066112
+      "portfolio_growth": 1.4574733989,
+      "spy_growth": 1.1536352822
     },
     {
       "date": "2025-10-08T00:00:00.000",
-      "portfolio_growth": 1.4618766317,
-      "spy_growth": 1.1588760911
+      "portfolio_growth": 1.4748531693,
+      "spy_growth": 1.1605144739
     },
     {
       "date": "2025-10-09T00:00:00.000",
-      "portfolio_growth": 1.4581124718,
-      "spy_growth": 1.1555188265
+      "portfolio_growth": 1.4710556178,
+      "spy_growth": 1.1571524629
     },
     {
       "date": "2025-10-10T00:00:00.000",
-      "portfolio_growth": 1.4093418064,
-      "spy_growth": 1.1242876573
+      "portfolio_growth": 1.4218520201,
+      "spy_growth": 1.12587714
     },
     {
       "date": "2025-10-13T00:00:00.000",
-      "portfolio_growth": 1.4517401461,
-      "spy_growth": 1.1415388324
+      "portfolio_growth": 1.4646267024,
+      "spy_growth": 1.1431527043
     },
     {
       "date": "2025-10-14T00:00:00.000",
-      "portfolio_growth": 1.4487974168,
-      "spy_growth": 1.1401442763
+      "portfolio_growth": 1.4616578638,
+      "spy_growth": 1.1417561766
     },
     {
       "date": "2025-10-15T00:00:00.000",
-      "portfolio_growth": 1.4525505982,
-      "spy_growth": 1.1452059983
+      "portfolio_growth": 1.4654443661,
+      "spy_growth": 1.1468250547
     },
     {
       "date": "2025-10-16T00:00:00.000",
-      "portfolio_growth": 1.4311296084,
-      "spy_growth": 1.1374068144
+      "portfolio_growth": 1.4438332332,
+      "spy_growth": 1.1390148446
     },
     {
       "date": "2025-10-17T00:00:00.000",
-      "portfolio_growth": 1.4182573445,
-      "spy_growth": 1.1438630925
+      "portfolio_growth": 1.4308466896,
+      "spy_growth": 1.1454802503
     },
     {
       "date": "2025-10-20T00:00:00.000",
-      "portfolio_growth": 1.442923554,
-      "spy_growth": 1.1557598609
+      "portfolio_growth": 1.4557318607,
+      "spy_growth": 1.157393838
     },
     {
       "date": "2025-10-21T00:00:00.000",
-      "portfolio_growth": 1.4288992638,
-      "spy_growth": 1.1557426441
+      "portfolio_growth": 1.4415830766,
+      "spy_growth": 1.157376597
     },
     {
       "date": "2025-10-22T00:00:00.000",
-      "portfolio_growth": 1.4066254161,
-      "spy_growth": 1.1497340013
+      "portfolio_growth": 1.419111497,
+      "spy_growth": 1.1513594593
     },
     {
       "date": "2025-10-23T00:00:00.000",
-      "portfolio_growth": 1.4260118965,
-      "spy_growth": 1.156551831
+      "portfolio_growth": 1.4386700673,
+      "spy_growth": 1.1581869278
     },
     {
       "date": "2025-10-24T00:00:00.000",
-      "portfolio_growth": 1.4374006033,
-      "spy_growth": 1.1660038221
+      "portfolio_growth": 1.4501598927,
+      "spy_growth": 1.1676522819
     },
     {
       "date": "2025-10-27T00:00:00.000",
-      "portfolio_growth": 1.4582994428,
-      "spy_growth": 1.1797599986
+      "portfolio_growth": 1.4712442587,
+      "spy_growth": 1.1814279064
     },
     {
       "date": "2025-10-28T00:00:00.000",
-      "portfolio_growth": 1.4459222078,
-      "spy_growth": 1.1828934456
+      "portfolio_growth": 1.4587571402,
+      "spy_growth": 1.1845657833
     },
     {
       "date": "2025-10-29T00:00:00.000",
-      "portfolio_growth": 1.4388985206,
-      "spy_growth": 1.1834615981
+      "portfolio_growth": 1.4516711065,
+      "spy_growth": 1.1851347391
     },
     {
       "date": "2025-10-30T00:00:00.000",
-      "portfolio_growth": 1.4213307978,
-      "spy_growth": 1.1704457414
+      "portfolio_growth": 1.4339474325,
+      "spy_growth": 1.172100481
     },
     {
       "date": "2025-10-31T00:00:00.000",
-      "portfolio_growth": 1.4402442199,
-      "spy_growth": 1.1742850748
+      "portfolio_growth": 1.4530287677,
+      "spy_growth": 1.1759452423
     },
     {
       "date": "2025-11-03T00:00:00.000",
-      "portfolio_growth": 1.4285491789,
-      "spy_growth": 1.1764888177
+      "portfolio_growth": 1.4412298791,
+      "spy_growth": 1.1781521008
     },
     {
       "date": "2025-11-04T00:00:00.000",
-      "portfolio_growth": 1.4016317016,
-      "spy_growth": 1.1625432571
+      "portfolio_growth": 1.4140734743,
+      "spy_growth": 1.1641868244
     },
     {
       "date": "2025-11-05T00:00:00.000",
-      "portfolio_growth": 1.4142787037,
-      "spy_growth": 1.1665719746
+      "portfolio_growth": 1.4268327392,
+      "spy_growth": 1.1682212376
     },
     {
       "date": "2025-11-06T00:00:00.000",
-      "portfolio_growth": 1.3881486614,
-      "spy_growth": 1.1540554035
+      "portfolio_growth": 1.4004707412,
+      "spy_growth": 1.1556869709
     },
     {
       "date": "2025-11-07T00:00:00.000",
-      "portfolio_growth": 1.3982288138,
-      "spy_growth": 1.1551917084
+      "portfolio_growth": 1.4106403799,
+      "spy_growth": 1.1568248823
     },
     {
       "date": "2025-11-10T00:00:00.000",
-      "portfolio_growth": 1.4058551338,
-      "spy_growth": 1.1732176368
+      "portfolio_growth": 1.4183343961,
+      "spy_growth": 1.1748762952
     },
     {
       "date": "2025-11-11T00:00:00.000",
-      "portfolio_growth": 1.4137812522,
-      "spy_growth": 1.1759034485
+      "portfolio_growth": 1.4263308804,
+      "spy_growth": 1.177565904
     },
     {
       "date": "2025-11-12T00:00:00.000",
-      "portfolio_growth": 1.4077029408,
-      "spy_growth": 1.1765576847
+      "portfolio_growth": 1.4201986053,
+      "spy_growth": 1.1782210652
     },
     {
       "date": "2025-11-13T00:00:00.000",
-      "portfolio_growth": 1.381749078,
-      "spy_growth": 1.1570338998
+      "portfolio_growth": 1.3940143425,
+      "spy_growth": 1.1586696781
     },
     {
       "date": "2025-11-14T00:00:00.000",
-      "portfolio_growth": 1.3740674046,
-      "spy_growth": 1.1568445156
+      "portfolio_growth": 1.3862644985,
+      "spy_growth": 1.1584800262
     },
     {
       "date": "2025-11-17T00:00:00.000",
-      "portfolio_growth": 1.3614932658,
-      "spy_growth": 1.1460668354
+      "portfolio_growth": 1.3735787437,
+      "spy_growth": 1.1476871088
     },
     {
       "date": "2025-11-18T00:00:00.000",
-      "portfolio_growth": 1.3729294829,
-      "spy_growth": 1.1364426769
+      "portfolio_growth": 1.3851164759,
+      "spy_growth": 1.138049344
     },
     {
       "date": "2025-11-19T00:00:00.000",
-      "portfolio_growth": 1.3744275292,
-      "spy_growth": 1.140832946
+      "portfolio_growth": 1.3866278284,
+      "spy_growth": 1.1424458199
     },
     {
       "date": "2025-11-20T00:00:00.000",
-      "portfolio_growth": 1.33020695,
-      "spy_growth": 1.123444037
+      "portfolio_growth": 1.3420147184,
+      "spy_growth": 1.125032327
     },
     {
       "date": "2025-11-21T00:00:00.000",
-      "portfolio_growth": 1.3501303467,
-      "spy_growth": 1.134634919
+      "portfolio_growth": 1.3621149601,
+      "spy_growth": 1.1362390304
     },
     {
       "date": "2025-11-24T00:00:00.000",
-      "portfolio_growth": 1.399880544,
-      "spy_growth": 1.1513351583
+      "portfolio_growth": 1.412306747,
+      "spy_growth": 1.15296288
     },
     {
       "date": "2025-11-25T00:00:00.000",
-      "portfolio_growth": 1.4072746667,
-      "spy_growth": 1.1621644887
+      "portfolio_growth": 1.4197665301,
+      "spy_growth": 1.1638075206
     },
     {
       "date": "2025-11-26T00:00:00.000",
-      "portfolio_growth": 1.4233705842,
-      "spy_growth": 1.1701874903
+      "portfolio_growth": 1.4360053252,
+      "spy_growth": 1.1718418648
     },
     {
       "date": "2025-11-28T00:00:00.000",
-      "portfolio_growth": 1.4348275867,
-      "spy_growth": 1.1765749014
+      "portfolio_growth": 1.4475640273,
+      "spy_growth": 1.1782383062
     },
     {
       "date": "2025-12-01T00:00:00.000",
-      "portfolio_growth": 1.4246642541,
-      "spy_growth": 1.1712032781
+      "portfolio_growth": 1.4373104785,
+      "spy_growth": 1.1728590886
     },
     {
       "date": "2025-12-02T00:00:00.000",
-      "portfolio_growth": 1.4255863563,
-      "spy_growth": 1.1733725875
+      "portfolio_growth": 1.4382407659,
+      "spy_growth": 1.175031465
     },
     {
       "date": "2025-12-03T00:00:00.000",
-      "portfolio_growth": 1.4512356117,
-      "spy_growth": 1.1774357385
+      "portfolio_growth": 1.4641177004,
+      "spy_growth": 1.1791003603
     },
     {
       "date": "2025-12-04T00:00:00.000",
-      "portfolio_growth": 1.462354331,
-      "spy_growth": 1.1782965756
+      "portfolio_growth": 1.4753351165,
+      "spy_growth": 1.1799624144
     },
     {
       "date": "2025-12-05T00:00:00.000",
-      "portfolio_growth": 1.4539156367,
-      "spy_growth": 1.180534752
+      "portfolio_growth": 1.466821515,
+      "spy_growth": 1.1822037551
     },
     {
       "date": "2025-12-08T00:00:00.000",
-      "portfolio_growth": 1.4554770851,
-      "spy_growth": 1.1769881032
+      "portfolio_growth": 1.4683968238,
+      "spy_growth": 1.1786520922
     },
     {
       "date": "2025-12-09T00:00:00.000",
-      "portfolio_growth": 1.4489452662,
-      "spy_growth": 1.1759723155
+      "portfolio_growth": 1.4618070243,
+      "spy_growth": 1.1776348684
     },
     {
       "date": "2025-12-10T00:00:00.000",
-      "portfolio_growth": 1.4498411775,
-      "spy_growth": 1.1837714994
+      "portfolio_growth": 1.4627108883,
+      "spy_growth": 1.1854450785
     },
     {
       "date": "2025-12-11T00:00:00.000",
-      "portfolio_growth": 1.4657583564,
-      "spy_growth": 1.1865261781
+      "portfolio_growth": 1.4787693581,
+      "spy_growth": 1.1882036517
     },
     {
       "date": "2025-12-12T00:00:00.000",
-      "portfolio_growth": 1.4505327614,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4634086112,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-15T00:00:00.000",
-      "portfolio_growth": 1.4252123722,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4378634621,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-16T00:00:00.000",
-      "portfolio_growth": 1.420315972,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4329235983,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-17T00:00:00.000",
-      "portfolio_growth": 1.397269433,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4096724836,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-18T00:00:00.000",
-      "portfolio_growth": 1.4091960844,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4217050036,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-19T00:00:00.000",
-      "portfolio_growth": 1.4356722849,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4484162236,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-22T00:00:00.000",
-      "portfolio_growth": 1.4552009273,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4681182146,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-23T00:00:00.000",
-      "portfolio_growth": 1.4558521845,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4687752528,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-24T00:00:00.000",
-      "portfolio_growth": 1.4566489393,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4695790801,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-26T00:00:00.000",
-      "portfolio_growth": 1.4566555686,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4695857683,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-29T00:00:00.000",
-      "portfolio_growth": 1.4454698664,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4583007747,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-30T00:00:00.000",
-      "portfolio_growth": 1.454831084,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4677450884,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2025-12-31T00:00:00.000",
-      "portfolio_growth": 1.44684365,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4596867529,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-02T00:00:00.000",
-      "portfolio_growth": 1.4851368858,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.4983199037,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-05T00:00:00.000",
-      "portfolio_growth": 1.5263977409,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5399470164,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-06T00:00:00.000",
-      "portfolio_growth": 1.5453903625,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5591082286,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-07T00:00:00.000",
-      "portfolio_growth": 1.5278219121,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5413838294,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-08T00:00:00.000",
-      "portfolio_growth": 1.5445623174,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5582728332,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-09T00:00:00.000",
-      "portfolio_growth": 1.5558188794,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5696293156,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-12T00:00:00.000",
-      "portfolio_growth": 1.5748335131,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5888127352,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-13T00:00:00.000",
-      "portfolio_growth": 1.5715481213,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5854981802,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-14T00:00:00.000",
-      "portfolio_growth": 1.5882056205,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6023035419,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-15T00:00:00.000",
-      "portfolio_growth": 1.5949870476,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6091451653,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-16T00:00:00.000",
-      "portfolio_growth": 1.5976163332,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6117977901,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-20T00:00:00.000",
-      "portfolio_growth": 1.5948403101,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6089971253,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-21T00:00:00.000",
-      "portfolio_growth": 1.6117515556,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6260584857,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-22T00:00:00.000",
-      "portfolio_growth": 1.6360085552,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6505308059,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-23T00:00:00.000",
-      "portfolio_growth": 1.6411547414,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6557226728,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-26T00:00:00.000",
-      "portfolio_growth": 1.6292987618,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.643761452,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-27T00:00:00.000",
-      "portfolio_growth": 1.6282878127,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6427415291,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-28T00:00:00.000",
-      "portfolio_growth": 1.6385649969,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6531099401,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-29T00:00:00.000",
-      "portfolio_growth": 1.6264888263,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6409265737,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-01-30T00:00:00.000",
-      "portfolio_growth": 1.5801301221,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5941563603,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-02T00:00:00.000",
-      "portfolio_growth": 1.5772274559,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5912279282,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-03T00:00:00.000",
-      "portfolio_growth": 1.5854019525,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5994749868,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-04T00:00:00.000",
-      "portfolio_growth": 1.5382225226,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5518767623,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-05T00:00:00.000",
-      "portfolio_growth": 1.4958641079,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5091423474,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-06T00:00:00.000",
-      "portfolio_growth": 1.5426331497,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.556326541,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-09T00:00:00.000",
-      "portfolio_growth": 1.5602262841,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5740758432,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-10T00:00:00.000",
-      "portfolio_growth": 1.5616435452,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5755056848,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-11T00:00:00.000",
-      "portfolio_growth": 1.5620516515,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5759174137,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-12T00:00:00.000",
-      "portfolio_growth": 1.5263465167,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5398953374,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-13T00:00:00.000",
-      "portfolio_growth": 1.5321716614,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5457721898,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-17T00:00:00.000",
-      "portfolio_growth": 1.5295834063,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5431609597,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-18T00:00:00.000",
-      "portfolio_growth": 1.5595014658,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5733445909,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-19T00:00:00.000",
-      "portfolio_growth": 1.5637747677,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5776558253,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-20T00:00:00.000",
-      "portfolio_growth": 1.557243524,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5710666062,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-23T00:00:00.000",
-      "portfolio_growth": 1.5435225284,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5572238144,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-24T00:00:00.000",
-      "portfolio_growth": 1.5683622835,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5822840629,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-25T00:00:00.000",
-      "portfolio_growth": 1.5798193677,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5938428475,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-26T00:00:00.000",
-      "portfolio_growth": 1.6059904661,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6202462571,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-02-27T00:00:00.000",
-      "portfolio_growth": 1.5937576196,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6079048241,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-02T00:00:00.000",
-      "portfolio_growth": 1.6017240367,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6159419562,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-03T00:00:00.000",
-      "portfolio_growth": 1.5654985604,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5793949195,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-04T00:00:00.000",
-      "portfolio_growth": 1.6003064204,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.6145117562,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-05T00:00:00.000",
-      "portfolio_growth": 1.5694991211,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5834309918,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-06T00:00:00.000",
-      "portfolio_growth": 1.5488860168,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5626349125,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-09T00:00:00.000",
-      "portfolio_growth": 1.5668116376,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5807196525,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-10T00:00:00.000",
-      "portfolio_growth": 1.5662458907,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5801488836,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-11T00:00:00.000",
-      "portfolio_growth": 1.5756683089,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5896549412,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-12T00:00:00.000",
-      "portfolio_growth": 1.5433692681,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5570691936,
+      "spy_growth": 1.1754280099
     },
     {
       "date": "2026-03-13T00:00:00.000",
-      "portfolio_growth": 1.543470534,
-      "spy_growth": 1.1737685726
+      "portfolio_growth": 1.5571713584,
+      "spy_growth": 1.1754280099
+    },
+    {
+      "date": "2026-03-16T00:00:00.000",
+      "portfolio_growth": 1.5833676479,
+      "spy_growth": 1.1754280099
+    },
+    {
+      "date": "2026-03-17T00:00:00.000",
+      "portfolio_growth": 1.597211534,
+      "spy_growth": 1.1754280099
     }
   ],
   "valuation_histogram": [
@@ -2580,133 +2618,12 @@
       "count": 1
     }
   ],
-  "simulation_rank": [
-    {
-      "ticker": "ASTS",
-      "prob_loss": 0.075,
-      "expected_return": 9.8634,
-      "suggested_position": 0.1,
-      "var_95": -0.198264,
-      "cvar_95": -0.463944
-    },
-    {
-      "ticker": "ONDS",
-      "prob_loss": 0.1705,
-      "expected_return": 6.4369,
-      "suggested_position": 0.1,
-      "var_95": -0.576308,
-      "cvar_95": -0.724065
-    },
-    {
-      "ticker": "NBIS",
-      "prob_loss": 0.1225,
-      "expected_return": 5.4048,
-      "suggested_position": 0.1,
-      "var_95": -0.405916,
-      "cvar_95": -0.592953
-    },
-    {
-      "ticker": "IREN",
-      "prob_loss": 0.143,
-      "expected_return": 4.3608,
-      "suggested_position": 0.1,
-      "var_95": -0.45138,
-      "cvar_95": -0.619983
-    },
-    {
-      "ticker": "BFLY",
-      "prob_loss": 0.2565,
-      "expected_return": 2.0618,
-      "suggested_position": 0.1,
-      "var_95": -0.609504,
-      "cvar_95": -0.722573
-    },
-    {
-      "ticker": "ADUR",
-      "prob_loss": 0.2265,
-      "expected_return": 1.4348,
-      "suggested_position": 0.1,
-      "var_95": -0.489426,
-      "cvar_95": -0.613818
-    },
-    {
-      "ticker": "IBRX",
-      "prob_loss": 0.40325,
-      "expected_return": 1.2501,
-      "suggested_position": 0.1,
-      "var_95": -0.754212,
-      "cvar_95": -0.828489
-    },
-    {
-      "ticker": "ZETA",
-      "prob_loss": 0.37,
-      "expected_return": 0.76808,
-      "suggested_position": 0.1,
-      "var_95": -0.624439,
-      "cvar_95": -0.715445
-    },
-    {
-      "ticker": "TSM",
-      "prob_loss": 0.1225,
-      "expected_return": 0.716455,
-      "suggested_position": 0.1,
-      "var_95": -0.173982,
-      "cvar_95": -0.290236
-    },
-    {
-      "ticker": "SPOT",
-      "prob_loss": 0.2095,
-      "expected_return": 0.558261,
-      "suggested_position": 0.1,
-      "var_95": -0.292134,
-      "cvar_95": -0.397853
-    },
-    {
-      "ticker": "ZVRA",
-      "prob_loss": 0.34925,
-      "expected_return": 0.529271,
-      "suggested_position": 0.1,
-      "var_95": -0.516352,
-      "cvar_95": -0.612037
-    },
-    {
-      "ticker": "BABA",
-      "prob_loss": 0.22675,
-      "expected_return": 0.524257,
-      "suggested_position": 0.1,
-      "var_95": -0.313479,
-      "cvar_95": -0.416871
-    },
-    {
-      "ticker": "COPX",
-      "prob_loss": 0.17825,
-      "expected_return": 0.508074,
-      "suggested_position": 0.1,
-      "var_95": -0.229381,
-      "cvar_95": -0.330706
-    },
-    {
-      "ticker": "REMX",
-      "prob_loss": 0.22825,
-      "expected_return": 0.467725,
-      "suggested_position": 0.1,
-      "var_95": -0.295299,
-      "cvar_95": -0.394724
-    },
-    {
-      "ticker": "EWY",
-      "prob_loss": 0.12025,
-      "expected_return": 0.454517,
-      "suggested_position": 0.1,
-      "var_95": -0.124526,
-      "cvar_95": -0.216034
-    }
-  ],
+  "simulation_rank": [],
   "alignment": {
     "preferred_sectors": [
       "Technology",
-      "Unknown",
-      "Energy"
+      "Energy",
+      "Unknown"
     ],
     "portfolio_top_sectors": [
       "ETF",
@@ -2717,907 +2634,143 @@
       "ETF",
       "Healthcare"
     ],
-    "selected_hedge": "UUP",
+    "selected_hedge": "BIL",
     "selected_hedge_weight": 0.0,
-    "beta_target": 1.0,
-    "portfolio_beta": 0.8320984405480837,
+    "beta_target": 0.85,
+    "portfolio_beta": null,
     "notes": [
       "Current top sectors diverge from the preferred map: ETF, Healthcare.",
-      "Selected hedge UUP is not currently present in the portfolio."
+      "Selected hedge BIL is not currently present in the portfolio."
     ]
   },
   "workbook": {
-    "available": true,
-    "path": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\portfolio_manager\\output\\latest\\portfolio_snapshot.xlsx",
-    "sheets": [
-      "Resumen",
-      "Analytics",
-      "Macro",
-      "Holdings",
-      "Valuation",
-      "MonteCarlo",
-      "Screener",
-      "DailyHits",
-      "DailyScreen",
-      "Flags"
-    ]
+    "available": false,
+    "sheets": []
   },
-  "stale_days": 0,
+  "stale_days": null,
   "statement_intelligence": {
     "top_statement_names": [
       {
-        "ticker": "ABEV",
-        "sector": "Consumer Staples",
-        "statement_score": 0.8110423253,
-        "statement_conviction_score": 0.8256400324,
-        "earnings_cash_kernel_score": 0.8773955396,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "robust",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
         "ticker": "PAGS",
         "sector": "Technology",
-        "statement_score": 0.7947911223,
-        "statement_conviction_score": 0.7967148774,
-        "earnings_cash_kernel_score": 0.8035354636,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "robust",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "STZ",
-        "sector": "Consumer Staples",
-        "statement_score": 0.6947865833,
-        "statement_conviction_score": 0.733118351,
-        "earnings_cash_kernel_score": 0.869021891,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ASML",
-        "sector": "Technology",
-        "statement_score": 0.6971044215,
-        "statement_conviction_score": 0.7239770975,
-        "earnings_cash_kernel_score": 0.8192529488,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
-      },
-      {
-        "ticker": "PEP",
-        "sector": "Consumer Staples",
-        "statement_score": 0.6394403749,
-        "statement_conviction_score": 0.6741883347,
-        "earnings_cash_kernel_score": 0.7973856469,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "NTR",
-        "sector": "Materials",
-        "statement_score": 0.6168696656,
-        "statement_conviction_score": 0.6544643172,
-        "earnings_cash_kernel_score": 0.7877544457,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: healthy EBITDA margin, positive free cash flow support, valuation support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "MELI",
-        "sector": "Consumer Discretionary",
-        "statement_score": 0.5652495059,
-        "statement_conviction_score": 0.6239291581,
-        "earnings_cash_kernel_score": 0.8319751979,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, solid capital efficiency, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ZETA",
-        "sector": "Technology",
-        "statement_score": 0.5103134632,
-        "statement_conviction_score": 0.6044451844,
-        "earnings_cash_kernel_score": 0.9381849231,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ISRG",
-        "sector": "Healthcare",
-        "statement_score": 0.5482523577,
-        "statement_conviction_score": 0.588699909,
-        "earnings_cash_kernel_score": 0.7321048637,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
-      },
-      {
-        "ticker": "EWY",
-        "sector": "ETF",
-        "statement_score": 0.5891882516,
-        "statement_conviction_score": 0.5695668363,
+        "statement_score": null,
+        "statement_conviction_score": null,
         "earnings_cash_kernel_score": null,
         "earnings_cash_kernel_bucket": "insufficient_history",
         "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag."
       },
       {
         "ticker": "UNH",
         "sector": "Healthcare",
-        "statement_score": 0.4648235453,
-        "statement_conviction_score": 0.5578387093,
-        "earnings_cash_kernel_score": 0.8876197452,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
+        "statement_score": null,
+        "statement_conviction_score": null,
+        "earnings_cash_kernel_score": null,
+        "earnings_cash_kernel_bucket": "insufficient_history",
         "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: positive free cash flow support, valuation support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "UBER",
-        "sector": "Technology",
-        "statement_score": 0.5067223776,
-        "statement_conviction_score": 0.5499372072,
-        "earnings_cash_kernel_score": 0.7031534216,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: solid capital efficiency, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag."
       }
     ],
     "top_compounders": [
       {
         "ticker": "PAGS",
         "sector": "Technology",
-        "compounder_score": 0.7821277695,
-        "statement_bucket": "robust",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "MSFT",
-        "sector": "Technology",
-        "compounder_score": 0.7646148919,
+        "compounder_score": null,
         "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag."
       },
       {
-        "ticker": "ASML",
-        "sector": "Technology",
-        "compounder_score": 0.7570237308,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
-      },
-      {
-        "ticker": "TSM",
-        "sector": "Technology",
-        "compounder_score": 0.7531662276,
-        "statement_bucket": "robust",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
-      },
-      {
-        "ticker": "ABEV",
-        "sector": "Consumer Staples",
-        "compounder_score": 0.7021805799,
-        "statement_bucket": "robust",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ISRG",
+        "ticker": "UNH",
         "sector": "Healthcare",
-        "compounder_score": 0.6927220728,
+        "compounder_score": null,
         "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
-      },
-      {
-        "ticker": "RACE",
-        "sector": "Consumer Discretionary",
-        "compounder_score": 0.634940085,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "STZ",
-        "sector": "Consumer Staples",
-        "compounder_score": 0.5926757524,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "SPOT",
-        "sector": "Communication Services",
-        "compounder_score": 0.589103833,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: solid capital efficiency, positive free cash flow support. Risks: stretched valuation."
-      },
-      {
-        "ticker": "PEP",
-        "sector": "Consumer Staples",
-        "compounder_score": 0.5825033448,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "MELI",
-        "sector": "Consumer Discretionary",
-        "compounder_score": 0.5712238952,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, solid capital efficiency, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "NFLX",
-        "sector": "Communication Services",
-        "compounder_score": 0.5627289019,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag."
       }
     ],
     "top_cash_generators": [
       {
         "ticker": "PAGS",
         "sector": "Technology",
-        "cash_generation_score": 0.9636363636,
-        "cash_conversion_proxy_score": 0.8743295019,
-        "statement_bucket": "robust",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
+        "cash_generation_score": null,
+        "cash_conversion_proxy_score": null,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag."
       },
       {
-        "ticker": "ABEV",
-        "sector": "Consumer Staples",
-        "cash_generation_score": 0.9218181818,
-        "cash_conversion_proxy_score": 0.7756704981,
-        "statement_bucket": "robust",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "OSCR",
+        "ticker": "UNH",
         "sector": "Healthcare",
-        "cash_generation_score": 0.78,
-        "cash_conversion_proxy_score": 0.5526819923,
+        "cash_generation_score": null,
+        "cash_conversion_proxy_score": null,
         "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: positive free cash flow support, valuation support. Risks: negative EBITDA margin, negative ROIC, high market sensitivity."
-      },
-      {
-        "ticker": "MELI",
-        "sector": "Consumer Discretionary",
-        "cash_generation_score": 0.7054545455,
-        "cash_conversion_proxy_score": 0.6896551724,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, solid capital efficiency, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "UBER",
-        "sector": "Technology",
-        "cash_generation_score": 0.7,
-        "cash_conversion_proxy_score": 0.5829501916,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: solid capital efficiency, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ASML",
-        "sector": "Technology",
-        "cash_generation_score": 0.6854545455,
-        "cash_conversion_proxy_score": 0.6630268199,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
-      },
-      {
-        "ticker": "RACE",
-        "sector": "Consumer Discretionary",
-        "cash_generation_score": 0.6654545455,
-        "cash_conversion_proxy_score": 0.6936781609,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ISRG",
-        "sector": "Healthcare",
-        "cash_generation_score": 0.66,
-        "cash_conversion_proxy_score": 0.6197318008,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
-      },
-      {
-        "ticker": "SPOT",
-        "sector": "Communication Services",
-        "cash_generation_score": 0.6527272727,
-        "cash_conversion_proxy_score": 0.4733716475,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: solid capital efficiency, positive free cash flow support. Risks: stretched valuation."
-      },
-      {
-        "ticker": "MSFT",
-        "sector": "Technology",
-        "cash_generation_score": 0.6509090909,
-        "cash_conversion_proxy_score": 0.761302682,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation."
-      },
-      {
-        "ticker": "NTR",
-        "sector": "Materials",
-        "cash_generation_score": 0.6418181818,
-        "cash_conversion_proxy_score": 0.6136015326,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: healthy EBITDA margin, positive free cash flow support, valuation support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "STZ",
-        "sector": "Consumer Staples",
-        "cash_generation_score": 0.6290909091,
-        "cash_conversion_proxy_score": 0.8172413793,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag."
       }
     ],
     "top_kernel_names": [
       {
-        "ticker": "ZETA",
+        "ticker": "PAGS",
         "sector": "Technology",
-        "earnings_cash_kernel_score": 0.9381849231,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.6044451844,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+        "earnings_cash_kernel_score": null,
+        "earnings_cash_kernel_bucket": "insufficient_history",
+        "statement_conviction_score": null,
+        "earnings_cash_kernel_commentary": "FMP client unavailable; no cached statement kernel found."
       },
       {
         "ticker": "UNH",
         "sector": "Healthcare",
-        "earnings_cash_kernel_score": 0.8876197452,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.5578387093,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "ABEV",
-        "sector": "Consumer Staples",
-        "earnings_cash_kernel_score": 0.8773955396,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.8256400324,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "STZ",
-        "sector": "Consumer Staples",
-        "earnings_cash_kernel_score": 0.869021891,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.733118351,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "MELI",
-        "sector": "Consumer Discretionary",
-        "earnings_cash_kernel_score": 0.8319751979,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.6239291581,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: working capital is consuming cash."
-      },
-      {
-        "ticker": "RACE",
-        "sector": "Consumer Discretionary",
-        "earnings_cash_kernel_score": 0.8259117878,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.6270250179,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "ASML",
-        "sector": "Technology",
-        "earnings_cash_kernel_score": 0.8192529488,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.7239770975,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: working capital is consuming cash."
-      },
-      {
-        "ticker": "NU",
-        "sector": "Financials",
-        "earnings_cash_kernel_score": 0.8143472806,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.4963992933,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "PAGS",
-        "sector": "Technology",
-        "earnings_cash_kernel_score": 0.8035354636,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.7967148774,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "PEP",
-        "sector": "Consumer Staples",
-        "earnings_cash_kernel_score": 0.7973856469,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.6741883347,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "NTR",
-        "sector": "Materials",
-        "earnings_cash_kernel_score": 0.7877544457,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.6544643172,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "SPOT",
-        "sector": "Communication Services",
-        "earnings_cash_kernel_score": 0.7818366206,
-        "earnings_cash_kernel_bucket": "cash_confirmed",
-        "statement_conviction_score": 0.5354896226,
-        "earnings_cash_kernel_commentary": "Cash view: operating cash flow fully confirms earnings, free cash flow conversion is healthy. Risks: no major cash-conversion red flag."
+        "earnings_cash_kernel_score": null,
+        "earnings_cash_kernel_bucket": "insufficient_history",
+        "statement_conviction_score": null,
+        "earnings_cash_kernel_commentary": "FMP client unavailable; no cached statement kernel found."
       }
     ],
     "cash_mismatch_names": [
       {
-        "ticker": "ASTS",
+        "ticker": "PAGS",
         "sector": "Technology",
-        "statement_score": 0.4666439886,
-        "earnings_cash_kernel_score": 0.14,
-        "earnings_cash_kernel_bucket": "fragile_conversion",
-        "statement_commentary": "Strengths: strong gross margin. Risks: negative ROIC, negative free cash flow yield, stretched valuation.",
-        "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
-      },
-      {
-        "ticker": "ZVRA",
-        "sector": "Healthcare",
-        "statement_score": 0.4820784384,
-        "earnings_cash_kernel_score": 0.1655061294,
-        "earnings_cash_kernel_bucket": "fragile_conversion",
-        "statement_commentary": "Strengths: strong gross margin. Risks: elevated leverage, negative EBITDA margin, negative ROIC.",
-        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
-      },
-      {
-        "ticker": "BFLY",
-        "sector": "Healthcare",
-        "statement_score": 0.4563491515,
-        "earnings_cash_kernel_score": 0.2356668446,
-        "earnings_cash_kernel_bucket": "fragile_conversion",
-        "statement_commentary": "Strengths: strong gross margin. Risks: negative EBITDA margin, negative ROIC, negative free cash flow yield.",
-        "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
-      },
-      {
-        "ticker": "IREN",
-        "sector": "Financials",
-        "statement_score": 0.3529858034,
-        "earnings_cash_kernel_score": 0.24,
-        "earnings_cash_kernel_bucket": "earnings_only",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin. Risks: elevated leverage, negative ROIC, negative free cash flow yield.",
-        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: free cash flow support is weak, capex burden is heavy relative to revenue."
-      },
-      {
-        "ticker": "ADUR",
-        "sector": "Industrials",
-        "statement_score": 0.3954604918,
-        "earnings_cash_kernel_score": 0.24,
-        "earnings_cash_kernel_bucket": "fragile_conversion",
-        "statement_commentary": "Strengths: strong gross margin. Risks: negative ROIC, negative free cash flow yield, stretched valuation.",
-        "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
-      },
-      {
-        "ticker": "ABX",
-        "sector": null,
-        "statement_score": 0.5251082331,
-        "earnings_cash_kernel_score": 0.3,
-        "earnings_cash_kernel_bucket": "fragile_conversion",
-        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
-        "earnings_cash_kernel_commentary": "Cash view: cash is improving faster than accounting earnings. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
-      },
-      {
-        "ticker": "IBRX",
-        "sector": "Healthcare",
-        "statement_score": 0.5367866115,
-        "earnings_cash_kernel_score": 0.3571311635,
-        "earnings_cash_kernel_bucket": "fragile_conversion",
-        "statement_commentary": "Strengths: strong gross margin. Risks: negative EBITDA margin, negative ROIC, negative free cash flow yield.",
-        "earnings_cash_kernel_commentary": "Cash view: accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
-      },
-      {
-        "ticker": "ONDS",
-        "sector": "Technology",
-        "statement_score": 0.4299518909,
-        "earnings_cash_kernel_score": 0.420282525,
-        "earnings_cash_kernel_bucket": "fragile_conversion",
-        "statement_commentary": "Strengths: limited accounting support. Risks: negative EBITDA margin, negative ROIC, negative free cash flow yield.",
-        "earnings_cash_kernel_commentary": "Cash view: cash is improving faster than accounting earnings, accrual intensity remains controlled. Risks: earnings are not converting well into operating cash, free cash flow support is weak."
-      },
-      {
-        "ticker": "GPRK",
-        "sector": null,
-        "statement_score": 0.5034375578,
-        "earnings_cash_kernel_score": 0.44,
-        "earnings_cash_kernel_bucket": "earnings_only",
-        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
-        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "NBIS",
-        "sector": "Communication Services",
-        "statement_score": 0.4601365817,
-        "earnings_cash_kernel_score": 0.44,
-        "earnings_cash_kernel_bucket": "earnings_only",
-        "statement_commentary": "Strengths: strong gross margin. Risks: negative EBITDA margin, negative ROIC, negative free cash flow yield.",
-        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "LND",
-        "sector": null,
-        "statement_score": 0.436239593,
-        "earnings_cash_kernel_score": 0.44,
-        "earnings_cash_kernel_bucket": "earnings_only",
-        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
-        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
-      },
-      {
-        "ticker": "BIDU",
-        "sector": "Communication Services",
-        "statement_score": 0.4331540215,
-        "earnings_cash_kernel_score": 0.44,
-        "earnings_cash_kernel_bucket": "earnings_only",
-        "statement_commentary": "Strengths: limited accounting support. Risks: elevated leverage, negative free cash flow yield, stretched valuation.",
-        "earnings_cash_kernel_commentary": "Cash view: limited cash confirmation. Risks: no major cash-conversion red flag."
-      }
-    ],
-    "kernel_sector_breadth": [
-      {
-        "sector": "Consumer Staples",
-        "coverage": 5,
-        "median_kernel_score": 0.7973856469,
-        "mean_kernel_score": 0.6967606155,
-        "cash_confirmed_share": 0.6,
-        "earnings_only_share": 0.4
-      },
-      {
-        "sector": "Materials",
-        "coverage": 1,
-        "median_kernel_score": 0.7877544457,
-        "mean_kernel_score": 0.7877544457,
-        "cash_confirmed_share": 1.0,
-        "earnings_only_share": 0.0
-      },
-      {
-        "sector": "Consumer Discretionary",
-        "coverage": 4,
-        "median_kernel_score": 0.7684089717,
-        "mean_kernel_score": 0.724509624,
-        "cash_confirmed_share": 0.75,
-        "earnings_only_share": 0.25
-      },
-      {
-        "sector": "Utilities",
-        "coverage": 1,
-        "median_kernel_score": 0.7576339669,
-        "mean_kernel_score": 0.7576339669,
-        "cash_confirmed_share": 1.0,
-        "earnings_only_share": 0.0
-      },
-      {
-        "sector": "Technology",
-        "coverage": 8,
-        "median_kernel_score": 0.7136122602,
-        "mean_kernel_score": 0.6517608774,
-        "cash_confirmed_share": 0.625,
-        "earnings_only_share": 0.125
-      },
-      {
-        "sector": "Communication Services",
-        "coverage": 4,
-        "median_kernel_score": 0.5643965643,
-        "mean_kernel_score": 0.5876574373,
-        "cash_confirmed_share": 0.25,
-        "earnings_only_share": 0.5
-      },
-      {
-        "sector": "Healthcare",
-        "coverage": 6,
-        "median_kernel_score": 0.5446180136,
-        "mean_kernel_score": 0.5205232893,
-        "cash_confirmed_share": 0.5,
-        "earnings_only_share": 0.0
-      },
-      {
-        "sector": "Financials",
-        "coverage": 2,
-        "median_kernel_score": 0.5271736403,
-        "mean_kernel_score": 0.5271736403,
-        "cash_confirmed_share": 0.5,
-        "earnings_only_share": 0.5
-      },
-      {
-        "sector": "Energy",
-        "coverage": 2,
-        "median_kernel_score": 0.4730572588,
-        "mean_kernel_score": 0.4730572588,
-        "cash_confirmed_share": 0.0,
-        "earnings_only_share": 1.0
-      },
-      {
-        "sector": "Industrials",
-        "coverage": 2,
-        "median_kernel_score": 0.4602880879,
-        "mean_kernel_score": 0.4602880879,
-        "cash_confirmed_share": 0.0,
-        "earnings_only_share": 0.0
-      },
-      {
-        "sector": "Finance",
-        "coverage": 1,
-        "median_kernel_score": 0.3,
-        "mean_kernel_score": 0.3,
-        "cash_confirmed_share": 0.0,
-        "earnings_only_share": 0.0
-      }
-    ],
-    "kernel_research_utility": {
-      "coverage": 63,
-      "score_corr_21d": 0.14397759103641455,
-      "score_corr_63d": -0.2734604105571847,
-      "top_bottom_spread_21d": -0.0007571750223728567,
-      "top_bottom_spread_63d": -0.35521988133794224,
-      "bucket_returns": [
-        {
-          "earnings_cash_kernel_bucket": "cash_confirmed",
-          "fwd_return_21d_mean": 0.0128774495,
-          "fwd_return_21d_median": 0.0240202955,
-          "fwd_return_21d_count": 13,
-          "fwd_return_63d_mean": 0.0084977671,
-          "fwd_return_63d_median": -0.0053993841,
-          "fwd_return_63d_count": 11
-        },
-        {
-          "earnings_cash_kernel_bucket": "cash_improving",
-          "fwd_return_21d_mean": null,
-          "fwd_return_21d_median": null,
-          "fwd_return_21d_count": 0,
-          "fwd_return_63d_mean": null,
-          "fwd_return_63d_median": null,
-          "fwd_return_63d_count": 0
-        },
-        {
-          "earnings_cash_kernel_bucket": "earnings_only",
-          "fwd_return_21d_mean": -0.0602396294,
-          "fwd_return_21d_median": -0.0603473802,
-          "fwd_return_21d_count": 14,
-          "fwd_return_63d_mean": 0.0111111625,
-          "fwd_return_63d_median": -0.0162064606,
-          "fwd_return_63d_count": 14
-        },
-        {
-          "earnings_cash_kernel_bucket": "fragile_conversion",
-          "fwd_return_21d_mean": 0.1052225431,
-          "fwd_return_21d_median": 0.0759897751,
-          "fwd_return_21d_count": 8,
-          "fwd_return_63d_mean": 0.718005565,
-          "fwd_return_63d_median": 0.3973757021,
-          "fwd_return_63d_count": 7
-        }
-      ],
-      "rank_returns": [
-        {
-          "kernel_rank_bucket": "low",
-          "fwd_return_21d_mean": 0.0084268499,
-          "fwd_return_21d_median": -0.0855856103,
-          "fwd_return_21d_count": 13,
-          "fwd_return_63d_mean": 0.4041323545,
-          "fwd_return_63d_median": 0.1645163637,
-          "fwd_return_63d_count": 12
-        },
-        {
-          "kernel_rank_bucket": "mid",
-          "fwd_return_21d_mean": -0.000980288,
-          "fwd_return_21d_median": 0.0092264149,
-          "fwd_return_21d_count": 13,
-          "fwd_return_63d_mean": 0.006391931,
-          "fwd_return_63d_median": -0.0194445997,
-          "fwd_return_63d_count": 13
-        },
-        {
-          "kernel_rank_bucket": "high",
-          "fwd_return_21d_mean": 0.0076696748,
-          "fwd_return_21d_median": 0.0240202955,
-          "fwd_return_21d_count": 9,
-          "fwd_return_63d_mean": 0.0489124731,
-          "fwd_return_63d_median": 0.1288604892,
-          "fwd_return_63d_count": 7
-        }
-      ],
-      "oos_blocks": [
-        {
-          "block": 1,
-          "start": "2025-11-14",
-          "end": "2025-11-14",
-          "spread_63d": -0.08071653897192774,
-          "mean_score": 0.6038834849601322,
-          "observations": 21,
-          "directionally_positive": false
-        },
-        {
-          "block": 2,
-          "start": "2025-11-14",
-          "end": "2026-02-14",
-          "spread_63d": -0.8094523505197626,
-          "mean_score": 0.5642136342417712,
-          "observations": 21,
-          "directionally_positive": false
-        },
-        {
-          "block": 3,
-          "start": "2026-02-14",
-          "end": "2026-04-14",
-          "spread_63d": null,
-          "mean_score": 0.6105568261829561,
-          "observations": 21,
-          "directionally_positive": false
-        }
-      ],
-      "positive_oos_blocks_63d": 0,
-      "warnings": []
-    },
-    "risk_names": [
-      {
-        "ticker": "IREN",
-        "sector": "Financials",
-        "risk_penalty_score": 0.9408704062,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin. Risks: elevated leverage, negative ROIC, negative free cash flow yield."
-      },
-      {
-        "ticker": "BROS",
-        "sector": "Consumer Discretionary",
-        "risk_penalty_score": 0.8627079304,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: limited accounting support. Risks: stretched valuation, high market sensitivity."
-      },
-      {
-        "ticker": "MELI",
-        "sector": "Consumer Discretionary",
-        "risk_penalty_score": 0.7226305609,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, solid capital efficiency, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ZETA",
-        "sector": "Technology",
-        "risk_penalty_score": 0.6822147002,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ZVRA",
-        "sector": "Healthcare",
-        "risk_penalty_score": 0.6788394584,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin. Risks: elevated leverage, negative EBITDA margin, negative ROIC."
-      },
-      {
-        "ticker": "BIDU",
-        "sector": "Communication Services",
-        "risk_penalty_score": 0.6407736944,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: limited accounting support. Risks: elevated leverage, negative free cash flow yield, stretched valuation."
-      },
-      {
-        "ticker": "STZ",
-        "sector": "Consumer Staples",
-        "risk_penalty_score": 0.6026112186,
-        "statement_bucket": "improving",
-        "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, positive free cash flow support. Risks: no major balance-sheet or valuation red flag."
+        "statement_score": null,
+        "earnings_cash_kernel_score": null,
+        "earnings_cash_kernel_bucket": "insufficient_history",
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "FMP client unavailable; no cached statement kernel found."
       },
       {
         "ticker": "UNH",
         "sector": "Healthcare",
-        "risk_penalty_score": 0.5998259188,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: positive free cash flow support, valuation support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "ANDG",
-        "sector": null,
-        "risk_penalty_score": 0.5989361702,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag."
-      },
-      {
-        "ticker": "OSCR",
-        "sector": "Healthcare",
-        "risk_penalty_score": 0.5931914894,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: positive free cash flow support, valuation support. Risks: negative EBITDA margin, negative ROIC, high market sensitivity."
-      },
-      {
-        "ticker": "ASTS",
-        "sector": "Technology",
-        "risk_penalty_score": 0.5885106383,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: strong gross margin. Risks: negative ROIC, negative free cash flow yield, stretched valuation."
-      },
-      {
-        "ticker": "SPOT",
-        "sector": "Communication Services",
-        "risk_penalty_score": 0.5870599613,
-        "statement_bucket": "speculative",
-        "statement_commentary": "Strengths: solid capital efficiency, positive free cash flow support. Risks: stretched valuation."
+        "statement_score": null,
+        "earnings_cash_kernel_score": null,
+        "earnings_cash_kernel_bucket": "insufficient_history",
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag.",
+        "earnings_cash_kernel_commentary": "FMP client unavailable; no cached statement kernel found."
       }
     ],
-    "coverage": 47,
-    "holdings_coverage": 35,
+    "kernel_sector_breadth": [],
+    "kernel_research_utility": {
+      "coverage": 0,
+      "warnings": [
+        "FMP client unavailable"
+      ]
+    },
+    "risk_names": [
+      {
+        "ticker": "PAGS",
+        "sector": "Technology",
+        "risk_penalty_score": null,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag."
+      },
+      {
+        "ticker": "UNH",
+        "sector": "Healthcare",
+        "risk_penalty_score": null,
+        "statement_bucket": "speculative",
+        "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag."
+      }
+    ],
+    "coverage": 2,
+    "holdings_coverage": 2,
     "warnings": [
-      "ABEV: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ABEV?period=quarter&limit=40&apikey=[redacted])",
-      "ABEV: using yfinance statement fallback.",
-      "ADUR: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ADUR?period=quarter&limit=40&apikey=[redacted])",
-      "ADUR: using yfinance statement fallback.",
-      "ASML: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ASML?period=quarter&limit=40&apikey=[redacted])",
-      "ASML: using yfinance statement fallback.",
-      "ASTS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ASTS?period=quarter&limit=40&apikey=[redacted])",
-      "ASTS: using yfinance statement fallback.",
-      "BABA: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/BABA?period=quarter&limit=40&apikey=[redacted])",
-      "BABA: using yfinance statement fallback.",
-      "BFLY: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/BFLY?period=quarter&limit=40&apikey=[redacted])",
-      "BFLY: using yfinance statement fallback.",
-      "BIDU: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/BIDU?period=quarter&limit=40&apikey=[redacted])",
-      "BIDU: using yfinance statement fallback.",
-      "BROS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/BROS?period=quarter&limit=40&apikey=[redacted])",
-      "BROS: using yfinance statement fallback.",
-      "IBRX: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/IBRX?period=quarter&limit=40&apikey=[redacted])",
-      "IBRX: using yfinance statement fallback.",
-      "IREN: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/IREN?period=quarter&limit=40&apikey=[redacted])",
-      "IREN: using yfinance statement fallback.",
-      "ISRG: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ISRG?period=quarter&limit=40&apikey=[redacted])",
-      "ISRG: using yfinance statement fallback.",
-      "MELI: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/MELI?period=quarter&limit=40&apikey=[redacted])",
-      "MELI: using yfinance statement fallback.",
-      "NBIS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/NBIS?period=quarter&limit=40&apikey=[redacted])",
-      "NBIS: using yfinance statement fallback.",
-      "NFLX: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/NFLX?period=quarter&limit=40&apikey=[redacted])",
-      "NFLX: using yfinance statement fallback.",
-      "NTR: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/NTR?period=quarter&limit=40&apikey=[redacted])",
-      "NTR: using yfinance statement fallback.",
-      "NU: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/NU?period=quarter&limit=40&apikey=[redacted])",
-      "NU: using yfinance statement fallback.",
-      "ONDS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ONDS?period=quarter&limit=40&apikey=[redacted])",
-      "ONDS: using yfinance statement fallback.",
-      "OSCR: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/OSCR?period=quarter&limit=40&apikey=[redacted])",
-      "OSCR: using yfinance statement fallback.",
-      "PAGS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/PAGS?period=quarter&limit=40&apikey=[redacted])",
-      "PAGS: using yfinance statement fallback.",
-      "PEP: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/PEP?period=quarter&limit=40&apikey=[redacted])",
-      "PEP: using yfinance statement fallback.",
-      "SPOT: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/SPOT?period=quarter&limit=40&apikey=[redacted])",
-      "SPOT: using yfinance statement fallback.",
-      "STZ: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/STZ?period=quarter&limit=40&apikey=[redacted])",
-      "STZ: using yfinance statement fallback.",
-      "UBER: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/UBER?period=quarter&limit=40&apikey=[redacted])",
-      "UBER: using yfinance statement fallback.",
-      "UNH: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/UNH?period=quarter&limit=40&apikey=[redacted])",
-      "UNH: using yfinance statement fallback.",
-      "ZETA: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ZETA?period=quarter&limit=40&apikey=[redacted])",
-      "ZETA: using yfinance statement fallback.",
-      "ZVRA: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ZVRA?period=quarter&limit=40&apikey=[redacted])",
-      "ZVRA: using yfinance statement fallback.",
-      "ABX: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ABX?period=quarter&limit=40&apikey=[redacted])",
-      "ABX: using yfinance statement fallback.",
-      "AMPY: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/AMPY?period=quarter&limit=40&apikey=[redacted])",
-      "AMPY: using yfinance statement fallback.",
-      "ANDG: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/ANDG?period=quarter&limit=40&apikey=[redacted])",
-      "ANDG: using yfinance statement fallback.",
-      "AXIA: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/AXIA?period=quarter&limit=40&apikey=[redacted])",
-      "AXIA: using yfinance statement fallback.",
-      "CIG: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/CIG?period=quarter&limit=40&apikey=[redacted])",
-      "CIG: using yfinance statement fallback.",
-      "COST: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/COST?period=quarter&limit=40&apikey=[redacted])",
-      "COST: using yfinance statement fallback.",
-      "GPRK: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/GPRK?period=quarter&limit=40&apikey=[redacted])",
-      "GPRK: using yfinance statement fallback.",
-      "LND: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/LND?period=quarter&limit=40&apikey=[redacted])",
-      "LND: using yfinance statement fallback.",
-      "MOS: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/MOS?period=quarter&limit=40&apikey=[redacted])",
-      "MOS: using yfinance statement fallback.",
-      "MSFT: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/MSFT?period=quarter&limit=40&apikey=[redacted])",
-      "MSFT: using yfinance statement fallback.",
-      "RACE: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/RACE?period=quarter&limit=40&apikey=[redacted])",
-      "RACE: using yfinance statement fallback.",
-      "TSM: FMP statement fetch failed (403 Client Error: Forbidden for url: https://financialmodelingprep.com/api/v3/income-statement/TSM?period=quarter&limit=40&apikey=[redacted])",
-      "TSM: using yfinance statement fallback."
+      "FMP client unavailable",
+      "FMP client unavailable; using cached earnings-to-cash kernel artifacts."
     ]
   }
 }

@@ -1,30 +1,14 @@
 {
-  "as_of": "2026-03-13",
+  "as_of": "2026-03-17",
   "portfolio_id": "default",
   "horizon_days": 20,
   "contract_version": "state_contract_v1",
   "model_version": "bls_state_v1.1",
   "analogs": [
     {
-      "analog_id": "research-analog-105",
-      "as_of": "2009-06-17T00:00:00",
-      "distance": 0.7046,
-      "cluster_type": "mixed",
-      "p_visible_correction_realized": 1.0,
-      "p_structural_restoration_realized": 0.0,
-      "days_to_visible_correction": 12,
-      "days_to_structural_restoration": 45,
-      "max_drawdown_from_state": -0.1,
-      "summary_tags": [
-        "research-artifact",
-        "nan"
-      ],
-      "provenance_ref": "research_artifacts"
-    },
-    {
       "analog_id": "research-analog-104",
       "as_of": "2009-06-08T00:00:00",
-      "distance": 0.7205,
+      "distance": 0.6704,
       "cluster_type": "mixed",
       "p_visible_correction_realized": 0.0,
       "p_structural_restoration_realized": 0.0,
@@ -40,7 +24,23 @@
     {
       "analog_id": "research-analog-103",
       "as_of": "2009-06-05T00:00:00",
-      "distance": 0.7233,
+      "distance": 0.6732,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 1.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.1,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-105",
+      "as_of": "2009-06-17T00:00:00",
+      "distance": 0.6834,
       "cluster_type": "mixed",
       "p_visible_correction_realized": 1.0,
       "p_structural_restoration_realized": 0.0,
@@ -56,7 +56,7 @@
     {
       "analog_id": "research-analog-102",
       "as_of": "2009-06-01T00:00:00",
-      "distance": 0.7479,
+      "distance": 0.6978,
       "cluster_type": "mixed",
       "p_visible_correction_realized": 1.0,
       "p_structural_restoration_realized": 0.0,
@@ -70,31 +70,15 @@
       "provenance_ref": "research_artifacts"
     },
     {
-      "analog_id": "research-analog-9",
-      "as_of": "2008-02-15T00:00:00",
-      "distance": 0.7522,
-      "cluster_type": "mixed",
-      "p_visible_correction_realized": 0.0,
-      "p_structural_restoration_realized": 0.0,
-      "days_to_visible_correction": 12,
-      "days_to_structural_restoration": 45,
-      "max_drawdown_from_state": -0.1,
-      "summary_tags": [
-        "research-artifact",
-        "nan"
-      ],
-      "provenance_ref": "research_artifacts"
-    },
-    {
-      "analog_id": "research-analog-10",
-      "as_of": "2008-02-19T00:00:00",
-      "distance": 0.7541,
+      "analog_id": "research-analog-101",
+      "as_of": "2009-05-29T00:00:00",
+      "distance": 0.7218,
       "cluster_type": "mixed",
       "p_visible_correction_realized": 1.0,
       "p_structural_restoration_realized": 0.0,
       "days_to_visible_correction": 12,
       "days_to_structural_restoration": 45,
-      "max_drawdown_from_state": -0.177663111144637,
+      "max_drawdown_from_state": -0.4138637499461801,
       "summary_tags": [
         "research-artifact",
         "nan"
@@ -102,15 +86,15 @@
       "provenance_ref": "research_artifacts"
     },
     {
-      "analog_id": "research-analog-139",
-      "as_of": "2022-05-24T00:00:00",
-      "distance": 0.7557,
+      "analog_id": "research-analog-100",
+      "as_of": "2009-05-28T00:00:00",
+      "distance": 0.724,
       "cluster_type": "mixed",
       "p_visible_correction_realized": 1.0,
       "p_structural_restoration_realized": 0.0,
       "days_to_visible_correction": 12,
       "days_to_structural_restoration": 45,
-      "max_drawdown_from_state": -0.2300998301687027,
+      "max_drawdown_from_state": -0.4138637499461801,
       "summary_tags": [
         "research-artifact",
         "nan"
@@ -118,11 +102,27 @@
       "provenance_ref": "research_artifacts"
     },
     {
-      "analog_id": "research-analog-147",
-      "as_of": "2022-09-20T00:00:00",
-      "distance": 0.7608,
+      "analog_id": "research-analog-99",
+      "as_of": "2009-05-26T00:00:00",
+      "distance": 0.7253,
       "cluster_type": "mixed",
       "p_visible_correction_realized": 0.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.4138637499461801,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-97",
+      "as_of": "2009-05-21T00:00:00",
+      "distance": 0.7337,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 1.0,
       "p_structural_restoration_realized": 0.0,
       "days_to_visible_correction": 12,
       "days_to_structural_restoration": 45,
@@ -137,15 +137,15 @@
   "uncertainty": {
     "calibration_component": 0.6496919713233731,
     "coverage_component": 1.0,
-    "stability_component": 0.7799999999999999,
+    "stability_component": 0.82,
     "data_component": 1.0,
     "evidence_tier": "production",
     "model_version": "bls_state_v1.1",
     "contract_version": "state_contract_v1",
     "authority": {
-      "evidence_authority": 0.7850850118625642,
+      "evidence_authority": 0.7981476289300358,
       "hygiene_authority": 0.9999999999999999,
-      "authority_policy_gate": 0.7850850118625642,
+      "authority_policy_gate": 0.7981476289300358,
       "evidence_tier": "production"
     },
     "provenance_summary": {
