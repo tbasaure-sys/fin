@@ -23,11 +23,11 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   });
 
   assert.equal(dashboard.workspace_summary.id, "alpha-retail");
-  assert.equal(dashboard.module_refs.length, 10);
-  assert.equal(dashboard.module_refs[0].id, "portfolio");
-  assert.equal(dashboard.module_refs[1].id, "actions");
-  assert.equal(dashboard.module_refs[2].title, "Capital Protocol");
-  assert.equal(dashboard.modules.actions.title, "Next Best Moves");
+  assert.equal(dashboard.module_refs.length, 4);
+  assert.equal(dashboard.module_refs[0].id, "actions");
+  assert.equal(dashboard.module_refs[1].id, "command");
+  assert.equal(dashboard.module_refs[2].title, "Portfolio");
+  assert.equal(dashboard.modules.actions.title, "What to do now");
   assert.equal(dashboard.modules.command.title, "Capital Protocol");
   assert.ok(dashboard.alerts.length >= 1);
   assert.equal(dashboard.portfolio_state.watchlist_count, 0);
@@ -341,5 +341,113 @@ test("normalizeWorkspaceDashboard exposes Chile Desk when chile market payload e
   assert.equal(dashboard.modules.chile.rows[0].ticker, "SQM-B.SN");
   assert.equal(dashboard.modules.chile.benchmarkLabel, "^IPSA");
   assert.ok(dashboard.modules.chile.charts.opportunityMap.length >= 1);
-  assert.equal(dashboard.module_status.find((item) => item.id === "chile")?.status, "fresh");
+});
+
+test("normalizeWorkspaceDashboard prefers canonical BLS contract data when present", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      generated_at: "2026-03-17T10:00:00.000Z",
+      overview: { recommended_action: "beta_040", vix: 24.3 },
+      portfolio: {},
+      screener: { rows: [] },
+      status: { warnings: [], panels: [], contract_status: "canonical" },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+      bls_state_v1: {
+        contract_version: "state_contract_v1",
+        model_version: "bls_state_v1.0",
+        as_of: "2026-03-17",
+        portfolio_id: "default",
+        horizon_days: 20,
+        measured_state: {
+          market_effective_dimension: 4.2,
+          market_dominance_share: 0.62,
+          market_compression: 0.71,
+          breadth: 0.33,
+          median_pairwise_corr: 0.58,
+          portfolio_hhi: 0.14,
+          portfolio_factor_dimension: 2.2,
+          portfolio_fragility_exposure: 0.66,
+          portfolio_liquidity_buffer: 0.18,
+          portfolio_drawdown: -0.12,
+          benchmark_drawdown: -0.09,
+          macro_vix: 24.3,
+        },
+        probabilistic_state: {
+          horizon_days: 20,
+          p_structural_dominance: 0.78,
+          p_regime_shock_dominance: 0.31,
+          cluster_type: "G-dominated",
+          p_visible_correction: 0.57,
+          p_structural_restoration: 0.29,
+          p_phantom_rebound: 0.40,
+          p_portfolio_recoverability: 0.46,
+          p_extreme_drawdown: 0.18,
+          authority_score: 0.52,
+        },
+        policy_state: {
+          mode: "observe",
+          max_gross_add: 0.04,
+          max_single_name_add: 0.01,
+          hedge_floor: 0.06,
+          allowed_sleeves: ["defensive_compounders"],
+          forbidden_sleeves: ["crowded_optional_high_beta"],
+          review_cadence: "48h",
+          rebalance_delay: "1d",
+          required_confirmation: "breadth_up_and_dom_down",
+          invalidation_rules: ["p_portfolio_recoverability_below_0_42"],
+        },
+        repair_candidates: [
+          {
+            id: "repair_01",
+            trade_set: ["trim NAME_A 1.5%", "add NAME_B 1.0%", "add hedge 0.5%"],
+            delta_recoverability: 0.07,
+            delta_phantom: -0.05,
+            delta_extreme_drawdown: -0.03,
+            repair_efficiency: 1.42,
+            classification: "real_repair",
+            binding_constraints: ["single_name_cap"],
+            funding_source: "NAME_A",
+            invalidation: ["authority falls below 0.45"],
+          },
+        ],
+        analogs: [
+          {
+            analog_id: "analog_01",
+            as_of: "2024-08-01",
+            distance: 0.11,
+            cluster_type: "G-dominated",
+            p_visible_correction_realized: 0.58,
+            p_structural_restoration_realized: 0.34,
+            days_to_visible_correction: 12,
+            days_to_structural_restoration: 45,
+            max_drawdown_from_state: -0.14,
+            summary_tags: ["tight-breadth"],
+          },
+        ],
+        uncertainty: {
+          calibration_component: 0.63,
+          coverage_component: 0.52,
+          stability_component: 0.68,
+          data_component: 0.91,
+          evidence_tier: "beta",
+          model_version: "bls_state_v1.0",
+          contract_version: "state_contract_v1",
+        },
+      },
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  assert.equal(dashboard.contract_status, "canonical");
+  assert.equal(dashboard.modules.risk.clusterDecomposition.dominant, "G-dominated");
+  assert.equal(dashboard.modules.risk.reboundConfidence.state, "Conditional");
+  assert.equal(dashboard.modules.spectral.reboundQuality.state, "Palliative");
+  assert.equal(dashboard.modules.command.protocolLabel, "Observe now");
+  assert.equal(dashboard.modules.actions.actions[0].sourceLabel, "Canonical contract");
 });

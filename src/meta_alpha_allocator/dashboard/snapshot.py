@@ -29,6 +29,7 @@ from ..research.spectral_structure import run_spectral_structure_pipeline
 from ..research.statement_intel import run_statement_intelligence
 from ..policy.engine import build_policy_state_frame
 from ..research.regime_labels import build_daily_regime_frame
+from ..state_contract import build_bls_state_contract_v1, build_bls_state_contract_v2
 from ..runtime import run_production
 from ..utils import ensure_directory, time_safe_join
 
@@ -701,10 +702,15 @@ def _build_status(snapshot: dict[str, Any], warnings: list[str]) -> dict[str, An
         elif stale_days > 7:
             status = "aging"
         panels.append({"name": name, "stale_days": stale_days, "status": status})
+    bls_state = snapshot.get("bls_state_v2") or snapshot.get("bls_state_v1") or {}
     return {
         "warnings": warnings,
         "panels": panels,
         "last_refresh": snapshot.get("generated_at"),
+        "contract_status": "canonical" if bls_state else "fallback_legacy",
+        "contract_version": bls_state.get("contract_version"),
+        "model_version": bls_state.get("model_version"),
+        "contract_origin": snapshot.get("status", {}).get("contract_origin"),
     }
 
 
@@ -749,6 +755,27 @@ def load_cached_snapshot(paths: PathConfig, dashboard_settings: DashboardSetting
     for snapshot_path in _artifact_snapshot_candidates(paths, dashboard_settings):
         payload = _safe_json_load(snapshot_path)
         if payload is not None:
+            synthesized = False
+            if not payload.get("bls_state_v1"):
+                payload["bls_state_v1"] = build_bls_state_contract_v1(payload)
+                synthesized = True
+            if not payload.get("bls_state_v2"):
+                payload["bls_state_v2"] = build_bls_state_contract_v2(payload)
+                synthesized = True
+            payload.setdefault("status", {})
+            payload["status"]["contract_origin"] = "synthesized_from_cache" if synthesized else "cached"
+            payload["status"]["contract_status"] = "canonical_valid" if payload.get("bls_state_v2") else "fallback_legacy"
+            if synthesized:
+                for contract_key in ("bls_state_v1", "bls_state_v2"):
+                    contract = payload.get(contract_key) or {}
+                    probabilistic = contract.get("probabilistic_state") or {}
+                    uncertainty = contract.get("uncertainty") or {}
+                    if probabilistic.get("authority_score") is not None:
+                        probabilistic["authority_score"] = max(0.0, float(probabilistic["authority_score"]) * 0.82)
+                    if uncertainty.get("coverage_component") is not None:
+                        uncertainty["coverage_component"] = max(0.0, float(uncertainty["coverage_component"]) * 0.90)
+                    uncertainty["contract_origin"] = "synthesized_from_cache"
+                    uncertainty["authority_degraded"] = True
             return payload
     return None
 
@@ -818,6 +845,8 @@ def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]
             "coverage": 0,
             "holdings_coverage": 0,
         },
+        "bls_state_v1": None,
+        "bls_state_v2": None,
     }
     snapshot["status"] = _build_status(snapshot, warnings)
     return snapshot
@@ -825,6 +854,8 @@ def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]
 
 def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
     ensure_directory(output_dir)
+    bls_state = snapshot.get("bls_state_v1") or {}
+    bls_state_v2 = snapshot.get("bls_state_v2") or {}
     files = {
         "dashboard_snapshot.json": snapshot,
         "overview.json": snapshot.get("overview", {}),
@@ -846,6 +877,69 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
             "kernel_sector_breadth": snapshot.get("statement_intelligence", {}).get("kernel_sector_breadth", []),
             "kernel_research_utility": snapshot.get("statement_intelligence", {}).get("kernel_research_utility", {}),
         },
+        "bls_state_v1.json": bls_state,
+        "bls_state_v2.json": bls_state_v2,
+        "state.json": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "measured_state": bls_state.get("measured_state", {}),
+            "probabilistic_state": bls_state.get("probabilistic_state", {}),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "policy.json": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "policy_state": bls_state.get("policy_state", {}),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "repairs.json": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "baseline_recoverability": bls_state.get("probabilistic_state", {}).get("p_portfolio_recoverability"),
+            "baseline_phantom_rebound": bls_state.get("probabilistic_state", {}).get("p_phantom_rebound"),
+            "repair_candidates": bls_state.get("repair_candidates", []),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "analogs.json": {
+            "as_of": bls_state.get("as_of"),
+            "portfolio_id": bls_state.get("portfolio_id"),
+            "horizon_days": bls_state.get("horizon_days"),
+            "contract_version": bls_state.get("contract_version"),
+            "model_version": bls_state.get("model_version"),
+            "analogs": bls_state.get("analogs", []),
+            "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "state_v2.json": {
+            "as_of": bls_state_v2.get("as_of"),
+            "portfolio_id": bls_state_v2.get("portfolio_id"),
+            "horizon_days": bls_state_v2.get("horizon_days"),
+            "contract_version": bls_state_v2.get("contract_version"),
+            "model_version": bls_state_v2.get("model_version"),
+            "measured_state": bls_state_v2.get("measured_state", {}),
+            "probabilistic_state": bls_state_v2.get("probabilistic_state", {}),
+            "policy_state": bls_state_v2.get("policy_state", {}),
+            "recoverability_budget": bls_state_v2.get("recoverability_budget", {}),
+            "healing_dynamics": bls_state_v2.get("healing_dynamics", {}),
+            "rebound_sponsorship": bls_state_v2.get("rebound_sponsorship", {}),
+            "legitimacy_surface": bls_state_v2.get("legitimacy_surface", {}),
+            "failure_modes": bls_state_v2.get("failure_modes", {}),
+            "transition_memory": bls_state_v2.get("transition_memory", {}),
+            "repair_candidates": bls_state_v2.get("repair_candidates", []),
+            "analogs": bls_state_v2.get("analogs", []),
+            "uncertainty": bls_state_v2.get("uncertainty", {}),
+        },
+        "legitimacy.json": bls_state_v2.get("legitimacy_surface", {}),
+        "failure_modes.json": bls_state_v2.get("failure_modes", {}),
+        "transitions.json": bls_state_v2.get("transition_memory", {}),
         "status.json": snapshot.get("status", {}),
     }
     for name, payload in files.items():
@@ -879,6 +973,11 @@ def build_dashboard_snapshot(
         if cached is not None:
             cached.setdefault("status", {})
             cached["status"]["warnings"] = list(cached["status"].get("warnings", [])) + warnings + ["using cached snapshot because current payload is unavailable"]
+            if not cached.get("bls_state_v1"):
+                cached["bls_state_v1"] = build_bls_state_contract_v1(cached)
+            if not cached.get("bls_state_v2"):
+                cached["bls_state_v2"] = build_bls_state_contract_v2(cached)
+            cached["status"] = _build_status(cached, cached["status"]["warnings"])
             return cached
         empty = _empty_snapshot(
             generated_at=datetime.now(tz=UTC).isoformat(),
@@ -1035,6 +1134,9 @@ def build_dashboard_snapshot(
             "stale_days": _staleness_days(_path_mtime(research_settings.statement_output_dir / "statement_intelligence_summary.json"), pd.Timestamp.today().normalize()),
         },
     }
+    snapshot_dict["bls_state_v1"] = build_bls_state_contract_v1(snapshot_dict)
+    snapshot_dict["bls_state_v2"] = build_bls_state_contract_v2(snapshot_dict)
+    snapshot_dict["status"] = {"contract_origin": "fresh_build"}
     snapshot_dict["status"] = _build_status(snapshot_dict, warnings)
     snapshot_dict["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
     snapshot = DashboardSnapshot(**snapshot_dict)

@@ -567,6 +567,73 @@ function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRe
   );
 }
 
+function StressModeCard({ stressMode }) {
+  if (!stressMode) return null;
+
+  return (
+    <section className="stress-mode-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">Current stance</p>
+          <strong>{stressMode.active ? "Backend state is driving the decision rules" : "Fallback state is active"}</strong>
+        </div>
+        <span className={`section-chip ${String(stressMode.contractStatus || "").includes("canonical") ? "is-good" : "is-warn"}`}>
+          {stressMode.contractStatus}
+        </span>
+      </div>
+      <div className="stress-mode-grid">
+        <div className="metric-tile">
+          <span>Stance</span>
+          <strong>{stressMode.stance}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Recovery chance</span>
+          <strong>{stressMode.recoverability}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Room to act</span>
+          <strong>{stressMode.roomToAct}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Authority</span>
+          <strong>{stressMode.authority}</strong>
+        </div>
+      </div>
+      <div className="stress-mode-grid">
+        <div className="metric-tile">
+          <span>Healing trend</span>
+          <strong>{stressMode.healing}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Rebound driver</span>
+          <strong>{stressMode.reboundDriver}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Can we add risk?</span>
+          <strong>{stressMode.riskAdds}</strong>
+        </div>
+        <div className="metric-tile">
+          <span>Defensive moves</span>
+          <strong>{stressMode.defensiveMoves}</strong>
+        </div>
+      </div>
+      <div className="grid-two">
+        <div className="panel-block">
+          <p className="block-title">Best action now</p>
+          <p className="support-copy">{stressMode.topMove}</p>
+          <p className="support-copy">Review cadence: {stressMode.cadence}</p>
+        </div>
+        <div className="panel-block">
+          <p className="block-title">What could go wrong first</p>
+          <p className="support-copy">{stressMode.mainRisk}</p>
+          <p className="support-copy">What needs to improve: {stressMode.confirmation}</p>
+          {stressMode.invalidation ? <p className="support-copy">First stop sign: {stressMode.invalidation}</p> : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function PortfolioPulse({ module }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
@@ -575,8 +642,8 @@ function PortfolioPulse({ module }) {
     <section className="cockpit-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Portfolio Pulse</p>
-          <strong>What the book is doing structurally</strong>
+          <p className="eyebrow">Portfolio</p>
+          <strong>What the book looks like now</strong>
         </div>
         <span className="section-chip">{analytics.holdingsCount} holdings</span>
       </div>
@@ -600,8 +667,8 @@ function RiskPulse({ module }) {
     <section className="cockpit-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Risk Pulse</p>
-          <strong>Pressure map for the current book</strong>
+          <p className="eyebrow">Risk</p>
+          <strong>Where pressure is building</strong>
         </div>
         <span className={`section-chip is-${riskState === "Contained" ? "good" : riskState === "Guarded" ? "warn" : "bad"}`}>{riskState}</span>
       </div>
@@ -636,11 +703,11 @@ function ActionsModule({ module }) {
   return (
     <>
       <div className="panel-block intro-block">
-        <p className="block-title">What the terminal would do next</p>
+        <p className="block-title">What to do now</p>
         <p className="support-copy">{module.subtitle}</p>
         <div className="mini-framework">
           <div className="mini-framework-card">
-            <span>Cluster</span>
+            <span>Market setup</span>
             <strong>{module.framework?.cluster?.dominant || "-"}</strong>
           </div>
           <div className="mini-framework-card">
@@ -695,20 +762,20 @@ function ProtocolModule({ module }) {
     <>
       <div className="hero-strip">
         <div>
-          <p className="eyebrow">Capital protocol</p>
+          <p className="eyebrow">Decision rules</p>
           <div className="hero-readout">{module.protocolLabel}</div>
           <p className="support-copy">{module.notes?.[0]}</p>
         </div>
         <div className="hero-grid">
-          <div><span>Trust state</span><strong>{module.trustState}</strong></div>
-          <div><span>Decision rights</span><strong>{module.decisionRights}</strong></div>
-          <div><span>Autonomy</span><strong>{module.autonomyScore}</strong></div>
-          <div><span>Frontier</span><strong>{module.frontierDistance}</strong></div>
+          <div><span>Authority</span><strong>{module.trustScore}</strong></div>
+          <div><span>Risk adds</span><strong>{module.decisionRights}</strong></div>
+          <div><span>Recovery chance</span><strong>{module.autonomyScore}</strong></div>
+          <div><span>Headroom</span><strong>{module.frontierDistance}</strong></div>
         </div>
       </div>
       <div className="grid-two">
         <div className="panel-block">
-          <p className="block-title">Support dependency</p>
+          <p className="block-title">State of the book</p>
           <div className="metric-list">
             {(module.supportDependency || []).map((item) => (
               <div className="metric-row" key={item.id}>
@@ -724,7 +791,7 @@ function ProtocolModule({ module }) {
           </div>
         </div>
         <div className="panel-block">
-          <p className="block-title">Protective value</p>
+          <p className="block-title">What the market is doing</p>
           <div className="metric-list">
             {(module.protectiveValue || []).map((item) => (
               <div className="metric-row" key={item.id}>
@@ -741,7 +808,7 @@ function ProtocolModule({ module }) {
         </div>
       </div>
       <div className="panel-block">
-        <p className="block-title">Step-down trials</p>
+        <p className="block-title">Stop signs</p>
         <div className="scenario-list">
           {(module.stepDownTrials || []).map((scenario) => (
             <div className="scenario-row" key={scenario.name}>
@@ -756,15 +823,15 @@ function ProtocolModule({ module }) {
       </div>
       <div className="grid-two">
         <div className="panel-block">
-          <p className="block-title">Disproof sleeve</p>
+          <p className="block-title">What must improve</p>
           <ul className="signal-list">
-            {(module.disproofSleeve || []).map((item) => <li key={item}>{item}</li>)}
+            {(module.notes || []).slice(1).map((line) => <li key={line}>{line}</li>)}
           </ul>
         </div>
         <div className="panel-block">
-          <p className="block-title">Market playbook</p>
+          <p className="block-title">What to avoid</p>
           <ul className="signal-list">
-            {(module.playbook?.summary || []).map((item) => <li key={item}>{item}</li>)}
+            {(module.disproofSleeve || []).map((item) => <li key={item}>{item}</li>)}
           </ul>
         </div>
       </div>
@@ -1426,6 +1493,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         onRefresh={refreshTerminal}
         isPending={isPending}
       />
+
+      <StressModeCard stressMode={dashboard.stress_mode} />
 
       <section className="market-ribbon">
         {dashboard.market_ribbon.map((item) => (

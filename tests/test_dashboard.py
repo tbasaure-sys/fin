@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import json
-import threading
 from pathlib import Path
-from urllib.request import urlopen
 
 import pandas as pd
 
 from meta_alpha_allocator.config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
-from meta_alpha_allocator.dashboard.server import DashboardService, _build_handler
-from meta_alpha_allocator.dashboard.snapshot import apply_screener_query, build_dashboard_snapshot
+from meta_alpha_allocator.dashboard.server import DashboardService, _bls_contract_routes
+from meta_alpha_allocator.dashboard.snapshot import apply_screener_query, build_dashboard_snapshot, load_cached_snapshot
+from meta_alpha_allocator.dashboard.wsgi import create_app
 
 
 def _write(path: Path, content: str) -> None:
@@ -195,6 +194,12 @@ def test_build_dashboard_snapshot_from_existing_outputs(tmp_path: Path, monkeypa
     assert snapshot["screener"]["source_file"] == "discovery_screener.csv"
     assert snapshot["portfolio"]["current_mix_vs_spy"]
     assert snapshot["status"]["auto_refresh_seconds"] == 300
+    assert snapshot["status"]["contract_status"] == "canonical"
+    assert snapshot["bls_state_v1"]["contract_version"] == "state_contract_v1"
+    assert "probabilistic_state" in snapshot["bls_state_v1"]
+    assert snapshot["bls_state_v2"]["contract_version"] == "state_contract_v2"
+    assert "recoverability_budget" in snapshot["bls_state_v2"]
+    assert "legitimacy_surface" in snapshot["bls_state_v2"]
 
 
 def test_apply_screener_query_filters_and_sorts() -> None:
@@ -220,17 +225,94 @@ def test_dashboard_server_exposes_overview_endpoint(tmp_path: Path, monkeypatch)
     monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.FREDClient.from_env", lambda cache_root: None)
 
     dashboard_settings = DashboardSettings(output_dir=paths.output_root / "dashboard" / "latest")
-    service = DashboardService(paths, ResearchSettings(), AllocatorSettings(), dashboard_settings)
-    from http.server import ThreadingHTTPServer
+    snapshot = build_dashboard_snapshot(
+        paths,
+        ResearchSettings(),
+        AllocatorSettings(),
+        dashboard_settings,
+        refresh_outputs=False,
+    )
+    app = create_app(paths, ResearchSettings(), AllocatorSettings(), dashboard_settings)
 
-    server = ThreadingHTTPServer(("127.0.0.1", 0), _build_handler(service))
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        port = server.server_address[1]
-        with urlopen(f"http://127.0.0.1:{port}/api/overview") as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        assert payload["selected_hedge"] == "SHY"
-    finally:
-        server.shutdown()
-        server.server_close()
+    def _call(path: str) -> dict:
+        response = {}
+
+        def start_response(status, headers):
+            response["status"] = status
+            response["headers"] = headers
+
+        body = b"".join(
+            app(
+                {
+                    "REQUEST_METHOD": "GET",
+                    "PATH_INFO": path,
+                    "QUERY_STRING": "",
+                },
+                start_response,
+            )
+        )
+        assert response["status"] == "200 OK"
+        return json.loads(body.decode("utf-8"))
+
+    payload = _call("/api/overview")
+    assert payload["selected_hedge"]
+    state_payload = _bls_contract_routes(snapshot)["/api/state"]
+    assert state_payload["contract_version"] == "state_contract_v1"
+    assert "probabilistic_state" in state_payload
+    state_v2_payload = _bls_contract_routes(snapshot)["/api/state-v2"]
+    assert state_v2_payload["contract_version"] == "state_contract_v2"
+    assert "recoverability_budget" in state_v2_payload
+    assert _call("/api/state-v2")["contract_version"] == "state_contract_v2"
+    assert "legitimacy_surface" in _call("/api/legitimacy")
+    assert "failure_modes" in _call("/api/failure-modes")
+    assert "transition_memory" in _call("/api/transitions")
+
+
+def test_v2_policy_and_legitimacy_close_risk_adds_in_protect_state(tmp_path: Path, monkeypatch) -> None:
+    paths = _paths(tmp_path)
+    _seed_outputs(paths)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.load_fmp_market_proxy_panel", _fake_market_panel)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.FMPClient.from_env", lambda cache_root: None)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.FREDClient.from_env", lambda cache_root: None)
+
+    snapshot = build_dashboard_snapshot(
+        paths,
+        ResearchSettings(),
+        AllocatorSettings(),
+        DashboardSettings(output_dir=paths.output_root / "dashboard" / "latest"),
+        refresh_outputs=False,
+    )
+    v2 = snapshot["bls_state_v2"]
+    assert v2["policy_state"]["mode"] == "protect"
+    assert v2["policy_state"]["max_gross_add"] == 0
+    assert v2["recoverability_budget"]["budget_state"] == "depleted"
+    assert v2["legitimacy_surface"]["risk_add_state"] == "closed"
+    assert "net_new_risk_adds" in v2["policy_state"]["forbidden_sleeves"]
+
+
+def test_cached_snapshot_synthesis_sets_origin_and_degrades_authority(tmp_path: Path, monkeypatch) -> None:
+    paths = _paths(tmp_path)
+    _seed_outputs(paths)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.load_fmp_market_proxy_panel", _fake_market_panel)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.FMPClient.from_env", lambda cache_root: None)
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.snapshot.FREDClient.from_env", lambda cache_root: None)
+
+    dashboard_settings = DashboardSettings(output_dir=paths.output_root / "dashboard" / "latest")
+    snapshot = build_dashboard_snapshot(
+        paths,
+        ResearchSettings(),
+        AllocatorSettings(),
+        dashboard_settings,
+        refresh_outputs=False,
+    )
+    authority = snapshot["bls_state_v2"]["probabilistic_state"]["authority_score"]
+    cached_path = dashboard_settings.output_dir / "dashboard_snapshot.json"
+    cached_payload = json.loads(cached_path.read_text(encoding="utf-8"))
+    cached_payload["bls_state_v1"] = None
+    cached_payload["bls_state_v2"] = None
+    cached_path.write_text(json.dumps(cached_payload), encoding="utf-8")
+
+    loaded = load_cached_snapshot(paths, dashboard_settings)
+    assert loaded["status"]["contract_origin"] == "synthesized_from_cache"
+    assert loaded["bls_state_v2"]["probabilistic_state"]["authority_score"] < authority
+    assert loaded["bls_state_v2"]["uncertainty"]["authority_degraded"] is True
