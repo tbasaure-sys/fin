@@ -462,8 +462,9 @@ function ClusterBalance({ cluster }) {
     <div className="cluster-balance">
       <div className="cluster-balance-row">
         <div className="cluster-balance-copy">
-          <strong>Structural G</strong>
+          <strong>Internal weakness</strong>
           <span>{cluster.gLabel}</span>
+          {cluster.gMeaning ? <p className="support-copy">{cluster.gMeaning}</p> : null}
         </div>
         <div className="risk-bar-track">
           <div className="risk-bar-fill tone-warn" style={{ width: `${Math.max(cluster.gScore * 100, 10)}%` }} />
@@ -471,8 +472,9 @@ function ClusterBalance({ cluster }) {
       </div>
       <div className="cluster-balance-row">
         <div className="cluster-balance-copy">
-          <strong>Regime R</strong>
+          <strong>Shock pressure</strong>
           <span>{cluster.rLabel}</span>
+          {cluster.rMeaning ? <p className="support-copy">{cluster.rMeaning}</p> : null}
         </div>
         <div className="risk-bar-track">
           <div className="risk-bar-fill tone-bad" style={{ width: `${Math.max(cluster.rScore * 100, 10)}%` }} />
@@ -626,8 +628,8 @@ function StressModeCard({ stressMode }) {
           <strong>{stressMode.marketTrend}</strong>
         </div>
         <div className="metric-tile">
-          <span><TermHelp label="Authority" tip="How much confidence the system has in the current read, based on data quality and evidence." /></span>
-          <strong>{stressMode.authority}</strong>
+          <span><TermHelp label="Evidence strength" tip="How much usable evidence supports this read. Strong means the signal is supported by enough comparable history and acceptable model error." /></span>
+          <strong>{stressMode.authorityLabel || stressMode.authority}</strong>
         </div>
       </div>
       <div className="grid-two">
@@ -647,34 +649,29 @@ function StressModeCard({ stressMode }) {
           <p className="support-copy"><TermHelp label="Main risk" tip="The most likely way the current stance or a premature action could go wrong." />: {stressMode.mainRisk}</p>
           <p className="support-copy">What needs to improve: {stressMode.whatNeedsToImprove}</p>
           <p className="support-copy">Current confirmation rule: {stressMode.confirmation}</p>
-          {stressMode.invalidation ? <p className="support-copy">Main invalidation: {stressMode.invalidation}</p> : null}
+          {stressMode.changeTrigger ? <p className="support-copy">This view changes if: {stressMode.changeTrigger}</p> : null}
           <p className="support-copy">Closest comparable case: {stressMode.topAnalog}</p>
         </div>
       </div>
-      {Array.isArray(stressMode.diagnostics) && stressMode.diagnostics.length ? (
+      <div className="grid-two">
         <div className="panel-block diagnostics-block">
-          <p className="block-title">Model quality</p>
-          <p className="support-copy">Package: {stressMode.packageVersion || "n/a"} · folds {stressMode.packageFoldCount} · error {stressMode.packageBrier} · samples {stressMode.packageSamples}</p>
-          <div className="diagnostics-table">
-            <div className="diagnostics-row diagnostics-head">
-              <span>Model</span>
-              <span>Folds</span>
-              <span>Error</span>
-              <span>Samples</span>
-              <span>Base rate</span>
-            </div>
-            {stressMode.diagnostics.slice(0, 7).map((row) => (
-              <div className="diagnostics-row" key={row.target}>
-                <span>{row.target}</span>
-                <span>{row.folds}</span>
-                <span>{row.brier}</span>
-                <span>{row.samples}</span>
-                <span>{row.positiveRate}</span>
-              </div>
-            ))}
-          </div>
+          <p className="block-title">Why trust this view</p>
+          <p className="support-copy">Evidence strength: {stressMode.authorityLabel || "-"}. Raw confidence: {stressMode.authority}.</p>
+          <p className="support-copy">Source: {stressMode.probabilitySource || "-"} · package {stressMode.packageVersion || "n/a"}.</p>
+          <p className="support-copy">Coverage: {stressMode.modelCoverage} · comparable samples: {stressMode.packageSamples} · model error: {stressMode.packageBrier}.</p>
+          <p className="support-copy">Use this as a decision aid. Strong evidence means the read has held up often enough before. Thin evidence means act smaller and wait for confirmation.</p>
         </div>
-      ) : null}
+        <div className="panel-block diagnostics-block">
+          <p className="block-title">{stressMode.fiberAtlas?.title || "Visible fiber"}</p>
+          <p className="support-copy">{stressMode.fiberAtlas?.explanation}</p>
+          <p className="support-copy">{stressMode.fiberAtlas?.headline}</p>
+          {(stressMode.fiberAtlas?.rows || []).map((row) => (
+            <p className="support-copy" key={row.id}>{row.label}: {row.share} ({row.count})</p>
+          ))}
+          <p className="support-copy">Ambiguity: {stressMode.fiberAtlas?.ambiguityLabel || "-"}. High ambiguity means similar-looking states split later, so the surface alone is not enough.</p>
+          <p className="support-copy">{stressMode.fiberAtlas?.takeaway}</p>
+        </div>
+      </div>
     </section>
   );
 }
@@ -734,7 +731,7 @@ function RiskPulse({ module }) {
                 <strong>{module.clusterDecomposition?.dominantLabel || module.clusterDecomposition?.dominant || "-"}</strong>
               </div>
         <div className="mini-framework-card">
-          <span>Rebound confidence</span>
+          <span>Chance the bounce holds</span>
           <strong>{module.reboundConfidence?.state || "-"}</strong>
         </div>
       </div>
@@ -757,11 +754,11 @@ function ActionsModule({ module }) {
             <strong>{module.framework?.cluster?.dominantLabel || module.framework?.cluster?.dominant || "-"}</strong>
           </div>
           <div className="mini-framework-card">
-            <span>Rebound confidence</span>
+            <span>Chance the bounce holds</span>
             <strong>{module.framework?.reboundConfidence?.state || "-"}</strong>
           </div>
           <div className="mini-framework-card">
-            <span>Rebound quality</span>
+            <span>Is the bounce real?</span>
             <strong>{module.framework?.reboundQuality?.state || "-"}</strong>
           </div>
         </div>
@@ -793,7 +790,7 @@ function ActionsModule({ module }) {
               <li>{action.watchFor}</li>
             </ul>
             <div className="action-invalidation">
-              <span>What would change this</span>
+              <span>What would make this change</span>
               <strong>{action.invalidation}</strong>
             </div>
           </article>
