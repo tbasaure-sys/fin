@@ -1624,6 +1624,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <RiskPulse module={dashboard.modules.risk} />
       </section>
 
+      <EdgeBoard board={dashboard.edge_board} onSelect={setSelectedEdge} />
+
       <div className="terminal-layout">
         <aside className="workspace-rail">
           <section className="rail-card premium-card">
@@ -1673,8 +1675,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               ))}
             </div>
           </section>
-
-          <EdgeBoard board={dashboard.edge_board} onSelect={setSelectedEdge} />
         </aside>
 
         <DecisionWorkflow

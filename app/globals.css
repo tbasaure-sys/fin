@@ -676,19 +676,21 @@ a {
 }
 
 .edge-board {
-  padding: 18px;
+  padding: 20px;
   margin-bottom: 16px;
 }
 
 .edge-board-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
 }
 
 .edge-lane {
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 18px;
-  padding: 14px;
+  padding: 16px;
   background: rgba(255, 255, 255, 0.02);
+  min-height: 100%;
 }
 
 .edge-lane-header {
@@ -702,15 +704,15 @@ a {
   text-align: left;
   padding: 14px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 96px;
-  align-items: center;
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(132px, 152px);
+  align-items: start;
+  gap: 14px;
 }
 
 .edge-row-copy {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
-  gap: 12px;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 14px;
   align-items: start;
 }
 
@@ -724,11 +726,28 @@ a {
   background: rgba(255, 255, 255, 0.05);
 }
 
+.edge-row-copy strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.edge-row-copy span {
+  display: block;
+  line-height: 1.45;
+}
+
 .edge-score-block {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  align-items: flex-end;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.edge-score-block strong,
+.edge-score-block span {
+  text-align: right;
 }
 
 .edge-score-meter,
@@ -1522,7 +1541,7 @@ a {
   }
 
   .edge-board-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
 
   .terminal-layout {
@@ -1594,6 +1613,11 @@ a {
   .metric-row,
   .cluster-balance-row {
     grid-template-columns: 1fr;
+  }
+
+  .edge-score-block strong,
+  .edge-score-block span {
+    text-align: left;
   }
 
   .hero-panel,
