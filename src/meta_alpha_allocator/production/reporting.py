@@ -54,8 +54,9 @@ def _percentile_score(series: pd.Series, higher_is_better: bool = True) -> pd.Se
 
 
 def _proxy_snapshot(proxy_prices: pd.DataFrame, tickers: list[str], as_of_date: pd.Timestamp) -> pd.DataFrame:
+    columns = ["ticker", "mom_20d", "mom_60d", "vol_20d", "drawdown_63d", "corr_spy_60d"]
     if proxy_prices.empty:
-        return pd.DataFrame(columns=["ticker", "mom_20d", "mom_60d", "vol_20d", "drawdown_63d", "corr_spy_60d"])
+        return pd.DataFrame(columns=columns)
 
     prices = proxy_prices.sort_index().ffill().loc[:as_of_date]
     returns = prices.pct_change()
@@ -78,7 +79,7 @@ def _proxy_snapshot(proxy_prices: pd.DataFrame, tickers: list[str], as_of_date: 
                 "corr_spy_60d": _safe_corr(ticker_returns, spy_returns, 60),
             }
         )
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows, columns=columns)
 
 
 def _sector_lookup(settings: ResearchSettings) -> dict[str, str]:
