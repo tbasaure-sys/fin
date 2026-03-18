@@ -177,14 +177,16 @@ def _build_live_market_panel(
         fmp_client=fmp_client,
     )
     quote_rows: list[dict[str, Any]] = []
+    latest_quote_dates: list[pd.Timestamp] = []
     for ticker in unique_tickers:
         if ticker not in panel.columns:
-            quote_rows.append({"ticker": ticker, "price": None, "return_1d": None, "return_20d": None, "source": "cache"})
+            quote_rows.append({"ticker": ticker, "price": None, "return_1d": None, "return_20d": None, "source": "cache", "as_of": None})
             continue
         series = panel[ticker].dropna()
         if series.empty:
-            quote_rows.append({"ticker": ticker, "price": None, "return_1d": None, "return_20d": None, "source": "cache"})
+            quote_rows.append({"ticker": ticker, "price": None, "return_1d": None, "return_20d": None, "source": "cache", "as_of": None})
             continue
+        latest_quote_dates.append(pd.to_datetime(series.index[-1]))
         quote_rows.append(
             {
                 "ticker": ticker,
@@ -192,9 +194,17 @@ def _build_live_market_panel(
                 "return_1d": float(series.pct_change().iloc[-1]) if len(series) >= 2 else None,
                 "return_20d": float(series.iloc[-1] / series.iloc[-21] - 1.0) if len(series) >= 21 else None,
                 "source": "fmp_or_fallback",
+                "as_of": pd.to_datetime(series.index[-1]).date().isoformat(),
             }
         )
-    return panel, {"quotes": quote_rows}
+    latest_quote_date = max(latest_quote_dates) if latest_quote_dates else None
+    quote_stale_days = _staleness_days(latest_quote_date, pd.Timestamp.today().normalize())
+    return panel, {
+        "quotes": quote_rows,
+        "quotes_as_of": latest_quote_date.date().isoformat() if latest_quote_date is not None else None,
+        "quotes_stale_days": quote_stale_days,
+        "quotes_source": "fmp_or_fallback" if quote_rows else "unavailable",
+    }
 
 
 def _build_performance_snapshot(paths: PathConfig, dashboard_settings: DashboardSettings) -> dict[str, Any]:

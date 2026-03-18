@@ -4,6 +4,7 @@ import json
 import os
 import time
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -19,13 +20,15 @@ class FMPClient:
     api_key: str
     cache_root: Path
     pause_seconds: float = 0.15
+    price_cache_ttl_seconds: int = 1800
 
     @classmethod
     def from_env(cls, cache_root: Path) -> "FMPClient | None":
         api_key = os.environ.get("FMP_API_KEY") or os.environ.get("FINANCIAL_MODELING_PREP_API_KEY")
         if not api_key:
             return None
-        return cls(api_key=api_key, cache_root=cache_root)
+        ttl = int(os.environ.get("FMP_PRICE_CACHE_TTL_SECONDS", "1800"))
+        return cls(api_key=api_key, cache_root=cache_root, price_cache_ttl_seconds=ttl)
 
     def _cache_path(self, group: str, name: str, suffix: str) -> Path:
         safe_name = name.replace("/", "_").replace("?", "_").replace("&", "_")
@@ -33,9 +36,25 @@ class FMPClient:
         path.parent.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _get_json(self, endpoint: str, params: dict[str, Any], cache_group: str, cache_name: str) -> Any:
+    def _cache_is_fresh(self, cache_path: Path, ttl_seconds: int | None) -> bool:
+        if not cache_path.exists():
+            return False
+        if ttl_seconds is None or ttl_seconds <= 0:
+            return True
+        age_seconds = time.time() - cache_path.stat().st_mtime
+        return age_seconds <= ttl_seconds
+
+    def _get_json(
+        self,
+        endpoint: str,
+        params: dict[str, Any],
+        cache_group: str,
+        cache_name: str,
+        *,
+        ttl_seconds: int | None = None,
+    ) -> Any:
         cache_path = self._cache_path(cache_group, cache_name, ".json")
-        if cache_path.exists():
+        if self._cache_is_fresh(cache_path, ttl_seconds):
             return json.loads(cache_path.read_text(encoding="utf-8"))
 
         query = dict(params)
@@ -50,7 +69,12 @@ class FMPClient:
     def get_historical_prices(self, symbol: str, start_date: str | None = None, end_date: str | None = None) -> pd.DataFrame:
         cache_name = f"{symbol}_{start_date or 'min'}_{end_date or 'max'}"
         cache_path = self._cache_path("prices", cache_name, ".csv")
-        if cache_path.exists():
+        requested_end = pd.to_datetime(end_date).date() if end_date else None
+        today_utc = datetime.now(timezone.utc).date()
+        needs_recent_data = requested_end is None or requested_end >= today_utc - timedelta(days=1)
+        ttl_seconds = self.price_cache_ttl_seconds if needs_recent_data else None
+
+        if self._cache_is_fresh(cache_path, ttl_seconds):
             frame = pd.read_csv(cache_path)
         else:
             payload = self._get_json(
@@ -58,6 +82,7 @@ class FMPClient:
                 {"from": start_date, "to": end_date, "serietype": "line"},
                 cache_group="prices_raw",
                 cache_name=cache_name,
+                ttl_seconds=ttl_seconds,
             )
             rows = payload.get("historical", []) if isinstance(payload, dict) else []
             frame = pd.DataFrame(rows)
