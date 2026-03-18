@@ -7,6 +7,8 @@ PORTFOLIO_MANAGER_PYTHON_BIN="${PORTFOLIO_MANAGER_PYTHON_BIN:-$PYTHON_BIN}"
 REDACT_SCRIPT="$ROOT_DIR/scripts/redact_dashboard_artifact.py"
 SOURCE_DIR="$ROOT_DIR/output/dashboard/latest"
 ARTIFACT_DIR="$ROOT_DIR/artifacts/dashboard/latest"
+REMOTE_UPLOAD_URL="${BLS_PRIME_REMOTE_SNAPSHOT_PUT_URL:-${META_ALLOCATOR_REMOTE_SNAPSHOT_PUT_URL:-}}"
+REMOTE_UPLOAD_METHOD="${BLS_PRIME_REMOTE_SNAPSHOT_UPLOAD_METHOD:-PUT}"
 SKIP_PORTFOLIO_MANAGER=0
 PUSH_ARTIFACTS=0
 COMMIT_MESSAGE=""
@@ -134,6 +136,15 @@ log_step "Refreshing dashboard snapshot"
 log_step "Publishing redacted artifact"
 mkdir -p "$ARTIFACT_DIR"
 "${PYTHON_BIN}" "$REDACT_SCRIPT" "$SOURCE_DIR" "$ARTIFACT_DIR" >/dev/null
+
+if [[ -n "$REMOTE_UPLOAD_URL" ]]; then
+  log_step "Uploading snapshot to remote storage"
+  curl --fail --silent --show-error \
+    -X "$REMOTE_UPLOAD_METHOD" \
+    -H "content-type: application/json" \
+    --data-binary "@${ARTIFACT_DIR}/dashboard_snapshot.json" \
+    "$REMOTE_UPLOAD_URL" >/dev/null
+fi
 
 log_step "Current artifact stamp"
 export BLS_PRIME_ARTIFACT_PATH="${ARTIFACT_DIR}/dashboard_snapshot.json"
