@@ -591,7 +591,7 @@ function StressModeCard({ stressMode }) {
           <strong>{stressMode.decisionSummary}</strong>
         </div>
         <span className={`section-chip ${String(stressMode.contractStatus).startsWith("canonical") ? "is-good" : "is-warn"}`}>
-          {stressMode.contractStatus}
+          {stressMode.contractStatusLabel || stressMode.contractStatus}
         </span>
       </div>
       <div className="stress-mode-grid">
@@ -688,7 +688,7 @@ function PortfolioPulse({ module }) {
       <div className="section-topline">
         <div>
           <p className="eyebrow">Portfolio Pulse</p>
-          <strong>What the book is doing structurally</strong>
+          <strong>What the portfolio is doing structurally</strong>
         </div>
         <span className="section-chip">{analytics.holdingsCount} holdings</span>
       </div>
@@ -713,7 +713,7 @@ function RiskPulse({ module }) {
       <div className="section-topline">
         <div>
           <p className="eyebrow">Risk Pulse</p>
-          <strong>Pressure map for the current book</strong>
+          <strong>Pressure map for the current portfolio</strong>
         </div>
         <span className={`section-chip is-${riskState === "Contained" ? "good" : riskState === "Guarded" ? "warn" : "bad"}`}>{riskState}</span>
       </div>
@@ -729,10 +729,10 @@ function RiskPulse({ module }) {
         {(module.narrative || []).slice(0, 2).map((line) => <p key={line}>{line}</p>)}
       </div>
       <div className="mini-framework">
-        <div className="mini-framework-card">
-          <span>Cluster</span>
-          <strong>{module.clusterDecomposition?.dominant || "-"}</strong>
-        </div>
+              <div className="mini-framework-card">
+                <span>Cluster</span>
+                <strong>{module.clusterDecomposition?.dominantLabel || module.clusterDecomposition?.dominant || "-"}</strong>
+              </div>
         <div className="mini-framework-card">
           <span>Rebound confidence</span>
           <strong>{module.reboundConfidence?.state || "-"}</strong>
@@ -754,7 +754,7 @@ function ActionsModule({ module }) {
         <div className="mini-framework">
           <div className="mini-framework-card">
             <span>Cluster</span>
-            <strong>{module.framework?.cluster?.dominant || "-"}</strong>
+            <strong>{module.framework?.cluster?.dominantLabel || module.framework?.cluster?.dominant || "-"}</strong>
           </div>
           <div className="mini-framework-card">
             <span>Rebound confidence</span>
@@ -875,7 +875,7 @@ function ProtocolModule({ module }) {
           </ul>
         </div>
         <div className="panel-block">
-          <p className="block-title">Market playbook</p>
+          <p className="block-title">Market read</p>
           <ul className="signal-list">
             {(module.playbook?.summary || []).map((item) => <li key={item}>{item}</li>)}
           </ul>
@@ -997,7 +997,7 @@ function PortfolioModule({ module }) {
         <div className="panel-block">
           <DistributionBars
             title="Sector exposure"
-            subtitle="Largest sleeves in the book"
+            subtitle="Largest sleeves in the portfolio"
             rows={module.charts?.sectorExposure}
             tone="good"
           />

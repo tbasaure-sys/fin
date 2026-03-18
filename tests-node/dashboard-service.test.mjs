@@ -27,7 +27,7 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   assert.equal(dashboard.module_refs[0].id, "actions");
   assert.equal(dashboard.module_refs[1].id, "command");
   assert.equal(dashboard.modules.actions.title, "Next Best Moves");
-  assert.equal(dashboard.modules.command.title, "Capital Protocol");
+  assert.equal(dashboard.modules.command.title, "Decision Rules");
   assert.ok(dashboard.alerts.length >= 1);
   assert.equal(dashboard.portfolio_state.watchlist_count, 0);
   assert.equal(dashboard.modules.portfolio.holdings[0].ticker, "SGOV");
