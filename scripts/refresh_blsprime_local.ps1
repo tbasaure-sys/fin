@@ -10,6 +10,7 @@ $metaRoot = Split-Path -Parent $PSScriptRoot
 $financeRoot = Split-Path -Parent $metaRoot
 $portfolioRoot = Join-Path $financeRoot "portfolio_manager"
 $artifactRoot = Join-Path $metaRoot "artifacts\dashboard\latest"
+$redactScript = Join-Path $PSScriptRoot "redact_dashboard_artifact.py"
 
 if (!(Test-Path $PythonExe)) {
   throw "Python executable not found at $PythonExe"
@@ -72,7 +73,7 @@ Show-Stamp (Join-Path $metaRoot "output\dashboard\latest\dashboard_snapshot.json
 
 Write-Step "Publishing deployable artifact"
 New-Item -ItemType Directory -Force $artifactRoot | Out-Null
-Copy-Item (Join-Path $metaRoot "output\dashboard\latest\*.json") $artifactRoot -Force
+& $PythonExe $redactScript (Join-Path $metaRoot "output\dashboard\latest") $artifactRoot | Out-Null
 Show-Stamp (Join-Path $artifactRoot "dashboard_snapshot.json")
 
 Write-Host ""

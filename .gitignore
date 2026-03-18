@@ -3,6 +3,7 @@ output/
 cache/
 tmp/
 .pytest_cache/
+_local_data/
 
 # local data and notebooks
 data/
