@@ -1,13 +1,10 @@
 {
-  "warnings": [
-    "production refresh failed: [Errno 2] No such file or directory: '/home/t14_ultra_7_tomas/code/Fin_model/data_processed/tension_metrics.csv'",
-    "using cached snapshot because current payload is unavailable"
-  ],
+  "warnings": [],
   "panels": [
     {
       "name": "performance",
-      "stale_days": 0,
-      "status": "fresh"
+      "stale_days": null,
+      "status": "unknown"
     },
     {
       "name": "risk",
@@ -31,13 +28,13 @@
     },
     {
       "name": "portfolio",
-      "stale_days": 0,
-      "status": "fresh"
+      "stale_days": null,
+      "status": "unknown"
     },
     {
       "name": "protocol",
-      "stale_days": null,
-      "status": "unknown"
+      "stale_days": 0,
+      "status": "fresh"
     },
     {
       "name": "screener",
@@ -55,7 +52,7 @@
       "status": "fresh"
     }
   ],
-  "last_refresh": "2026-03-15T06:52:32.262634+00:00",
+  "last_refresh": "2026-03-18T04:53:54.203673+00:00",
   "contract_status": "canonical_valid",
   "contract_version": "state_contract_v1",
   "model_version": "bls_state_v1.1",

@@ -1,1 +1,58 @@
-{}
+{
+  "protocol": "wean_and_rebuild",
+  "protocol_label": "Wean And Rebuild",
+  "trust_score": 0.8160643336332042,
+  "trust_state": "Act",
+  "decision_rights": "Guardrail required",
+  "autonomy_score": 0.428913920810331,
+  "frontier_distance": -0.22659354160916423,
+  "recoverability_budget": "Tight",
+  "support_dependency": {
+    "passive_flows": 0.28940994123332686,
+    "valuation_tolerance": 1.0,
+    "cheap_refinancing": 0.17472127675494606,
+    "narrative_breadth": 0.29000000000000004
+  },
+  "protective_value": {
+    "cash": 0.06,
+    "duration": 0.1,
+    "convexity": 0.08,
+    "quality": 0.1571327347479399
+  },
+  "step_down_trials": [
+    {
+      "name": "Flow withdrawal",
+      "shock": "Reduce passive support by 20%",
+      "autonomy_score": 0.36524373373899904,
+      "verdict": "Protection first"
+    },
+    {
+      "name": "Valuation compression",
+      "shock": "Compress valuation tolerance by 1 standard deviation",
+      "autonomy_score": 0.16891392081033096,
+      "verdict": "Protection first"
+    },
+    {
+      "name": "Breadth collapse",
+      "shock": "Narrow idea breadth across the book",
+      "autonomy_score": 0.36801392081033096,
+      "verdict": "Protection first"
+    }
+  ],
+  "disproof_sleeve": [
+    "Defensive dividend quality",
+    "Broadening basket",
+    "Rate-sensitive cash generators"
+  ],
+  "gaps": {
+    "stability_gap": 0.3354524939310208,
+    "recoverability_gap": 0.22659354160916423,
+    "epistemic_gap": 0.1839356663667958
+  },
+  "notes": [
+    "Decision rights are currently guardrail required.",
+    "Trust is in act mode, so the system should speak clearly.",
+    "Recoverability budget is tight, with frontier distance -22.7%."
+  ],
+  "stale_days": 0
+}
