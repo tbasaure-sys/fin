@@ -488,6 +488,18 @@ a {
   margin-bottom: 16px;
 }
 
+.stress-mode-card {
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+.stress-mode-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
 .ticker-card {
   padding: 16px;
   display: flex;
@@ -1378,6 +1390,7 @@ a {
 @media (max-width: 1120px) {
   .hero-panel,
   .cockpit-grid,
+  .stress-mode-grid,
   .terminal-layout,
   .module-grid,
   .hero-strip,

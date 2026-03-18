@@ -21,7 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
-from .server import DashboardService, CORS_ORIGIN
+from .server import DashboardService, CORS_ORIGIN, _bls_contract_routes
 from .snapshot import apply_screener_query
 # chrono_alert is exposed via service.chrono_alert() — no extra import needed here
 
@@ -161,6 +161,7 @@ def create_app(
             "/api/audit": service.audit_summary(),
             "/api/chrono": service.chrono_alert(),
         }
+        route_map.update(_bls_contract_routes(snapshot))
 
         if path_info in route_map:
             return _json_response(start_response, route_map[path_info])
