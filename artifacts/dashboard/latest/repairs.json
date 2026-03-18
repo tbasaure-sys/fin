@@ -1,0 +1,123 @@
+{
+  "as_of": "2026-03-13",
+  "portfolio_id": "default",
+  "horizon_days": 20,
+  "contract_version": "state_contract_v1",
+  "model_version": "bls_state_v1.1",
+  "baseline_recoverability": 0.3076923076923077,
+  "baseline_phantom_rebound": 0.21739130434782608,
+  "repair_candidates": [],
+  "uncertainty": {
+    "calibration_component": 0.6496919713233731,
+    "coverage_component": 1.0,
+    "stability_component": 0.7799999999999999,
+    "data_component": 1.0,
+    "evidence_tier": "production",
+    "model_version": "bls_state_v1.1",
+    "contract_version": "state_contract_v1",
+    "authority": {
+      "evidence_authority": 0.7850850118625642,
+      "hygiene_authority": 0.9999999999999999,
+      "authority_policy_gate": 0.7850850118625642,
+      "evidence_tier": "production"
+    },
+    "provenance_summary": {
+      "root_family": "workspace_ct",
+      "coverage_ratio": 1.0,
+      "missing_required": [],
+      "root_conflict": false
+    },
+    "research_sources": [
+      "autopsy_results",
+      "autopsy_timeseries",
+      "daily_spectral_metrics",
+      "legacy_recoverability_analysis",
+      "legacy_recoverability_summary",
+      "phantom_by_fragility",
+      "phantom_detector",
+      "phantom_headline",
+      "prob_recoverability_action_epochs",
+      "prob_recoverability_challenge",
+      "prob_recoverability_summary",
+      "prospective_stress_panel",
+      "recoverability_episodes",
+      "recoverability_predictions",
+      "recoverability_summary",
+      "recovery_events",
+      "shock_support_dff_surface",
+      "shock_support_nfci_surface",
+      "shock_support_summary",
+      "state_dependent_intervention",
+      "structural_recovery",
+      "tightening_panel",
+      "tightening_summary"
+    ],
+    "feature_missing_count": 1,
+    "probability_package_metrics": [
+      {
+        "target": "g_dominance",
+        "sample_count": 140,
+        "positive_rate": 0.15,
+        "fold_count": 3,
+        "brier_oof_raw": 0.435028433470581,
+        "brier_oof_calibrated": 0.11583011583011582,
+        "auc_oof_raw": 0.478494623655914,
+        "auc_oof_calibrated": 0.5967741935483871
+      },
+      {
+        "target": "r_dominance",
+        "sample_count": 140,
+        "positive_rate": 0.45,
+        "fold_count": 3,
+        "brier_oof_raw": 0.08321269218231465,
+        "brier_oof_calibrated": 0.04934479934479933,
+        "auc_oof_raw": 0.696078431372549,
+        "auc_oof_calibrated": 0.7990196078431372
+      },
+      {
+        "target": "visible_correction",
+        "sample_count": 140,
+        "positive_rate": 0.37857142857142856,
+        "fold_count": 3,
+        "brier_oof_raw": 0.31856331561980644,
+        "brier_oof_calibrated": 0.13008225616921268,
+        "auc_oof_raw": 0.478494623655914,
+        "auc_oof_calibrated": 0.6370967741935484
+      },
+      {
+        "target": "phantom_rebound",
+        "sample_count": 140,
+        "positive_rate": 0.22142857142857142,
+        "fold_count": 3,
+        "brier_oof_raw": 0.32049597558559495,
+        "brier_oof_calibrated": 0.1337837837837838,
+        "auc_oof_raw": 0.41935483870967744,
+        "auc_oof_calibrated": 0.5806451612903225
+      },
+      {
+        "target": "portfolio_recoverability",
+        "sample_count": 140,
+        "positive_rate": 0.4357142857142857,
+        "fold_count": 3,
+        "brier_oof_raw": 0.31883230549275865,
+        "brier_oof_calibrated": 0.12394317394317393,
+        "auc_oof_raw": 0.5698924731182796,
+        "auc_oof_calibrated": 0.7043010752688172
+      },
+      {
+        "target": "extreme_drawdown",
+        "sample_count": 140,
+        "positive_rate": 0.39285714285714285,
+        "fold_count": 3,
+        "brier_oof_raw": 0.21722128382735761,
+        "brier_oof_calibrated": 0.16306306306306306,
+        "auc_oof_raw": 0.6987179487179488,
+        "auc_oof_calibrated": 0.7612179487179487
+      }
+    ],
+    "probability_layer_source": "offline_probability_package_v1+research_restoration",
+    "probability_model_package_version": "probability_packages_v5",
+    "probability_package_invalidation_reason": "cache_hit",
+    "artifact_fingerprint_hash": "e851315ad2de6fdd6e4704c69b92acb81d0bdd422546a48b15512feba345269e"
+  }
+}

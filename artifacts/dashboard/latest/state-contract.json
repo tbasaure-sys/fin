@@ -1,0 +1,650 @@
+{
+  "contract_version": "state_contract_v1",
+  "model_version": "bls_state_v1.1",
+  "as_of": "2026-03-13",
+  "portfolio_id": "default",
+  "horizon_days": 20,
+  "measured_state": {
+    "market_effective_dimension": 19.016038114542273,
+    "market_dominance_share": 0.5,
+    "market_compression": 0.35155684689438016,
+    "breadth": 0.7096774193548387,
+    "median_pairwise_corr": 0.4624538916439896,
+    "portfolio_hhi": 0.03554242269442164,
+    "portfolio_factor_dimension": 5.335787558815252,
+    "portfolio_fragility_exposure": 0.6114388345943846,
+    "portfolio_liquidity_buffer": 0.08899699999999999,
+    "portfolio_drawdown": -0.31745473376603317,
+    "benchmark_drawdown": -0.11216390734261883,
+    "macro_vix": null
+  },
+  "probabilistic_state": {
+    "horizon_days": 20,
+    "p_structural_dominance": 0.0,
+    "p_regime_shock_dominance": 0.0,
+    "cluster_type": "mixed",
+    "p_visible_correction": 0.21739130434782608,
+    "p_structural_restoration": 0.5387634157899748,
+    "p_phantom_rebound": 0.21739130434782608,
+    "p_portfolio_recoverability": 0.3076923076923077,
+    "p_extreme_drawdown": 0.0,
+    "authority_score": 0.7850850118625642,
+    "source": "offline_probability_package_v1+research_restoration",
+    "feature_coverage": 9,
+    "model_package_version": "probability_packages_v5",
+    "package_invalidation_reason": "cache_hit",
+    "artifact_fingerprint_hash": "e851315ad2de6fdd6e4704c69b92acb81d0bdd422546a48b15512feba345269e",
+    "package_metrics": [
+      {
+        "target": "g_dominance",
+        "sample_count": 140,
+        "positive_rate": 0.15,
+        "fold_count": 3,
+        "brier_oof_raw": 0.435028433470581,
+        "brier_oof_calibrated": 0.11583011583011582,
+        "auc_oof_raw": 0.478494623655914,
+        "auc_oof_calibrated": 0.5967741935483871
+      },
+      {
+        "target": "r_dominance",
+        "sample_count": 140,
+        "positive_rate": 0.45,
+        "fold_count": 3,
+        "brier_oof_raw": 0.08321269218231465,
+        "brier_oof_calibrated": 0.04934479934479933,
+        "auc_oof_raw": 0.696078431372549,
+        "auc_oof_calibrated": 0.7990196078431372
+      },
+      {
+        "target": "visible_correction",
+        "sample_count": 140,
+        "positive_rate": 0.37857142857142856,
+        "fold_count": 3,
+        "brier_oof_raw": 0.31856331561980644,
+        "brier_oof_calibrated": 0.13008225616921268,
+        "auc_oof_raw": 0.478494623655914,
+        "auc_oof_calibrated": 0.6370967741935484
+      },
+      {
+        "target": "phantom_rebound",
+        "sample_count": 140,
+        "positive_rate": 0.22142857142857142,
+        "fold_count": 3,
+        "brier_oof_raw": 0.32049597558559495,
+        "brier_oof_calibrated": 0.1337837837837838,
+        "auc_oof_raw": 0.41935483870967744,
+        "auc_oof_calibrated": 0.5806451612903225
+      },
+      {
+        "target": "portfolio_recoverability",
+        "sample_count": 140,
+        "positive_rate": 0.4357142857142857,
+        "fold_count": 3,
+        "brier_oof_raw": 0.31883230549275865,
+        "brier_oof_calibrated": 0.12394317394317393,
+        "auc_oof_raw": 0.5698924731182796,
+        "auc_oof_calibrated": 0.7043010752688172
+      },
+      {
+        "target": "extreme_drawdown",
+        "sample_count": 140,
+        "positive_rate": 0.39285714285714285,
+        "fold_count": 3,
+        "brier_oof_raw": 0.21722128382735761,
+        "brier_oof_calibrated": 0.16306306306306306,
+        "auc_oof_raw": 0.6987179487179488,
+        "auc_oof_calibrated": 0.7612179487179487
+      }
+    ],
+    "neighbor_count": 25,
+    "phantom_fragility_prior": 0.5,
+    "phantom_fragility_decile": 7
+  },
+  "policy_state": {
+    "mode": "protect",
+    "max_gross_add": 0.0,
+    "max_single_name_add": 0.0,
+    "max_turnover": 0.06,
+    "hedge_floor": 0.18,
+    "allowed_sleeves": [
+      "defensive_compounders",
+      "index_hedge",
+      "cash_equivalents"
+    ],
+    "forbidden_sleeves": [
+      "net_new_risk_adds",
+      "crowded_thematic_growth"
+    ],
+    "review_cadence": "8h",
+    "rebalance_delay": "0d",
+    "required_confirmation": "drawdown_stabilizes_and_phantom_falls",
+    "invalidation_rules": [
+      "p_portfolio_recoverability_below_0_42",
+      "p_phantom_rebound_above_0_48",
+      "authority_score_below_0_40"
+    ],
+    "mode_entered_at": "2026-03-13",
+    "mode_persistence_days": 0,
+    "transition_reason": "fresh_threshold_match",
+    "hysteresis_state": {
+      "fresh_mode": "protect",
+      "last_mode": "protect"
+    }
+  },
+  "repair_candidates": [],
+  "analogs": [
+    {
+      "analog_id": "research-analog-105",
+      "as_of": "2009-06-17T00:00:00",
+      "distance": 0.7046,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 1.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.1,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-104",
+      "as_of": "2009-06-08T00:00:00",
+      "distance": 0.7205,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 0.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.4138637499461801,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-103",
+      "as_of": "2009-06-05T00:00:00",
+      "distance": 0.7233,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 1.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.1,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-102",
+      "as_of": "2009-06-01T00:00:00",
+      "distance": 0.7479,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 1.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.1,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-9",
+      "as_of": "2008-02-15T00:00:00",
+      "distance": 0.7522,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 0.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.1,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-10",
+      "as_of": "2008-02-19T00:00:00",
+      "distance": 0.7541,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 1.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.177663111144637,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-139",
+      "as_of": "2022-05-24T00:00:00",
+      "distance": 0.7557,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 1.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.2300998301687027,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    },
+    {
+      "analog_id": "research-analog-147",
+      "as_of": "2022-09-20T00:00:00",
+      "distance": 0.7608,
+      "cluster_type": "mixed",
+      "p_visible_correction_realized": 0.0,
+      "p_structural_restoration_realized": 0.0,
+      "days_to_visible_correction": 12,
+      "days_to_structural_restoration": 45,
+      "max_drawdown_from_state": -0.1,
+      "summary_tags": [
+        "research-artifact",
+        "nan"
+      ],
+      "provenance_ref": "research_artifacts"
+    }
+  ],
+  "research_provenance": {
+    "artifacts": [
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Finance_Autopsy_Results.csv",
+        "source_filename": "Finance_Autopsy_Results.csv",
+        "mtime_utc": "2026-01-31T22:24:33+00:00",
+        "row_count": 14,
+        "column_count": 2,
+        "sha256": "f0535f6c29e1ae921f33dd126ec0d4fa0eab4f46ac128ba9c9f079c6753a65e5",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "autopsy_results"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Finance_Autopsy_Timeseries.csv",
+        "source_filename": "Finance_Autopsy_Timeseries.csv",
+        "mtime_utc": "2026-01-31T22:24:33+00:00",
+        "row_count": 497,
+        "column_count": 15,
+        "sha256": "1936921abe5bc521de9c216ea43e7c77290c512a886961926d27d2890e2469aa",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "autopsy_timeseries"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Finance_Theorem_v1_DailySpectralMetrics.csv",
+        "source_filename": "Finance_Theorem_v1_DailySpectralMetrics.csv",
+        "mtime_utc": "2026-02-17T03:43:10.626802921+00:00",
+        "row_count": 6229,
+        "column_count": 14,
+        "sha256": "2e45462a9f3d29abfd2f1e0c0d4eec93533226ed8eb70de058f3761a953afe43",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "daily_spectral_metrics"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Recoverability_Analysis.csv",
+        "source_filename": "Recoverability_Analysis.csv",
+        "mtime_utc": "2026-02-15T07:13:56+00:00",
+        "row_count": 497,
+        "column_count": 23,
+        "sha256": "4ae131099044dc13ab37f98454bc5181d432d73f3d888791b997c2ebb89d2876",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "legacy_recoverability_analysis"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Recoverability_Summary.csv",
+        "source_filename": "Recoverability_Summary.csv",
+        "mtime_utc": "2026-02-15T07:13:56+00:00",
+        "row_count": 4,
+        "column_count": 6,
+        "sha256": "2eccc0c328f06fd04087c789d1b70ea1feeb85f3c23285f0d98f82d715f43588",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "legacy_recoverability_summary"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_PhantomShare_ByFragility.csv",
+        "source_filename": "Finance_PhantomShare_ByFragility.csv",
+        "mtime_utc": "2026-03-07T18:41:41.910343170+00:00",
+        "row_count": 10,
+        "column_count": 10,
+        "sha256": "5e692e4fd7412f36a9d10d3179ab4ff4dc0f12d727e6c5204a197f54b144d740",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "phantom_by_fragility"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Phantom_Stability_Detector.csv",
+        "source_filename": "Phantom_Stability_Detector.csv",
+        "mtime_utc": "2026-02-15T20:12:06+00:00",
+        "row_count": 4639,
+        "column_count": 35,
+        "sha256": "66a5057ee74974dd7928b41ef3f68245afd269ae9499d109b412df25f4b93782",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "phantom_detector"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_PhantomShare_Headline.csv",
+        "source_filename": "Finance_PhantomShare_Headline.csv",
+        "mtime_utc": "2026-03-07T18:41:41.910343170+00:00",
+        "row_count": 1,
+        "column_count": 16,
+        "sha256": "809afd9016475594f3343dcaeed8e13dad6fa4958ac03c142953ccdac0a01a76",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "phantom_headline"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_ProbabilityRecoverability_ActionEpochs.csv",
+        "source_filename": "Finance_ProbabilityRecoverability_ActionEpochs.csv",
+        "mtime_utc": "2026-03-08T20:45:43.316377401+00:00",
+        "row_count": 152,
+        "column_count": 135,
+        "sha256": "4de28ef3c4df4875019ba20aefc262039d0121e2e3a333a1f0211f109904427d",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "prob_recoverability_action_epochs"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_ProbabilityRecoverability_Challenge.csv",
+        "source_filename": "Finance_ProbabilityRecoverability_Challenge.csv",
+        "mtime_utc": "2026-03-08T20:45:43.218767881+00:00",
+        "row_count": 294,
+        "column_count": 130,
+        "sha256": "812a7e78f2c98e5b6957c9ff1f57393f399144c3737d5073e84e251c1c5a55fe",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "prob_recoverability_challenge"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_ProbabilityRecoverability_Summary.csv",
+        "source_filename": "Finance_ProbabilityRecoverability_Summary.csv",
+        "mtime_utc": "2026-03-08T20:45:59.959364414+00:00",
+        "row_count": 3,
+        "column_count": 18,
+        "sha256": "bec39c1d28b3922a4c857f66957859bebbacc2d7bd9713169431b0b4a5931424",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "prob_recoverability_summary"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Finance_Theorem_v1_ProspectiveStressPanel.csv",
+        "source_filename": "Finance_Theorem_v1_ProspectiveStressPanel.csv",
+        "mtime_utc": "2026-02-17T03:43:13.074867010+00:00",
+        "row_count": 149564,
+        "column_count": 20,
+        "sha256": "6dc15738acd46dead6e88d7ff1d1a8d968e1c14888ab6de4472215835c5171d0",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "prospective_stress_panel"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Finance_Recoverability_v5_Episodes.csv",
+        "source_filename": "Finance_Recoverability_v5_Episodes.csv",
+        "mtime_utc": "2026-02-16T20:13:04.566023588+00:00",
+        "row_count": 193,
+        "column_count": 43,
+        "sha256": "dcf0b8c432419182960f98237ee26f0809f9e455db5a0ac9ff4355188a71fa4a",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "recoverability_episodes"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Finance_Recoverability_v5_Predictions.csv",
+        "source_filename": "Finance_Recoverability_v5_Predictions.csv",
+        "mtime_utc": "2026-02-16T20:13:04.569683075+00:00",
+        "row_count": 96,
+        "column_count": 4,
+        "sha256": "8da115f5cbacce0e8e8abe2934b778ad0740950ec882bda98b1fd59ac1458e46",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "recoverability_predictions"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Finance_Recoverability_v5_Summary.csv",
+        "source_filename": "Finance_Recoverability_v5_Summary.csv",
+        "mtime_utc": "2026-02-16T20:13:04.570850611+00:00",
+        "row_count": 1,
+        "column_count": 7,
+        "sha256": "84ee74c0a086ef737df9114148880ec854e9eeb4a71e59927e3d22297d083aab",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "recoverability_summary"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Recovery_Events_Analysis.csv",
+        "source_filename": "Recovery_Events_Analysis.csv",
+        "mtime_utc": "2026-02-15T19:25:10+00:00",
+        "row_count": 8,
+        "column_count": 14,
+        "sha256": "4cde1fc533f0d0e67bf217387d2db5376e594e319ccdb301bef02c7c66393243",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "recovery_events"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_ShockSupportSurface_dff_support_Surface.csv",
+        "source_filename": "Finance_ShockSupportSurface_dff_support_Surface.csv",
+        "mtime_utc": "2026-03-07T06:13:55.770288467+00:00",
+        "row_count": 2542,
+        "column_count": 5,
+        "sha256": "7d0dc6b1b8d66ee1b152441d1644c52423c3644eae5956636a94b37e25401505",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "shock_support_dff_surface"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_ShockSupportSurface_nfci_support_Surface.csv",
+        "source_filename": "Finance_ShockSupportSurface_nfci_support_Surface.csv",
+        "mtime_utc": "2026-03-07T06:14:29.875407219+00:00",
+        "row_count": 2542,
+        "column_count": 5,
+        "sha256": "feec9fadc8735cd21412714f26d77e40c8731910835af81aa8db66e0b8bb3689",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "shock_support_nfci_surface"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_ShockSupportSurface_Summary.csv",
+        "source_filename": "Finance_ShockSupportSurface_Summary.csv",
+        "mtime_utc": "2026-03-07T06:14:29.879967213+00:00",
+        "row_count": 2,
+        "column_count": 14,
+        "sha256": "cd52ba3d6b37e456c9d736c920bdd9429848ae35b183171e6a0ad113b50a0598",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "shock_support_summary"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Finance_StateDependent_Intervention_Table.csv",
+        "source_filename": "Finance_StateDependent_Intervention_Table.csv",
+        "mtime_utc": "2026-02-17T21:04:55.184925079+00:00",
+        "row_count": 11,
+        "column_count": 4,
+        "sha256": "98fe9685cccab03fbfcefab7cc71bd4a96ec82fdd12a2644ab9d3b717a192f36",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "state_dependent_intervention"
+      },
+      {
+        "source_path": "/home/t14_ultra_7_tomas/workspace/CT/02_Finance/data_processed/Structural_Recovery_Analysis.csv",
+        "source_filename": "Structural_Recovery_Analysis.csv",
+        "mtime_utc": "2026-02-15T19:22:43+00:00",
+        "row_count": 6556,
+        "column_count": 23,
+        "sha256": "f5081ef72b90f1318fdcf3d8b0a7a46d7ec7ca5ec8d539c609ae643bafc79bc1",
+        "root_family": "workspace_ct",
+        "loaded": true,
+        "artifact_key": "structural_recovery"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_TighteningChallenge_Panel.csv",
+        "source_filename": "Finance_TighteningChallenge_Panel.csv",
+        "mtime_utc": "2026-03-07T14:45:22.766246080+00:00",
+        "row_count": 324,
+        "column_count": 20,
+        "sha256": "13a41f37f6bf78a1fa9cb850b9413404952d025e603ba21cb2113c4deca30ed1",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "tightening_panel"
+      },
+      {
+        "source_path": "/mnt/c/Users/T14 Ultra 7/OneDrive/Escritorio/CT/02_Finance/data_processed/Finance_TighteningChallenge_Summary.csv",
+        "source_filename": "Finance_TighteningChallenge_Summary.csv",
+        "mtime_utc": "2026-03-07T14:45:27.829770803+00:00",
+        "row_count": 3,
+        "column_count": 8,
+        "sha256": "e6bf8941ff9039dff6a27d173c0552365c911eded3ffadc58b3cc02ef8d363ad",
+        "root_family": "onedrive_windows",
+        "loaded": true,
+        "artifact_key": "tightening_summary"
+      }
+    ],
+    "coverage_ratio": 1.0,
+    "missing_required": [],
+    "root_family": "workspace_ct",
+    "root_conflict": false,
+    "conflict_count": 0
+  },
+  "uncertainty": {
+    "calibration_component": 0.6496919713233731,
+    "coverage_component": 1.0,
+    "stability_component": 0.7799999999999999,
+    "data_component": 1.0,
+    "evidence_tier": "production",
+    "model_version": "bls_state_v1.1",
+    "contract_version": "state_contract_v1",
+    "authority": {
+      "evidence_authority": 0.7850850118625642,
+      "hygiene_authority": 0.9999999999999999,
+      "authority_policy_gate": 0.7850850118625642,
+      "evidence_tier": "production"
+    },
+    "provenance_summary": {
+      "root_family": "workspace_ct",
+      "coverage_ratio": 1.0,
+      "missing_required": [],
+      "root_conflict": false
+    },
+    "research_sources": [
+      "autopsy_results",
+      "autopsy_timeseries",
+      "daily_spectral_metrics",
+      "legacy_recoverability_analysis",
+      "legacy_recoverability_summary",
+      "phantom_by_fragility",
+      "phantom_detector",
+      "phantom_headline",
+      "prob_recoverability_action_epochs",
+      "prob_recoverability_challenge",
+      "prob_recoverability_summary",
+      "prospective_stress_panel",
+      "recoverability_episodes",
+      "recoverability_predictions",
+      "recoverability_summary",
+      "recovery_events",
+      "shock_support_dff_surface",
+      "shock_support_nfci_surface",
+      "shock_support_summary",
+      "state_dependent_intervention",
+      "structural_recovery",
+      "tightening_panel",
+      "tightening_summary"
+    ],
+    "feature_missing_count": 1,
+    "probability_package_metrics": [
+      {
+        "target": "g_dominance",
+        "sample_count": 140,
+        "positive_rate": 0.15,
+        "fold_count": 3,
+        "brier_oof_raw": 0.435028433470581,
+        "brier_oof_calibrated": 0.11583011583011582,
+        "auc_oof_raw": 0.478494623655914,
+        "auc_oof_calibrated": 0.5967741935483871
+      },
+      {
+        "target": "r_dominance",
+        "sample_count": 140,
+        "positive_rate": 0.45,
+        "fold_count": 3,
+        "brier_oof_raw": 0.08321269218231465,
+        "brier_oof_calibrated": 0.04934479934479933,
+        "auc_oof_raw": 0.696078431372549,
+        "auc_oof_calibrated": 0.7990196078431372
+      },
+      {
+        "target": "visible_correction",
+        "sample_count": 140,
+        "positive_rate": 0.37857142857142856,
+        "fold_count": 3,
+        "brier_oof_raw": 0.31856331561980644,
+        "brier_oof_calibrated": 0.13008225616921268,
+        "auc_oof_raw": 0.478494623655914,
+        "auc_oof_calibrated": 0.6370967741935484
+      },
+      {
+        "target": "phantom_rebound",
+        "sample_count": 140,
+        "positive_rate": 0.22142857142857142,
+        "fold_count": 3,
+        "brier_oof_raw": 0.32049597558559495,
+        "brier_oof_calibrated": 0.1337837837837838,
+        "auc_oof_raw": 0.41935483870967744,
+        "auc_oof_calibrated": 0.5806451612903225
+      },
+      {
+        "target": "portfolio_recoverability",
+        "sample_count": 140,
+        "positive_rate": 0.4357142857142857,
+        "fold_count": 3,
+        "brier_oof_raw": 0.31883230549275865,
+        "brier_oof_calibrated": 0.12394317394317393,
+        "auc_oof_raw": 0.5698924731182796,
+        "auc_oof_calibrated": 0.7043010752688172
+      },
+      {
+        "target": "extreme_drawdown",
+        "sample_count": 140,
+        "positive_rate": 0.39285714285714285,
+        "fold_count": 3,
+        "brier_oof_raw": 0.21722128382735761,
+        "brier_oof_calibrated": 0.16306306306306306,
+        "auc_oof_raw": 0.6987179487179488,
+        "auc_oof_calibrated": 0.7612179487179487
+      }
+    ],
+    "probability_layer_source": "offline_probability_package_v1+research_restoration",
+    "probability_model_package_version": "probability_packages_v5",
+    "probability_package_invalidation_reason": "cache_hit",
+    "artifact_fingerprint_hash": "e851315ad2de6fdd6e4704c69b92acb81d0bdd422546a48b15512feba345269e"
+  },
+  "status": {
+    "contract_status": "canonical_valid",
+    "contract_hash": "cb46b0b7b75bd0bfdd71d3c77fec0aa340ba021d0f8df07d232344a8a4ff14bb",
+    "contract_validation": {
+      "valid": true,
+      "errors": [],
+      "error_count": 0,
+      "mode": "warn"
+    }
+  }
+}
