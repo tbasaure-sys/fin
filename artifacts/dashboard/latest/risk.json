@@ -4363,11 +4363,11 @@
     "hy_ig_gap": 0.0211,
     "m2_yoy": 0.0431996268656715,
     "balance_sheet_yoy": -0.0301024749171736,
-    "dgs10": NaN,
-    "dgs2": NaN,
-    "fedfunds": NaN,
-    "m2_level": NaN,
-    "walcl": NaN
+    "dgs10": null,
+    "dgs2": null,
+    "fedfunds": null,
+    "m2_level": null,
+    "walcl": null
   },
   "explanation": {
     "why_this_action": [
