@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import zipfile
 import sys
 from datetime import datetime, timedelta, timezone
@@ -12,6 +13,7 @@ else:
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs
+from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -49,6 +51,27 @@ def _safe_json_load(path: Path) -> dict[str, Any] | None:
         return None
     text = path.read_text(encoding="utf-8").replace("NaN", "null")
     return json.loads(text)
+
+
+def remote_snapshot_url() -> str:
+    for name in ("META_ALLOCATOR_REMOTE_SNAPSHOT_URL", "BLS_PRIME_REMOTE_SNAPSHOT_URL"):
+        value = os.environ.get(name, "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _safe_remote_json_load(url: str) -> dict[str, Any] | None:
+    if not url:
+        return None
+    timeout = float(os.environ.get("META_ALLOCATOR_REMOTE_SNAPSHOT_TIMEOUT_SECONDS", "8"))
+    request = Request(url, headers={"Accept": "application/json"})
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            text = response.read().decode("utf-8").replace("NaN", "null")
+            return json.loads(text)
+    except Exception:
+        return None
 
 
 def _safe_csv_load(path: Path, *, sep: str = ",", decimal: str = ".", thousands: str | None = None, index_col: int | None = None) -> pd.DataFrame:
@@ -765,6 +788,11 @@ def _extract_overview(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_cached_snapshot(paths: PathConfig, dashboard_settings: DashboardSettings) -> dict[str, Any] | None:
+    remote_url = remote_snapshot_url()
+    if remote_url:
+        payload = _safe_remote_json_load(remote_url)
+        if payload is not None:
+            return payload
     for snapshot_path in _artifact_snapshot_candidates(paths, dashboard_settings):
         payload = _safe_json_load(snapshot_path)
         if payload is not None:

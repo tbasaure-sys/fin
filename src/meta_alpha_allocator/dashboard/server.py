@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
 from ..research.chrono_fragility import latest_chrono_alert
 from ..research.decision_audit import DecisionAudit, AuditSummary
-from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cached_snapshot
+from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cached_snapshot, remote_snapshot_url
 
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
@@ -122,6 +122,10 @@ class DashboardService:
 
     def snapshot(self) -> dict:
         with self._lock:
+            if self._artifact_only and remote_snapshot_url():
+                cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+                if cached is not None:
+                    self._snapshot = cached
             return _redact_private_portfolio(self._snapshot)
 
     def is_refreshing(self) -> bool:

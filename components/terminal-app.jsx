@@ -151,18 +151,19 @@ function TopHoldingsStrip({ holdings = [] }) {
 
 function EdgeBoard({ board, onSelect }) {
   const lanes = [
-    { id: "sectors", title: "Sector edge", rows: board?.sectors || [] },
-    { id: "countries", title: "Country edge", rows: board?.countries || [] },
-    { id: "currencies", title: "FX edge", rows: board?.currencies || [] },
-    { id: "stocks", title: "Stock edge", rows: board?.stocks || [] },
+    { id: "sectors", title: "Sector tilts", rows: board?.sectors || [] },
+    { id: "countries", title: "Country tilts", rows: board?.countries || [] },
+    { id: "currencies", title: "FX expressions", rows: board?.currencies || [] },
+    { id: "stocks", title: "Single names", rows: board?.stocks || [] },
   ];
 
   return (
     <section className="edge-board premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Edge Radar</p>
+          <p className="eyebrow">Where To Act</p>
           <strong>{board?.headline}</strong>
+          {board?.explanation ? <p className="support-copy">{board.explanation}</p> : null}
         </div>
       </div>
       <div className="edge-board-grid">
@@ -1402,6 +1403,42 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     source.onerror = () => setConnectionState("reconnecting");
     return () => source.close();
   }, [dashboard.workspace_summary.id]);
+
+  useEffect(() => {
+    const refreshSeconds = Number(dashboard.status?.auto_refresh_seconds || 0);
+    if (!Number.isFinite(refreshSeconds) || refreshSeconds <= 0) return undefined;
+
+    let cancelled = false;
+    let inFlight = false;
+
+    async function runAutoRefresh() {
+      if (cancelled || inFlight) return;
+      inFlight = true;
+      try {
+        await fetch("/api/refresh", { method: "POST" });
+        const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/dashboard`, { cache: "no-store" });
+        const payload = await response.json();
+        if (cancelled) return;
+        startTransition(() => {
+          setDashboard(payload);
+          setConnectionState("live");
+        });
+      } catch (_error) {
+        if (!cancelled) setConnectionState("reconnecting");
+      } finally {
+        inFlight = false;
+      }
+    }
+
+    const intervalId = window.setInterval(() => {
+      void runAutoRefresh();
+    }, refreshSeconds * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [dashboard.status?.auto_refresh_seconds, dashboard.workspace_summary.id]);
 
   useEffect(() => {
     function onKeyDown(event) {
