@@ -78,6 +78,11 @@ done
 require_file "$PYTHON_BIN" "Python executable"
 require_file "$REDACT_SCRIPT" "artifact redaction script"
 
+if [[ -n "$REMOTE_UPLOAD_URL" ]]; then
+  # Broken shell pastes can leave embedded newlines or surrounding whitespace in env vars.
+  REMOTE_UPLOAD_URL="$(printf '%s' "$REMOTE_UPLOAD_URL" | tr -d '\r\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+fi
+
 DEFAULT_FIN_MODEL_ROOT="$(pick_existing_dir \
   "${ROOT_DIR}/_local_data/finance/Fin_model" \
   "${HOME}/code/Fin_model" \
@@ -139,6 +144,10 @@ mkdir -p "$ARTIFACT_DIR"
 
 if [[ -n "$REMOTE_UPLOAD_URL" ]]; then
   log_step "Uploading snapshot to remote storage"
+  if [[ ! "$REMOTE_UPLOAD_URL" =~ ^https?:// ]]; then
+    printf 'Remote snapshot upload URL is invalid after sanitization: %q\n' "$REMOTE_UPLOAD_URL" >&2
+    exit 1
+  fi
   curl --fail --silent --show-error \
     -X "$REMOTE_UPLOAD_METHOD" \
     -H "content-type: application/json" \
