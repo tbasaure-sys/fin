@@ -79,8 +79,9 @@ require_file "$PYTHON_BIN" "Python executable"
 require_file "$REDACT_SCRIPT" "artifact redaction script"
 
 if [[ -n "$REMOTE_UPLOAD_URL" ]]; then
-  # Broken shell pastes can leave embedded newlines or surrounding whitespace in env vars.
-  REMOTE_UPLOAD_URL="$(printf '%s' "$REMOTE_UPLOAD_URL" | tr -d '\r\n' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+  # Broken shell pastes can leave embedded whitespace in env vars. URLs here should not contain
+  # any spaces, tabs, or newlines, so strip all whitespace before handing off to curl.
+  REMOTE_UPLOAD_URL="$(printf '%s' "$REMOTE_UPLOAD_URL" | tr -d '[:space:]')"
 fi
 
 DEFAULT_FIN_MODEL_ROOT="$(pick_existing_dir \
