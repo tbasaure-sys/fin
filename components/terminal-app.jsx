@@ -527,6 +527,87 @@ function ScoreHistoryChart({ title, subtitle, rows = [], primaryLabel = "Score",
   );
 }
 
+function JustAdviceCard({ module }) {
+  if (!module) return null;
+
+  return (
+    <section className="stress-mode-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">{module.kicker || "Advice"}</p>
+          <strong>{module.title || "Just advice"}</strong>
+        </div>
+      </div>
+      <div className="panel-block intro-block">
+        <p className="block-title">What to do with this portfolio now</p>
+        <p className="support-copy">{module.headline}</p>
+        <p className="support-copy">{module.summary}</p>
+        {module.changeTrigger ? <p className="support-copy">This changes if: {module.changeTrigger}</p> : null}
+      </div>
+      <div className="metric-grid">
+        {(module.currentRead || []).map((item) => (
+          <div className="metric-tile" key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            {item.detail ? <p className="support-copy">{item.detail}</p> : null}
+          </div>
+        ))}
+      </div>
+      <div className="action-stack">
+        {(module.moves || []).map((move) => (
+          <article className={`action-card action-${move.tone}`} key={move.id}>
+            <div className="action-topline">
+              <div className="action-tags">
+                <span className={`status-pill is-${move.slotTone}`}>{move.slot}</span>
+                {move.sourceLabel ? <span className="action-source">{move.sourceLabel}</span> : null}
+              </div>
+            </div>
+            <div className="action-header">
+              <strong>{move.title}</strong>
+              <span>{move.ticker || ""}</span>
+            </div>
+            <div className="action-grid">
+              <div><span>Size</span><strong>{move.size || "-"}</strong></div>
+              <div><span>Funding</span><strong>{move.funding || "-"}</strong></div>
+            </div>
+            <p className="action-conviction">{move.summary}</p>
+            <ul className="signal-list">
+              {move.why ? <li>{move.why}</li> : null}
+              {move.watchFor ? <li>{move.watchFor}</li> : null}
+              {move.fiberLine ? <li>{move.fiberLine}</li> : null}
+            </ul>
+            <div className="action-grid">
+              {(move.effects || []).map((effect) => (
+                <div key={`${move.id}-${effect.label}`}>
+                  <span>{effect.label}</span>
+                  <strong>{effect.value}</strong>
+                </div>
+              ))}
+            </div>
+            {move.trigger ? (
+              <div className="action-invalidation">
+                <span>What would make this change</span>
+                <strong>{move.trigger}</strong>
+              </div>
+            ) : null}
+          </article>
+        ))}
+      </div>
+      <div className="panel-block">
+        <p className="block-title">How to read this</p>
+        <ul className="signal-list">
+          {(module.thresholds || []).map((item) => (
+            <li key={item.id}>
+              <strong>{item.label}</strong>: {item.meaning}{item.active ? " You are here." : ""}
+            </li>
+          ))}
+        </ul>
+        {module.fiberTakeaway ? <p className="support-copy">Visible fiber: {module.fiberTakeaway}</p> : null}
+      </div>
+    </section>
+  );
+}
+
 function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRefresh, isPending }) {
   const topEdge = dashboard.edge_board?.drilldowns?.[0];
 
@@ -1519,6 +1600,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         isPending={isPending}
       />
 
+      <JustAdviceCard module={dashboard.just_advice} />
+
       <StressModeCard stressMode={dashboard.stress_mode} />
 
       <section className="market-ribbon">
@@ -1565,11 +1648,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 <strong>{dashboard.alpha_briefing.frameworkSignal?.cluster}</strong>
               </div>
               <div className="mini-framework-card">
-                <span>Rebound confidence</span>
+                <span>Chance the bounce holds</span>
                 <strong>{dashboard.alpha_briefing.frameworkSignal?.reboundConfidence}</strong>
               </div>
               <div className="mini-framework-card">
-                <span>Rebound quality</span>
+                <span>Is the bounce real?</span>
                 <strong>{dashboard.alpha_briefing.frameworkSignal?.reboundQuality}</strong>
               </div>
             </div>
