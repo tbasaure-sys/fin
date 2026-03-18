@@ -24,6 +24,16 @@ CORS_ORIGIN = os.environ.get("META_ALLOCATOR_CORS_ORIGIN", "*")
 _BOOT_REFRESH_DELAY = int(os.environ.get("META_ALLOCATOR_BOOT_REFRESH_DELAY", "5"))
 
 
+def _redact_private_portfolio(payload: dict) -> dict:
+    snapshot = dict(payload or {})
+    portfolio = dict(snapshot.get("portfolio", {}) or {})
+    if portfolio:
+        portfolio.pop("holdings", None)
+        portfolio.pop("top_holdings", None)
+        snapshot["portfolio"] = portfolio
+    return snapshot
+
+
 class DashboardService:
     """Serves a pre-built snapshot immediately on startup.
 
@@ -112,7 +122,7 @@ class DashboardService:
 
     def snapshot(self) -> dict:
         with self._lock:
-            return self._snapshot
+            return _redact_private_portfolio(self._snapshot)
 
     def is_refreshing(self) -> bool:
         with self._lock:
