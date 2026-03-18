@@ -40,6 +40,14 @@ function statusClass(status) {
   return "is-neutral";
 }
 
+function TermHelp({ label, tip }) {
+  return (
+    <span className="term-help" data-tooltip={tip} tabIndex={0}>
+      {label}
+    </span>
+  );
+}
+
 function scoreTone(score) {
   const numeric = Number(score);
   if (!Number.isFinite(numeric)) return "neutral";
@@ -551,6 +559,10 @@ function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRe
             <strong>{dashboard.workspace_summary.primary_stance}</strong>
           </div>
           <div className="hero-badge">
+            <span>Market data</span>
+            <strong>{dashboard.workspace_summary.market_data_label}</strong>
+          </div>
+          <div className="hero-badge">
             <span>Access</span>
             <strong>{session.access.provider === "shared-link" ? "Private link" : "Invite alpha"}</strong>
           </div>
@@ -575,8 +587,8 @@ function StressModeCard({ stressMode }) {
     <section className="stress-mode-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Stress Mode</p>
-          <strong>{stressMode.active ? "Canonical recoverability control is active" : "Legacy stress read is active"}</strong>
+          <p className="eyebrow">Current Decision</p>
+          <strong>{stressMode.decisionSummary}</strong>
         </div>
         <span className={`section-chip ${String(stressMode.contractStatus).startsWith("canonical") ? "is-good" : "is-warn"}`}>
           {stressMode.contractStatus}
@@ -584,61 +596,72 @@ function StressModeCard({ stressMode }) {
       </div>
       <div className="stress-mode-grid">
         <div className="metric-tile">
-          <span>Mode</span>
+          <span>Current stance</span>
           <strong>{stressMode.mode}</strong>
         </div>
         <div className="metric-tile">
-          <span>Recoverability</span>
+          <span><TermHelp label="Recovery chance" tip="Estimated chance that the portfolio can recover from here without needing a much worse path first." /></span>
           <strong>{stressMode.recoverability}</strong>
         </div>
         <div className="metric-tile">
-          <span>Phantom rebound</span>
-          <strong>{stressMode.phantom}</strong>
+          <span><TermHelp label="Room to act" tip="How much flexibility the portfolio still has before risk should be cut, not added." /></span>
+          <strong>{stressMode.roomToAct}</strong>
         </div>
         <div className="metric-tile">
-          <span>Authority</span>
+          <span><TermHelp label="Risk of a false rebound" tip="Chance that prices improve briefly without a real improvement underneath." /></span>
+          <strong>{stressMode.phantom}</strong>
+        </div>
+      </div>
+      <div className="stress-mode-grid">
+        <div className="metric-tile">
+          <span><TermHelp label="Can we add risk?" tip="Whether the system currently allows new risk, not whether an idea looks attractive." /></span>
+          <strong>{stressMode.canAddRisk}</strong>
+        </div>
+        <div className="metric-tile">
+          <span><TermHelp label="Defensive moves" tip="Whether trims, hedges, or defensive changes are allowed right now." /></span>
+          <strong>{stressMode.defensiveState}</strong>
+        </div>
+        <div className="metric-tile">
+          <span><TermHelp label="Market trend" tip="Whether conditions are improving, flat, or getting worse under the surface." /></span>
+          <strong>{stressMode.marketTrend}</strong>
+        </div>
+        <div className="metric-tile">
+          <span><TermHelp label="Authority" tip="How much confidence the system has in the current read, based on data quality and evidence." /></span>
           <strong>{stressMode.authority}</strong>
         </div>
       </div>
       <div className="grid-two">
         <div className="panel-block">
-          <p className="block-title">What the terminal is allowed to do</p>
-          <p className="support-copy">Top move: {stressMode.topMove?.summary || "No repair candidate yet"}</p>
-          <p className="support-copy">Source: {stressMode.topMove?.source || "legacy"}</p>
-          {blocked ? <p className="support-copy">Repair state: no valid repair under the current frontier.</p> : null}
+          <p className="block-title">What to do now</p>
+          <p className="support-copy">Best action now: {stressMode.topMove?.summary || "No repair candidate yet"}</p>
+          {blocked ? <p className="support-copy">No valid action is open under the current rules.</p> : null}
           {stressMode.topMove?.reason ? <p className="support-copy">{stressMode.topMove.reason}</p> : null}
-          {stressMode.topMove?.classification ? <p className="support-copy">Classification: {stressMode.topMove.classification}</p> : null}
-          {stressMode.topMove?.firstConstraint ? <p className="support-copy">First constraint: {stressMode.topMove.firstConstraint}</p> : null}
-          {stressMode.topMove?.firstInvalidation ? <p className="support-copy">Re-open condition: {stressMode.topMove.firstInvalidation}</p> : null}
+          {stressMode.topMove?.classification ? <p className="support-copy">Type: {stressMode.topMove.classification}</p> : null}
+          {stressMode.topMove?.firstConstraint ? <p className="support-copy">Constraint: {stressMode.topMove.firstConstraint}</p> : null}
+          {stressMode.topMove?.firstInvalidation ? <p className="support-copy">What would reopen the range: {stressMode.topMove.firstInvalidation}</p> : null}
           <p className="support-copy">Review cadence: {stressMode.cadence}</p>
-          <p className="support-copy">Probability engine: {stressMode.probabilitySource}</p>
-          {stressMode.packageVersion ? <p className="support-copy">Model package: {stressMode.packageVersion}</p> : null}
-          <p className="support-copy">Package folds: {stressMode.packageFoldCount}</p>
-          <p className="support-copy">OOF Brier: {stressMode.packageBrier}</p>
-          <p className="support-copy">Sample count: {stressMode.packageSamples}</p>
         </div>
         <div className="panel-block">
-          <p className="block-title">What must confirm</p>
-          <p className="support-copy">{stressMode.confirmation}</p>
-          {stressMode.invalidation ? <p className="support-copy">First invalidation: {stressMode.invalidation}</p> : null}
-          <p className="support-copy">Evidence tier: {stressMode.evidenceTier}</p>
-          <p className="support-copy">Model coverage: {stressMode.modelCoverage}</p>
-          <p className="support-copy">Artifact coverage: {stressMode.artifactCoverage}</p>
-          <p className="support-copy">Phantom fragility prior: {stressMode.phantomFragilityPrior} (decile {stressMode.phantomFragilityDecile})</p>
-          <p className="support-copy">Research root: {stressMode.provenanceRoot}</p>
-          <p className="support-copy">Closest analog: {stressMode.topAnalog}</p>
+          <p className="block-title">Why</p>
+          <p className="support-copy"><TermHelp label="What is driving the rebound" tip="The system's read on whether this move is being supported by broad participation, narrow leadership, policy support, or something mixed." />: {stressMode.reboundDriver}</p>
+          <p className="support-copy"><TermHelp label="Main risk" tip="The most likely way the current stance or a premature action could go wrong." />: {stressMode.mainRisk}</p>
+          <p className="support-copy">What needs to improve: {stressMode.whatNeedsToImprove}</p>
+          <p className="support-copy">Current confirmation rule: {stressMode.confirmation}</p>
+          {stressMode.invalidation ? <p className="support-copy">Main invalidation: {stressMode.invalidation}</p> : null}
+          <p className="support-copy">Closest comparable case: {stressMode.topAnalog}</p>
         </div>
       </div>
       {Array.isArray(stressMode.diagnostics) && stressMode.diagnostics.length ? (
         <div className="panel-block diagnostics-block">
-          <p className="block-title">Probability package diagnostics</p>
+          <p className="block-title">Model quality</p>
+          <p className="support-copy">Package: {stressMode.packageVersion || "n/a"} · folds {stressMode.packageFoldCount} · error {stressMode.packageBrier} · samples {stressMode.packageSamples}</p>
           <div className="diagnostics-table">
             <div className="diagnostics-row diagnostics-head">
-              <span>Target</span>
+              <span>Model</span>
               <span>Folds</span>
-              <span>OOF Brier</span>
+              <span>Error</span>
               <span>Samples</span>
-              <span>Pos rate</span>
+              <span>Base rate</span>
             </div>
             {stressMode.diagnostics.slice(0, 7).map((row) => (
               <div className="diagnostics-row" key={row.target}>
@@ -725,7 +748,7 @@ function ActionsModule({ module }) {
   return (
     <>
       <div className="panel-block intro-block">
-        <p className="block-title">What the terminal would do next</p>
+        <p className="block-title">Best actions now</p>
         <p className="support-copy">{module.subtitle}</p>
         {module.blocked ? <p className="support-copy">The canonical frontier is closed. No fallback legacy action is being injected.</p> : null}
         <div className="mini-framework">
@@ -785,7 +808,7 @@ function ProtocolModule({ module }) {
     <>
       <div className="hero-strip">
         <div>
-          <p className="eyebrow">Capital protocol</p>
+          <p className="eyebrow">Decision Rules</p>
           <div className="hero-readout">{module.protocolLabel}</div>
           <p className="support-copy">{module.notes?.[0]}</p>
         </div>
@@ -867,14 +890,14 @@ function DecisionWorkflow({ dashboard, activeModule, onJump, onFocus }) {
     {
       id: "actions",
       eyebrow: "Stage 01",
-      title: "Next moves",
+      title: "Best actions now",
       status: dashboard.module_status.find((item) => item.id === "actions"),
       body: <ActionsModule module={dashboard.modules.actions} />,
     },
     {
       id: "command",
       eyebrow: "Stage 02",
-      title: "Capital protocol",
+      title: "Decision rules",
       status: dashboard.module_status.find((item) => item.id === "command"),
       body: <ProtocolModule module={dashboard.modules.command} />,
     },
@@ -885,7 +908,7 @@ function DecisionWorkflow({ dashboard, activeModule, onJump, onFocus }) {
       <div className="section-topline">
         <div>
           <p className="eyebrow">Decision Workflow</p>
-          <strong>Move from posture to permission, then to action</strong>
+          <strong>Read the current stance, then act only inside the open range</strong>
         </div>
       </div>
       <div className="workflow-nav">
@@ -1280,20 +1303,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       setConnectionState("briefing");
     });
 
-    source.addEventListener("quote_update", (event) => {
-      const payload = JSON.parse(event.data);
-      startTransition(() => {
-        setDashboard((current) => ({
-          ...current,
-          market_ribbon: current.market_ribbon.map((item) => item.symbol === payload.symbol ? {
-            ...item,
-            price: payload.price,
-            changePct: payload.changePct,
-          } : item),
-        }));
-      });
-    });
-
     source.addEventListener("alert_created", (event) => {
       const payload = JSON.parse(event.data);
       startTransition(() => {
@@ -1520,7 +1529,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <article className="ticker-card" key={item.symbol}>
             <div>
               <strong>{item.symbol}</strong>
-              <span>{item.label}</span>
+              <span>{item.asOf ? `As of ${item.asOf}` : item.label}</span>
             </div>
             <div>
               <strong>{item.price ? formatNumber(item.price, 2) : "-"}</strong>
