@@ -88,6 +88,36 @@ Optional if you are using invite-link access:
 On Vercel, this repository should be treated as a Next.js project, not as a Python runtime.
 Environment variables are documented in `.env.example`.
 
+### Neon initialization
+
+The repository now includes a Neon-ready storage foundation for user state.
+
+Set:
+
+- `DATABASE_URL`
+- `BLS_PRIME_STORAGE_BACKEND=auto` or `neon`
+
+Then apply the initial schema:
+
+```bash
+npm run db:neon:apply
+```
+
+The first Neon-backed state path is watchlists plus command history, while holdings remain on the current overlay until the auth migration is complete.
+
+### Private workspace auth
+
+The app now supports a public homepage plus a private `/app` workspace.
+
+Set these environment variables:
+
+- `BLS_PRIME_AUTH_SECRET`
+- `BLS_PRIME_SIGNIN_CODE`
+- `BLS_PRIME_SESSION_COOKIE_NAME`
+- `BLS_PRIME_SESSION_DAYS`
+
+The current auth flow is access-code based and stores sessions in Neon. It is designed as the bridge between the old shared alpha model and a fuller production auth setup.
+
 ## Status
 
 This is an active research codebase. Some modules are experimental and are intentionally kept separate from production decision logic until they demonstrate value in backtests and out-of-sample evaluation.

@@ -1,8 +1,10 @@
+import { requireServerAuthSession } from "@/lib/server/auth/session";
 import { getServerConfig } from "@/lib/server/config";
 
 export const dynamic = "force-dynamic";
 
-export default function LegacyPage() {
+export default async function LegacyPage() {
+  await requireServerAuthSession("/legacy");
   const { backendBaseUrl } = getServerConfig();
 
   return (

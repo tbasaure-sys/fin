@@ -6,14 +6,18 @@
     "node": "20.x"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "dotenv": "^17.3.1",
     "next": "^14.2.29",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "server-only": "^0.0.1"
   },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "db:neon:apply": "node scripts/neon-apply.mjs",
     "test:web": "node --test tests-node/*.test.mjs"
   }
 }

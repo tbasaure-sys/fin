@@ -93,6 +93,16 @@ function describeRiskState(metrics = []) {
   return "Contained";
 }
 
+function isDashboardPayload(payload) {
+  return Boolean(
+    payload
+      && typeof payload === "object"
+      && payload.workspace_summary?.id
+      && Array.isArray(payload.module_refs)
+      && payload.modules
+  );
+}
+
 function ModuleCard({ moduleRef, status, focused, onFocus, children }) {
   return (
     <section
@@ -752,6 +762,7 @@ function DecisionEventCard({ log, holdingsSource }) {
 function OverviewHero({ dashboard, session, onRefresh, onJump, isPending }) {
   const topEdge = dashboard.edge_board?.drilldowns?.[0];
   const topMove = dashboard.just_advice?.moves?.[0];
+  const accessProvider = session?.access?.provider;
 
   return (
     <section className="hero-panel premium-card">
@@ -768,7 +779,7 @@ function OverviewHero({ dashboard, session, onRefresh, onJump, isPending }) {
           </div>
           <div className="hero-badge">
             <span>Next</span>
-            <strong>{topMove?.title || "Review today&apos;s plan"}</strong>
+            <strong>{topMove?.title || "Review today's plan"}</strong>
           </div>
           <div className="hero-badge">
             <span>Updated</span>
@@ -785,7 +796,7 @@ function OverviewHero({ dashboard, session, onRefresh, onJump, isPending }) {
       </div>
       <div className="hero-panel-side">
         <div className="hero-session-card">
-          <span className="section-chip is-good">{session.access.provider === "shared-link" ? "Private access" : "Restricted access"}</span>
+          <span className="section-chip is-good">{accessProvider === "shared-link" ? "Private access" : "Restricted access"}</span>
           <strong>{dashboard.workspace_summary.primary_stance}</strong>
           <p>{dashboard.market_brief?.headline}</p>
         </div>
@@ -979,7 +990,7 @@ function StressModeCard({ stressMode }) {
 
 function WorkspaceNavigator({ dashboard, activeModule, onJump, onFocus }) {
   const descriptions = {
-    actions: "Today&apos;s moves.",
+    actions: "Today's moves.",
     command: "Portfolio rules.",
     portfolio: "Holdings and exposure.",
     scanner: "New ideas.",
@@ -1086,8 +1097,8 @@ function DataStatusPanel({ dashboard, connectionState, onRefresh, isPending }) {
           <strong>{dashboard.data_control.analysisSource}</strong>
         </div>
         <div className="mini-stat">
-          <span>Screener</span>
-          <strong>{dashboard.data_control.screenerSource}</strong>
+          <span>Prices</span>
+          <strong>{dashboard.data_control.marketData?.freshnessLabel || "Awaiting market data"}</strong>
         </div>
         <div className="mini-stat">
           <span>Refresh</span>
@@ -1719,9 +1730,10 @@ function renderModule(moduleRef, moduleData, status, focused, onFocus, workspace
 }
 
 export default function TerminalApp({ initialSession, initialDashboard }) {
-  const [session] = useState(initialSession);
-  const [dashboard, setDashboard] = useState(initialDashboard);
-  const [activeModule, setActiveModule] = useState(initialDashboard.module_refs[0]?.id || "actions");
+  const readyDashboard = isDashboardPayload(initialDashboard) ? initialDashboard : null;
+  const [session] = useState(initialSession || null);
+  const [dashboard, setDashboard] = useState(readyDashboard);
+  const [activeModule, setActiveModule] = useState(readyDashboard?.module_refs?.[0]?.id || "actions");
   const [focusedModule, setFocusedModule] = useState(null);
   const [selectedEdge, setSelectedEdge] = useState(null);
   const [alertsOpen, setAlertsOpen] = useState(true);
@@ -1731,6 +1743,35 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [commandText, setCommandText] = useState("");
   const [commandFeedback, setCommandFeedback] = useState("Type an action like `refresh`, `view portfolio`, or `add NVDA`.");
   const [isPending, startRefresh] = useTransition();
+
+  function ingestDashboard(payload, invalidMessage = "Live data is temporarily unavailable. Please refresh.") {
+    if (!isDashboardPayload(payload)) {
+      setConnectionState("reconnecting");
+      setCommandFeedback(invalidMessage);
+      return false;
+    }
+    setDashboard(payload);
+    return true;
+  }
+
+  if (!dashboard) {
+    return (
+      <main className="terminal-root">
+        <div className="terminal-noise" />
+        <section className="access-card premium-card">
+          <p className="eyebrow">Workspace unavailable</p>
+          <h1>BLS Prime</h1>
+          <p className="support-copy">The live workspace could not be loaded. Refresh the page and try again.</p>
+          <div className="hero-cta-row">
+            <button className="primary-button" onClick={() => window.location.reload()}>
+              Reload
+            </button>
+            <Link href="/legacy" className="ghost-button">Older view</Link>
+          </div>
+        </section>
+      </main>
+    );
+  }
 
   async function rememberCommand(command) {
     const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/commands`, {
@@ -1757,7 +1798,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   async function loadDashboard() {
     const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/dashboard`, { cache: "no-store" });
     const payload = await response.json();
-    setDashboard(payload);
+    ingestDashboard(payload, "The latest dashboard payload was incomplete.");
     return payload;
   }
 
@@ -1773,7 +1814,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       throw new Error(message || "Could not update holdings.");
     }
     const payload = await response.json();
-    setDashboard(payload);
+    ingestDashboard(payload, "The portfolio update returned incomplete live data.");
     const sourceLabel = payload?.portfolio_state?.holdings_source_label || "Holdings updated";
     const syncLabel = payload?.portfolio_state?.holdings_sync_label || "";
     return syncLabel ? `${sourceLabel} · ${syncLabel}` : sourceLabel;
@@ -1802,6 +1843,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   useEffect(() => {
+    if (!dashboard?.workspace_summary?.id) return undefined;
     const workspaceId = dashboard.workspace_summary.id;
     const source = new EventSource(`/api/v1/workspaces/${workspaceId}/stream`);
 
@@ -1829,7 +1871,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     source.addEventListener("module_refresh_completed", async () => {
       const response = await fetch(`/api/v1/workspaces/${workspaceId}/dashboard`, { cache: "no-store" });
       const payload = await response.json();
-      startTransition(() => setDashboard(payload));
+      startTransition(() => {
+        ingestDashboard(payload, "The refresh completed, but the dashboard payload was incomplete.");
+      });
     });
 
     source.onerror = () => setConnectionState("reconnecting");
@@ -1837,6 +1881,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }, [dashboard.workspace_summary.id]);
 
   useEffect(() => {
+    if (!dashboard?.workspace_summary?.id) return undefined;
     const refreshSeconds = Number(dashboard.status?.auto_refresh_seconds || 0);
     if (!Number.isFinite(refreshSeconds) || refreshSeconds <= 0) return undefined;
 
@@ -1852,8 +1897,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         const payload = await response.json();
         if (cancelled) return;
         startTransition(() => {
-          setDashboard(payload);
-          setConnectionState("live");
+          if (ingestDashboard(payload, "Auto-refresh returned incomplete data.")) {
+            setConnectionState("live");
+          }
         });
       } catch (_error) {
         if (!cancelled) setConnectionState("reconnecting");
