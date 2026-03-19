@@ -2,7 +2,7 @@ import "./globals.css";
 
 export const metadata = {
   title: "BLS Prime",
-  description: "Retail decision terminal for structural market intelligence.",
+  description: "Decision support workspace for clearer portfolio moves, risk control, and opportunity discovery.",
 };
 
 export default function RootLayout({ children }) {
@@ -12,4 +12,3 @@ export default function RootLayout({ children }) {
     </html>
   );
 }
-
