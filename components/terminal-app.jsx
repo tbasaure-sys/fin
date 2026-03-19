@@ -670,6 +670,76 @@ function DecisionMemoryCard({ packet }) {
   );
 }
 
+function formatDecisionEvent(event) {
+  if (!event) return "No event available.";
+  if (event.kind === "snapshot_refresh") {
+    const action = event.recommended_action || "advice";
+    const recovery = event.recovery_chance || "-";
+    return `${event.occurred_at || event.as_of_date || "Refresh"}: ${action} at recovery chance ${recovery}.`;
+  }
+  if (event.kind === "decision_outcome") {
+    const verdict = event.was_correct === false ? "missed" : event.was_correct === true ? "held up" : "pending";
+    return `${event.date || "Outcome"}: ${event.recommended_action || "advice"} ${verdict} ex-post.`;
+  }
+  return event.headline || event.summary || "Decision event.";
+}
+
+function DecisionEventCard({ log, holdingsSource }) {
+  if (!log) return null;
+  const events = Array.isArray(log.events) ? log.events : [];
+  const latestRefresh = log.latest_refresh || events.find((item) => item.kind === "snapshot_refresh") || null;
+  const latestOutcome = log.latest_outcome || events.find((item) => item.kind === "decision_outcome") || null;
+  const counts = log.counts || {};
+  const holdingsSourceLabel = typeof holdingsSource === "object" ? holdingsSource?.label : holdingsSource;
+  const holdingsSourceDetail = typeof holdingsSource === "object" ? holdingsSource?.detail : null;
+
+  return (
+    <section className="cockpit-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">Decision events</p>
+          <strong>What changed since the last refresh</strong>
+        </div>
+        <span className={`section-chip ${log.available ? "is-good" : "is-warn"}`}>
+          {log.available ? "Live trail" : "Cold start"}
+        </span>
+      </div>
+      <div className="cockpit-note-list">
+        {(log.narrative || []).slice(0, 2).map((line) => <p key={line}>{line}</p>)}
+        {holdingsSourceLabel ? <p>Holdings source: {holdingsSourceLabel}</p> : null}
+        {holdingsSourceDetail ? <p>{holdingsSourceDetail}</p> : null}
+      </div>
+      <div className="mini-framework">
+        <div className="mini-framework-card">
+          <span>Refreshes</span>
+          <strong>{counts.refresh === undefined || counts.refresh === null ? "-" : String(counts.refresh)}</strong>
+        </div>
+        <div className="mini-framework-card">
+          <span>Outcomes</span>
+          <strong>{counts.outcome === undefined || counts.outcome === null ? "-" : String(counts.outcome)}</strong>
+        </div>
+        <div className="mini-framework-card">
+          <span>Latest outcome</span>
+          <strong>{latestOutcome ? (latestOutcome.was_correct === false ? "Missed" : latestOutcome.was_correct === true ? "Held up" : "Pending") : "-"}</strong>
+        </div>
+      </div>
+      <div className="panel-block">
+        <p className="block-title">Recent trail</p>
+        <ul className="signal-list">
+          {events.length ? events.slice(-4).reverse().map((event) => (
+            <li key={event.id || `${event.kind}-${event.occurred_at || event.date || event.headline}`}>
+              <strong>{event.kind === "snapshot_refresh" ? "Refresh" : "Outcome"}</strong>: {formatDecisionEvent(event)}
+            </li>
+          )) : <li>No decision events available yet.</li>}
+        </ul>
+      </div>
+      {latestRefresh ? (
+        <p className="support-copy">Latest refresh: {formatDecisionEvent(latestRefresh)}</p>
+      ) : null}
+    </section>
+  );
+}
+
 function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRefresh, isPending }) {
   const topEdge = dashboard.edge_board?.drilldowns?.[0];
 
@@ -797,6 +867,7 @@ function StressModeCard({ stressMode }) {
 function PortfolioPulse({ module }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
+  const holdingsSource = module?.holdingsSource || {};
 
   return (
     <section className="cockpit-card premium-card">
@@ -805,7 +876,7 @@ function PortfolioPulse({ module }) {
           <p className="eyebrow">Portfolio Pulse</p>
           <strong>What the portfolio is doing structurally</strong>
         </div>
-        <span className="section-chip">{analytics.holdingsCount} holdings</span>
+        <span className={`section-chip ${holdingsSource.connected ? "is-good" : "is-warn"}`}>{analytics.holdingsCount} holdings</span>
       </div>
       <div className="cockpit-kpis">
         <DonutGauge value={Math.min(Math.abs(Number(analytics.annualReturn) || 0) / 0.2, 1)} label="Annual return" valueLabel={module.analytics?.annualReturn || analytics.annualReturn ? formatPct(analytics.annualReturn) : "-"} tone="good" />
@@ -814,6 +885,8 @@ function PortfolioPulse({ module }) {
       </div>
       <div className="cockpit-note-list">
         {(module.notes || []).slice(0, 2).map((note) => <p key={note}>{note}</p>)}
+        {holdingsSource.label ? <p>Holdings source: {holdingsSource.label}</p> : null}
+        {holdingsSource.detail ? <p>{holdingsSource.detail}</p> : null}
       </div>
       <TopHoldingsStrip holdings={holdings} />
     </section>
@@ -1649,6 +1722,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       <JustAdviceCard module={dashboard.just_advice} />
 
       <DecisionMemoryCard packet={dashboard.decision_packet} />
+
+      <DecisionEventCard log={dashboard.decision_event_log} holdingsSource={dashboard.data_control?.holdingsSource} />
 
       <StressModeCard stressMode={dashboard.stress_mode} />
 

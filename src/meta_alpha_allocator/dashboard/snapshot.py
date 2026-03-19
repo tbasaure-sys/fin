@@ -25,6 +25,7 @@ from ..data.adapters import load_fmp_market_proxy_panel, load_state_panel
 from ..data.fred_client import FREDClient
 from ..data.fmp_client import FMPClient
 from ..models import DashboardSnapshot
+from ..decision_runtime.events import record_decision_events
 from ..research.forecast_baselines import run_forecast_baselines
 from ..research.behavioral_edges import summarize_owner_elasticity
 from ..research.spectral_structure import run_spectral_structure_pipeline
@@ -327,6 +328,8 @@ def _build_portfolio_snapshot(
         how="left",
     )
     merged_holdings = merged_holdings.sort_values("weight", ascending=False)
+    holdings_source = "backend_portfolio_manager" if not merged_holdings.empty else "shared_snapshot"
+    holdings_source_label = "Backend portfolio book" if not merged_holdings.empty else "Shared snapshot"
 
     sector_weights = (
         merged_holdings.groupby("sector", dropna=False)["weight"].sum().sort_values(ascending=False).reset_index().rename(columns={"weight": "portfolio_weight"})
@@ -394,6 +397,8 @@ def _build_portfolio_snapshot(
             "portfolio_beta": portfolio_beta,
             "notes": notes,
         },
+        "holdings_source": holdings_source,
+        "holdings_source_label": holdings_source_label,
         "workbook": workbook_meta,
         "stale_days": _staleness_days(_path_mtime(latest_root / "portfolio_summary.json"), pd.Timestamp.today().normalize()),
     }
@@ -978,6 +983,9 @@ def build_dashboard_snapshot(
                     cached["bls_state_v1"] = None
             cached["_output_root"] = str(paths.output_root)
             cached["decision_packet"] = build_decision_packet(cached)
+            cached["decision_event_log"] = record_decision_events(cached, paths.output_root)
+            cached["decision_events"] = cached["decision_event_log"].get("events", [])
+            cached["decision_event"] = cached["decision_event_log"].get("latest_refresh")
             cached.pop("_output_root", None)
             cached["status"] = _build_status(cached, cached["status"]["warnings"])
             cached["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
@@ -990,6 +998,9 @@ def build_dashboard_snapshot(
         empty["chile_market"] = chile_market
         empty["_output_root"] = str(paths.output_root)
         empty["decision_packet"] = build_decision_packet(empty)
+        empty["decision_event_log"] = record_decision_events(empty, paths.output_root)
+        empty["decision_events"] = empty["decision_event_log"].get("events", [])
+        empty["decision_event"] = empty["decision_event_log"].get("latest_refresh")
         empty.pop("_output_root", None)
         empty["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
         _write_snapshot_files(empty, dashboard_settings.output_dir)
@@ -1147,6 +1158,9 @@ def build_dashboard_snapshot(
         warnings.append(f"bls state contract build failed: {exc}")
         snapshot_dict["bls_state_v1"] = None
     snapshot_dict["decision_packet"] = build_decision_packet(snapshot_dict)
+    snapshot_dict["decision_event_log"] = record_decision_events(snapshot_dict, paths.output_root)
+    snapshot_dict["decision_events"] = snapshot_dict["decision_event_log"].get("events", [])
+    snapshot_dict["decision_event"] = snapshot_dict["decision_event_log"].get("latest_refresh")
     snapshot_dict.pop("_output_root", None)
     snapshot_dict["status"] = _build_status(snapshot_dict, warnings)
     snapshot_dict["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
