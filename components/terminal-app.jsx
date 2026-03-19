@@ -868,6 +868,7 @@ function PortfolioPulse({ module, workspaceId, onUpdateHoldings }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
   const holdingsSource = module?.holdingsSource || {};
+  const holdingsSync = module?.holdingsSync || {};
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -906,6 +907,7 @@ function PortfolioPulse({ module, workspaceId, onUpdateHoldings }) {
         {(module.notes || []).slice(0, 2).map((note) => <p key={note}>{note}</p>)}
         {holdingsSource.label ? <p>Holdings source: {holdingsSource.label}</p> : null}
         {holdingsSource.detail ? <p>{holdingsSource.detail}</p> : null}
+        {holdingsSync.label ? <p>Sync status: {holdingsSync.label}</p> : null}
       </div>
       {workspaceId && onUpdateHoldings ? (
         <form className="panel-block" onSubmit={handleSubmit}>
@@ -1482,7 +1484,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     }
     const payload = await response.json();
     setDashboard(payload);
-    return payload?.portfolio_state?.holdings_source_label || "Holdings updated";
+    const sourceLabel = payload?.portfolio_state?.holdings_source_label || "Holdings updated";
+    const syncLabel = payload?.portfolio_state?.holdings_sync_label || "";
+    return syncLabel ? `${sourceLabel} · ${syncLabel}` : sourceLabel;
   }
 
   function cycleModule(direction) {
