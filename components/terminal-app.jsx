@@ -695,8 +695,6 @@ function StressModeCard({ stressMode }) {
           <span><TermHelp label="Risk of a false rebound" tip="Chance that prices improve briefly without a real improvement underneath." /></span>
           <strong>{stressMode.phantom}</strong>
         </div>
-      </div>
-      <div className="stress-mode-grid">
         <div className="metric-tile">
           <span><TermHelp label="Can we add risk?" tip="Whether the system currently allows new risk, not whether an idea looks attractive." /></span>
           <strong>{stressMode.canAddRisk}</strong>
@@ -704,14 +702,6 @@ function StressModeCard({ stressMode }) {
         <div className="metric-tile">
           <span><TermHelp label="Defensive moves" tip="Whether trims, hedges, or defensive changes are allowed right now." /></span>
           <strong>{stressMode.defensiveState}</strong>
-        </div>
-        <div className="metric-tile">
-          <span><TermHelp label="Market trend" tip="Whether conditions are improving, flat, or getting worse under the surface." /></span>
-          <strong>{stressMode.marketTrend}</strong>
-        </div>
-        <div className="metric-tile">
-          <span><TermHelp label="Evidence strength" tip="How much usable evidence supports this read. Strong means the signal is supported by enough comparable history and acceptable model error." /></span>
-          <strong>{stressMode.authorityLabel || stressMode.authority}</strong>
         </div>
       </div>
       <div className="grid-two">
@@ -726,32 +716,14 @@ function StressModeCard({ stressMode }) {
           <p className="support-copy">Review cadence: {stressMode.cadence}</p>
         </div>
         <div className="panel-block">
-          <p className="block-title">Why</p>
+          <p className="block-title">What this means</p>
           <p className="support-copy"><TermHelp label="What is driving the rebound" tip="The system's read on whether this move is being supported by broad participation, narrow leadership, policy support, or something mixed." />: {stressMode.reboundDriver}</p>
           <p className="support-copy"><TermHelp label="Main risk" tip="The most likely way the current stance or a premature action could go wrong." />: {stressMode.mainRisk}</p>
           <p className="support-copy">What needs to improve: {stressMode.whatNeedsToImprove}</p>
           <p className="support-copy">Current confirmation rule: {stressMode.confirmation}</p>
           {stressMode.changeTrigger ? <p className="support-copy">This view changes if: {stressMode.changeTrigger}</p> : null}
           <p className="support-copy">Closest comparable case: {stressMode.topAnalog}</p>
-        </div>
-      </div>
-      <div className="grid-two">
-        <div className="panel-block diagnostics-block">
-          <p className="block-title">Why trust this view</p>
-          <p className="support-copy">Evidence strength: {stressMode.authorityLabel || "-"}. Raw confidence: {stressMode.authority}.</p>
-          <p className="support-copy">Source: {stressMode.probabilitySource || "-"} · package {stressMode.packageVersion || "n/a"}.</p>
-          <p className="support-copy">Coverage: {stressMode.modelCoverage} · comparable samples: {stressMode.packageSamples} · model error: {stressMode.packageBrier}.</p>
-          <p className="support-copy">Use this as a decision aid. Strong evidence means the read has held up often enough before. Thin evidence means act smaller and wait for confirmation.</p>
-        </div>
-        <div className="panel-block diagnostics-block">
-          <p className="block-title">{stressMode.fiberAtlas?.title || "Visible fiber"}</p>
-          <p className="support-copy">{stressMode.fiberAtlas?.explanation}</p>
-          <p className="support-copy">{stressMode.fiberAtlas?.headline}</p>
-          {(stressMode.fiberAtlas?.rows || []).map((row) => (
-            <p className="support-copy" key={row.id}>{row.label}: {row.share} ({row.count})</p>
-          ))}
-          <p className="support-copy">Ambiguity: {stressMode.fiberAtlas?.ambiguityLabel || "-"}. High ambiguity means similar-looking states split later, so the surface alone is not enough.</p>
-          <p className="support-copy">{stressMode.fiberAtlas?.takeaway}</p>
+          <p className="support-copy">Visible fiber: {stressMode.fiberAtlas?.takeaway || "Comparable-state read unavailable."}</p>
         </div>
       </div>
     </section>
@@ -813,7 +785,7 @@ function RiskPulse({ module }) {
                 <strong>{module.clusterDecomposition?.dominantLabel || module.clusterDecomposition?.dominant || "-"}</strong>
               </div>
         <div className="mini-framework-card">
-          <span>Chance the bounce holds</span>
+          <span>Bounce check</span>
           <strong>{module.reboundConfidence?.state || "-"}</strong>
         </div>
       </div>
@@ -836,12 +808,12 @@ function ActionsModule({ module }) {
             <strong>{module.framework?.cluster?.dominantLabel || module.framework?.cluster?.dominant || "-"}</strong>
           </div>
           <div className="mini-framework-card">
-            <span>Chance the bounce holds</span>
-            <strong>{module.framework?.reboundConfidence?.state || "-"}</strong>
-          </div>
-          <div className="mini-framework-card">
-            <span>Is the bounce real?</span>
-            <strong>{module.framework?.reboundQuality?.state || "-"}</strong>
+            <span>Bounce read</span>
+            <strong>
+              {module.framework?.reboundConfidence?.state || "-"}
+              {" / "}
+              {module.framework?.reboundQuality?.state || "-"}
+            </strong>
           </div>
         </div>
       </div>
@@ -1151,7 +1123,7 @@ function RiskModule({ module }) {
           </ul>
         </div>
         <div className="panel-block">
-          <p className="block-title">Rebound Confidence</p>
+          <p className="block-title">Bounce check</p>
           <div className="framework-metric-grid">
             <div><span>Confidence</span><strong>{module.reboundConfidence?.state}</strong></div>
             <div><span>Score</span><strong>{module.reboundConfidence?.scoreLabel}</strong></div>
@@ -1159,7 +1131,7 @@ function RiskModule({ module }) {
           </div>
           <p className="support-copy">{module.reboundConfidence?.note}</p>
           <ScoreHistoryChart
-            title="Confidence history"
+            title="Bounce history"
             subtitle="Confidence vs VIX backdrop"
             rows={(module.reboundConfidence?.history || []).map((row) => ({
               date: row.date,
@@ -1195,33 +1167,6 @@ function SpectralModule({ module }) {
         <div className="metric-tile"><span>Room to diversify</span><strong>{module.freedomScore}</strong></div>
         <div className="metric-tile"><span>True variety</span><strong>{module.effectiveDimension ?? "-"}</strong></div>
         <div className="metric-tile"><span>Top factor share</span><strong>{module.eig1Share}</strong></div>
-      </div>
-      <div className="panel-block">
-        <p className="block-title">Rebound Quality</p>
-        <div className="framework-state-row">
-          <span className="section-chip">{module.reboundQuality?.state}</span>
-          <strong>{module.reboundQuality?.scoreLabel}</strong>
-        </div>
-        <div className="framework-metric-grid">
-          {(module.reboundQuality?.pillars || []).map((pillar) => (
-            <div key={pillar.label}>
-              <span>{pillar.label}</span>
-              <strong>{pillar.value}</strong>
-            </div>
-          ))}
-        </div>
-        <p className="support-copy">{module.reboundQuality?.note}</p>
-        <ScoreHistoryChart
-          title="Quality history"
-          subtitle="Quality vs compression"
-          rows={(module.reboundQuality?.history || []).map((row) => ({
-            date: row.date,
-            value: row.value,
-            secondary: row.compression,
-          }))}
-          primaryLabel="Quality"
-          secondaryLabel="Compression"
-        />
       </div>
       <div className="panel-block">
         <p className="block-title">Balance read</p>
@@ -1683,16 +1628,12 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <p className="pulse-copy">{dashboard.alpha_briefing.pulse}</p>
             <div className="mini-framework">
               <div className="mini-framework-card">
-                <span>Cluster</span>
-                <strong>{dashboard.alpha_briefing.frameworkSignal?.cluster}</strong>
+                <span>Stance</span>
+                <strong>{dashboard.workspace_summary.primary_stance}</strong>
               </div>
               <div className="mini-framework-card">
-                <span>Chance the bounce holds</span>
-                <strong>{dashboard.alpha_briefing.frameworkSignal?.reboundConfidence}</strong>
-              </div>
-              <div className="mini-framework-card">
-                <span>Is the bounce real?</span>
-                <strong>{dashboard.alpha_briefing.frameworkSignal?.reboundQuality}</strong>
+                <span>Freshness</span>
+                <strong>{dashboard.data_control.marketData.freshnessLabel}</strong>
               </div>
             </div>
             <div className="mini-stat-grid">
