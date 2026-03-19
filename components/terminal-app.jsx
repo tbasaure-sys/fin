@@ -160,17 +160,17 @@ function TopHoldingsStrip({ holdings = [] }) {
 
 function EdgeBoard({ board, onSelect }) {
   const lanes = [
-    { id: "sectors", title: "Sector tilts", rows: board?.sectors || [] },
-    { id: "countries", title: "Country tilts", rows: board?.countries || [] },
-    { id: "currencies", title: "FX expressions", rows: board?.currencies || [] },
-    { id: "stocks", title: "Single names", rows: board?.stocks || [] },
+    { id: "sectors", title: "Sectors", rows: board?.sectors || [] },
+    { id: "countries", title: "Countries", rows: board?.countries || [] },
+    { id: "currencies", title: "Currencies", rows: board?.currencies || [] },
+    { id: "stocks", title: "Stocks", rows: board?.stocks || [] },
   ];
 
   return (
     <section className="edge-board premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Where To Act</p>
+          <p className="eyebrow">Best Opportunities To Review</p>
           <strong>{board?.headline}</strong>
           {board?.explanation ? <p className="support-copy">{board.explanation}</p> : null}
         </div>
@@ -749,37 +749,22 @@ function DecisionEventCard({ log, holdingsSource }) {
   );
 }
 
-function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRefresh, isPending }) {
+function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRefresh, onJump, isPending }) {
   const topEdge = dashboard.edge_board?.drilldowns?.[0];
+  const heroStats = (dashboard.alpha_briefing?.stats || []).slice(0, 3);
 
   return (
     <section className="hero-panel premium-card">
       <div className="hero-panel-main">
         <div className="hero-panel-copy">
-          <p className="eyebrow">Retail Decision Terminal</p>
+          <p className="eyebrow">Private Investing Workspace</p>
           <h1>BLS Prime</h1>
-          <strong>{dashboard.alpha_briefing.pulse}</strong>
-          <p>{dashboard.market_brief.headline}</p>
+          <strong>{dashboard.alpha_briefing?.pulse}</strong>
+          <p>{dashboard.market_brief?.headline}</p>
         </div>
-        <div className="hero-cta-row">
-          <button className="command-trigger" onClick={onOpenCommand}>Cmd Palette</button>
-          <button className="primary-button" onClick={onRefresh} disabled={isPending}>
-            {isPending ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
-      </div>
-      <div className="hero-panel-side">
-        <div className="hero-badge-grid">
+        <div className="hero-badge-grid hero-summary-grid">
           <div className="hero-badge">
-            <span>Workspace</span>
-            <strong>{dashboard.workspace_summary.mode}</strong>
-          </div>
-          <div className="hero-badge">
-            <span>Connection</span>
-            <strong>{connectionState}</strong>
-          </div>
-          <div className="hero-badge">
-            <span>Stance</span>
+            <span>Current stance</span>
             <strong>{dashboard.workspace_summary.primary_stance}</strong>
           </div>
           <div className="hero-badge">
@@ -787,22 +772,201 @@ function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRe
             <strong>{dashboard.workspace_summary.market_data_label}</strong>
           </div>
           <div className="hero-badge">
-            <span>Access</span>
-            <strong>{session.access.provider === "shared-link" ? "Private link" : "Invite alpha"}</strong>
+            <span>Workspace mode</span>
+            <strong>{dashboard.workspace_summary.mode}</strong>
           </div>
           <div className="hero-badge">
-            <span>Decision packet</span>
-            <strong>{dashboard.decision_packet?.memory?.available ? "Live memory loop" : "Decision packet"}</strong>
+            <span>Connection</span>
+            <strong>{connectionState}</strong>
           </div>
         </div>
+        <div className="hero-cta-row hero-action-row">
+          <button className="primary-button" onClick={() => onJump("actions")}>See next move</button>
+          <button className="ghost-button" onClick={() => onJump("command")}>View guardrails</button>
+          <button className="command-trigger" onClick={onOpenCommand}>Quick actions</button>
+          <button className="ghost-button" onClick={onRefresh} disabled={isPending}>
+            {isPending ? "Refreshing..." : "Refresh data"}
+          </button>
+        </div>
+      </div>
+      <div className="hero-panel-side">
+        <div className="hero-session-card">
+          <span className="section-chip is-good">{session.access.provider === "shared-link" ? "Private access" : "Invite alpha"}</span>
+          <strong>{session.user.name}</strong>
+          <p>{session.user.email}</p>
+          <p>{dashboard.workspace_summary.last_updated_label}</p>
+        </div>
         {topEdge ? (
-          <button className="hero-edge-callout" onClick={onOpenCommand}>
-            <span>Top edge now</span>
+          <button className="hero-edge-callout hero-top-edge" onClick={() => onJump(topEdge.lane === "stocks" ? "scanner" : topEdge.lane === "currencies" ? "risk" : topEdge.lane === "countries" ? "international" : "themes")}>
+            <span>Most actionable idea</span>
             <strong>{topEdge.label}</strong>
+            <p className="support-copy">{topEdge.note}</p>
             <b>{topEdge.scoreLabel}</b>
           </button>
         ) : null}
+        <div className="hero-stat-stack">
+          {heroStats.map((item) => (
+            <div className="hero-stat-row" key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+            </div>
+          ))}
+        </div>
       </div>
+    </section>
+  );
+}
+
+function GuidedBrief({ dashboard, onJump }) {
+  const advice = dashboard.just_advice || {};
+  const stressMode = dashboard.stress_mode || {};
+  const decisionPacket = dashboard.decision_packet || {};
+  const memory = decisionPacket.memory || {};
+  const decisionLog = dashboard.decision_event_log || {};
+  const protocol = dashboard.modules?.command || {};
+  const latestRefresh = decisionLog.latest_refresh || (decisionLog.events || []).find((item) => item.kind === "snapshot_refresh");
+  const latestOutcome = decisionLog.latest_outcome || (decisionLog.events || []).find((item) => item.kind === "decision_outcome");
+  const currentRead = (advice.currentRead || []).slice(0, 4);
+  const topMoves = (advice.moves || []).slice(0, 3);
+  const accuracyLabel = memory.accuracyOverall === null || memory.accuracyOverall === undefined ? "-" : `${(Number(memory.accuracyOverall) * 100).toFixed(1)}%`;
+  const calibrationLabel = memory.calibrationGap === null || memory.calibrationGap === undefined ? "-" : `${(Number(memory.calibrationGap) * 100).toFixed(1)}%`;
+  const operatingNotes = [
+    ...(advice.memoryNarrative || []).slice(0, 1),
+    ...(decisionLog.narrative || []).slice(0, 1),
+    ...(protocol.notes || []).slice(0, 1),
+  ].filter(Boolean);
+
+  return (
+    <section className="briefing-board premium-card" id="module-guidance">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">Today&apos;s Operating Brief</p>
+          <strong>One place for the current read, the best next move, and what would change it</strong>
+          <p className="support-copy">
+            This replaces the older stack of separate advice, stress, memory, and event cards with a single guided view.
+          </p>
+        </div>
+        <div className="briefing-toolbar">
+          <span className={`section-chip ${String(stressMode.contractStatus).startsWith("canonical") ? "is-good" : "is-warn"}`}>
+            {stressMode.contractStatusLabel || stressMode.contractStatus || "Live"}
+          </span>
+          <button className="ghost-button" onClick={() => onJump("actions")}>Open full action plan</button>
+        </div>
+      </div>
+
+      <div className="briefing-summary-strip">
+        <div className="briefing-stat">
+          <span>Current stance</span>
+          <strong>{stressMode.mode || dashboard.workspace_summary.primary_stance}</strong>
+        </div>
+        <div className="briefing-stat">
+          <span>Recovery chance</span>
+          <strong>{stressMode.recoverability || "-"}</strong>
+        </div>
+        <div className="briefing-stat">
+          <span>Room to act</span>
+          <strong>{stressMode.roomToAct || "-"}</strong>
+        </div>
+        <div className="briefing-stat">
+          <span>Review cadence</span>
+          <strong>{stressMode.cadence || dashboard.data_control?.lastRefreshLabel || "-"}</strong>
+        </div>
+      </div>
+
+      <div className="briefing-main-grid">
+        <div className="panel-block intro-block briefing-lead-card">
+          <p className="block-title">What to do now</p>
+          <div className="briefing-headline">{stressMode.decisionSummary || advice.title || "Stay on the current plan"}</div>
+          {advice.headline ? <p className="support-copy">{advice.headline}</p> : null}
+          {advice.summary ? <p className="support-copy">{advice.summary}</p> : null}
+          {stressMode.topMove?.summary ? <p className="support-copy"><strong>Best action:</strong> {stressMode.topMove.summary}</p> : null}
+          {stressMode.topMove?.reason ? <p className="support-copy">{stressMode.topMove.reason}</p> : null}
+          {advice.changeTrigger || stressMode.changeTrigger ? (
+            <p className="support-copy">
+              <strong>What would change this:</strong> {advice.changeTrigger || stressMode.changeTrigger}
+            </p>
+          ) : null}
+          <div className="edge-detail-actions">
+            <button className="primary-button" onClick={() => onJump("actions")}>Review best moves</button>
+            <button className="ghost-button" onClick={() => onJump("command")}>Check guardrails</button>
+          </div>
+        </div>
+
+        <div className="panel-block">
+          <p className="block-title">Why the system believes this</p>
+          <div className="briefing-metric-grid">
+            {currentRead.map((item) => (
+              <div className="metric-tile" key={item.label}>
+                <span>{item.label}</span>
+                <strong>{item.value}</strong>
+                {item.detail ? <p className="support-copy">{item.detail}</p> : null}
+              </div>
+            ))}
+          </div>
+          <ul className="signal-list">
+            {(operatingNotes.length ? operatingNotes : [dashboard.market_brief?.headline]).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="panel-block">
+          <p className="block-title">How disciplined this read is</p>
+          <div className="briefing-discipline-grid">
+            <div className="mini-framework-card">
+              <span>Accuracy</span>
+              <strong>{accuracyLabel}</strong>
+            </div>
+            <div className="mini-framework-card">
+              <span>Calibration gap</span>
+              <strong>{calibrationLabel}</strong>
+            </div>
+            <div className="mini-framework-card">
+              <span>Latest outcome</span>
+              <strong>{latestOutcome ? (latestOutcome.was_correct === false ? "Missed" : latestOutcome.was_correct === true ? "Held up" : "Pending") : "-"}</strong>
+            </div>
+            <div className="mini-framework-card">
+              <span>Decision rights</span>
+              <strong>{protocol.decisionRights || "-"}</strong>
+            </div>
+          </div>
+          <div className="briefing-footnote-grid">
+            <div className="briefing-footnote">
+              <span>Latest refresh</span>
+              <strong>{latestRefresh ? formatDecisionEvent(latestRefresh) : "No refresh trail available yet."}</strong>
+            </div>
+            <div className="briefing-footnote">
+              <span>Closest risk to watch</span>
+              <strong>{stressMode.mainRisk || stressMode.whatNeedsToImprove || "Waiting for a fuller risk note."}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {topMoves.length ? (
+        <div className="briefing-move-grid">
+          {topMoves.map((move) => (
+            <article className={`action-card action-${move.tone}`} key={move.id}>
+              <div className="action-topline">
+                <div className="action-tags">
+                  <span className={`status-pill is-${move.slotTone}`}>{move.slot}</span>
+                  {move.sourceLabel ? <span className="action-source">{move.sourceLabel}</span> : null}
+                </div>
+              </div>
+              <div className="action-header">
+                <strong>{move.title}</strong>
+                <span>{move.ticker || "Portfolio move"}</span>
+              </div>
+              <p className="action-conviction">{move.summary}</p>
+              <div className="action-grid">
+                <div><span>Size</span><strong>{move.size || "-"}</strong></div>
+                <div><span>Funding</span><strong>{move.funding || "-"}</strong></div>
+              </div>
+              {move.watchFor ? <p className="support-copy"><strong>Watch for:</strong> {move.watchFor}</p> : null}
+            </article>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -873,6 +1037,53 @@ function StressModeCard({ stressMode }) {
   );
 }
 
+function WorkspaceNavigator({ dashboard, activeModule, onJump, onFocus }) {
+  const descriptions = {
+    actions: "Recommended trades and portfolio moves.",
+    command: "Rules that keep the portfolio inside its risk range.",
+    portfolio: "Holdings, exposures, and editable position values.",
+    scanner: "Idea discovery across stocks and themes.",
+    risk: "Pressure signals, rebound checks, and structural stress.",
+    spectral: "Diversification quality and hidden concentration.",
+    themes: "Theme-level leadership and weakness.",
+    international: "Country and global market opportunities.",
+    audit: "Research log and operating trail.",
+  };
+
+  return (
+    <section className="rail-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="rail-title">Explore The Workspace</p>
+          <p className="support-copy">Open the area you want without needing command shortcuts or internal jargon.</p>
+        </div>
+      </div>
+      <div className="module-directory">
+        {dashboard.module_refs.map((item) => {
+          const isActive = activeModule === item.id;
+          const status = dashboard.module_status.find((moduleStatus) => moduleStatus.id === item.id);
+          const openInPlace = item.id === "actions" || item.id === "command";
+
+          return (
+            <button
+              className={`module-directory-card ${isActive ? "is-active" : ""}`}
+              key={item.id}
+              onClick={() => (openInPlace ? onJump(item.id) : onFocus(item.id))}
+            >
+              <div className="module-directory-header">
+                <span>{item.kicker}</span>
+                <span className={`status-pill ${statusClass(status?.status)}`}>{status?.status || "ready"}</span>
+              </div>
+              <strong>{item.title}</strong>
+              <p>{descriptions[item.id] || "Open the detailed view."}</p>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function PortfolioPulse({ module, workspaceId, onUpdateHoldings }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
@@ -902,8 +1113,8 @@ function PortfolioPulse({ module, workspaceId, onUpdateHoldings }) {
     <section className="cockpit-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Portfolio Pulse</p>
-          <strong>What the portfolio is doing structurally</strong>
+          <p className="eyebrow">Portfolio Snapshot</p>
+          <strong>How the portfolio is behaving right now</strong>
         </div>
         <span className={`section-chip ${holdingsSource.connected ? "is-good" : "is-warn"}`}>{analytics.holdingsCount} holdings</span>
       </div>
@@ -952,8 +1163,8 @@ function RiskPulse({ module }) {
     <section className="cockpit-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Risk Pulse</p>
-          <strong>Pressure map for the current portfolio</strong>
+          <p className="eyebrow">Risk Snapshot</p>
+          <strong>Where the current pressure is coming from</strong>
         </div>
         <span className={`section-chip is-${riskState === "Contained" ? "good" : riskState === "Guarded" ? "warn" : "bad"}`}>{riskState}</span>
       </div>
@@ -1129,15 +1340,15 @@ function DecisionWorkflow({ dashboard, activeModule, onJump, onFocus }) {
   const sections = [
     {
       id: "actions",
-      eyebrow: "Stage 01",
-      title: "Best actions now",
+      eyebrow: "Step 01",
+      title: "Best next moves",
       status: dashboard.module_status.find((item) => item.id === "actions"),
       body: <ActionsModule module={dashboard.modules.actions} />,
     },
     {
       id: "command",
-      eyebrow: "Stage 02",
-      title: "Decision rules",
+      eyebrow: "Step 02",
+      title: "Risk guardrails",
       status: dashboard.module_status.find((item) => item.id === "command"),
       body: <ProtocolModule module={dashboard.modules.command} />,
     },
@@ -1147,8 +1358,9 @@ function DecisionWorkflow({ dashboard, activeModule, onJump, onFocus }) {
     <section className="workflow-shell premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Decision Workflow</p>
-          <strong>Read the current stance, then act only inside the open range</strong>
+          <p className="eyebrow">Decision Playbook</p>
+          <strong>Start with the recommended move, then confirm the portfolio is still inside the allowed risk range</strong>
+          <p className="support-copy">The first panel is the plain-language action plan. The second explains the rules that can block or reopen risk.</p>
         </div>
       </div>
       <div className="workflow-nav">
@@ -1864,7 +2076,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const commandPresets = [
     { label: "Refresh", command: "refresh" },
     { label: "Next Moves", command: "view actions" },
-    { label: "Protocol", command: "view command" },
+    { label: "Guardrails", command: "view command" },
     { label: "Compact", command: "compact" },
     { label: "Add NVDA", command: "add NVDA" },
     { label: "Alerts", command: "alerts" },
@@ -1881,16 +2093,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         connectionState={connectionState}
         onOpenCommand={() => setCommandOpen(true)}
         onRefresh={refreshTerminal}
+        onJump={jumpToModule}
         isPending={isPending}
       />
 
-      <JustAdviceCard module={dashboard.just_advice} />
-
-      <DecisionMemoryCard packet={dashboard.decision_packet} />
-
-      <DecisionEventCard log={dashboard.decision_event_log} holdingsSource={dashboard.data_control?.holdingsSource} />
-
-      <StressModeCard stressMode={dashboard.stress_mode} />
+      <GuidedBrief dashboard={dashboard} onJump={jumpToModule} />
 
       <section className="market-ribbon">
         {dashboard.market_ribbon.map((item) => (
@@ -1934,7 +2141,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </section>
 
           <section className="rail-card premium-card">
-            <p className="rail-title">Alpha Pulse</p>
+            <p className="rail-title">Market Summary</p>
             <p className="pulse-copy">{dashboard.alpha_briefing.pulse}</p>
             <div className="mini-framework">
               <div className="mini-framework-card">
@@ -1963,6 +2170,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               ))}
             </div>
           </section>
+
+          <WorkspaceNavigator
+            dashboard={dashboard}
+            activeModule={activeModule}
+            onJump={jumpToModule}
+            onFocus={(moduleId) => setFocusedModule(moduleId)}
+          />
         </aside>
 
         <DecisionWorkflow
@@ -2056,8 +2270,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <div className="command-overlay" onClick={() => setCommandOpen(false)}>
           <div className="command-shell" onClick={(event) => event.stopPropagation()}>
             <div className="command-header">
-              <strong>Command palette</strong>
-              <span>Jump around, add stocks, switch layout, or refresh the terminal.</span>
+              <strong>Quick actions</strong>
+              <span>Jump to a section, add a stock, change layout density, or refresh the workspace.</span>
             </div>
             <div className="command-input-row">
               <input

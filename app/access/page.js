@@ -8,16 +8,16 @@ export default function AccessPage() {
   return (
     <main className="access-shell">
       <div className="access-card">
-        <p className="eyebrow">Private Alpha</p>
-        <h1>BLS Prime is running behind a shared access link.</h1>
+        <p className="eyebrow">Private Access</p>
+        <h1>BLS Prime is shared through a private invitation link.</h1>
         <p className="access-copy">
-          This alpha does not use full account auth yet. Access is granted through a private invitation URL,
-          and once opened the session stays active on this browser.
+          This workspace is still in alpha, so it uses a private link instead of full account sign-in.
+          Once the link is opened on this browser, the session remains active here.
         </p>
         <div className="access-grid">
           <div className="access-panel">
-            <span>Access model</span>
-            <strong>Private link only</strong>
+            <span>How access works</span>
+            <strong>Private invitation link</strong>
           </div>
           <div className="access-panel">
             <span>Workspace mode</span>
@@ -25,8 +25,8 @@ export default function AccessPage() {
           </div>
         </div>
         <div className="access-note">
-          <strong>Need a fresh link?</strong>
-          <span>Contact {config.inviteContact} and ask for the current BLS Prime alpha invitation.</span>
+          <strong>Need a fresh invitation?</strong>
+          <span>Contact {config.inviteContact} and ask for the latest BLS Prime access link.</span>
         </div>
       </div>
     </main>

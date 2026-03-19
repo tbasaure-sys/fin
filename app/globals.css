@@ -1,14 +1,15 @@
 :root {
   --bg: #071019;
-  --panel: rgba(10, 17, 28, 0.84);
-  --panel-strong: rgba(14, 23, 37, 0.96);
+  --panel: rgba(9, 18, 30, 0.84);
+  --panel-strong: rgba(13, 24, 39, 0.96);
   --panel-soft: rgba(255, 255, 255, 0.03);
-  --border: rgba(189, 210, 255, 0.11);
-  --border-strong: rgba(255, 203, 112, 0.34);
-  --text: #f4efe2;
-  --muted: #9cacbe;
+  --border: rgba(189, 210, 255, 0.14);
+  --border-strong: rgba(113, 210, 190, 0.34);
+  --text: #f7f2e8;
+  --muted: #a8b8ca;
   --dim: #73839a;
   --accent: #f8c86f;
+  --accent-soft: #7ad2c2;
   --good: #52d0a3;
   --warn: #ffb454;
   --bad: #ff7c72;
@@ -29,12 +30,13 @@ body {
   margin: 0;
   min-height: 100%;
   background:
-    radial-gradient(circle at top left, rgba(248, 200, 111, 0.16), transparent 24%),
-    radial-gradient(circle at 88% 0%, rgba(73, 146, 255, 0.18), transparent 26%),
-    radial-gradient(circle at bottom right, rgba(82, 208, 163, 0.12), transparent 22%),
-    linear-gradient(180deg, #040811 0%, #08111c 42%, #050911 100%);
+    radial-gradient(circle at top left, rgba(248, 200, 111, 0.18), transparent 24%),
+    radial-gradient(circle at 88% 0%, rgba(122, 210, 194, 0.16), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(73, 146, 255, 0.14), transparent 22%),
+    linear-gradient(180deg, #050913 0%, #09121f 42%, #060b13 100%);
   color: var(--text);
   font-family: var(--sans);
+  line-height: 1.5;
 }
 
 body {
@@ -159,8 +161,11 @@ a {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
   gap: 18px;
-  padding: 24px;
-  margin-bottom: 16px;
+  padding: 28px;
+  margin-bottom: 18px;
+  background:
+    linear-gradient(135deg, rgba(248, 200, 111, 0.12), transparent 38%),
+    linear-gradient(180deg, rgba(9, 18, 30, 0.94), rgba(9, 18, 30, 0.78));
 }
 
 .hero-panel-main,
@@ -298,6 +303,7 @@ a {
 .hero-badge,
 .hero-edge-callout,
 .identity-card,
+.hero-session-card,
 .saved-view,
 .mini-framework-card,
 .watchlist-row,
@@ -337,6 +343,7 @@ a {
 .hero-badge,
 .hero-edge-callout,
 .identity-card,
+.hero-session-card,
 .saved-view,
 .mini-framework-card,
 .watchlist-row div,
@@ -365,6 +372,60 @@ a {
   cursor: pointer;
   transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
   background: linear-gradient(180deg, rgba(248, 200, 111, 0.16), rgba(255, 255, 255, 0.03));
+}
+
+.hero-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hero-action-row {
+  flex-wrap: wrap;
+}
+
+.hero-session-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(122, 210, 194, 0.12), rgba(255, 255, 255, 0.03));
+}
+
+.hero-session-card strong {
+  font-size: 24px;
+}
+
+.hero-session-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.hero-top-edge {
+  padding: 18px;
+}
+
+.hero-stat-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.hero-stat-row,
+.briefing-stat,
+.briefing-footnote {
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  padding: 14px 16px;
+}
+
+.hero-stat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hero-stat-row strong {
+  font-size: 20px;
 }
 
 .hero-edge-callout:hover,
@@ -678,6 +739,113 @@ a {
 .edge-board {
   padding: 20px;
   margin-bottom: 16px;
+}
+
+.briefing-board {
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.briefing-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.briefing-summary-strip,
+.briefing-main-grid,
+.briefing-move-grid,
+.briefing-footnote-grid,
+.briefing-metric-grid,
+.briefing-discipline-grid,
+.module-directory {
+  display: grid;
+  gap: 14px;
+}
+
+.briefing-summary-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 18px 0;
+}
+
+.briefing-stat span,
+.briefing-footnote span,
+.module-directory-card span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.briefing-stat strong,
+.briefing-footnote strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
+}
+
+.briefing-main-grid {
+  grid-template-columns: 1.1fr 1fr 0.95fr;
+  align-items: start;
+}
+
+.briefing-lead-card {
+  background: linear-gradient(180deg, rgba(248, 200, 111, 0.12), rgba(255, 255, 255, 0.03));
+}
+
+.briefing-headline {
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 1.02;
+  margin-bottom: 12px;
+  font-family: var(--mono);
+}
+
+.briefing-metric-grid,
+.briefing-discipline-grid,
+.briefing-footnote-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.briefing-move-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.module-directory-card {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.module-directory-card.is-active,
+.module-directory-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  background: linear-gradient(180deg, rgba(122, 210, 194, 0.12), rgba(255, 255, 255, 0.02));
+}
+
+.module-directory-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.module-directory-card strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.module-directory-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
 }
 
 .edge-board-grid {
@@ -1505,7 +1673,7 @@ a {
 
 .access-card {
   max-width: 720px;
-  padding: 28px;
+  padding: 32px;
 }
 
 .access-card h1 {
@@ -1572,6 +1740,27 @@ a {
   background: #0b0f16;
 }
 
+.access-panel {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.access-panel span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.legacy-note {
+  margin: 0 0 16px;
+  color: var(--muted);
+  max-width: 720px;
+}
+
 .density-compact .module-body,
 .density-compact .rail-card,
 .density-compact .ticker-card,
@@ -1635,6 +1824,11 @@ a {
 @media (max-width: 1120px) {
   .hero-panel,
   .cockpit-grid,
+  .briefing-summary-strip,
+  .briefing-main-grid,
+  .briefing-move-grid,
+  .briefing-discipline-grid,
+  .briefing-footnote-grid,
   .stress-mode-grid,
   .terminal-layout,
   .module-grid,
@@ -1659,7 +1853,8 @@ a {
 
   .market-ribbon,
   .edge-board-grid,
-  .holding-strip {
+  .holding-strip,
+  .hero-summary-grid {
     grid-template-columns: 1fr 1fr;
   }
 
@@ -1679,6 +1874,7 @@ a {
   .market-ribbon,
   .edge-board-grid,
   .holding-strip,
+  .hero-summary-grid,
   .pulse-ideas,
   .mini-stat-grid,
   .metric-grid,

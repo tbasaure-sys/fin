@@ -9,17 +9,19 @@ export default function LegacyPage() {
     <main className="legacy-shell">
       <div className="legacy-header">
         <div>
-          <p className="eyebrow">Legacy Surface</p>
-          <h1>Classic Workstation</h1>
+          <p className="eyebrow">Legacy Workspace</p>
+          <h1>Classic BLS Prime surface</h1>
         </div>
         <a className="legacy-link" href={backendBaseUrl} target="_blank" rel="noreferrer">
-          Open Railway dashboard
+          Open legacy dashboard
         </a>
       </div>
+      <p className="legacy-note">
+        This keeps the older workstation available for comparison and continuity while the upgraded interface becomes the main experience.
+      </p>
       <div className="legacy-frame">
         <iframe title="Legacy BLS Prime dashboard" src={backendBaseUrl} />
       </div>
     </main>
   );
 }
-
