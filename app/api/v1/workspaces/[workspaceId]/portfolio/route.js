@@ -1,4 +1,4 @@
-import { getWorkspacePortfolio } from "@/lib/server/dashboard-service";
+import { getWorkspacePortfolio, updateWorkspaceHoldings } from "@/lib/server/dashboard-service";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -8,3 +8,8 @@ export async function GET(_request, { params }) {
   return Response.json(payload, { headers: { "Cache-Control": "no-store" } });
 }
 
+export async function POST(request, { params }) {
+  const body = await request.json();
+  const payload = await updateWorkspaceHoldings(params.workspaceId, body);
+  return Response.json(payload, { headers: { "Cache-Control": "no-store" } });
+}

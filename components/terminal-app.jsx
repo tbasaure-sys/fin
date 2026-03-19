@@ -864,10 +864,29 @@ function StressModeCard({ stressMode }) {
   );
 }
 
-function PortfolioPulse({ module }) {
+function PortfolioPulse({ module, workspaceId, onUpdateHoldings }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
   const holdingsSource = module?.holdingsSource || {};
+  const [draft, setDraft] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState("");
+
+  async function handleSubmit(event) {
+    event.preventDefault();
+    const instruction = draft.trim();
+    if (!instruction || !onUpdateHoldings || !workspaceId) return;
+    setSubmitting(true);
+    try {
+      const result = await onUpdateHoldings(instruction);
+      setFeedback(result || "Holdings updated.");
+      setDraft("");
+    } catch (error) {
+      setFeedback(error?.message || "Could not update holdings.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <section className="cockpit-card premium-card">
@@ -888,6 +907,28 @@ function PortfolioPulse({ module }) {
         {holdingsSource.label ? <p>Holdings source: {holdingsSource.label}</p> : null}
         {holdingsSource.detail ? <p>{holdingsSource.detail}</p> : null}
       </div>
+      {workspaceId && onUpdateHoldings ? (
+        <form className="panel-block" onSubmit={handleSubmit}>
+          <p className="block-title">Update holdings</p>
+          <p className="support-copy">Try: “I just bought 100 USD of NVDA stock” or “sold 2 shares of AAPL”.</p>
+          <textarea
+            className="trade-textarea"
+            rows={3}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="I just bought 100 USD of NVDA stock"
+          />
+          <div className="edge-detail-actions">
+            <button className="primary-button" type="submit" disabled={submitting}>
+              {submitting ? "Updating..." : "Apply trade"}
+            </button>
+            <button className="ghost-button" type="button" onClick={() => setDraft("")}>
+              Clear
+            </button>
+          </div>
+          {feedback ? <p className="support-copy">{feedback}</p> : null}
+        </form>
+      ) : null}
       <TopHoldingsStrip holdings={holdings} />
     </section>
   );
@@ -1429,6 +1470,21 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     return payload;
   }
 
+  async function applyHoldingsUpdate(instruction) {
+    const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/portfolio`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ instruction }),
+    });
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(message || "Could not update holdings.");
+    }
+    const payload = await response.json();
+    setDashboard(payload);
+    return payload?.portfolio_state?.holdings_source_label || "Holdings updated";
+  }
+
   function cycleModule(direction) {
     const currentIndex = dashboard.module_refs.findIndex((item) => item.id === activeModule);
     const nextIndex = (currentIndex + direction + dashboard.module_refs.length) % dashboard.module_refs.length;
@@ -1662,6 +1718,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       return;
     }
 
+    if (/(?:\bbuy\b|\bbought\b|\bsell\b|\bsold\b|\btrim\b|\breduce\b|\bclose\b)/i.test(value) && /\b[A-Z]{1,6}\b/.test(value)) {
+      await rememberCommand(value);
+      const feedback = await applyHoldingsUpdate(value);
+      setCommandFeedback(feedback || "Holdings updated.");
+      setCommandText("");
+      setCommandOpen(false);
+      return;
+    }
+
     if (/^[a-z.]{1,8}$/i.test(value)) {
       await rememberCommand(`add ${value.toUpperCase()}`);
       await addWatchlistSymbol(value);
@@ -1743,7 +1808,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       </section>
 
       <section className="cockpit-grid">
-        <PortfolioPulse module={dashboard.modules.portfolio} />
+        <PortfolioPulse
+          module={dashboard.modules.portfolio}
+          workspaceId={dashboard.workspace_summary.id}
+          onUpdateHoldings={applyHoldingsUpdate}
+        />
         <RiskPulse module={dashboard.modules.risk} />
       </section>
 
