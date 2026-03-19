@@ -61,15 +61,31 @@ Recommended deployment split:
 - `Railway` for the Python backend
 - `Vercel` for the dashboard frontend
 
+This frontend now avoids seeded market ideas, alerts, and watchlists when live artifacts are missing.
+If the backend snapshot is sparse, the UI should show honest empty or unavailable states instead of demo content.
+
+### Vercel preview
+
 The repository includes:
 
 - `railway.toml`
 - `Procfile`
 - `vercel.json`
-- a Vercel API proxy for forwarding `/api/*` requests to the backend
 
-On Vercel, this repository should be treated as a static/Node project, not as a Python runtime.
+For a working preview deployment, set at least these environment variables in Vercel:
 
+- `BLS_PRIME_BACKEND_URL`
+- `NEXT_PUBLIC_BLS_APP_NAME`
+- `NEXT_PUBLIC_BLS_WORKSPACE_ID`
+- `BLS_PRIME_ALPHA_MODE`
+- `BLS_PRIME_INVITE_CONTACT`
+
+Optional if you are using invite-link access:
+
+- `BLS_PRIME_SHARED_ACCESS_TOKEN`
+- `BLS_PRIME_SHARED_ACCESS_QUERY_KEY`
+
+On Vercel, this repository should be treated as a Next.js project, not as a Python runtime.
 Environment variables are documented in `.env.example`.
 
 ## Status
