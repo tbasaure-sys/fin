@@ -25,6 +25,15 @@ function formatNumber(value, digits = 2) {
   });
 }
 
+function formatUsd(value, digits = 0) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "-";
+  return `$${number.toLocaleString(undefined, {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  })}`;
+}
+
 function severityClass(severity) {
   if (severity === "high") return "is-high";
   if (severity === "medium") return "is-medium";
@@ -1181,7 +1190,43 @@ function DecisionWorkflow({ dashboard, activeModule, onJump, onFocus }) {
   );
 }
 
-function PortfolioModule({ module }) {
+function PortfolioModule({ module, workspaceId, onUpdateHoldings }) {
+  const [draftValues, setDraftValues] = useState({});
+  const [editingTicker, setEditingTicker] = useState(null);
+  const [editFeedback, setEditFeedback] = useState("");
+
+  useEffect(() => {
+    const initialDrafts = Object.fromEntries(
+      (module.holdings || [])
+        .filter((row) => row?.ticker)
+        .map((row) => [row.ticker, row.marketValueUsd !== null && row.marketValueUsd !== undefined ? String(row.marketValueUsd) : ""]),
+    );
+    setDraftValues(initialDrafts);
+    setEditingTicker(null);
+    setEditFeedback("");
+  }, [module.holdings]);
+
+  async function saveHolding(row) {
+    if (!onUpdateHoldings || !workspaceId) return;
+    const rawValue = draftValues[row.ticker];
+    const targetValue = Number(rawValue);
+    if (!Number.isFinite(targetValue) || targetValue < 0) {
+      setEditFeedback(`Enter a valid dollar value for ${row.ticker}.`);
+      return;
+    }
+    setEditFeedback("Updating holding...");
+    try {
+      const feedback = await onUpdateHoldings({
+        ticker: row.ticker,
+        target_value_usd: targetValue,
+      });
+      setEditFeedback(feedback || `${row.ticker} updated.`);
+      setEditingTicker(null);
+    } catch (error) {
+      setEditFeedback(error?.message || `Could not update ${row.ticker}.`);
+    }
+  }
+
   return (
     <>
       <div className="metric-band emphasis-band">
@@ -1192,14 +1237,64 @@ function PortfolioModule({ module }) {
       </div>
       <div className="data-table compact-table">
         <div className="data-row data-head">
-          <span>Ticker</span><span>Sector</span><span>Weight</span><span>Brief</span>
+          <span>Ticker</span><span>Sector</span><span>Weight</span><span>Value</span><span>Action</span>
         </div>
         {(module.holdings || []).map((row) => (
-          <div className="data-row" key={row.ticker}>
-            <span>{row.ticker}</span><span>{row.sector}</span><span>{row.weight}</span><span>{row.conviction || row.upside}</span>
+          <div className="portfolio-holding-group" key={row.ticker}>
+            <div className="data-row">
+              <span>{row.ticker}</span>
+              <span>{row.sector}</span>
+              <span>{row.weight}</span>
+              <span>{formatUsd(row.marketValueUsd, 0)}</span>
+              <span>
+                <button className="ghost-button mini-button" onClick={() => setEditingTicker(editingTicker === row.ticker ? null : row.ticker)}>
+                  {editingTicker === row.ticker ? "Close" : "Edit"}
+                </button>
+              </span>
+            </div>
+            {editingTicker === row.ticker ? (
+              <div className="portfolio-inline-editor">
+                <div className="portfolio-inline-summary">
+                  <div>
+                    <span>Current shares</span>
+                    <strong>{formatNumber(row.quantity, 2)}</strong>
+                  </div>
+                  <div>
+                    <span>Current value</span>
+                    <strong>{formatUsd(row.marketValueUsd, 0)}</strong>
+                  </div>
+                  <div>
+                    <span>Current price</span>
+                    <strong>{formatUsd(row.currentPriceUsd, 2)}</strong>
+                  </div>
+                </div>
+                <label className="portfolio-edit-field">
+                  <span>Target value</span>
+                  <input
+                    className="holding-edit-input"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    inputMode="decimal"
+                    value={draftValues[row.ticker] ?? ""}
+                    onChange={(event) => setDraftValues((current) => ({ ...current, [row.ticker]: event.target.value }))}
+                    placeholder="Enter target USD value"
+                  />
+                </label>
+                <div className="portfolio-edit-actions">
+                  <button className="primary-button mini-button" onClick={() => saveHolding(row)}>
+                    Save
+                  </button>
+                  <button className="ghost-button mini-button" onClick={() => setEditingTicker(null)}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
         ))}
       </div>
+      {editFeedback ? <p className="support-copy chart-source">{editFeedback}</p> : null}
       <div className="panel-block">
         <p className="block-title">Portfolio read</p>
         <ul className="signal-list">
@@ -1403,11 +1498,11 @@ function AuditModule({ module }) {
   );
 }
 
-function renderModule(moduleRef, moduleData, status, focused, onFocus) {
+function renderModule(moduleRef, moduleData, status, focused, onFocus, workspaceId, onUpdateHoldings) {
   const bodyById = {
     actions: <ActionsModule module={moduleData} />,
     command: <ProtocolModule module={moduleData} />,
-    portfolio: <PortfolioModule module={moduleData} />,
+    portfolio: <PortfolioModule module={moduleData} workspaceId={workspaceId} onUpdateHoldings={onUpdateHoldings} />,
     scanner: <ScannerModule module={moduleData} />,
     risk: <RiskModule module={moduleData} />,
     spectral: <SpectralModule module={moduleData} />,
@@ -1473,10 +1568,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function applyHoldingsUpdate(instruction) {
+    const body = typeof instruction === "string" ? { instruction } : instruction;
     const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/portfolio`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ instruction }),
+      body: JSON.stringify(body),
     });
     if (!response.ok) {
       const message = await response.text();
@@ -1947,6 +2043,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               dashboard.module_status.find((item) => item.id === focusedModule),
               true,
               () => setFocusedModule(null),
+              dashboard.workspace_summary.id,
+              applyHoldingsUpdate,
             )}
           </div>
         </div>
