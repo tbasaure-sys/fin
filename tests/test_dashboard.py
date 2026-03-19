@@ -203,6 +203,9 @@ def test_build_dashboard_snapshot_from_existing_outputs(tmp_path: Path, monkeypa
     assert snapshot["decision_packet"]["title"] == "Just advice"
     assert snapshot["decision_packet"]["current_read"][0]["label"] == "Holdings"
     assert snapshot["decision_packet"]["moves"]
+    assert snapshot["decision_event_log"]["available"] is True
+    assert snapshot["decision_event_log"]["events"]
+    assert snapshot["portfolio"]["holdings_source"] == "backend_portfolio_manager"
     assert snapshot["bls_state_v1"]["contract_version"] == "state_contract_v1"
     assert "probabilistic_state" in snapshot["bls_state_v1"]
     assert "research_provenance" in snapshot["bls_state_v1"]
@@ -210,6 +213,7 @@ def test_build_dashboard_snapshot_from_existing_outputs(tmp_path: Path, monkeypa
     assert snapshot["bls_state_v1"]["probabilistic_state"]["source"] in {"offline_probability_package_v1", "offline_probability_package_v1+research_restoration", "research_artifact_neighbors_v1", "heuristic_fallback_v1"}
     assert (paths.output_root / "state_contract" / "latest" / "probability_models_v1.json").exists()
     assert (paths.output_root / "dashboard" / "latest" / "decision_packet.json").exists()
+    assert (paths.output_root / "audit" / "latest" / "decision_events.json").exists()
 
 
 def test_apply_screener_query_filters_and_sorts() -> None:
@@ -268,6 +272,8 @@ def test_dashboard_server_exposes_overview_endpoint(tmp_path: Path, monkeypatch)
     assert payload["selected_hedge"]
     packet_payload = _call("/api/decision-packet")
     assert packet_payload["title"] == "Just advice"
+    events_payload = _call("/api/decision-events")
+    assert events_payload["available"] is True
     state_payload = _bls_contract_routes(snapshot)["/api/state"]
     assert state_payload["contract_version"] == "state_contract_v1"
     assert "probabilistic_state" in state_payload

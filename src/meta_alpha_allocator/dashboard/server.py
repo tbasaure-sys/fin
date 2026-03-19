@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
+from ..decision_runtime.events import summarize_decision_events
 from ..decision_runtime.packet import build_decision_packet
 from ..research.chrono_fragility import latest_chrono_alert
 from ..research.decision_audit import DecisionAudit, AuditSummary
@@ -94,14 +95,16 @@ class DashboardService:
             t = threading.Thread(target=self._background_refresh, args=(boot_refresh_delay,), daemon=True)
             t.start()
 
-    @staticmethod
-    def _ensure_decision_packet(snapshot: dict | None) -> dict | None:
+    def _ensure_decision_packet(self, snapshot: dict | None) -> dict | None:
         if snapshot is None:
             return None
-        if snapshot.get("decision_packet"):
-            return snapshot
         snapshot = dict(snapshot)
-        snapshot["decision_packet"] = build_decision_packet(snapshot)
+        if not snapshot.get("decision_packet"):
+            snapshot["decision_packet"] = build_decision_packet(snapshot)
+        if not snapshot.get("decision_event_log"):
+            snapshot["decision_event_log"] = summarize_decision_events(snapshot, self.paths.output_root)
+        snapshot["decision_events"] = snapshot["decision_event_log"].get("events", [])
+        snapshot["decision_event"] = snapshot["decision_event_log"].get("latest_refresh")
         return snapshot
 
     def _background_refresh(self, delay: int) -> None:
@@ -380,6 +383,7 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
             route_map = {
                 "/api/overview": snapshot.get("overview", {}),
                 "/api/decision-packet": snapshot.get("decision_packet", {}),
+                "/api/decision-events": snapshot.get("decision_event_log", {}),
                 "/api/performance": snapshot.get("performance", {}),
                 "/api/risk": snapshot.get("risk", {}),
                 "/api/spectral": snapshot.get("risk", {}).get("spectral", {}),

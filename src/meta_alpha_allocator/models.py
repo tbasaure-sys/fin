@@ -106,5 +106,8 @@ class DashboardSnapshot:
     statement_intelligence: dict
     status: dict
     decision_packet: dict | None = None
+    decision_event_log: dict | None = None
+    decision_event: dict | None = None
+    decision_events: list[dict] | None = None
     bls_state_v1: dict | None = None
     bls_state_v2: dict | None = None
