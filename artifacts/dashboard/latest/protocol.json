@@ -1,41 +1,41 @@
 {
   "protocol": "wean_and_rebuild",
   "protocol_label": "Wean And Rebuild",
-  "trust_score": 0.8160643336332042,
+  "trust_score": 0.7877196148266592,
   "trust_state": "Act",
   "decision_rights": "Guardrail required",
-  "autonomy_score": 0.428913920810331,
-  "frontier_distance": -0.22659354160916423,
+  "autonomy_score": 0.42884866379842146,
+  "frontier_distance": -0.22665879862107374,
   "recoverability_budget": "Tight",
   "support_dependency": {
     "passive_flows": 0.28940994123332686,
     "valuation_tolerance": 1.0,
-    "cheap_refinancing": 0.17472127675494606,
+    "cheap_refinancing": 0.17476478142955235,
     "narrative_breadth": 0.29000000000000004
   },
   "protective_value": {
     "cash": 0.06,
     "duration": 0.1,
     "convexity": 0.08,
-    "quality": 0.1571327347479399
+    "quality": 0.15445364979458026
   },
   "step_down_trials": [
     {
       "name": "Flow withdrawal",
       "shock": "Reduce passive support by 20%",
-      "autonomy_score": 0.36524373373899904,
+      "autonomy_score": 0.36517847672708953,
       "verdict": "Protection first"
     },
     {
       "name": "Valuation compression",
       "shock": "Compress valuation tolerance by 1 standard deviation",
-      "autonomy_score": 0.16891392081033096,
+      "autonomy_score": 0.16884866379842145,
       "verdict": "Protection first"
     },
     {
       "name": "Breadth collapse",
       "shock": "Narrow idea breadth across the book",
-      "autonomy_score": 0.36801392081033096,
+      "autonomy_score": 0.36794866379842145,
       "verdict": "Protection first"
     }
   ],
@@ -45,9 +45,9 @@
     "Rate-sensitive cash generators"
   ],
   "gaps": {
-    "stability_gap": 0.3354524939310208,
-    "recoverability_gap": 0.22659354160916423,
-    "epistemic_gap": 0.1839356663667958
+    "stability_gap": 0.3355431286697839,
+    "recoverability_gap": 0.22665879862107374,
+    "epistemic_gap": 0.2122803851733408
   },
   "notes": [
     "Decision rights are currently guardrail required.",

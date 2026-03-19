@@ -603,8 +603,69 @@ function JustAdviceCard({ module }) {
             </li>
           ))}
         </ul>
-        {module.fiberTakeaway ? <p className="support-copy">Visible fiber: {module.fiberTakeaway}</p> : null}
       </div>
+      {(module.memoryNarrative || []).length ? (
+        <div className="panel-block">
+          <p className="block-title">Decision memory</p>
+          <ul className="signal-list">
+            {(module.memoryNarrative || []).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+          {module.memory?.penaltyReason ? <p className="support-copy">Calibration note: {module.memory.penaltyReason}</p> : null}
+          {module.fiberTakeaway ? <p className="support-copy">Visible fiber: {module.fiberTakeaway}</p> : null}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function DecisionMemoryCard({ packet }) {
+  if (!packet) return null;
+  const memory = packet.memory || {};
+  const recentDecisions = Array.isArray(memory.recentDecisions) ? memory.recentDecisions : [];
+  const accuracyLabel = memory.accuracyOverall === null || memory.accuracyOverall === undefined ? "-" : `${(Number(memory.accuracyOverall) * 100).toFixed(1)}%`;
+  const calibrationLabel = memory.calibrationGap === null || memory.calibrationGap === undefined ? "-" : `${(Number(memory.calibrationGap) * 100).toFixed(1)}%`;
+
+  return (
+    <section className="cockpit-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="eyebrow">Decision memory</p>
+          <strong>What the system is learning</strong>
+        </div>
+        <span className={`section-chip ${memory.available ? "is-good" : "is-warn"}`}>
+          {memory.available ? "Live" : "Cold start"}
+        </span>
+      </div>
+      <div className="cockpit-note-list">
+        {(packet.memoryNarrative || []).slice(0, 3).map((line) => <p key={line}>{line}</p>)}
+      </div>
+      <div className="mini-framework">
+        <div className="mini-framework-card">
+          <span>Accuracy</span>
+          <strong>{accuracyLabel}</strong>
+        </div>
+        <div className="mini-framework-card">
+          <span>Calibration gap</span>
+          <strong>{calibrationLabel}</strong>
+        </div>
+        <div className="mini-framework-card">
+          <span>Recent errors</span>
+          <strong>{memory.recentConsecutiveErrors === null || memory.recentConsecutiveErrors === undefined ? "-" : String(memory.recentConsecutiveErrors)}</strong>
+        </div>
+      </div>
+      <div className="panel-block">
+        <p className="block-title">Recent decisions</p>
+        <ul className="signal-list">
+          {recentDecisions.length ? recentDecisions.slice(0, 4).map((item) => (
+            <li key={`${item.date}-${item.recommended}`}>
+              <strong>{item.date}</strong>: {item.recommended} {item.was_correct === false ? "missed" : item.was_correct === true ? "held up" : "pending"} ex-post.
+            </li>
+          )) : <li>No decision history available yet.</li>}
+        </ul>
+      </div>
+      {memory.penaltyReason ? <p className="support-copy">Calibration note: {memory.penaltyReason}</p> : null}
     </section>
   );
 }
@@ -649,6 +710,10 @@ function OverviewHero({ dashboard, session, connectionState, onOpenCommand, onRe
           <div className="hero-badge">
             <span>Access</span>
             <strong>{session.access.provider === "shared-link" ? "Private link" : "Invite alpha"}</strong>
+          </div>
+          <div className="hero-badge">
+            <span>Decision packet</span>
+            <strong>{dashboard.decision_packet?.memory?.available ? "Live memory loop" : "Decision packet"}</strong>
           </div>
         </div>
         {topEdge ? (
@@ -723,7 +788,6 @@ function StressModeCard({ stressMode }) {
           <p className="support-copy">Current confirmation rule: {stressMode.confirmation}</p>
           {stressMode.changeTrigger ? <p className="support-copy">This view changes if: {stressMode.changeTrigger}</p> : null}
           <p className="support-copy">Closest comparable case: {stressMode.topAnalog}</p>
-          <p className="support-copy">Visible fiber: {stressMode.fiberAtlas?.takeaway || "Comparable-state read unavailable."}</p>
         </div>
       </div>
     </section>
@@ -1583,6 +1647,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       />
 
       <JustAdviceCard module={dashboard.just_advice} />
+
+      <DecisionMemoryCard packet={dashboard.decision_packet} />
 
       <StressModeCard stressMode={dashboard.stress_mode} />
 

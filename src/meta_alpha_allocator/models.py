@@ -105,5 +105,6 @@ class DashboardSnapshot:
     screener: dict
     statement_intelligence: dict
     status: dict
+    decision_packet: dict | None = None
     bls_state_v1: dict | None = None
     bls_state_v2: dict | None = None

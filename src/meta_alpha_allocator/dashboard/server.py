@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
+from ..decision_runtime.packet import build_decision_packet
 from ..research.chrono_fragility import latest_chrono_alert
 from ..research.decision_audit import DecisionAudit, AuditSummary
 from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cached_snapshot, remote_snapshot_url
@@ -93,6 +94,16 @@ class DashboardService:
             t = threading.Thread(target=self._background_refresh, args=(boot_refresh_delay,), daemon=True)
             t.start()
 
+    @staticmethod
+    def _ensure_decision_packet(snapshot: dict | None) -> dict | None:
+        if snapshot is None:
+            return None
+        if snapshot.get("decision_packet"):
+            return snapshot
+        snapshot = dict(snapshot)
+        snapshot["decision_packet"] = build_decision_packet(snapshot)
+        return snapshot
+
     def _background_refresh(self, delay: int) -> None:
         if delay > 0:
             time.sleep(delay)
@@ -101,7 +112,7 @@ class DashboardService:
                 cached = load_cached_snapshot(self.paths, self.dashboard_settings)
                 if cached is not None:
                     with self._lock:
-                        self._snapshot = cached
+                        self._snapshot = self._ensure_decision_packet(cached)
                 return
             with self._lock:
                 self._refreshing = True
@@ -113,7 +124,7 @@ class DashboardService:
                 refresh_outputs=True,
             )
             with self._lock:
-                self._snapshot = new_snapshot
+                self._snapshot = self._ensure_decision_packet(new_snapshot)
                 self._refreshing = False
         except Exception as exc:  # noqa: BLE001
             with self._lock:
@@ -125,7 +136,9 @@ class DashboardService:
             if self._artifact_only and remote_snapshot_url():
                 cached = load_cached_snapshot(self.paths, self.dashboard_settings)
                 if cached is not None:
-                    self._snapshot = cached
+                    self._snapshot = self._ensure_decision_packet(cached)
+            if self._snapshot is not None:
+                self._snapshot = self._ensure_decision_packet(self._snapshot)
             return _redact_private_portfolio(self._snapshot)
 
     def is_refreshing(self) -> bool:
@@ -166,16 +179,16 @@ class DashboardService:
             if self._artifact_only:
                 cached = load_cached_snapshot(self.paths, self.dashboard_settings)
                 if cached is not None:
-                    self._snapshot = cached
+                    self._snapshot = self._ensure_decision_packet(cached)
                 return self._snapshot
 
-            self._snapshot = build_dashboard_snapshot(
+            self._snapshot = self._ensure_decision_packet(build_dashboard_snapshot(
                 self.paths,
                 self.research_settings,
                 self.allocator_settings,
                 self.dashboard_settings,
                 refresh_outputs=True,
-            )
+            ))
             return self._snapshot
 
 
@@ -366,6 +379,7 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
             snapshot = service.snapshot()
             route_map = {
                 "/api/overview": snapshot.get("overview", {}),
+                "/api/decision-packet": snapshot.get("decision_packet", {}),
                 "/api/performance": snapshot.get("performance", {}),
                 "/api/risk": snapshot.get("risk", {}),
                 "/api/spectral": snapshot.get("risk", {}).get("spectral", {}),

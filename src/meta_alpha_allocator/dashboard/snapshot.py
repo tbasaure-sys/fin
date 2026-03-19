@@ -31,6 +31,7 @@ from ..research.spectral_structure import run_spectral_structure_pipeline
 from ..research.statement_intel import run_statement_intelligence
 from ..policy.engine import build_policy_state_frame
 from ..research.regime_labels import build_daily_regime_frame
+from ..decision_runtime.packet import build_decision_packet
 from ..state_contract import build_bls_state_contract_v1
 from ..runtime import run_production
 from ..utils import ensure_directory, time_safe_join
@@ -875,6 +876,7 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
     bls_state = snapshot.get("bls_state_v1") or {}
     files = {
         "dashboard_snapshot.json": snapshot,
+        "decision_packet.json": snapshot.get("decision_packet", {}),
         "overview.json": snapshot.get("overview", {}),
         "performance.json": snapshot.get("performance", {}),
         "risk.json": snapshot.get("risk", {}),
@@ -974,8 +976,9 @@ def build_dashboard_snapshot(
                 except Exception as exc:  # noqa: BLE001
                     cached["status"]["warnings"].append(f"bls state contract build failed on cached snapshot: {exc}")
                     cached["bls_state_v1"] = None
-                finally:
-                    cached.pop("_output_root", None)
+            cached["_output_root"] = str(paths.output_root)
+            cached["decision_packet"] = build_decision_packet(cached)
+            cached.pop("_output_root", None)
             cached["status"] = _build_status(cached, cached["status"]["warnings"])
             cached["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
             _write_snapshot_files(cached, dashboard_settings.output_dir)
@@ -985,6 +988,9 @@ def build_dashboard_snapshot(
             warnings=warnings + ["no current allocator payload or cached snapshot is available"],
         )
         empty["chile_market"] = chile_market
+        empty["_output_root"] = str(paths.output_root)
+        empty["decision_packet"] = build_decision_packet(empty)
+        empty.pop("_output_root", None)
         empty["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds
         _write_snapshot_files(empty, dashboard_settings.output_dir)
         return empty
@@ -1140,6 +1146,7 @@ def build_dashboard_snapshot(
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"bls state contract build failed: {exc}")
         snapshot_dict["bls_state_v1"] = None
+    snapshot_dict["decision_packet"] = build_decision_packet(snapshot_dict)
     snapshot_dict.pop("_output_root", None)
     snapshot_dict["status"] = _build_status(snapshot_dict, warnings)
     snapshot_dict["status"]["auto_refresh_seconds"] = dashboard_settings.auto_refresh_seconds

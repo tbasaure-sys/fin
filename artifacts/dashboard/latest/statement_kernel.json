@@ -1,40 +1,210 @@
 {
   "top_kernel_names": [
     {
+      "ticker": "ABEV",
+      "sector": "Consumer Staples",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.7426130137,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
       "ticker": "PAGS",
       "sector": "Technology",
       "earnings_cash_kernel_score": null,
       "earnings_cash_kernel_bucket": "insufficient_history",
-      "statement_conviction_score": null,
+      "statement_conviction_score": 0.7299370754,
       "earnings_cash_kernel_commentary": "FMP client unavailable; no cached statement kernel found."
     },
     {
-      "ticker": "UNH",
-      "sector": "Healthcare",
+      "ticker": "TSM",
+      "sector": "Technology",
       "earnings_cash_kernel_score": null,
-      "earnings_cash_kernel_bucket": "insufficient_history",
-      "statement_conviction_score": null,
-      "earnings_cash_kernel_commentary": "FMP client unavailable; no cached statement kernel found."
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.6754912859,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "ASML",
+      "sector": "Technology",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.6537414488,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "STZ",
+      "sector": "Consumer Staples",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.651933535,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "MSFT",
+      "sector": "Technology",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.6128096736,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "PEP",
+      "sector": "Consumer Staples",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.6087634924,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "NTR",
+      "sector": "Materials",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.5911583392,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "EWY",
+      "sector": "ETF",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.5695668363,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "AMPY",
+      "sector": null,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.5575204903,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "RACE",
+      "sector": "Consumer Discretionary",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.5553244246,
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "MELI",
+      "sector": "Consumer Discretionary",
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_conviction_score": 0.5508946146,
+      "earnings_cash_kernel_commentary": null
     }
   ],
   "cash_mismatch_names": [
     {
+      "ticker": "ABEV",
+      "sector": "Consumer Staples",
+      "statement_score": 0.8110423253,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
       "ticker": "PAGS",
       "sector": "Technology",
-      "statement_score": null,
+      "statement_score": 0.7947911223,
       "earnings_cash_kernel_score": null,
       "earnings_cash_kernel_bucket": "insufficient_history",
-      "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag.",
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag.",
       "earnings_cash_kernel_commentary": "FMP client unavailable; no cached statement kernel found."
     },
     {
-      "ticker": "UNH",
-      "sector": "Healthcare",
-      "statement_score": null,
+      "ticker": "TSM",
+      "sector": "Technology",
+      "statement_score": 0.724988828,
       "earnings_cash_kernel_score": null,
-      "earnings_cash_kernel_bucket": "insufficient_history",
-      "statement_commentary": "Strengths: valuation support. Risks: no major balance-sheet or valuation red flag.",
-      "earnings_cash_kernel_commentary": "FMP client unavailable; no cached statement kernel found."
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "ASML",
+      "sector": "Technology",
+      "statement_score": 0.6971044215,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "STZ",
+      "sector": "Consumer Staples",
+      "statement_score": 0.6947865833,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, positive free cash flow support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "MSFT",
+      "sector": "Technology",
+      "statement_score": 0.6446277867,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: stretched valuation.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "PEP",
+      "sector": "Consumer Staples",
+      "statement_score": 0.6394403749,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "NTR",
+      "sector": "Materials",
+      "statement_score": 0.6168696656,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: healthy EBITDA margin, positive free cash flow support, valuation support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "EWY",
+      "sector": "ETF",
+      "statement_score": 0.5891882516,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "AMPY",
+      "sector": null,
+      "statement_score": 0.5737442183,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: limited accounting support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "RACE",
+      "sector": "Consumer Discretionary",
+      "statement_score": 0.5709287495,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: strong gross margin, healthy EBITDA margin, solid capital efficiency. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": null
+    },
+    {
+      "ticker": "MELI",
+      "sector": "Consumer Discretionary",
+      "statement_score": 0.5652495059,
+      "earnings_cash_kernel_score": null,
+      "earnings_cash_kernel_bucket": null,
+      "statement_commentary": "Strengths: strong gross margin, solid capital efficiency, positive free cash flow support. Risks: no major balance-sheet or valuation red flag.",
+      "earnings_cash_kernel_commentary": null
     }
   ],
   "kernel_sector_breadth": [],

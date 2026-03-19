@@ -138,6 +138,7 @@ def create_app(
 
         route_map = {
             "/api/overview": snapshot.get("overview", {}),
+            "/api/decision-packet": snapshot.get("decision_packet", {}),
             "/api/performance": snapshot.get("performance", {}),
             "/api/risk": snapshot.get("risk", {}),
             "/api/spectral": snapshot.get("risk", {}).get("spectral", {}),
