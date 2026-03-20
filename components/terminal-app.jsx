@@ -76,6 +76,125 @@ function resolveModuleId(moduleRefs, rawValue) {
   })?.id || null;
 }
 
+const FOCUS_MODULE_FALLBACKS = {
+  portfolio: { id: "portfolio", title: "Portfolio details", kicker: "Portfolio" },
+  scanner: { id: "scanner", title: "Stock ideas", kicker: "Ideas" },
+  risk: { id: "risk", title: "Market risk", kicker: "Market" },
+  spectral: { id: "spectral", title: "Market structure", kicker: "Structure" },
+  themes: { id: "themes", title: "Theme map", kicker: "Themes" },
+  international: { id: "international", title: "Global view", kicker: "International" },
+  audit: { id: "audit", title: "Research log", kicker: "Research" },
+};
+
+const PORTFOLIO_RANGE_OPTIONS = [
+  { id: "1D", label: "1D" },
+  { id: "1W", label: "1W" },
+  { id: "1M", label: "1M" },
+  { id: "YTD", label: "YTD" },
+  { id: "ALL", label: "ALL" },
+];
+
+function resolveModuleRef(moduleRefs, moduleId) {
+  return moduleRefs.find((item) => item.id === moduleId) || FOCUS_MODULE_FALLBACKS[moduleId] || null;
+}
+
+function safeNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function toneClassForNumber(value) {
+  const numeric = safeNumber(value);
+  if (numeric === null) return "is-neutral";
+  if (numeric > 0) return "is-good";
+  if (numeric < 0) return "is-bad";
+  return "is-neutral";
+}
+
+function formatMetricLabel(value, fallback = "Not enough history") {
+  return value === null || value === undefined || value === "" ? fallback : value;
+}
+
+function parseSeriesDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatBoundaryDate(value) {
+  const date = parseSeriesDate(value);
+  if (!date) return value || "-";
+  return date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+}
+
+function filterPortfolioSeries(series = [], range = "1M") {
+  const rows = (Array.isArray(series) ? series : []).filter((row) => (
+    safeNumber(row?.portfolio) !== null || safeNumber(row?.benchmark) !== null
+  ));
+  if (!rows.length || range === "ALL") return rows;
+
+  const sessionWindow = {
+    "1D": 2,
+    "1W": 5,
+    "1M": 21,
+  };
+
+  if (sessionWindow[range]) {
+    return rows.slice(-sessionWindow[range]);
+  }
+
+  if (range === "YTD") {
+    const lastDatedRow = [...rows].reverse().find((row) => parseSeriesDate(row.date));
+    const anchorDate = parseSeriesDate(lastDatedRow?.date);
+    if (!anchorDate) return rows;
+
+    const yearStart = new Date(anchorDate.getFullYear(), 0, 1);
+    const filtered = rows.filter((row) => {
+      const date = parseSeriesDate(row.date);
+      return date ? date >= yearStart : false;
+    });
+    return filtered.length ? filtered : rows;
+  }
+
+  return rows;
+}
+
+function summarizePortfolioWindow(series = []) {
+  const portfolioPoints = series.filter((row) => safeNumber(row?.portfolio) !== null);
+  const benchmarkPoints = series.filter((row) => safeNumber(row?.benchmark) !== null);
+  const firstPortfolio = safeNumber(portfolioPoints[0]?.portfolio);
+  const lastPortfolio = safeNumber(portfolioPoints[portfolioPoints.length - 1]?.portfolio);
+  const firstBenchmark = safeNumber(benchmarkPoints[0]?.benchmark);
+  const lastBenchmark = safeNumber(benchmarkPoints[benchmarkPoints.length - 1]?.benchmark);
+
+  let maxDrawdown = null;
+  if (portfolioPoints.length) {
+    let peak = safeNumber(portfolioPoints[0]?.portfolio);
+    maxDrawdown = 0;
+    for (const point of portfolioPoints) {
+      const value = safeNumber(point?.portfolio);
+      if (value === null || value <= 0) continue;
+      if (peak === null || value > peak) peak = value;
+      if (peak && peak > 0) {
+        maxDrawdown = Math.min(maxDrawdown, (value / peak) - 1);
+      }
+    }
+  }
+
+  const portfolioReturn = firstPortfolio && lastPortfolio ? (lastPortfolio / firstPortfolio) - 1 : null;
+  const benchmarkReturn = firstBenchmark && lastBenchmark ? (lastBenchmark / firstBenchmark) - 1 : null;
+
+  return {
+    portfolioReturn,
+    benchmarkReturn,
+    excessReturn:
+      portfolioReturn !== null && benchmarkReturn !== null ? portfolioReturn - benchmarkReturn : null,
+    maxDrawdown,
+    pointCount: series.length,
+    startLabel: formatBoundaryDate(series[0]?.date),
+    endLabel: formatBoundaryDate(series[series.length - 1]?.date),
+  };
+}
+
 function polarPoint(cx, cy, radius, angle) {
   const radians = ((angle - 90) * Math.PI) / 180;
   return {
@@ -402,63 +521,152 @@ function EdgeDetailOverlay({ edge, onClose, onJump }) {
   );
 }
 
-function SparklineComparison({ series = [] }) {
-  if (!series.length) {
-    return <p className="chart-empty">Portfolio vs benchmark will appear after live history is promoted.</p>;
+function SparklineComparison({ series = [], analytics = {} }) {
+  const [range, setRange] = useState("1M");
+  const filteredSeries = filterPortfolioSeries(series, range);
+  const summary = summarizePortfolioWindow(filteredSeries);
+  const benchmarkLabel = analytics?.benchmarkSymbol || "SPY";
+
+  if (!filteredSeries.length) {
+    return <p className="chart-empty">Performance will appear once the portfolio has live history.</p>;
   }
 
-  const values = series.flatMap((point) => [Number(point.portfolio), Number(point.benchmark)]).filter(Number.isFinite);
+  const values = filteredSeries
+    .flatMap((point) => [safeNumber(point.portfolio), safeNumber(point.benchmark)])
+    .filter((value) => value !== null);
+
+  if (!values.length) {
+    return <p className="chart-empty">Performance will appear once the portfolio has live history.</p>;
+  }
+
   const min = Math.min(...values);
   const max = Math.max(...values);
-  const range = max - min || 1;
-  const paddedMin = min - (range * 0.1);
-  const paddedMax = max + (range * 0.1);
+  const rangeSize = max - min || 1;
+  const paddedMin = min - (rangeSize * 0.14);
+  const paddedMax = max + (rangeSize * 0.14);
   const paddedRange = paddedMax - paddedMin || 1;
+  const gradientId = `portfolioArea-${range.toLowerCase()}`;
 
   function yFor(value) {
-    return 92 - (((Number(value) - paddedMin) / paddedRange) * 78);
+    const numeric = safeNumber(value);
+    if (numeric === null) return 92;
+    return 92 - (((numeric - paddedMin) / paddedRange) * 78);
   }
 
-  function linePath(key) {
-    return series
+  function xFor(index) {
+    return 8 + ((index / Math.max(filteredSeries.length - 1, 1)) * 84);
+  }
+
+  function buildLinePath(key) {
+    let started = false;
+    return filteredSeries
       .map((point, index) => {
-        const x = 8 + ((index / Math.max(series.length - 1, 1)) * 84);
-        return `${index === 0 ? "M" : "L"} ${x} ${yFor(point[key])}`;
+        const value = safeNumber(point[key]);
+        if (value === null) {
+          started = false;
+          return "";
+        }
+
+        const command = started ? "L" : "M";
+        started = true;
+        return `${command} ${xFor(index).toFixed(2)} ${yFor(value).toFixed(2)}`;
       })
+      .filter(Boolean)
       .join(" ");
   }
 
-  function areaPath(key) {
-    return `${linePath(key)} L 92 92 L 8 92 Z`;
+  function buildAreaPath(key) {
+    const coordinates = filteredSeries
+      .map((point, index) => {
+        const value = safeNumber(point[key]);
+        return value === null ? null : [xFor(index), yFor(value)];
+      })
+      .filter(Boolean);
+
+    if (coordinates.length < 2) return "";
+
+    const forward = coordinates
+      .map(([x, y], index) => `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`)
+      .join(" ");
+    const [firstX] = coordinates[0];
+    const [lastX] = coordinates[coordinates.length - 1];
+    return `${forward} L ${lastX.toFixed(2)} 92 L ${firstX.toFixed(2)} 92 Z`;
   }
 
+  const portfolioPath = buildLinePath("portfolio");
+  const benchmarkPath = buildLinePath("benchmark");
+  const areaPath = buildAreaPath("portfolio");
+
   return (
-    <div className="chart-shell">
-      <div className="chart-header">
-        <strong>Portfolio vs SPY</strong>
-        <span>Last {series.length} sessions</span>
+    <div className="chart-shell portfolio-chart-shell">
+      <div className="portfolio-performance-header">
+        <div className="chart-header">
+          <strong>Portfolio performance</strong>
+          <span>{summary.startLabel} to {summary.endLabel}</span>
+        </div>
+        <div className="range-chip-row" role="tablist" aria-label="Performance range">
+          {PORTFOLIO_RANGE_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={`range-chip ${range === option.id ? "is-active" : ""}`}
+              onClick={() => setRange(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <svg className="line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <div className="portfolio-performance-summary">
+        <div className="performance-stat">
+          <span>Portfolio</span>
+          <strong className={toneClassForNumber(summary.portfolioReturn)}>
+            {formatMetricLabel(formatSignedPct(summary.portfolioReturn), "-")}
+          </strong>
+        </div>
+        <div className="performance-stat">
+          <span>{benchmarkLabel}</span>
+          <strong className={toneClassForNumber(summary.benchmarkReturn)}>
+            {formatMetricLabel(formatSignedPct(summary.benchmarkReturn), "-")}
+          </strong>
+        </div>
+        <div className="performance-stat">
+          <span>Difference</span>
+          <strong className={toneClassForNumber(summary.excessReturn)}>
+            {formatMetricLabel(formatSignedPct(summary.excessReturn), "-")}
+          </strong>
+        </div>
+        <div className="performance-stat">
+          <span>Drawdown</span>
+          <strong className={toneClassForNumber(summary.maxDrawdown)}>
+            {formatMetricLabel(formatPct(summary.maxDrawdown), "-")}
+          </strong>
+        </div>
+      </div>
+      <svg className="line-chart portfolio-line-chart" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
         <defs>
-          <linearGradient id="portfolioArea" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="rgba(250, 200, 111, 0.38)" />
-            <stop offset="100%" stopColor="rgba(250, 200, 111, 0)" />
+          <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="rgba(248, 200, 111, 0.42)" />
+            <stop offset="100%" stopColor="rgba(248, 200, 111, 0)" />
           </linearGradient>
         </defs>
         <path className="line-grid" d="M 8 20 L 92 20 M 8 46 L 92 46 M 8 72 L 92 72 M 8 92 L 92 92" />
         <path className="line-axis" d="M 8 8 L 8 92 L 92 92" />
-        <path className="line-area" d={areaPath("portfolio")} />
-        <path className="line-benchmark" d={linePath("benchmark")} />
-        <path className="line-portfolio" d={linePath("portfolio")} />
+        {areaPath ? <path className="line-area" d={areaPath} style={{ fill: `url(#${gradientId})` }} /> : null}
+        {benchmarkPath ? <path className="line-benchmark" d={benchmarkPath} /> : null}
+        {portfolioPath ? <path className="line-portfolio" d={portfolioPath} /> : null}
       </svg>
       <div className="chart-scale">
         <span>{formatNumber(paddedMax, 2)}</span>
         <span>{formatNumber((paddedMax + paddedMin) / 2, 2)}</span>
         <span>{formatNumber(paddedMin, 2)}</span>
       </div>
-      <div className="chart-legend">
-        <span><i className="swatch portfolio" />Portfolio</span>
-        <span><i className="swatch benchmark" />SPY</span>
+      <div className="portfolio-chart-footer">
+        <div className="chart-legend">
+          <span><i className="swatch portfolio" />Portfolio</span>
+          <span><i className="swatch benchmark" />{benchmarkLabel}</span>
+        </div>
+        <span className="chart-context">{summary.pointCount} closes</span>
       </div>
     </div>
   );
@@ -1264,7 +1472,6 @@ function PortfolioPulse({ module }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
   const holdingsSource = module?.holdingsSource || {};
-  const topHolding = holdings[0] || null;
 
   return (
     <section className="cockpit-card premium-card">
@@ -1277,16 +1484,16 @@ function PortfolioPulse({ module }) {
       </div>
       <div className="mini-stat-grid">
         <div className="mini-stat">
-          <span>Annual return</span>
-          <strong>{analytics.annualReturn ? formatPct(analytics.annualReturn) : "-"}</strong>
+          <span>Portfolio value</span>
+          <strong>{analytics.totalValueUsd ? formatUsd(analytics.totalValueUsd, 0) : "-"}</strong>
         </div>
         <div className="mini-stat">
-          <span>Typical swings</span>
-          <strong>{analytics.annualVolatility ? formatPct(analytics.annualVolatility) : "-"}</strong>
+          <span>Annualized return</span>
+          <strong>{analytics.annualReturnLabel || "Not enough history"}</strong>
         </div>
         <div className="mini-stat">
-          <span>Largest position</span>
-          <strong>{topHolding ? `${topHolding.ticker} ${topHolding.weight}` : "-"}</strong>
+          <span>Vs {analytics.benchmarkSymbol || "SPY"}</span>
+          <strong>{analytics.excessReturnLabel || "-"}</strong>
         </div>
       </div>
       <div className="cockpit-note-list">
@@ -1552,6 +1759,7 @@ function PortfolioModule({ module, workspaceId, onUpdateHoldings }) {
   const [draftValues, setDraftValues] = useState({});
   const [editingTicker, setEditingTicker] = useState(null);
   const [editFeedback, setEditFeedback] = useState("");
+  const analytics = module?.analytics || {};
 
   useEffect(() => {
     const initialDrafts = Object.fromEntries(
@@ -1587,15 +1795,62 @@ function PortfolioModule({ module, workspaceId, onUpdateHoldings }) {
 
   return (
     <>
-      <div className="metric-band emphasis-band">
-        <div><span>Annual return</span><strong>{module.analytics.annualReturn}</strong></div>
-        <div><span>Typical swings</span><strong>{module.analytics.annualVolatility}</strong></div>
-        <div><span>Reward vs risk</span><strong>{module.analytics.sharpeRatio}</strong></div>
-        <div><span>Holdings</span><strong>{module.analytics.holdingsCount}</strong></div>
+      <div className="metric-band emphasis-band portfolio-summary-band">
+        <div><span>Portfolio value</span><strong>{analytics.totalValueUsd ? formatUsd(analytics.totalValueUsd, 0) : "-"}</strong></div>
+        <div><span>Annualized return</span><strong>{analytics.annualReturnLabel || "Not enough history"}</strong></div>
+        <div><span>Volatility</span><strong>{analytics.annualVolatilityLabel || "Not enough history"}</strong></div>
+        <div><span>Holdings</span><strong>{analytics.holdingsCount}</strong></div>
       </div>
-      <div className="data-table compact-table">
+      <div className="panel-block">
+        <SparklineComparison series={module.charts?.growthComparison} analytics={analytics} />
+        <p className="support-copy chart-source">{module.chartSource}</p>
+      </div>
+      <div className="metric-band portfolio-secondary-band">
+        <div><span>Vs {analytics.benchmarkSymbol || "SPY"}</span><strong>{analytics.excessReturnLabel || "-"}</strong></div>
+        <div><span>Max drawdown</span><strong>{analytics.maxDrawdownLabel || "-"}</strong></div>
+        <div><span>Sharpe ratio</span><strong>{analytics.sharpeRatioLabel || "Not enough history"}</strong></div>
+        <div><span>History</span><strong>{analytics.historySessions ? `${analytics.historySessions} closes` : "Waiting"}</strong></div>
+      </div>
+      {(module.notes || []).length ? (
+        <div className="panel-block intro-block">
+          <p className="block-title">What stands out</p>
+          <ul className="signal-list">
+            {(module.notes || []).slice(0, 3).map((note) => <li key={note}>{note}</li>)}
+          </ul>
+        </div>
+      ) : null}
+      <div className="grid-two">
+        <div className="panel-block">
+          <DistributionBars
+            title="Sector exposure"
+            subtitle="Largest parts of the portfolio today"
+            rows={module.charts?.sectorExposure}
+            tone="good"
+          />
+        </div>
+        <div className="panel-block">
+          <DistributionBars
+            title="Upside spread"
+            subtitle="Where upside is concentrated across holdings"
+            rows={module.charts?.valuationDistribution}
+            tone="accent"
+          />
+        </div>
+      </div>
+      <div className="panel-block portfolio-table-shell">
+        <div className="portfolio-table-header">
+          <div>
+            <p className="block-title">Holdings</p>
+            <p className="support-copy">Adjust a position by changing its target dollar value.</p>
+          </div>
+          <div className="portfolio-source-badges">
+            {module.holdingsSource?.label ? <span className={`section-chip ${module.holdingsSource.connected ? "is-good" : "is-warn"}`}>{module.holdingsSource.label}</span> : null}
+            {module.holdingsSync?.label ? <span className="section-chip">{module.holdingsSync.label}</span> : null}
+          </div>
+        </div>
+        <div className="data-table compact-table portfolio-data-table">
         <div className="data-row data-head">
-          <span>Ticker</span><span>Sector</span><span>Weight</span><span>Value</span><span>Action</span>
+          <span>Ticker</span><span>Sector</span><span>Weight</span><span>Value</span><span>Edit</span>
         </div>
         {(module.holdings || []).map((row) => (
           <div className="portfolio-holding-group" key={row.ticker}>
@@ -1651,52 +1906,9 @@ function PortfolioModule({ module, workspaceId, onUpdateHoldings }) {
             ) : null}
           </div>
         ))}
+        </div>
       </div>
       {editFeedback ? <p className="support-copy chart-source">{editFeedback}</p> : null}
-      <div className="panel-block">
-        <p className="block-title">Portfolio read</p>
-        <ul className="signal-list">
-          {(module.notes || []).map((note) => <li key={note}>{note}</li>)}
-        </ul>
-      </div>
-      <div className="grid-two">
-        <div className="panel-block">
-          <p className="block-title">Hidden assets</p>
-          <ul className="signal-list">
-            {(module.shadowBalance?.assets || []).map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        </div>
-        <div className="panel-block">
-          <p className="block-title">Hidden liabilities</p>
-          <ul className="signal-list">
-            {(module.shadowBalance?.liabilities || []).map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        </div>
-      </div>
-      <div className="grid-two">
-        <div className="panel-block">
-          <SparklineComparison series={module.charts?.growthComparison} />
-          <p className="support-copy chart-source">{module.chartSource}</p>
-        </div>
-        <div className="panel-block">
-          <DistributionBars
-            title="Sector exposure"
-            subtitle="Largest sleeves in the portfolio"
-            rows={module.charts?.sectorExposure}
-            tone="good"
-          />
-          <p className="support-copy chart-source">{module.chartSource}</p>
-        </div>
-      </div>
-      <div className="panel-block">
-        <DistributionBars
-          title="Valuation spread"
-          subtitle="How upside is distributed across holdings"
-          rows={module.charts?.valuationDistribution}
-          tone="accent"
-        />
-        <p className="support-copy chart-source">{module.chartSource}</p>
-      </div>
     </>
   );
 }
@@ -1857,7 +2069,8 @@ function AuditModule({ module }) {
 }
 
 function renderModule(moduleRef, moduleData, status, focused, onFocus, workspaceId, onUpdateHoldings) {
-  if (!moduleRef) return null;
+  const readyModuleRef = moduleRef || FOCUS_MODULE_FALLBACKS[moduleData?.id] || null;
+  if (!readyModuleRef) return null;
 
   const bodyById = {
     actions: <ActionsModule module={moduleData} />,
@@ -1873,13 +2086,13 @@ function renderModule(moduleRef, moduleData, status, focused, onFocus, workspace
 
   return (
     <ModuleCard
-      key={moduleRef.id}
-      moduleRef={moduleRef}
+      key={readyModuleRef.id}
+      moduleRef={readyModuleRef}
       status={status}
       focused={focused}
       onFocus={onFocus}
     >
-      {bodyById[moduleRef.id]}
+      {bodyById[readyModuleRef.id]}
     </ModuleCard>
   );
 }
@@ -2386,7 +2599,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <div className="focus-overlay" onClick={() => setFocusedModule(null)}>
           <div className="focus-surface" onClick={(event) => event.stopPropagation()}>
             {renderModule(
-              dashboard.module_refs.find((item) => item.id === focusedModule),
+              resolveModuleRef(dashboard.module_refs, focusedModule),
               dashboard.modules[focusedModule],
               (dashboard.module_status || []).find((item) => item.id === focusedModule),
               true,

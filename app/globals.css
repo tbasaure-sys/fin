@@ -1537,6 +1537,83 @@ a {
   gap: 10px;
 }
 
+.portfolio-summary-band,
+.portfolio-secondary-band,
+.portfolio-performance-summary {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.portfolio-table-shell {
+  display: grid;
+  gap: 14px;
+}
+
+.portfolio-table-header,
+.portfolio-source-badges,
+.portfolio-performance-header,
+.portfolio-chart-footer,
+.range-chip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.portfolio-table-header,
+.portfolio-performance-header,
+.portfolio-chart-footer {
+  justify-content: space-between;
+}
+
+.portfolio-data-table {
+  overflow: auto;
+}
+
+.range-chip {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.range-chip.is-active {
+  color: var(--text);
+  border-color: rgba(248, 200, 111, 0.45);
+  background: rgba(248, 200, 111, 0.12);
+}
+
+.performance-stat {
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.performance-stat span {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.performance-stat strong.is-good {
+  color: var(--good);
+}
+
+.performance-stat strong.is-bad {
+  color: var(--bad);
+}
+
+.performance-stat strong.is-neutral {
+  color: var(--text);
+}
+
 .data-head {
   background: rgba(248, 200, 111, 0.08);
 }
@@ -1619,6 +1696,11 @@ a {
   gap: 14px;
 }
 
+.portfolio-chart-shell {
+  display: grid;
+  gap: 16px;
+}
+
 .line-chart,
 .scatter-chart {
   width: 100%;
@@ -1652,6 +1734,10 @@ a {
   fill: url(#portfolioArea);
 }
 
+.portfolio-line-chart {
+  height: 300px;
+}
+
 .line-portfolio {
   stroke: var(--accent);
 }
@@ -1682,6 +1768,11 @@ a {
 
 .chart-legend.compact {
   justify-content: flex-start;
+}
+
+.chart-context {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .swatch {
@@ -2128,6 +2219,10 @@ a {
     grid-template-columns: 1fr 1fr;
   }
 
+  .portfolio-performance-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .workspace-rail {
     position: static;
   }
@@ -2159,7 +2254,9 @@ a {
   .pulse-ideas,
   .mini-stat-grid,
   .metric-grid,
-  .theme-grid {
+  .theme-grid,
+  .portfolio-performance-summary,
+  .portfolio-inline-summary {
     grid-template-columns: 1fr;
   }
 
