@@ -103,6 +103,130 @@ function isDashboardPayload(payload) {
   );
 }
 
+function normalizeDashboardPayload(payload) {
+  if (!isDashboardPayload(payload)) return null;
+
+  const fallbackModules = {
+    actions: {
+      subtitle: "No plan is available yet.",
+      actions: [],
+      framework: { cluster: {}, reboundConfidence: {}, reboundQuality: {} },
+      blocked: false,
+    },
+    command: {
+      protocolLabel: "No rules available",
+      notes: [],
+      supportDependency: [],
+      protectiveValue: [],
+      stepDownTrials: [],
+      disproofSleeve: [],
+      playbook: { summary: [] },
+    },
+    portfolio: {
+      analytics: {},
+      holdings: [],
+      notes: [],
+      charts: {},
+      shadowBalance: { assets: [], liabilities: [] },
+      holdingsSource: {},
+    },
+    scanner: {
+      insight: "No live ideas are available yet.",
+      sourceLabel: "Awaiting live discovery data",
+      rows: [],
+      ideaMap: [],
+      confirmation: [],
+    },
+    risk: {
+      metrics: [],
+      narrative: [],
+      clusterDecomposition: { drivers: [] },
+      reboundConfidence: { history: [] },
+      signalBars: [],
+      chartSource: "",
+    },
+    spectral: {
+      narrative: [],
+      reboundQuality: { history: [] },
+    },
+    themes: { rows: [] },
+    international: { rows: [], note: "" },
+    audit: { lines: [] },
+  };
+
+  return {
+    ...payload,
+    alerts: Array.isArray(payload.alerts) ? payload.alerts : [],
+    command_history: Array.isArray(payload.command_history) ? payload.command_history : [],
+    saved_views: Array.isArray(payload.saved_views) ? payload.saved_views : [],
+    module_status: Array.isArray(payload.module_status) ? payload.module_status : [],
+    module_refs: Array.isArray(payload.module_refs) ? payload.module_refs : [],
+    data_control: payload.data_control || { marketData: {} },
+    edge_board: payload.edge_board || { drilldowns: [] },
+    alpha_briefing: payload.alpha_briefing || { topIdeas: [] },
+    just_advice: payload.just_advice || {},
+    market_brief: payload.market_brief || {},
+    stress_mode: payload.stress_mode || {},
+    workspace_summary: payload.workspace_summary || {},
+    modules: {
+      ...fallbackModules,
+      ...(payload.modules || {}),
+      actions: { ...fallbackModules.actions, ...(payload.modules?.actions || {}) },
+      command: { ...fallbackModules.command, ...(payload.modules?.command || {}) },
+      portfolio: { ...fallbackModules.portfolio, ...(payload.modules?.portfolio || {}) },
+      scanner: { ...fallbackModules.scanner, ...(payload.modules?.scanner || {}) },
+      risk: { ...fallbackModules.risk, ...(payload.modules?.risk || {}) },
+      spectral: { ...fallbackModules.spectral, ...(payload.modules?.spectral || {}) },
+      themes: { ...fallbackModules.themes, ...(payload.modules?.themes || {}) },
+      international: { ...fallbackModules.international, ...(payload.modules?.international || {}) },
+      audit: { ...fallbackModules.audit, ...(payload.modules?.audit || {}) },
+    },
+  };
+}
+
+function parseEventPayload(event) {
+  try {
+    return JSON.parse(event?.data || "{}");
+  } catch (_error) {
+    return null;
+  }
+}
+
+async function readJsonResponse(response) {
+  const contentType = response?.headers?.get?.("content-type") || "";
+  if (!contentType.includes("application/json")) return null;
+
+  try {
+    return await response.json();
+  } catch (_error) {
+    return null;
+  }
+}
+
+function humanizeModeLabel(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (!normalized) return "Waiting for data";
+  if (normalized === "protect") return "Stay defensive";
+  if (normalized === "stage") return "Add risk slowly";
+  if (normalized === "act") return "Risk can be added";
+  if (normalized.startsWith("beta")) return "Managed risk";
+  return normalized.replace(/_/g, " ").replace(/^\w/, (letter) => letter.toUpperCase());
+}
+
+function humanizeReadLabel(label) {
+  const normalized = String(label || "").trim().toLowerCase();
+  if (normalized === "false rebound risk") return "Weak rebound risk";
+  if (normalized === "evidence strength") return "Signal strength";
+  return label || "";
+}
+
+function humanizeShortSentence(value, fallback) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (!normalized) return fallback;
+  if (normalized === "none material") return "Nothing urgent is changing the view right now.";
+  return value;
+}
+
 function ModuleCard({ moduleRef, status, focused, onFocus, children }) {
   return (
     <section
@@ -763,22 +887,28 @@ function OverviewHero({ dashboard, session, onRefresh, onJump, isPending }) {
   const topEdge = dashboard.edge_board?.drilldowns?.[0];
   const topMove = dashboard.just_advice?.moves?.[0];
   const accessProvider = session?.access?.provider;
+  const headline = dashboard.just_advice?.headline || "See what to do with your portfolio today.";
+  const positionLabel = humanizeModeLabel(dashboard.stress_mode?.mode || dashboard.workspace_summary.primary_stance);
+  const marketRead = humanizeShortSentence(
+    dashboard.stress_mode?.mainRisk,
+    "This workspace updates from the live backend and your private holdings.",
+  );
 
   return (
     <section className="hero-panel premium-card">
       <div className="hero-panel-main">
         <div className="hero-panel-copy">
-          <p className="eyebrow">BLS Prime</p>
-          <h1>BLS Prime</h1>
-          <strong>Your next portfolio decision, in one view.</strong>
+          <p className="eyebrow">Private workspace</p>
+          <h1>Your portfolio today</h1>
+          <strong>{headline}</strong>
         </div>
         <div className="hero-badge-grid hero-summary-grid">
           <div className="hero-badge">
-            <span>Stance</span>
-            <strong>{dashboard.workspace_summary.primary_stance}</strong>
+            <span>Position</span>
+            <strong>{positionLabel}</strong>
           </div>
           <div className="hero-badge">
-            <span>Next</span>
+            <span>Next step</span>
             <strong>{topMove?.title || "Review today's plan"}</strong>
           </div>
           <div className="hero-badge">
@@ -787,7 +917,7 @@ function OverviewHero({ dashboard, session, onRefresh, onJump, isPending }) {
           </div>
         </div>
         <div className="hero-cta-row hero-action-row">
-          <button className="primary-button" onClick={() => onJump("actions")}>Plan</button>
+          <button className="primary-button" onClick={() => onJump("actions")}>See plan</button>
           <button className="ghost-button" onClick={() => onJump("portfolio", true)}>Portfolio</button>
           <button className="ghost-button" onClick={onRefresh} disabled={isPending}>
             {isPending ? "Refreshing..." : "Refresh"}
@@ -796,13 +926,13 @@ function OverviewHero({ dashboard, session, onRefresh, onJump, isPending }) {
       </div>
       <div className="hero-panel-side">
         <div className="hero-session-card">
-          <span className="section-chip is-good">{accessProvider === "shared-link" ? "Private access" : "Restricted access"}</span>
-          <strong>{dashboard.workspace_summary.primary_stance}</strong>
-          <p>{dashboard.market_brief?.headline}</p>
+          <span className="section-chip is-good">{accessProvider === "shared-link" ? "Private access" : "Members only"}</span>
+          <strong>{dashboard.market_brief?.headline || "Live market read"}</strong>
+          <p>{marketRead}</p>
         </div>
         {topEdge ? (
           <button className="hero-edge-callout hero-top-edge" onClick={() => onJump(topEdge.lane === "stocks" ? "scanner" : topEdge.lane === "currencies" ? "risk" : topEdge.lane === "countries" ? "international" : "themes", true)}>
-            <span>Focus</span>
+            <span>Worth a look</span>
             <strong>{topEdge.label}</strong>
             <b>{topEdge.scoreLabel}</b>
           </button>
@@ -818,57 +948,64 @@ function GuidedBrief({ dashboard, onJump }) {
   const decisionLog = dashboard.decision_event_log || {};
   const protocol = dashboard.modules?.command || {};
   const latestRefresh = decisionLog.latest_refresh || (decisionLog.events || []).find((item) => item.kind === "snapshot_refresh");
-  const currentRead = (advice.currentRead || []).slice(0, 3);
+  const currentRead = (advice.currentRead || []).slice(0, 3).map((item) => ({
+    ...item,
+    label: humanizeReadLabel(item.label),
+  }));
   const topMoves = (advice.moves || []).slice(0, 1);
-  const bestAction = stressMode.topMove?.summary || topMoves[0]?.title || "Stay on the current plan";
-  const mainWatch = stressMode.mainRisk || advice.changeTrigger || stressMode.whatNeedsToImprove || "Wait for new evidence before changing the plan.";
+  const bestAction = stressMode.topMove?.summary || topMoves[0]?.title || "Stay with the current plan";
+  const mainWatch = humanizeShortSentence(
+    stressMode.mainRisk || advice.changeTrigger || stressMode.whatNeedsToImprove,
+    "Wait for stronger confirmation before changing the plan.",
+  );
+  const positionLabel = humanizeModeLabel(stressMode.mode || dashboard.workspace_summary.primary_stance);
 
   return (
     <section className="briefing-board premium-card" id="module-guidance">
       <div className="section-topline">
         <div>
           <p className="eyebrow">Today</p>
-          <strong>What to do now</strong>
+          <strong>Your plan</strong>
         </div>
         <div className="briefing-toolbar">
           <span className={`section-chip ${String(stressMode.contractStatus).startsWith("canonical") ? "is-good" : "is-warn"}`}>
             {stressMode.contractStatusLabel || stressMode.contractStatus || "Live"}
           </span>
-          <button className="ghost-button" onClick={() => onJump("actions")}>Plan</button>
+          <button className="ghost-button" onClick={() => onJump("actions")}>Open details</button>
         </div>
       </div>
 
       <div className="briefing-summary-strip">
         <div className="briefing-stat">
-          <span>Stance</span>
-          <strong>{stressMode.mode || dashboard.workspace_summary.primary_stance}</strong>
+          <span>Portfolio position</span>
+          <strong>{positionLabel}</strong>
         </div>
         <div className="briefing-stat">
-          <span>Action</span>
+          <span>Best next step</span>
           <strong>{bestAction}</strong>
         </div>
         <div className="briefing-stat">
-          <span>Watch</span>
+          <span>What could change</span>
           <strong>{mainWatch}</strong>
         </div>
       </div>
 
       <div className="briefing-main-grid">
         <div className="panel-block intro-block briefing-lead-card">
-          <p className="block-title">Now</p>
-          <div className="briefing-headline">{stressMode.decisionSummary || advice.title || "Stay on the current plan"}</div>
+          <p className="block-title">Main move</p>
+          <div className="briefing-headline">{stressMode.decisionSummary || advice.headline || "Stay with the current plan"}</div>
           {stressMode.topMove?.summary ? <p className="support-copy">{stressMode.topMove.summary}</p> : null}
           {advice.changeTrigger || stressMode.changeTrigger ? (
-            <p className="support-copy"><strong>Change if:</strong> {advice.changeTrigger || stressMode.changeTrigger}</p>
+            <p className="support-copy"><strong>This changes if:</strong> {advice.changeTrigger || stressMode.changeTrigger}</p>
           ) : null}
           <div className="edge-detail-actions">
-            <button className="primary-button" onClick={() => onJump("actions")}>Plan</button>
-            <button className="ghost-button" onClick={() => onJump("command")}>Rules</button>
+            <button className="primary-button" onClick={() => onJump("actions")}>Open plan</button>
+            <button className="ghost-button" onClick={() => onJump("command")}>Why</button>
           </div>
         </div>
 
         <div className="panel-block">
-          <p className="block-title">Why</p>
+          <p className="block-title">Why this view</p>
           <div className="briefing-metric-grid">
             {currentRead.map((item) => (
               <div className="metric-tile" key={item.label}>
@@ -908,12 +1045,12 @@ function GuidedBrief({ dashboard, onJump }) {
 
       <div className="briefing-footnote-grid">
         <div className="briefing-footnote">
-          <span>Rule</span>
+          <span>Discipline</span>
           <strong>{protocol.decisionRights || "Stay disciplined"}</strong>
         </div>
         {latestRefresh ? (
           <div className="briefing-footnote">
-            <span>Refresh</span>
+            <span>Last refresh</span>
             <strong>{formatDecisionEvent(latestRefresh)}</strong>
           </div>
         ) : null}
@@ -965,7 +1102,7 @@ function StressModeCard({ stressMode }) {
       </div>
       <div className="grid-two">
         <div className="panel-block">
-          <p className="block-title">What to do now</p>
+          <p className="block-title">Best next step</p>
           <p className="support-copy">Best action now: {stressMode.topMove?.summary || "No repair candidate yet"}</p>
           {blocked ? <p className="support-copy">No valid action is open under the current rules.</p> : null}
           {stressMode.topMove?.reason ? <p className="support-copy">{stressMode.topMove.reason}</p> : null}
@@ -990,28 +1127,28 @@ function StressModeCard({ stressMode }) {
 
 function WorkspaceNavigator({ dashboard, activeModule, onJump, onFocus }) {
   const descriptions = {
-    actions: "Today's moves.",
-    command: "Portfolio rules.",
-    portfolio: "Holdings and exposure.",
-    scanner: "New ideas.",
-    risk: "Risk and pressure.",
-    spectral: "Diversification.",
-    themes: "Theme leadership.",
-    international: "Global markets.",
-    audit: "Research trail.",
+    actions: "Recommended move.",
+    command: "Why the app is being careful.",
+    portfolio: "Your holdings.",
+    scanner: "Fresh ideas to review.",
+    risk: "What could go wrong.",
+    spectral: "How balanced the portfolio is.",
+    themes: "Sectors worth watching.",
+    international: "Markets outside the U.S.",
+    audit: "Important notes and warnings.",
   };
 
   return (
     <section className="rail-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="rail-title">Details</p>
+          <p className="rail-title">More sections</p>
         </div>
       </div>
       <div className="module-directory">
         {dashboard.module_refs.map((item) => {
           const isActive = activeModule === item.id;
-          const status = dashboard.module_status.find((moduleStatus) => moduleStatus.id === item.id);
+          const status = (dashboard.module_status || []).find((moduleStatus) => moduleStatus.id === item.id);
           const openInPlace = item.id === "actions" || item.id === "command";
 
           return (
@@ -1048,7 +1185,7 @@ function WatchNextCard({ dashboard, onJump, onSelectEdge }) {
     : ideas.map((idea) => ({
         id: idea.symbol,
         title: idea.symbol,
-        detail: idea.conviction || idea.lastSignal || "Watch this idea.",
+        detail: idea.conviction || idea.lastSignal || "Review this idea when you have time.",
         badge: idea.name || "Idea",
         action: () => onJump("scanner", true),
       }));
@@ -1058,7 +1195,7 @@ function WatchNextCard({ dashboard, onJump, onSelectEdge }) {
       <div className="section-topline">
         <div>
           <p className="eyebrow">Watchlist</p>
-          <strong>Next up</strong>
+          <strong>Keep an eye on</strong>
         </div>
       </div>
       <div className="watch-next-list">
@@ -1077,32 +1214,34 @@ function WatchNextCard({ dashboard, onJump, onSelectEdge }) {
         )}
       </div>
       <div className="edge-detail-actions">
-        <button className="ghost-button" onClick={() => onJump("scanner", true)}>Ideas</button>
+        <button className="ghost-button" onClick={() => onJump("scanner", true)}>Open ideas</button>
       </div>
     </section>
   );
 }
 
 function DataStatusPanel({ dashboard, connectionState, onRefresh, isPending }) {
+  const dataControl = dashboard.data_control || {};
+
   return (
     <section className="rail-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="rail-title">Status</p>
+          <p className="rail-title">Live status</p>
         </div>
       </div>
       <div className="mini-stat-grid">
         <div className="mini-stat">
           <span>Analysis</span>
-          <strong>{dashboard.data_control.analysisSource}</strong>
+          <strong>{dataControl.analysisSource || "Waiting for backend"}</strong>
         </div>
         <div className="mini-stat">
           <span>Prices</span>
-          <strong>{dashboard.data_control.marketData?.freshnessLabel || "Awaiting market data"}</strong>
+          <strong>{dataControl.marketData?.freshnessLabel || "Awaiting market data"}</strong>
         </div>
         <div className="mini-stat">
-          <span>Refresh</span>
-          <strong>{dashboard.data_control.lastRefreshLabel}</strong>
+          <span>Updated</span>
+          <strong>{dataControl.lastRefreshLabel || "Waiting for refresh"}</strong>
         </div>
         <div className="mini-stat">
           <span>Connection</span>
@@ -1125,26 +1264,42 @@ function PortfolioPulse({ module }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
   const holdingsSource = module?.holdingsSource || {};
+  const topHolding = holdings[0] || null;
 
   return (
     <section className="cockpit-card premium-card">
       <div className="section-topline">
         <div>
           <p className="eyebrow">Portfolio</p>
-          <strong>At a glance</strong>
+          <strong>Your portfolio</strong>
         </div>
-        <span className={`section-chip ${holdingsSource.connected ? "is-good" : "is-warn"}`}>{analytics.holdingsCount} holdings</span>
+        <span className={`section-chip ${holdingsSource.connected ? "is-good" : "is-warn"}`}>{analytics.holdingsCount || holdings.length} holdings</span>
       </div>
-      <div className="cockpit-kpis">
-        <DonutGauge value={Math.min(Math.abs(Number(analytics.annualReturn) || 0) / 0.2, 1)} label="Annual return" valueLabel={module.analytics?.annualReturn || analytics.annualReturn ? formatPct(analytics.annualReturn) : "-"} tone="good" />
-        <DonutGauge value={Math.min((Number(analytics.annualVolatility) || 0) / 0.35, 1)} label="Volatility" valueLabel={analytics.annualVolatility ? formatPct(analytics.annualVolatility) : "-"} tone="warn" />
-        <DonutGauge value={Math.min(Math.abs(Number(analytics.maxDrawdown) || 0) / 0.25, 1)} label="Max drawdown" valueLabel={analytics.maxDrawdown ? formatPct(analytics.maxDrawdown) : "-"} tone="bad" />
+      <div className="mini-stat-grid">
+        <div className="mini-stat">
+          <span>Annual return</span>
+          <strong>{analytics.annualReturn ? formatPct(analytics.annualReturn) : "-"}</strong>
+        </div>
+        <div className="mini-stat">
+          <span>Typical swings</span>
+          <strong>{analytics.annualVolatility ? formatPct(analytics.annualVolatility) : "-"}</strong>
+        </div>
+        <div className="mini-stat">
+          <span>Largest position</span>
+          <strong>{topHolding ? `${topHolding.ticker} ${topHolding.weight}` : "-"}</strong>
+        </div>
       </div>
       <div className="cockpit-note-list">
         {(module.notes || []).slice(0, 1).map((note) => <p key={note}>{note}</p>)}
         {holdingsSource.label ? <p>{holdingsSource.label}</p> : null}
       </div>
-      <TopHoldingsStrip holdings={holdings} />
+      {holdings.length ? (
+        <TopHoldingsStrip holdings={holdings} />
+      ) : (
+        <div className="panel-block">
+          <p className="support-copy">No holdings saved yet.</p>
+        </div>
+      )}
     </section>
   );
 }
@@ -1156,14 +1311,14 @@ function RiskPulse({ module }) {
     <section className="cockpit-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Risk</p>
-          <strong>Current pressure</strong>
+          <p className="eyebrow">Market</p>
+          <strong>What the market looks like</strong>
         </div>
         <span className={`section-chip is-${riskState === "Contained" ? "good" : riskState === "Guarded" ? "warn" : "bad"}`}>{riskState}</span>
       </div>
-      <div className="risk-metric-stack">
-        {(module.metrics || []).slice(0, 4).map((metric) => (
-          <div className="risk-metric-row" key={metric.label}>
+      <div className="mini-stat-grid">
+        {(module.metrics || []).slice(0, 3).map((metric) => (
+          <div className="mini-stat" key={metric.label}>
             <span>{metric.label}</span>
             <strong>{metric.value}</strong>
           </div>
@@ -1173,17 +1328,15 @@ function RiskPulse({ module }) {
         {(module.narrative || []).slice(0, 1).map((line) => <p key={line}>{line}</p>)}
       </div>
       <div className="mini-framework">
-              <div className="mini-framework-card">
-                <span>Cluster</span>
-                <strong>{module.clusterDecomposition?.dominantLabel || module.clusterDecomposition?.dominant || "-"}</strong>
-              </div>
         <div className="mini-framework-card">
-          <span>Bounce check</span>
+          <span>Market tone</span>
+          <strong>{module.clusterDecomposition?.dominantLabel || module.clusterDecomposition?.dominant || "-"}</strong>
+        </div>
+        <div className="mini-framework-card">
+          <span>Bounce strength</span>
           <strong>{module.reboundConfidence?.state || "-"}</strong>
         </div>
       </div>
-      <ClusterBalance cluster={module.clusterDecomposition} />
-      <SignalBars bars={(module.signalBars || []).slice(0, 4)} />
     </section>
   );
 }
@@ -1194,14 +1347,14 @@ function ActionsModule({ module }) {
       <div className="panel-block intro-block">
         <p className="block-title">Best actions now</p>
         <p className="support-copy">{module.subtitle}</p>
-        {module.blocked ? <p className="support-copy">The canonical frontier is closed. No fallback legacy action is being injected.</p> : null}
+        {module.blocked ? <p className="support-copy">No fallback trade is being inserted while the risk picture is still weak.</p> : null}
         <div className="mini-framework">
           <div className="mini-framework-card">
-            <span>Cluster</span>
+            <span>Market tone</span>
             <strong>{module.framework?.cluster?.dominantLabel || module.framework?.cluster?.dominant || "-"}</strong>
           </div>
           <div className="mini-framework-card">
-            <span>Bounce read</span>
+            <span>Bounce strength</span>
             <strong>
               {module.framework?.reboundConfidence?.state || "-"}
               {" / "}
@@ -1252,20 +1405,20 @@ function ProtocolModule({ module }) {
     <>
       <div className="hero-strip">
         <div>
-          <p className="eyebrow">Decision Rules</p>
+          <p className="eyebrow">Why this plan</p>
           <div className="hero-readout">{module.protocolLabel}</div>
           <p className="support-copy">{module.notes?.[0]}</p>
         </div>
         <div className="hero-grid">
-          <div><span>Trust state</span><strong>{module.trustState}</strong></div>
-          <div><span>Decision rights</span><strong>{module.decisionRights}</strong></div>
-          <div><span>Autonomy</span><strong>{module.autonomyScore}</strong></div>
-          <div><span>Frontier</span><strong>{module.frontierDistance}</strong></div>
+          <div><span>Current mode</span><strong>{module.trustState}</strong></div>
+          <div><span>What is allowed</span><strong>{module.decisionRights}</strong></div>
+          <div><span>Recovery chance</span><strong>{module.autonomyScore}</strong></div>
+          <div><span>Risk room</span><strong>{module.frontierDistance}</strong></div>
         </div>
       </div>
       <div className="grid-two">
         <div className="panel-block">
-          <p className="block-title">Support dependency</p>
+          <p className="block-title">What this still depends on</p>
           <div className="metric-list">
             {(module.supportDependency || []).map((item) => (
               <div className="metric-row" key={item.id}>
@@ -1281,7 +1434,7 @@ function ProtocolModule({ module }) {
           </div>
         </div>
         <div className="panel-block">
-          <p className="block-title">Protective value</p>
+          <p className="block-title">What is helping right now</p>
           <div className="metric-list">
             {(module.protectiveValue || []).map((item) => (
               <div className="metric-row" key={item.id}>
@@ -1298,7 +1451,7 @@ function ProtocolModule({ module }) {
         </div>
       </div>
       <div className="panel-block">
-        <p className="block-title">Step-down trials</p>
+        <p className="block-title">Stress test</p>
         <div className="scenario-list">
           {(module.stepDownTrials || []).map((scenario) => (
             <div className="scenario-row" key={scenario.name}>
@@ -1313,7 +1466,7 @@ function ProtocolModule({ module }) {
       </div>
       <div className="grid-two">
         <div className="panel-block">
-          <p className="block-title">Disproof sleeve</p>
+          <p className="block-title">What could prove this wrong</p>
           <ul className="signal-list">
             {(module.disproofSleeve || []).map((item) => <li key={item}>{item}</li>)}
           </ul>
@@ -1334,15 +1487,15 @@ function DecisionWorkflow({ dashboard, activeModule, onJump, onFocus }) {
     {
       id: "actions",
       eyebrow: "Step 01",
-      title: "Best next moves",
-      status: dashboard.module_status.find((item) => item.id === "actions"),
+      title: "Today's plan",
+      status: (dashboard.module_status || []).find((item) => item.id === "actions"),
       body: <ActionsModule module={dashboard.modules.actions} />,
     },
     {
       id: "command",
       eyebrow: "Step 02",
-      title: "Risk guardrails",
-      status: dashboard.module_status.find((item) => item.id === "command"),
+      title: "Why it says that",
+      status: (dashboard.module_status || []).find((item) => item.id === "command"),
       body: <ProtocolModule module={dashboard.modules.command} />,
     },
   ];
@@ -1351,9 +1504,9 @@ function DecisionWorkflow({ dashboard, activeModule, onJump, onFocus }) {
     <section className="workflow-shell premium-card">
       <div className="section-topline">
         <div>
-          <p className="eyebrow">Decision Playbook</p>
-          <strong>Start with the recommended move, then confirm the portfolio is still inside the allowed risk range</strong>
-          <p className="support-copy">The first panel is the plain-language action plan. The second explains the rules that can block or reopen risk.</p>
+          <p className="eyebrow">Decision guide</p>
+          <strong>Start with the action, then check why the app is being careful.</strong>
+          <p className="support-copy">The first panel tells you what to do. The second explains the rules and signals behind that view.</p>
         </div>
       </div>
       <div className="workflow-nav">
@@ -1592,7 +1745,7 @@ function RiskModule({ module }) {
       </div>
       <div className="grid-two">
         <div className="panel-block">
-          <p className="block-title">Volatility Cluster Decomposition</p>
+          <p className="block-title">Market tone</p>
           <div className="framework-state-row">
             <span className="section-chip">{module.clusterDecomposition?.dominant}</span>
             <strong>{module.clusterDecomposition?.stance}</strong>
@@ -1603,7 +1756,7 @@ function RiskModule({ module }) {
           </ul>
         </div>
         <div className="panel-block">
-          <p className="block-title">Bounce check</p>
+          <p className="block-title">Bounce strength</p>
           <div className="framework-metric-grid">
             <div><span>Confidence</span><strong>{module.reboundConfidence?.state}</strong></div>
             <div><span>Score</span><strong>{module.reboundConfidence?.scoreLabel}</strong></div>
@@ -1704,6 +1857,8 @@ function AuditModule({ module }) {
 }
 
 function renderModule(moduleRef, moduleData, status, focused, onFocus, workspaceId, onUpdateHoldings) {
+  if (!moduleRef) return null;
+
   const bodyById = {
     actions: <ActionsModule module={moduleData} />,
     command: <ProtocolModule module={moduleData} />,
@@ -1730,7 +1885,7 @@ function renderModule(moduleRef, moduleData, status, focused, onFocus, workspace
 }
 
 export default function TerminalApp({ initialSession, initialDashboard }) {
-  const readyDashboard = isDashboardPayload(initialDashboard) ? initialDashboard : null;
+  const readyDashboard = normalizeDashboardPayload(initialDashboard);
   const [session] = useState(initialSession || null);
   const [dashboard, setDashboard] = useState(readyDashboard);
   const [activeModule, setActiveModule] = useState(readyDashboard?.module_refs?.[0]?.id || "actions");
@@ -1745,12 +1900,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [isPending, startRefresh] = useTransition();
 
   function ingestDashboard(payload, invalidMessage = "Live data is temporarily unavailable. Please refresh.") {
-    if (!isDashboardPayload(payload)) {
+    const normalized = normalizeDashboardPayload(payload);
+    if (!normalized) {
       setConnectionState("reconnecting");
       setCommandFeedback(invalidMessage);
       return false;
     }
-    setDashboard(payload);
+    setDashboard(normalized);
     return true;
   }
 
@@ -1774,19 +1930,25 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function rememberCommand(command) {
-    const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/commands`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ command }),
-    });
-    const payload = await response.json();
-    setDashboard((current) => ({
-      ...current,
-      command_history: payload.history || current.command_history,
-    }));
+    try {
+      const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/commands`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command }),
+      });
+      const payload = await readJsonResponse(response);
+      if (!payload) return;
+      setDashboard((current) => current ? ({
+        ...current,
+        command_history: payload.history || current.command_history,
+      }) : current);
+    } catch (_error) {
+      setConnectionState("reconnecting");
+    }
   }
 
   function jumpToModule(moduleId, focus = false) {
+    if (!moduleId) return;
     setActiveModule(moduleId);
     setFocusedModule(focus ? moduleId : null);
     setSelectedEdge(null);
@@ -1796,31 +1958,49 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function loadDashboard() {
-    const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/dashboard`, { cache: "no-store" });
-    const payload = await response.json();
-    ingestDashboard(payload, "The latest dashboard payload was incomplete.");
-    return payload;
+    try {
+      const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/dashboard`, { cache: "no-store" });
+      const payload = await readJsonResponse(response);
+      if (!payload) {
+        setConnectionState("reconnecting");
+        setCommandFeedback("The latest workspace update could not be read.");
+        return null;
+      }
+      ingestDashboard(payload, "The latest dashboard payload was incomplete.");
+      return payload;
+    } catch (_error) {
+      setConnectionState("reconnecting");
+      setCommandFeedback("The latest workspace update could not be loaded.");
+      return null;
+    }
   }
 
   async function applyHoldingsUpdate(instruction) {
     const body = typeof instruction === "string" ? { instruction } : instruction;
-    const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/portfolio`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!response.ok) {
-      const message = await response.text();
-      throw new Error(message || "Could not update holdings.");
+    try {
+      const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/portfolio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Could not update holdings.");
+      }
+      const payload = await readJsonResponse(response);
+      if (!payload) throw new Error("The holdings update returned unreadable data.");
+      ingestDashboard(payload, "The portfolio update returned incomplete live data.");
+      const sourceLabel = payload?.portfolio_state?.holdings_source_label || "Holdings updated";
+      const syncLabel = payload?.portfolio_state?.holdings_sync_label || "";
+      return syncLabel ? `${sourceLabel} · ${syncLabel}` : sourceLabel;
+    } catch (error) {
+      setConnectionState("reconnecting");
+      throw error;
     }
-    const payload = await response.json();
-    ingestDashboard(payload, "The portfolio update returned incomplete live data.");
-    const sourceLabel = payload?.portfolio_state?.holdings_source_label || "Holdings updated";
-    const syncLabel = payload?.portfolio_state?.holdings_sync_label || "";
-    return syncLabel ? `${sourceLabel} · ${syncLabel}` : sourceLabel;
   }
 
   function cycleModule(direction) {
+    if (!dashboard.module_refs.length) return;
     const currentIndex = dashboard.module_refs.findIndex((item) => item.id === activeModule);
     const nextIndex = (currentIndex + direction + dashboard.module_refs.length) % dashboard.module_refs.length;
     jumpToModule(dashboard.module_refs[nextIndex].id);
@@ -1848,8 +2028,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     const source = new EventSource(`/api/v1/workspaces/${workspaceId}/stream`);
 
     source.addEventListener("connection_state_changed", (event) => {
-      const payload = JSON.parse(event.data);
-      setConnectionState(payload.state);
+      const payload = parseEventPayload(event);
+      if (payload?.state) setConnectionState(payload.state);
     });
 
     source.addEventListener("module_refresh_started", () => {
@@ -1857,23 +2037,33 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     });
 
     source.addEventListener("alert_created", (event) => {
-      const payload = JSON.parse(event.data);
+      const payload = parseEventPayload(event);
+      if (!payload?.alert) return;
       startTransition(() => {
-        setDashboard((current) => ({
+        setDashboard((current) => current ? ({
           ...current,
-          alerts: [payload.alert, ...current.alerts]
+          alerts: [payload.alert, ...(current.alerts || [])]
             .filter((alert, index, items) => items.findIndex((item) => item.id === alert.id) === index)
             .slice(0, 20),
-        }));
+        }) : current);
       });
     });
 
     source.addEventListener("module_refresh_completed", async () => {
-      const response = await fetch(`/api/v1/workspaces/${workspaceId}/dashboard`, { cache: "no-store" });
-      const payload = await response.json();
-      startTransition(() => {
-        ingestDashboard(payload, "The refresh completed, but the dashboard payload was incomplete.");
-      });
+      try {
+        const response = await fetch(`/api/v1/workspaces/${workspaceId}/dashboard`, { cache: "no-store" });
+        const payload = await readJsonResponse(response);
+        startTransition(() => {
+          if (!payload) {
+            setConnectionState("reconnecting");
+            setCommandFeedback("The refresh finished, but the latest workspace data could not be read.");
+            return;
+          }
+          ingestDashboard(payload, "The refresh completed, but the dashboard payload was incomplete.");
+        });
+      } catch (_error) {
+        setConnectionState("reconnecting");
+      }
     });
 
     source.onerror = () => setConnectionState("reconnecting");
@@ -1894,11 +2084,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       try {
         await fetch("/api/refresh", { method: "POST" });
         const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/dashboard`, { cache: "no-store" });
-        const payload = await response.json();
+        const payload = await readJsonResponse(response);
         if (cancelled) return;
         startTransition(() => {
-          if (ingestDashboard(payload, "Auto-refresh returned incomplete data.")) {
+          if (payload && ingestDashboard(payload, "Auto-refresh returned incomplete data.")) {
             setConnectionState("live");
+          } else {
+            setConnectionState("reconnecting");
           }
         });
       } catch (_error) {
@@ -1964,10 +2156,17 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
   async function refreshTerminal() {
     startRefresh(async () => {
-      await fetch("/api/refresh", { method: "POST" });
-      await loadDashboard();
-      setConnectionState("live");
-      setCommandFeedback("Workspace refreshed.");
+      try {
+        await fetch("/api/refresh", { method: "POST" });
+        const payload = await loadDashboard();
+        if (payload) {
+          setConnectionState("live");
+          setCommandFeedback("Workspace refreshed.");
+        }
+      } catch (_error) {
+        setConnectionState("reconnecting");
+        setCommandFeedback("Refresh failed. Please try again.");
+      }
     });
   }
 
@@ -1975,11 +2174,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     const symbol = symbolInput.trim().toUpperCase();
     if (!symbol) return;
 
-    await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/watchlists`, {
+    const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/watchlists`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ symbol, name: symbol, conviction: "User added", lastSignal: "Watching" }),
     });
+
+    if (!response.ok) {
+      throw new Error("Could not update the watchlist.");
+    }
 
     await loadDashboard();
     setCommandText("");
@@ -1988,117 +2191,122 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function runCommand(rawValue = commandText) {
-    const value = rawValue.trim();
-    if (!value) return;
+    try {
+      const value = rawValue.trim();
+      if (!value) return;
 
-    const normalized = value.toLowerCase();
-    const moduleId = resolveModuleId(dashboard.module_refs, normalized);
+      const normalized = value.toLowerCase();
+      const moduleId = resolveModuleId(dashboard.module_refs, normalized);
 
-    if (normalized === "refresh" || normalized === "sync") {
-      await rememberCommand(value);
-      await refreshTerminal();
-      setCommandOpen(false);
-      return;
-    }
-
-    if (normalized === "dense" || normalized === "compact") {
-      await rememberCommand(value);
-      setDensity(normalized);
-      setCommandFeedback(`Density switched to ${normalized}.`);
-      setCommandText("");
-      setCommandOpen(false);
-      return;
-    }
-
-    if (normalized === "alerts") {
-      await rememberCommand(value);
-      setAlertsOpen(true);
-      setCommandFeedback("Alerts drawer opened.");
-      setCommandText("");
-      setCommandOpen(false);
-      return;
-    }
-
-    if (normalized.startsWith("focus ")) {
-      const target = resolveModuleId(dashboard.module_refs, normalized.replace(/^focus\s+/, ""));
-      if (target) {
+      if (normalized === "refresh" || normalized === "sync") {
         await rememberCommand(value);
-        jumpToModule(target, true);
-        setCommandFeedback(`Focused ${target}.`);
+        setCommandOpen(false);
+        await refreshTerminal();
+        return;
+      }
+
+      if (normalized === "dense" || normalized === "compact") {
+        await rememberCommand(value);
+        setDensity(normalized);
+        setCommandFeedback(`Density switched to ${normalized}.`);
         setCommandText("");
         setCommandOpen(false);
         return;
       }
-    }
 
-    if (normalized.startsWith("view ") || normalized.startsWith("open ")) {
-      const target = resolveModuleId(dashboard.module_refs, normalized.replace(/^(view|open)\s+/, ""));
-      if (target) {
+      if (normalized === "alerts") {
         await rememberCommand(value);
-        jumpToModule(target);
-        setCommandFeedback(`Jumped to ${target}.`);
+        setAlertsOpen(true);
+        setCommandFeedback("Alerts drawer opened.");
         setCommandText("");
         setCommandOpen(false);
         return;
       }
-    }
 
-    if (moduleId) {
-      await rememberCommand(value);
-      jumpToModule(moduleId);
-      setCommandFeedback(`Jumped to ${moduleId}.`);
-      setCommandText("");
-      setCommandOpen(false);
-      return;
-    }
+      if (normalized.startsWith("focus ")) {
+        const target = resolveModuleId(dashboard.module_refs, normalized.replace(/^focus\s+/, ""));
+        if (target) {
+          await rememberCommand(value);
+          jumpToModule(target, true);
+          setCommandFeedback(`Focused ${target}.`);
+          setCommandText("");
+          setCommandOpen(false);
+          return;
+        }
+      }
 
-    if (normalized.startsWith("add ")) {
-      await rememberCommand(value);
-      await addWatchlistSymbol(normalized.replace(/^add\s+/, ""));
-      return;
-    }
+      if (normalized.startsWith("view ") || normalized.startsWith("open ")) {
+        const target = resolveModuleId(dashboard.module_refs, normalized.replace(/^(view|open)\s+/, ""));
+        if (target) {
+          await rememberCommand(value);
+          jumpToModule(target);
+          setCommandFeedback(`Jumped to ${target}.`);
+          setCommandText("");
+          setCommandOpen(false);
+          return;
+        }
+      }
 
-    if (/(?:\bbuy\b|\bbought\b|\bsell\b|\bsold\b|\btrim\b|\breduce\b|\bclose\b)/i.test(value) && /\b[A-Z]{1,6}\b/.test(value)) {
-      await rememberCommand(value);
-      const feedback = await applyHoldingsUpdate(value);
-      setCommandFeedback(feedback || "Holdings updated.");
-      setCommandText("");
-      setCommandOpen(false);
-      return;
-    }
-
-    if (/^[a-z.]{1,8}$/i.test(value)) {
-      await rememberCommand(`add ${value.toUpperCase()}`);
-      await addWatchlistSymbol(value);
-      return;
-    }
-
-    if (normalized.startsWith("view:")) {
-      const viewId = normalized.replace(/^view:/, "").trim();
-      await rememberCommand(value);
-      applySavedView(viewId);
-      setCommandText("");
-      setCommandOpen(false);
-      return;
-    }
-
-    if (normalized.startsWith("edge ")) {
-      const target = normalized.replace(/^edge\s+/, "").trim();
-      const match = (dashboard.edge_board?.drilldowns || []).find((item) => {
-        const haystack = [item.label, item.ticker, item.expression].filter(Boolean).join(" ").toLowerCase();
-        return haystack.includes(target);
-      });
-      if (match) {
+      if (moduleId) {
         await rememberCommand(value);
-        setSelectedEdge(match);
-        setCommandFeedback(`Opened edge drilldown for ${match.label}.`);
+        jumpToModule(moduleId);
+        setCommandFeedback(`Jumped to ${moduleId}.`);
         setCommandText("");
         setCommandOpen(false);
         return;
       }
-    }
 
-    setCommandFeedback("Command not recognized. Try `view actions`, `view command`, `refresh`, or a ticker.");
+      if (normalized.startsWith("add ")) {
+        await rememberCommand(value);
+        await addWatchlistSymbol(normalized.replace(/^add\s+/, ""));
+        return;
+      }
+
+      if (/(?:\bbuy\b|\bbought\b|\bsell\b|\bsold\b|\btrim\b|\breduce\b|\bclose\b)/i.test(value) && /\b[A-Z]{1,6}\b/.test(value)) {
+        await rememberCommand(value);
+        const feedback = await applyHoldingsUpdate(value);
+        setCommandFeedback(feedback || "Holdings updated.");
+        setCommandText("");
+        setCommandOpen(false);
+        return;
+      }
+
+      if (/^[a-z.]{1,8}$/i.test(value)) {
+        await rememberCommand(`add ${value.toUpperCase()}`);
+        await addWatchlistSymbol(value);
+        return;
+      }
+
+      if (normalized.startsWith("view:")) {
+        const viewId = normalized.replace(/^view:/, "").trim();
+        await rememberCommand(value);
+        applySavedView(viewId);
+        setCommandText("");
+        setCommandOpen(false);
+        return;
+      }
+
+      if (normalized.startsWith("edge ")) {
+        const target = normalized.replace(/^edge\s+/, "").trim();
+        const match = (dashboard.edge_board?.drilldowns || []).find((item) => {
+          const haystack = [item.label, item.ticker, item.expression].filter(Boolean).join(" ").toLowerCase();
+          return haystack.includes(target);
+        });
+        if (match) {
+          await rememberCommand(value);
+          setSelectedEdge(match);
+          setCommandFeedback(`Opened edge drilldown for ${match.label}.`);
+          setCommandText("");
+          setCommandOpen(false);
+          return;
+        }
+      }
+
+      setCommandFeedback("Command not recognized. Try `view actions`, `view command`, `refresh`, or a ticker.");
+    } catch (error) {
+      setConnectionState("reconnecting");
+      setCommandFeedback(error?.message || "That action could not be completed.");
+    }
   }
 
   const commandPresets = [
@@ -2180,7 +2388,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             {renderModule(
               dashboard.module_refs.find((item) => item.id === focusedModule),
               dashboard.modules[focusedModule],
-              dashboard.module_status.find((item) => item.id === focusedModule),
+              (dashboard.module_status || []).find((item) => item.id === focusedModule),
               true,
               () => setFocusedModule(null),
               dashboard.workspace_summary.id,
