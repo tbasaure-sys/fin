@@ -15,8 +15,8 @@ _IS_CLOUD = os.environ.get("META_ALLOCATOR_CLOUD", "").strip() in {"1", "true", 
 
 # In cloud mode the "local-only" roots fall back to subdirs inside the project
 # so the server boots without FileNotFoundError even when those dirs are absent.
-_SAFE_FINANCE_ROOT = PROJECT_ROOT / "_local_data" / "finance"
-_SAFE_CT_ROOT = PROJECT_ROOT / "_local_data" / "ct"
+_SAFE_FINANCE_ROOT = PROJECT_ROOT / "cloud_data" / "finance"
+_SAFE_CT_ROOT = PROJECT_ROOT / "cloud_data" / "ct"
 
 
 def _env_path(name: str, default: Path) -> Path:

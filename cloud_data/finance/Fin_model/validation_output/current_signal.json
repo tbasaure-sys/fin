@@ -1,0 +1,9 @@
+{
+  "date": "2026-01-16",
+  "atlas_region": "BENIGN",
+  "crash_prob": NaN,
+  "sigma_pct": NaN,
+  "realized_vol": 0.0835890596209164,
+  "recommended_hedge_pct": 12.0,
+  "trend": "FALLING"
+}

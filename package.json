@@ -18,6 +18,7 @@
     "build": "next build",
     "start": "next start",
     "db:neon:apply": "node scripts/neon-apply.mjs",
+    "db:holdings:bootstrap": "node scripts/bootstrap-neon-holdings.mjs",
     "test:web": "node --test tests-node/*.test.mjs"
   }
 }
