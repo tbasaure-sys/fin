@@ -69,7 +69,13 @@ function resolveModuleId(moduleRefs, rawValue) {
   const value = rawValue.trim().toLowerCase();
   if (!value) return null;
 
-  return moduleRefs.find((item) => {
+  const visibleRefs = Array.isArray(moduleRefs) ? moduleRefs : [];
+  const refs = [
+    ...visibleRefs,
+    ...Object.values(FOCUS_MODULE_FALLBACKS).filter((item) => !visibleRefs.some((ref) => ref.id === item.id)),
+  ];
+
+  return refs.find((item) => {
     const title = item.title.toLowerCase();
     const kicker = item.kicker.toLowerCase();
     return item.id === value || title === value || title.includes(value) || kicker === value;
@@ -96,6 +102,13 @@ const PORTFOLIO_RANGE_OPTIONS = [
 
 function resolveModuleRef(moduleRefs, moduleId) {
   return moduleRefs.find((item) => item.id === moduleId) || FOCUS_MODULE_FALLBACKS[moduleId] || null;
+}
+
+function listAddressableModules(moduleRefs = []) {
+  return [
+    ...moduleRefs,
+    ...Object.values(FOCUS_MODULE_FALLBACKS).filter((item) => !moduleRefs.some((ref) => ref.id === item.id)),
+  ];
 }
 
 function safeNumber(value) {
@@ -1095,56 +1108,51 @@ function OverviewHero({ dashboard, session, onRefresh, onJump, isPending }) {
   const topEdge = dashboard.edge_board?.drilldowns?.[0];
   const topMove = dashboard.just_advice?.moves?.[0];
   const accessProvider = session?.access?.provider;
-  const headline = dashboard.just_advice?.headline || "See what to do with your portfolio today.";
+  const headline = dashboard.just_advice?.headline || "Your portfolio, in one clear view.";
   const positionLabel = humanizeModeLabel(dashboard.stress_mode?.mode || dashboard.workspace_summary.primary_stance);
   const marketRead = humanizeShortSentence(
     dashboard.stress_mode?.mainRisk,
-    "This workspace updates from the live backend and your private holdings.",
+    "Live market pressure and your private holdings shape this view.",
   );
 
   return (
-    <section className="hero-panel premium-card">
-      <div className="hero-panel-main">
-        <div className="hero-panel-copy">
-          <p className="eyebrow">Private workspace</p>
-          <h1>Your portfolio today</h1>
-          <strong>{headline}</strong>
+    <section className="hero-panel premium-card workspace-hero-panel">
+      <div className="workspace-brand-lockup">
+        <span className="landing-kicker">{accessProvider === "shared-link" ? "Private access" : "Member workspace"}</span>
+        <p className="brand-wordmark">BLS Prime</p>
+      </div>
+      <div className="workspace-hero-main">
+        <div className="hero-panel-copy workspace-hero-copy">
+          <h1>{headline}</h1>
+          <p>{marketRead}</p>
+          <div className="hero-cta-row hero-action-row">
+            <button className="primary-button" onClick={() => onJump("actions")}>Review plan</button>
+            <button className="ghost-button" onClick={() => onJump("portfolio", true)}>Open holdings</button>
+            <button className="ghost-button" onClick={onRefresh} disabled={isPending}>
+              {isPending ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
-        <div className="hero-badge-grid hero-summary-grid">
-          <div className="hero-badge">
-            <span>Position</span>
+        <div className="workspace-hero-plane" aria-hidden="true">
+          <div className="workspace-hero-plane-row">
+            <span>Stance</span>
             <strong>{positionLabel}</strong>
           </div>
-          <div className="hero-badge">
+          <div className="workspace-hero-plane-row">
             <span>Next step</span>
             <strong>{topMove?.title || "Review today's plan"}</strong>
           </div>
-          <div className="hero-badge">
-            <span>Updated</span>
+          <div className="workspace-hero-plane-row">
+            <span>Last update</span>
             <strong>{dashboard.workspace_summary.last_updated_label}</strong>
           </div>
+          {topEdge ? (
+            <div className="workspace-hero-plane-row">
+              <span>Worth a look</span>
+              <strong>{topEdge.label}</strong>
+            </div>
+          ) : null}
         </div>
-        <div className="hero-cta-row hero-action-row">
-          <button className="primary-button" onClick={() => onJump("actions")}>See plan</button>
-          <button className="ghost-button" onClick={() => onJump("portfolio", true)}>Portfolio</button>
-          <button className="ghost-button" onClick={onRefresh} disabled={isPending}>
-            {isPending ? "Refreshing..." : "Refresh"}
-          </button>
-        </div>
-      </div>
-      <div className="hero-panel-side">
-        <div className="hero-session-card">
-          <span className="section-chip is-good">{accessProvider === "shared-link" ? "Private access" : "Members only"}</span>
-          <strong>{dashboard.market_brief?.headline || "Live market read"}</strong>
-          <p>{marketRead}</p>
-        </div>
-        {topEdge ? (
-          <button className="hero-edge-callout hero-top-edge" onClick={() => onJump(topEdge.lane === "stocks" ? "scanner" : topEdge.lane === "currencies" ? "risk" : topEdge.lane === "countries" ? "international" : "themes", true)}>
-            <span>Worth a look</span>
-            <strong>{topEdge.label}</strong>
-            <b>{topEdge.scoreLabel}</b>
-          </button>
-        ) : null}
       </div>
     </section>
   );
@@ -1334,6 +1342,7 @@ function StressModeCard({ stressMode }) {
 }
 
 function WorkspaceNavigator({ dashboard, activeModule, onJump, onFocus }) {
+  const directoryModules = listAddressableModules(dashboard.module_refs || []);
   const descriptions = {
     actions: "Recommended move.",
     command: "Why the app is being careful.",
@@ -1350,11 +1359,11 @@ function WorkspaceNavigator({ dashboard, activeModule, onJump, onFocus }) {
     <section className="rail-card premium-card">
       <div className="section-topline">
         <div>
-          <p className="rail-title">More sections</p>
+          <p className="rail-title">Explore more</p>
         </div>
       </div>
       <div className="module-directory">
-        {dashboard.module_refs.map((item) => {
+        {directoryModules.map((item) => {
           const isActive = activeModule === item.id;
           const status = (dashboard.module_status || []).find((moduleStatus) => moduleStatus.id === item.id);
           const openInPlace = item.id === "actions" || item.id === "command";
@@ -1468,7 +1477,7 @@ function DataStatusPanel({ dashboard, connectionState, onRefresh, isPending }) {
   );
 }
 
-function PortfolioPulse({ module }) {
+function PortfolioPulse({ module, onJump }) {
   const analytics = module?.analytics || {};
   const holdings = module?.holdings || [];
   const holdingsSource = module?.holdingsSource || {};
@@ -1492,21 +1501,17 @@ function PortfolioPulse({ module }) {
           <strong>{analytics.annualReturnLabel || "Not enough history"}</strong>
         </div>
         <div className="mini-stat">
-          <span>Vs {analytics.benchmarkSymbol || "SPY"}</span>
-          <strong>{analytics.excessReturnLabel || "-"}</strong>
+          <span>Holdings</span>
+          <strong>{analytics.holdingsCount || holdings.length}</strong>
         </div>
       </div>
       <div className="cockpit-note-list">
         {(module.notes || []).slice(0, 1).map((note) => <p key={note}>{note}</p>)}
         {holdingsSource.label ? <p>{holdingsSource.label}</p> : null}
       </div>
-      {holdings.length ? (
-        <TopHoldingsStrip holdings={holdings} />
-      ) : (
-        <div className="panel-block">
-          <p className="support-copy">No holdings saved yet.</p>
-        </div>
-      )}
+      <div className="edge-detail-actions">
+        <button className="ghost-button" onClick={() => onJump?.("portfolio", true)}>Open holdings</button>
+      </div>
     </section>
   );
 }
@@ -1524,7 +1529,7 @@ function RiskPulse({ module }) {
         <span className={`section-chip is-${riskState === "Contained" ? "good" : riskState === "Guarded" ? "warn" : "bad"}`}>{riskState}</span>
       </div>
       <div className="mini-stat-grid">
-        {(module.metrics || []).slice(0, 3).map((metric) => (
+        {(module.metrics || []).slice(0, 2).map((metric) => (
           <div className="mini-stat" key={metric.label}>
             <span>{metric.label}</span>
             <strong>{metric.value}</strong>
@@ -1543,6 +1548,74 @@ function RiskPulse({ module }) {
           <span>Bounce strength</span>
           <strong>{module.reboundConfidence?.state || "-"}</strong>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function WorkspaceUtilityRail({
+  dashboard,
+  alertsOpen,
+  onToggleAlerts,
+  onApplySavedView,
+  onSaveCurrentView,
+  isSavingView,
+}) {
+  const savedViews = (dashboard.saved_views || []).slice(0, 4);
+  const alerts = alertsOpen ? (dashboard.alerts || []).slice(0, 3) : [];
+
+  return (
+    <section className="rail-card premium-card">
+      <div className="section-topline">
+        <div>
+          <p className="rail-title">Workspace tools</p>
+        </div>
+        <button className="ghost-button mini-button" onClick={onSaveCurrentView} disabled={isSavingView}>
+          {isSavingView ? "Saving..." : "Save current view"}
+        </button>
+      </div>
+
+      <div className="panel-block">
+        <p className="block-title">Saved views</p>
+        <div className="watch-next-list">
+          {savedViews.length ? savedViews.map((view) => (
+            <button className="watch-next-row" key={view.id} onClick={() => onApplySavedView(view.id)}>
+              <div>
+                <strong>{view.label}</strong>
+                <p>{view.description || "Open a saved workspace setup."}</p>
+              </div>
+              <span>{view.moduleId}</span>
+            </button>
+          )) : (
+            <p className="support-copy">No saved views yet.</p>
+          )}
+        </div>
+      </div>
+
+      <div className="panel-block">
+        <div className="section-topline">
+          <div>
+            <p className="block-title">Alerts</p>
+          </div>
+          <button className="ghost-button mini-button" onClick={onToggleAlerts}>
+            {alertsOpen ? "Hide" : "Show"}
+          </button>
+        </div>
+        {alertsOpen ? (
+          alerts.length ? (
+            <ul className="signal-list">
+              {alerts.map((alert) => (
+                <li key={alert.id}>
+                  <strong>{alert.title}</strong>{alert.body ? `: ${alert.body}` : ""}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="support-copy">No active alerts right now.</p>
+          )
+        ) : (
+          <p className="support-copy">Alerts are hidden for a quieter workspace.</p>
+        )}
       </div>
     </section>
   );
@@ -2111,6 +2184,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [commandText, setCommandText] = useState("");
   const [commandFeedback, setCommandFeedback] = useState("Type an action like `refresh`, `view portfolio`, or `add NVDA`.");
   const [isPending, startRefresh] = useTransition();
+  const [isSavingView, startSavingView] = useTransition();
 
   function ingestDashboard(payload, invalidMessage = "Live data is temporarily unavailable. Please refresh.") {
     const normalized = normalizeDashboardPayload(payload);
@@ -2162,12 +2236,16 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
   function jumpToModule(moduleId, focus = false) {
     if (!moduleId) return;
+    const isVisibleModule = dashboard.module_refs.some((item) => item.id === moduleId);
+    const shouldFocus = focus || !isVisibleModule;
     setActiveModule(moduleId);
-    setFocusedModule(focus ? moduleId : null);
+    setFocusedModule(shouldFocus ? moduleId : null);
     setSelectedEdge(null);
-    setTimeout(() => {
-      document.getElementById(`module-${moduleId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 40);
+    if (isVisibleModule) {
+      setTimeout(() => {
+        document.getElementById(`module-${moduleId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 40);
+    }
   }
 
   async function loadDashboard() {
@@ -2212,6 +2290,39 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     }
   }
 
+  async function saveCurrentView() {
+    startSavingView(async () => {
+      try {
+        const activeRef = resolveModuleRef(dashboard.module_refs, focusedModule || activeModule) || {};
+        const viewId = `custom-${Date.now()}`;
+        const response = await fetch(`/api/v1/workspaces/${dashboard.workspace_summary.id}/saved-views`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: viewId,
+            label: activeRef.title || "Saved view",
+            description: `Saved from ${activeRef.title || "workspace"}.`,
+            moduleId: focusedModule || activeModule || "actions",
+            focused: Boolean(focusedModule),
+            alerts: alertsOpen,
+            densityMode: density,
+          }),
+        });
+        if (!response.ok) {
+          throw new Error("Could not save this workspace view.");
+        }
+        const payload = await readJsonResponse(response);
+        if (!payload) {
+          throw new Error("Saved view returned unreadable data.");
+        }
+        ingestDashboard(payload, "The saved view could not be loaded.");
+        setCommandFeedback(`Saved ${activeRef.title || "workspace"} view.`);
+      } catch (error) {
+        setCommandFeedback(error?.message || "Could not save this view.");
+      }
+    });
+  }
+
   function cycleModule(direction) {
     if (!dashboard.module_refs.length) return;
     const currentIndex = dashboard.module_refs.findIndex((item) => item.id === activeModule);
@@ -2220,19 +2331,12 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   function applySavedView(viewId) {
-    const presets = {
-      "founder-tape": { moduleId: "actions", alerts: true, densityMode: "dense" },
-      "barbell-book": { moduleId: "portfolio", alerts: true, densityMode: "dense" },
-      "discovery-lab": { moduleId: "scanner", alerts: false, densityMode: "compact" },
-      "live-command": { moduleId: "actions", alerts: true, densityMode: "dense" },
-      "scanner-deep-dive": { moduleId: "scanner", alerts: false, densityMode: "compact" },
-    };
-    const preset = presets[viewId];
+    const preset = (dashboard.saved_views || []).find((item) => item.id === viewId);
     if (!preset) return;
-    setDensity(preset.densityMode);
-    setAlertsOpen(preset.alerts);
-    jumpToModule(preset.moduleId);
-    setCommandFeedback(`Loaded ${viewId.replace(/-/g, " ")}.`);
+    setDensity(preset.densityMode || "compact");
+    setAlertsOpen(Boolean(preset.alerts));
+    jumpToModule(preset.moduleId || "actions", Boolean(preset.focused));
+    setCommandFeedback(`Loaded ${preset.label || viewId.replace(/-/g, " ")}.`);
   }
 
   useEffect(() => {
@@ -2529,16 +2633,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     { label: "Guardrails", command: "view command" },
     { label: "Add NVDA", command: "add NVDA" },
   ];
+  const addressableModules = listAddressableModules(dashboard.module_refs || []);
 
   return (
     <main className={`terminal-root density-${density}`}>
       <div className="terminal-noise" />
-      <div className="terminal-grid">
-        <aside className="terminal-rail terminal-rail-left">
-          <PortfolioPulse module={dashboard.modules.portfolio} />
-        </aside>
-
-        <section className="terminal-center">
+      <div className="workspace-stage">
+        <section className="workspace-stage-main">
           <OverviewHero
             dashboard={dashboard}
             session={session}
@@ -2546,46 +2647,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             onJump={jumpToModule}
             isPending={isPending}
           />
-
-          <GuidedBrief dashboard={dashboard} onJump={jumpToModule} />
-
-          <details className="advanced-shell premium-card">
-            <summary className="advanced-summary">
-              <div>
-                <p className="eyebrow">More</p>
-                <strong>Open the full workspace</strong>
-              </div>
-              <span className="section-chip is-neutral">Open</span>
-            </summary>
-            <div className="advanced-shell-body">
-              <div className="advanced-main-grid">
-                <DecisionWorkflow
-                  dashboard={dashboard}
-                  activeModule={activeModule}
-                  onJump={jumpToModule}
-                  onFocus={(moduleId) => setFocusedModule(moduleId)}
-                />
-
-                <aside className="advanced-side-stack">
-                  <WorkspaceNavigator
-                    dashboard={dashboard}
-                    activeModule={activeModule}
-                    onJump={jumpToModule}
-                    onFocus={(moduleId) => setFocusedModule(moduleId)}
-                  />
-                </aside>
-              </div>
-            </div>
-          </details>
         </section>
 
-        <aside className="terminal-rail terminal-rail-right">
-          <WatchNextCard
-            dashboard={dashboard}
-            onJump={jumpToModule}
-            onSelectEdge={setSelectedEdge}
-          />
-          <RiskPulse module={dashboard.modules.risk} />
+        <aside className="workspace-stage-side">
+          <PortfolioPulse module={dashboard.modules.portfolio} onJump={jumpToModule} />
           <DataStatusPanel
             dashboard={dashboard}
             connectionState={connectionState}
@@ -2594,6 +2659,58 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           />
         </aside>
       </div>
+
+      <div className="workspace-support-row">
+        <section className="workspace-stage-main">
+          <GuidedBrief dashboard={dashboard} onJump={jumpToModule} />
+        </section>
+
+        <aside className="workspace-stage-side workspace-secondary-side">
+          <WatchNextCard
+            dashboard={dashboard}
+            onJump={jumpToModule}
+            onSelectEdge={setSelectedEdge}
+          />
+          <RiskPulse module={dashboard.modules.risk} />
+          <WorkspaceUtilityRail
+            dashboard={dashboard}
+            alertsOpen={alertsOpen}
+            onToggleAlerts={() => setAlertsOpen((current) => !current)}
+            onApplySavedView={applySavedView}
+            onSaveCurrentView={saveCurrentView}
+            isSavingView={isSavingView}
+          />
+        </aside>
+      </div>
+
+      <details className="advanced-shell premium-card">
+        <summary className="advanced-summary">
+          <div>
+            <p className="eyebrow">Explore</p>
+            <strong>Open the full workspace</strong>
+          </div>
+          <span className="section-chip is-neutral">Open</span>
+        </summary>
+        <div className="advanced-shell-body">
+          <div className="advanced-main-grid">
+            <DecisionWorkflow
+              dashboard={dashboard}
+              activeModule={activeModule}
+              onJump={jumpToModule}
+              onFocus={(moduleId) => setFocusedModule(moduleId)}
+            />
+
+            <aside className="advanced-side-stack">
+              <WorkspaceNavigator
+                dashboard={dashboard}
+                activeModule={activeModule}
+                onJump={jumpToModule}
+                onFocus={(moduleId) => setFocusedModule(moduleId)}
+              />
+            </aside>
+          </div>
+        </div>
+      </details>
 
       {focusedModule ? (
         <div className="focus-overlay" onClick={() => setFocusedModule(null)}>
@@ -2651,7 +2768,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               ))}
             </div>
             <div className="command-shortcuts">
-              {dashboard.module_refs.map((item) => (
+              {addressableModules.map((item) => (
                 <button
                   className="shortcut-card"
                   key={item.id}

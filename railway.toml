@@ -22,6 +22,9 @@ restartPolicyMaxRetries = 3
 [deploy.environmentVariables]
 # Tell PathConfig we are in cloud mode so local-only paths fall back safely.
 META_ALLOCATOR_CLOUD = "1"
-# Disable background refresh on boot if no pipeline data is available in cloud.
-# Set to "5" (seconds) to enable a post-boot refresh attempt.
-META_ALLOCATOR_BOOT_REFRESH_DELAY = "-1"
+# Pin cloud roots explicitly so Railway refreshes only from repo-hosted inputs.
+META_ALLOCATOR_FINANCE_ROOT = "/app/cloud_data/finance"
+META_ALLOCATOR_CT_ROOT = "/app/cloud_data/ct"
+# Refresh the snapshot shortly after boot so a new deploy does not keep serving
+# a stale cached snapshot until someone manually triggers /api/refresh.
+META_ALLOCATOR_BOOT_REFRESH_DELAY = "5"
