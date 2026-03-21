@@ -26,20 +26,20 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   assert.equal(dashboard.module_refs.length, 2);
   assert.equal(dashboard.module_refs[0].id, "actions");
   assert.equal(dashboard.module_refs[1].id, "command");
-  assert.equal(dashboard.modules.actions.title, "Next Best Moves");
+  assert.equal(dashboard.modules.actions.title, "Current guidance");
   assert.equal(dashboard.modules.command.title, "Decision Rules");
   assert.ok(dashboard.alerts.length >= 1);
   assert.equal(dashboard.portfolio_state.watchlist_count, 0);
-  assert.equal(dashboard.modules.portfolio.holdings[0].ticker, "SGOV");
-  assert.equal(dashboard.alpha_briefing.topIdeas[0].symbol, "TSM");
+  assert.equal(dashboard.modules.portfolio.holdings.length, 0);
+  assert.equal(dashboard.alpha_briefing.topIdeas.length, 0);
   assert.ok(dashboard.modules.command.supportDependency.length > 0);
-  assert.ok(dashboard.modules.portfolio.charts.growthComparison.length > 0);
-  assert.ok(dashboard.modules.portfolio.charts.sectorExposure.length > 0);
-  assert.ok(dashboard.modules.portfolio.charts.valuationDistribution.length > 0);
-  assert.ok(dashboard.modules.scanner.rows.length > 0);
-  assert.ok(dashboard.modules.scanner.ideaMap.length > 0);
-  assert.ok(dashboard.modules.risk.signalBars.length > 0);
-  assert.match(dashboard.data_control.analysisSource, /fallback/i);
+  assert.equal(dashboard.modules.portfolio.charts.growthComparison.length, 0);
+  assert.equal(dashboard.modules.portfolio.charts.sectorExposure.length, 0);
+  assert.equal(dashboard.modules.portfolio.charts.valuationDistribution.length, 0);
+  assert.equal(dashboard.modules.scanner.rows.length, 0);
+  assert.equal(dashboard.modules.scanner.ideaMap.length, 0);
+  assert.equal(dashboard.modules.risk.signalBars.length, 0);
+  assert.match(dashboard.data_control.analysisSource, /partial analysis/i);
 });
 
 test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quotes exist", () => {
@@ -68,7 +68,7 @@ test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quo
 
   assert.equal(dashboard.market_ribbon[0].symbol, "SPY");
   assert.equal(dashboard.market_ribbon[1].status, "cache");
-  assert.equal(dashboard.workspace_summary.primary_stance, "Keep risk moderate");
+  assert.equal(dashboard.workspace_summary.primary_stance, "Take moderate risk");
 });
 
 test("normalizeWorkspaceDashboard builds live next best moves from screener and portfolio data", () => {
@@ -135,6 +135,12 @@ test("normalizeWorkspaceDashboard builds live next best moves from screener and 
   assert.ok(dashboard.modules.actions.actions[0].invalidation);
   assert.ok(dashboard.modules.command.decisionRights);
   assert.ok(dashboard.modules.command.stepDownTrials.length === 3);
+  assert.equal(dashboard.primary_action.ticker, "TSM");
+  assert.equal(dashboard.secondary_actions[0].ticker, "ASTS");
+  assert.equal(dashboard.state_summary.stance, "Take moderate risk");
+  assert.ok(dashboard.evidence_drawer.headline);
+  assert.equal(dashboard.escrow.items.length, 0);
+  assert.ok(dashboard.memory.weeklyBrief.length > 0);
 });
 
 test("normalizeWorkspaceDashboard prefers backend protocol payload when it exists", () => {
@@ -422,5 +428,107 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
   assert.equal(dashboard.modules.risk.reboundConfidence.state, "Conditional");
   assert.equal(dashboard.modules.spectral.reboundQuality.state, "Palliative");
   assert.equal(dashboard.modules.command.protocolLabel, "Observe Mode");
-  assert.equal(dashboard.modules.actions.actions[0].sourceLabel, "Canonical contract");
+  assert.equal(dashboard.modules.actions.actions[0].sourceLabel, "Live rules");
+});
+
+test("normalizeWorkspaceDashboard derives escrow readiness and memory events for the simplified workspace", () => {
+  const snapshot = {
+    overview: {
+      recommended_action: "beta_040",
+      selected_hedge: "TLT",
+    },
+    portfolio: {
+      alignment: {
+        beta_target: 0.4,
+        portfolio_beta: 0.48,
+      },
+      top_holdings: [
+        { ticker: "ASTS", sector: "Technology", upside: -0.4, weight: 0.05 },
+        { ticker: "SGOV", sector: "ETF", weight: 0.08 },
+        { ticker: "TLT", sector: "ETF", weight: 0.07 },
+      ],
+      simulation_rank: [
+        { ticker: "TSM", suggested_position: 0.025, prob_loss: 0.34 },
+      ],
+    },
+    screener: {
+      rows: [
+        {
+          ticker: "TSM",
+          is_current_holding: false,
+          suggested_position: 0.025,
+          discovery_score: 0.81,
+          momentum_6m: 0.22,
+          valuation_gap: -0.18,
+          thesis_bucket: "quality growth",
+        },
+      ],
+    },
+    status: { warnings: [], panels: [] },
+    risk: { spectral: {} },
+    international: {},
+    sectors: {},
+    forecast: {},
+  };
+
+  const seeded = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot,
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+    commandHistory: [],
+    escrowDecisions: [],
+    decisionEvents: [],
+  });
+
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot,
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+    commandHistory: [],
+    escrowDecisions: [
+      {
+        id: "escrow-1",
+        actionId: seeded.primary_action.id,
+        title: seeded.primary_action.title,
+        summary: seeded.primary_action.summary,
+        sizeLabel: seeded.primary_action.sizeLabel,
+        sizeValue: seeded.primary_action.sizeValue,
+        readiness: 0.42,
+        status: "staged",
+        maturityConditions: ["Breadth improves"],
+        invalidationConditions: ["Sponsorship weakens"],
+        expiresAt: "2026-03-27T00:00:00.000Z",
+      },
+    ],
+    decisionEvents: [
+      {
+        id: "decision-1",
+        actionId: seeded.primary_action.id,
+        title: seeded.primary_action.title,
+        userResponse: "staged",
+        note: "Moved into escrow.",
+        occurredAt: "2026-03-20T12:00:00.000Z",
+      },
+      {
+        id: "decision-2",
+        actionId: seeded.primary_action.id,
+        title: seeded.primary_action.title,
+        userResponse: "deferred",
+        note: "Waiting for confirmation.",
+        occurredAt: "2026-03-19T12:00:00.000Z",
+      },
+    ],
+  });
+
+  assert.equal(dashboard.escrow.items.length, 1);
+  assert.equal(dashboard.escrow.items[0].status, "ready");
+  assert.ok(dashboard.escrow.items[0].readiness > 0.9);
+  assert.equal(dashboard.memory.recentEvents[0].response, "Staged");
+  assert.equal(dashboard.memory.stats.staged, 1);
+  assert.equal(dashboard.memory.stats.deferred, 1);
+  assert.ok(dashboard.memory.weeklyBrief.some((line) => /watch for/i.test(line)));
 });
