@@ -65,17 +65,6 @@ class DashboardService:
 
         # Always load cached snapshot first — never block startup.
         self._snapshot = load_cached_snapshot(paths, dashboard_settings)
-        if self._snapshot is None:
-            try:
-                self._snapshot = build_dashboard_snapshot(
-                    self.paths,
-                    self.research_settings,
-                    self.allocator_settings,
-                    self.dashboard_settings,
-                    refresh_outputs=False,
-                )
-            except Exception:
-                self._snapshot = None
 
         if self._snapshot is None:
             # No cache at all: build a lightweight empty shell so the server

@@ -7,8 +7,6 @@ builder = "NIXPACKS"
 # --threads 4: handles concurrent API requests without extra processes.
 # --timeout 120: allows the background snapshot refresh to complete before
 #                gunicorn kills a worker as unresponsive.
-# --preload: loads the app before forking so the background thread starts
-#            inside the worker process (important for DashboardService).
 startCommand = "/bin/bash /app/start.sh"
 
 # Railway will GET /health every 10s after deploy.
