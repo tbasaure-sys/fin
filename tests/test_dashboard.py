@@ -216,6 +216,29 @@ def test_build_dashboard_snapshot_from_existing_outputs(tmp_path: Path, monkeypa
     assert (paths.output_root / "audit" / "latest" / "decision_events.json").exists()
 
 
+def test_dashboard_service_boot_without_cache_does_not_build_snapshot_inline(tmp_path: Path, monkeypatch) -> None:
+    paths = _paths(tmp_path)
+
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.server.load_cached_snapshot", lambda *args, **kwargs: None)
+
+    def _unexpected_build(*args, **kwargs):  # pragma: no cover - should never run
+        raise AssertionError("startup should not build a full snapshot inline when no cache is present")
+
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.server.build_dashboard_snapshot", _unexpected_build)
+
+    service = DashboardService(
+        paths,
+        ResearchSettings(),
+        AllocatorSettings(),
+        DashboardSettings(output_dir=paths.output_root / "dashboard" / "latest"),
+        boot_refresh_delay=-1,
+    )
+
+    snapshot = service.snapshot()
+    assert snapshot["status"]["warnings"] == ["snapshot not yet available — refresh in progress"]
+    assert snapshot["status"]["auto_refresh_seconds"] == 300
+
+
 def test_apply_screener_query_filters_and_sorts() -> None:
     snapshot = {
         "screener": {
