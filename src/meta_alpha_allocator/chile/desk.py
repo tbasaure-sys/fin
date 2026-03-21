@@ -82,6 +82,42 @@ def _normalize_text(value: Any) -> str:
     return " ".join(normalized.lower().split())
 
 
+def _coerce_numeric_columns(frame: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    for column in columns:
+        if column in frame.columns:
+            frame[column] = pd.to_numeric(frame[column], errors="coerce")
+    return frame
+
+
+def _pct_change_no_pad(series: pd.Series) -> pd.Series:
+    return pd.to_numeric(series, errors="coerce").pct_change(fill_method=None)
+
+
+def _empty_chile_snapshot(
+    *,
+    source: str,
+    headline: str,
+    warnings: list[str] | None = None,
+) -> dict[str, Any]:
+    return {
+        "generated_at": datetime.now(tz=UTC).isoformat(),
+        "as_of_date": None,
+        "source": source,
+        "headline": headline,
+        "benchmark": {},
+        "fx": {},
+        "overview": {},
+        "leaders": [],
+        "laggards": [],
+        "sector_map": [],
+        "preferred": [],
+        "opportunity_map": [],
+        "rows": [],
+        "warnings": warnings or [],
+        "stale_days": None,
+    }
+
+
 def _load_universe(paths: PathConfig) -> pd.DataFrame:
     custom_path = Path(paths.project_root / "artifacts" / "chile" / "universe.csv")
     if custom_path.exists():
@@ -242,10 +278,13 @@ def _extract_cmf_fundamentals(universe: pd.DataFrame, cmf_text: str | None) -> p
     fundamentals = pd.DataFrame(rows)
     if fundamentals.empty:
         return fundamentals
+    numeric_cols = [column for column in fundamentals.columns if column != "ticker"]
+    fundamentals = _coerce_numeric_columns(fundamentals, numeric_cols)
     fundamentals["cmf_margin"] = fundamentals["cmf_net_income"] / fundamentals["cmf_revenue"]
     fundamentals["cmf_leverage"] = fundamentals["cmf_liabilities"] / fundamentals["cmf_equity"]
     fundamentals["cmf_cash_buffer"] = fundamentals["cmf_cash"] / fundamentals["cmf_liabilities"]
-    return fundamentals.replace({np.inf: np.nan, -np.inf: np.nan})
+    fundamentals[numeric_cols] = fundamentals[numeric_cols].mask(np.isinf(fundamentals[numeric_cols]), np.nan)
+    return fundamentals
 
 
 def _latest_price(series: pd.Series) -> float | None:
@@ -271,15 +310,15 @@ def _drawdown_from_high(series: pd.Series, lookback: int = 252) -> float | None:
 
 
 def _annual_vol(series: pd.Series, lookback: int = 63) -> float | None:
-    clean = pd.to_numeric(series, errors="coerce").pct_change().dropna()
+    clean = _pct_change_no_pad(series).dropna()
     if len(clean) < min(lookback, 20):
         return None
     return float(clean.tail(lookback).std() * np.sqrt(252.0))
 
 
 def _corr_to_benchmark(series: pd.Series, benchmark: pd.Series, lookback: int = 63) -> float | None:
-    asset = pd.to_numeric(series, errors="coerce").pct_change()
-    bench = pd.to_numeric(benchmark, errors="coerce").pct_change()
+    asset = _pct_change_no_pad(series)
+    bench = _pct_change_no_pad(benchmark)
     frame = pd.concat([asset, bench], axis=1, keys=["asset", "bench"]).dropna()
     if len(frame) < min(lookback, 20):
         return None
@@ -374,25 +413,46 @@ def _build_from_market_data(
 
     frame = pd.DataFrame(rows)
     if frame.empty:
-        return {
-            "as_of_date": None,
-            "source": "empty",
-            "headline": "Chile desk is waiting for its first market pull.",
-            "benchmark": {},
-            "fx": {},
-            "overview": {},
-            "leaders": [],
-            "laggards": [],
-            "sector_map": [],
-            "rows": [],
-            "opportunity_map": [],
-            "preferred": [],
-            "stale_days": None,
-        }
+        return _empty_chile_snapshot(
+            source="empty",
+            headline="Chile desk is waiting for its first market pull.",
+        )
 
-    frame["filing_margin"] = frame["xbrl_margin"].fillna(frame["cmf_margin"])
-    frame["filing_cash_buffer"] = frame["xbrl_cash_buffer"].fillna(frame["cmf_cash_buffer"])
-    frame["filing_leverage"] = frame["xbrl_leverage"].fillna(frame["cmf_leverage"])
+    numeric_cols = [
+        "price",
+        "return_1m",
+        "return_3m",
+        "return_6m",
+        "drawdown_1y",
+        "volatility_3m",
+        "corr_to_ipsa",
+        "market_cap",
+        "trailing_pe",
+        "price_to_book",
+        "enterprise_to_ebitda",
+        "roe",
+        "xbrl_cash",
+        "xbrl_revenue",
+        "xbrl_net_income",
+        "xbrl_equity",
+        "xbrl_liabilities",
+        "xbrl_margin",
+        "xbrl_leverage",
+        "xbrl_cash_buffer",
+        "cmf_cash",
+        "cmf_revenue",
+        "cmf_net_income",
+        "cmf_equity",
+        "cmf_liabilities",
+        "cmf_margin",
+        "cmf_leverage",
+        "cmf_cash_buffer",
+    ]
+    frame = _coerce_numeric_columns(frame, numeric_cols)
+
+    frame["filing_margin"] = frame["xbrl_margin"].combine_first(frame["cmf_margin"])
+    frame["filing_cash_buffer"] = frame["xbrl_cash_buffer"].combine_first(frame["cmf_cash_buffer"])
+    frame["filing_leverage"] = frame["xbrl_leverage"].combine_first(frame["cmf_leverage"])
     yahoo_quality = _rank_score(_clamp_series(frame["roe"], -1, 1), ascending=True).fillna(0.45)
     filing_quality = (
         _rank_score(_clamp_series(frame["filing_margin"], -1, 1), ascending=True).fillna(0.45) * 0.45
@@ -484,6 +544,10 @@ def build_chile_market_snapshot(paths: PathConfig, *, refresh: bool = False) -> 
             cached = _safe_json_load(path)
             if cached is not None:
                 return cached
+        return _empty_chile_snapshot(
+            source="deferred",
+            headline="Chile desk is waiting for the background refresh to build its first market snapshot.",
+        )
 
     universe = _load_universe(paths)
     tickers = universe["ticker"].dropna().astype(str).tolist()
@@ -508,20 +572,8 @@ def build_chile_market_snapshot(paths: PathConfig, *, refresh: bool = False) -> 
             cached.setdefault("warnings", [])
             cached["warnings"] = list(cached.get("warnings", [])) + [f"using cached Chile desk because refresh failed: {exc}"]
             return cached
-        return {
-            "generated_at": datetime.now(tz=UTC).isoformat(),
-            "as_of_date": None,
-            "source": "fallback",
-            "headline": "Chile desk is mounted, but the first price pull failed.",
-            "benchmark": {},
-            "fx": {},
-            "overview": {},
-            "leaders": [],
-            "laggards": [],
-            "sector_map": [],
-            "preferred": [],
-            "opportunity_map": [],
-            "rows": [],
-            "warnings": [f"chile market refresh failed: {exc}"],
-            "stale_days": None,
-        }
+        return _empty_chile_snapshot(
+            source="fallback",
+            headline="Chile desk is mounted, but the first price pull failed.",
+            warnings=[f"chile market refresh failed: {exc}"],
+        )
