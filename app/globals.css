@@ -2975,7 +2975,169 @@ a {
 .workspace-overview-copy {
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.portfolio-spotlight {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(248, 200, 111, 0.14), transparent 28%),
+    radial-gradient(circle at 84% 22%, rgba(122, 210, 194, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
+  animation: holdings-glow 16s ease-in-out infinite;
+}
+
+.portfolio-spotlight-header,
+.portfolio-spotlight-main,
+.portfolio-sector-copy,
+.portfolio-spotlight-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.portfolio-spotlight-header {
+  align-items: flex-start;
+}
+
+.portfolio-spotlight-header h3 {
+  margin: 0;
+  max-width: 18ch;
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+}
+
+.portfolio-spotlight-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 16px;
+}
+
+.portfolio-spotlight-stack,
+.portfolio-spotlight-sidebar,
+.portfolio-sector-list {
+  display: grid;
   gap: 10px;
+}
+
+.portfolio-spotlight-holding,
+.portfolio-spotlight-panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.portfolio-spotlight-holding {
+  padding: 14px 16px;
+}
+
+.portfolio-spotlight-meter {
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+}
+
+.portfolio-spotlight-meter span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(248, 200, 111, 0.12), rgba(122, 210, 194, 0.16));
+}
+
+.portfolio-spotlight-main,
+.portfolio-spotlight-rank {
+  position: relative;
+  z-index: 1;
+}
+
+.portfolio-spotlight-symbol,
+.portfolio-spotlight-meta {
+  display: grid;
+  gap: 4px;
+}
+
+.portfolio-spotlight-symbol strong,
+.portfolio-sector-copy strong,
+.portfolio-spotlight-meta strong {
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+
+.portfolio-spotlight-symbol span,
+.portfolio-spotlight-meta span,
+.portfolio-spotlight-note,
+.portfolio-spotlight-pill span,
+.portfolio-sector-copy span {
+  color: var(--muted);
+}
+
+.portfolio-spotlight-meta {
+  justify-items: end;
+  text-align: right;
+}
+
+.portfolio-spotlight-rank {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+}
+
+.portfolio-spotlight-panel {
+  padding: 16px;
+}
+
+.portfolio-sector-row {
+  display: grid;
+  gap: 8px;
+}
+
+.portfolio-sector-track {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.portfolio-sector-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(248, 200, 111, 0.92), rgba(122, 210, 194, 0.85));
+}
+
+.portfolio-spotlight-note {
+  margin: 8px 0 0;
+  line-height: 1.55;
+}
+
+.portfolio-spotlight-ticker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.portfolio-spotlight-pill {
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  animation: holdings-drift 18s linear infinite;
+}
+
+.portfolio-spotlight-pill strong {
+  font-size: 13px;
+  letter-spacing: 0.08em;
 }
 
 .workspace-portfolio-hero {
@@ -2997,6 +3159,132 @@ a {
   gap: 12px;
 }
 
+.portfolio-hero-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.portfolio-hero-holdings,
+.portfolio-hero-chart-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.portfolio-holdings-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  gap: 14px;
+}
+
+.portfolio-holdings-copy {
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(248, 200, 111, 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+}
+
+.portfolio-holdings-copy h3 {
+  margin: 8px 0 10px;
+  font-size: clamp(36px, 5vw, 54px);
+  line-height: 0.94;
+}
+
+.portfolio-holdings-copy p {
+  margin: 0;
+  max-width: 28ch;
+  color: var(--muted);
+}
+
+.portfolio-holding-stage-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(122, 210, 194, 0.16);
+  background:
+    radial-gradient(circle at 85% 15%, rgba(122, 210, 194, 0.16), transparent 35%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+}
+
+.holding-stage-top,
+.holding-stage-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.holding-stage-top strong {
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+
+.holding-stage-top span,
+.holding-stage-meta span {
+  color: var(--muted);
+}
+
+.holding-stage-meta {
+  font-size: 13px;
+}
+
+.portfolio-holding-mosaic {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.portfolio-holding-tile {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  min-height: 104px;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.portfolio-holding-tile strong,
+.portfolio-holding-tile em {
+  display: block;
+}
+
+.portfolio-holding-tile span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.portfolio-holding-tile em {
+  color: var(--text);
+  font-style: normal;
+  font-size: 18px;
+}
+
+.portfolio-holding-tile.tile-1 {
+  background: linear-gradient(180deg, rgba(248, 200, 111, 0.09), rgba(255, 255, 255, 0.02));
+}
+
+.portfolio-holding-tile.tile-2 {
+  background: linear-gradient(180deg, rgba(122, 210, 194, 0.09), rgba(255, 255, 255, 0.02));
+}
+
+.portfolio-holding-tile.tile-3 {
+  background: linear-gradient(180deg, rgba(131, 166, 255, 0.09), rgba(255, 255, 255, 0.02));
+}
+
+.portfolio-holding-tile.tile-4 {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+}
+
 .portfolio-metric {
   padding: 14px;
   border-radius: 18px;
@@ -3016,6 +3304,14 @@ a {
 .portfolio-metric strong {
   font-size: 24px;
   line-height: 1.1;
+}
+
+.portfolio-metric small {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .portfolio-range-row {
@@ -3135,6 +3431,28 @@ a {
 .portfolio-hero-note {
   margin: 8px 0 0;
   color: var(--muted);
+}
+
+@keyframes holdings-glow {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(122, 210, 194, 0.06),
+      0 18px 60px rgba(0, 0, 0, 0.12);
+  }
+}
+
+@keyframes holdings-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
 }
 
 .state-chip-grid,
@@ -3403,6 +3721,10 @@ a {
   .trigger-grid,
   .evidence-grid,
   .escrow-details,
+  .portfolio-spotlight-grid,
+  .portfolio-hero-main,
+  .portfolio-holdings-stage,
+  .portfolio-holding-mosaic,
   .portfolio-hero-summary,
   .portfolio-hero-bottom,
   .state-chip-grid,
