@@ -105,6 +105,19 @@ function renderInlineItem(item) {
   return String(item);
 }
 
+function parseDisplayPercent(value) {
+  if (value === null || value === undefined) return null;
+  const text = String(value).trim();
+  if (!text) return null;
+  if (text.endsWith("%")) {
+    const parsed = Number.parseFloat(text);
+    return Number.isFinite(parsed) ? parsed / 100 : null;
+  }
+  const parsed = Number(text);
+  if (!Number.isFinite(parsed)) return null;
+  return Math.abs(parsed) > 1 ? parsed / 100 : parsed;
+}
+
 async function parseResponse(response) {
   let payload = null;
   try {
@@ -233,11 +246,111 @@ function PortfolioMiniChart({ series, benchmarkSymbol }) {
   );
 }
 
+function PortfolioHoldingsSpotlight({ portfolioModule }) {
+  const portfolio = portfolioModule || {};
+  const holdings = safeList(portfolio.holdings).slice(0, 6);
+  const sectors = safeList(portfolio.sectorExposure).slice(0, 4);
+  const analytics = portfolio.analytics || {};
+
+  if (!holdings.length) return null;
+
+  const shownWeight = holdings.reduce((sum, holding) => sum + (parseDisplayPercent(holding.weight) || 0), 0);
+
+  return (
+    <section className="portfolio-spotlight" aria-label="Portfolio holdings overview">
+      <div className="portfolio-spotlight-header">
+        <div>
+          <span className="support-label">Composition</span>
+          <h3>Largest positions and where the book is leaning.</h3>
+        </div>
+        <span className="info-chip">
+          {holdings.length} of {analytics.holdingsCount || holdings.length} shown
+        </span>
+      </div>
+
+      <div className="portfolio-spotlight-grid">
+        <div className="portfolio-spotlight-stack" role="list" aria-label="Largest positions">
+          {holdings.map((holding, index) => {
+            const weightValue = parseDisplayPercent(holding.weight);
+            const width = `${Math.max(16, Math.round((weightValue || 0.06) * 100))}%`;
+
+            return (
+              <article className="portfolio-spotlight-holding" key={holding.ticker} role="listitem">
+                <div className="portfolio-spotlight-meter" aria-hidden="true">
+                  <span style={{ width }} />
+                </div>
+                <div className="portfolio-spotlight-main">
+                  <div className="portfolio-spotlight-symbol">
+                    <strong>{holding.ticker}</strong>
+                    <span>{holding.sector || "Unclassified"}</span>
+                  </div>
+                  <div className="portfolio-spotlight-meta">
+                    <strong>{holding.weight || "-"}</strong>
+                    <span>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "Value pending"}</span>
+                  </div>
+                </div>
+                <div className="portfolio-spotlight-rank" aria-label={`Rank ${index + 1}`}>
+                  0{index + 1}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="portfolio-spotlight-sidebar">
+          <div className="portfolio-spotlight-panel">
+            <span className="support-label">Sector balance</span>
+            <div className="portfolio-sector-list">
+              {sectors.length ? sectors.map((sector) => (
+                <div className="portfolio-sector-row" key={sector.label}>
+                  <div className="portfolio-sector-copy">
+                    <strong>{sector.label}</strong>
+                    <span>{formatPct(sector.value || 0)}</span>
+                  </div>
+                  <div className="portfolio-sector-track" aria-hidden="true">
+                    <span style={{ width: `${Math.max(10, Math.round((sector.normalized || sector.value || 0) * 100))}%` }} />
+                  </div>
+                </div>
+              )) : <p className="panel-empty">Sector balance will appear as holdings metadata fills in.</p>}
+            </div>
+          </div>
+
+          <div className="portfolio-spotlight-panel">
+            <span className="support-label">Reading</span>
+            <p className="portfolio-spotlight-note">
+              The largest visible positions represent {formatPct(shownWeight)} of the current book
+              {analytics.totalValueUsd ? ` across ${formatCurrency(analytics.totalValueUsd)} in tracked value.` : "."}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="portfolio-spotlight-ticker-row" aria-label="Holdings quick view">
+        {holdings.map((holding) => (
+          <span className="portfolio-spotlight-pill" key={`${holding.ticker}-pill`}>
+            <strong>{holding.ticker}</strong>
+            <span>{holding.weight || holding.sector || "-"}</span>
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function PortfolioHero({ portfolioModule, range, onRangeChange }) {
   const portfolio = portfolioModule || {};
   const analytics = portfolio.analytics || {};
   const chartSeries = filterPortfolioSeries(portfolio?.charts?.growthComparison, range);
-  const topHoldings = safeList(portfolio.holdings).slice(0, 4);
+  const topHoldings = safeList(portfolio.holdings).slice(0, 6);
+  const featuredHolding = topHoldings[0] || null;
+  const supportingHoldings = topHoldings.slice(1, 6);
+  const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis still syncing";
+  const comparisonLabel = analytics.hasBenchmarkHistory
+    ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}`
+    : "Waiting for enough live history to compare against SPY";
+  const performanceNarrative = analytics.hasPerformanceHistory
+    ? `Live performance is based on ${analytics.historySessions} stored portfolio snapshots.`
+    : `Current gain is ${currentGainLabel}. The app needs more stored sessions before performance and benchmark comparisons are reliable.`;
 
   return (
     <section className="workspace-portfolio-hero">
@@ -255,57 +368,107 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
       <div className="portfolio-hero-summary">
         <div className="portfolio-metric">
           <span>Annualized return</span>
-          <strong>{analytics.annualReturnLabel || "History needed"}</strong>
+          <strong>{analytics.hasPerformanceHistory ? analytics.annualReturnLabel : "Building history"}</strong>
+          <small>{analytics.hasPerformanceHistory ? "Based on stored snapshots" : currentGainLabel}</small>
         </div>
         <div className="portfolio-metric">
           <span>Since tracking started</span>
           <strong>{analytics.totalReturnLabel || "History needed"}</strong>
+          <small>{analytics.historySessions ? `${analytics.historySessions} stored observations` : "Holdings are connected"}</small>
         </div>
         <div className="portfolio-metric">
           <span>vs {analytics.benchmarkSymbol || "SPY"}</span>
-          <strong>{analytics.excessReturnLabel || "History needed"}</strong>
+          <strong>{analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Not ready"}</strong>
+          <small>{comparisonLabel}</small>
         </div>
       </div>
 
-      <div className="portfolio-range-row" role="tablist" aria-label="Portfolio ranges">
-        {PORTFOLIO_RANGES.map((option) => (
-          <button
-            key={option}
-            className={`range-chip ${range === option ? "is-active" : ""}`}
-            onClick={() => onRangeChange(option)}
-            type="button"
-          >
-            {option}
-          </button>
-        ))}
-      </div>
+      <div className="portfolio-hero-main">
+        <div className="portfolio-hero-holdings">
+          <div className="portfolio-holdings-stage">
+            <div className="portfolio-holdings-copy">
+              <span className="support-label">Portfolio view</span>
+              <h3>{featuredHolding?.ticker || "Holdings connected"}</h3>
+              <p>
+                {featuredHolding
+                  ? `${featuredHolding.weight || "-"} of the book, ${featuredHolding.sector || "Unassigned sector"}`
+                  : "Your private holdings are connected and ready to render here."}
+              </p>
+            </div>
 
-      <PortfolioMiniChart series={chartSeries} benchmarkSymbol={analytics.benchmarkSymbol} />
+            {featuredHolding ? (
+              <div className="portfolio-holding-stage-card">
+                <div className="holding-stage-top">
+                  <strong>{featuredHolding.ticker}</strong>
+                  <span>{featuredHolding.weight || "-"}</span>
+                </div>
+                <p>{featuredHolding.sector || "Unknown sector"}</p>
+                <div className="holding-stage-meta">
+                  <span>{featuredHolding.marketValueUsd ? formatCurrency(featuredHolding.marketValueUsd) : "Value syncing"}</span>
+                  <span>{featuredHolding.currentPriceUsd ? formatCurrency(featuredHolding.currentPriceUsd) : "Price syncing"}</span>
+                </div>
+              </div>
+            ) : null}
 
-      <div className="portfolio-hero-bottom">
-        <div>
-          <span className="support-label">Largest positions</span>
-          {topHoldings.length ? (
-            <ul className="portfolio-holding-inline-list">
-              {topHoldings.map((holding) => (
-                <li key={holding.ticker}>
-                  <strong>{holding.ticker}</strong>
-                  <span>{holding.weight || "-"}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="panel-empty">No holdings are loaded into this workspace yet.</p>
-          )}
+            {supportingHoldings.length ? (
+              <div className="portfolio-holding-mosaic">
+                {supportingHoldings.map((holding, index) => (
+                  <article
+                    className={`portfolio-holding-tile tile-${(index % 4) + 1}`}
+                    key={holding.ticker}
+                  >
+                    <div>
+                      <strong>{holding.ticker}</strong>
+                      <span>{holding.sector || "Unknown sector"}</span>
+                    </div>
+                    <em>{holding.weight || "-"}</em>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="panel-empty">No holdings are loaded into this workspace yet.</p>
+            )}
+          </div>
+
+          <div className="portfolio-hero-bottom">
+            <div>
+              <span className="support-label">Largest positions</span>
+              {topHoldings.length ? (
+                <ul className="portfolio-holding-inline-list">
+                  {topHoldings.map((holding) => (
+                    <li key={holding.ticker}>
+                      <strong>{holding.ticker}</strong>
+                      <span>{holding.weight || "-"}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="panel-empty">No holdings are loaded into this workspace yet.</p>
+              )}
+            </div>
+
+            <div>
+              <span className="support-label">What this means</span>
+              <p className="portfolio-hero-note">{performanceNarrative}</p>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <span className="support-label">What this means</span>
-          <p className="portfolio-hero-note">
-            {analytics.historySessions
-              ? `Performance is based on ${analytics.historySessions} stored portfolio snapshots.`
-              : "Holdings are connected, but performance will become more useful after the app stores more live history."}
-          </p>
+        <div className="portfolio-hero-chart-shell">
+          <div className="portfolio-range-row" role="tablist" aria-label="Portfolio ranges">
+            {PORTFOLIO_RANGES.map((option) => (
+              <button
+                key={option}
+                className={`range-chip ${range === option ? "is-active" : ""}`}
+                onClick={() => onRangeChange(option)}
+                type="button"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+
+          <PortfolioMiniChart series={chartSeries} benchmarkSymbol={analytics.benchmarkSymbol} />
         </div>
       </div>
     </section>
@@ -679,6 +842,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <p className="panel-kicker">Now</p>
           <h2>{stateSummary.stance || "Stay patient"}</h2>
           <p>{stateSummary.decisionSummary || "No decision summary is available yet."}</p>
+          <PortfolioHoldingsSpotlight portfolioModule={portfolioModule} />
         </div>
 
         <PortfolioHero
