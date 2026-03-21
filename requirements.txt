@@ -12,6 +12,7 @@ scikit-learn>=1.4,<2
 # ── Market data ───────────────────────────────────────────────────────────────
 yfinance>=0.2.40
 requests>=2.31
+psycopg[binary]>=3.2
 
 # ── Visualization / reporting ─────────────────────────────────────────────────
 matplotlib>=3.8

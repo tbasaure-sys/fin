@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from ..config import PathConfig
+from ..storage.runtime_store import load_runtime_frame, save_runtime_frame
 from ..utils import expanding_percentile, to_datetime_index
 from .fmp_client import FMPClient
 
@@ -20,9 +21,24 @@ def _safe_json_load(path: Path) -> dict:
     return json.loads(text)
 
 
+def _slice_frame(frame: pd.DataFrame, start_date: str | None = None, end_date: str | None = None) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    if start_date:
+        frame = frame.loc[pd.to_datetime(start_date):]
+    if end_date:
+        frame = frame.loc[: pd.to_datetime(end_date)]
+    return frame.sort_index()
+
+
 def load_state_panel(paths: PathConfig) -> pd.DataFrame:
     tension_path = paths.fin_model_root / "data_processed" / "tension_metrics.csv"
-    state = pd.read_csv(tension_path)
+    if tension_path.exists():
+        state = pd.read_csv(tension_path)
+    else:
+        state = load_runtime_frame("state_panel")
+        if state.empty:
+            raise FileNotFoundError(f"State panel not available at {tension_path} and no runtime fallback was found.")
     state["date"] = pd.to_datetime(state["date"])
     state = state.sort_values("date")
 
@@ -86,7 +102,9 @@ def load_state_panel(paths: PathConfig) -> pd.DataFrame:
         "regime",
         "legitimacy_risk",
     ]
-    return state.loc[:, columns]
+    state = state.loc[:, columns]
+    save_runtime_frame("state_panel", state, {"source": "load_state_panel"})
+    return state
 
 
 def load_portfolio_priors(paths: PathConfig, fmp_client: FMPClient | None = None) -> pd.DataFrame:
@@ -95,9 +113,17 @@ def load_portfolio_priors(paths: PathConfig, fmp_client: FMPClient | None = None
         "valuation_summary.csv",
         "holdings_normalized.csv",
     )
-    valuation = _parse_semicolon_csv(output_root / "valuation_summary.csv")
-    screener = _parse_semicolon_csv(output_root / "screener.csv")
-    holdings = _parse_semicolon_csv(output_root / "holdings_normalized.csv")
+    valuation_path = output_root / "valuation_summary.csv"
+    screener_path = output_root / "screener.csv"
+    holdings_path = output_root / "holdings_normalized.csv"
+
+    valuation = _parse_semicolon_csv(valuation_path) if valuation_path.exists() else load_runtime_frame("portfolio_priors:valuation_summary")
+    screener = _parse_semicolon_csv(screener_path) if screener_path.exists() else load_runtime_frame("portfolio_priors:screener")
+    holdings = _parse_semicolon_csv(holdings_path) if holdings_path.exists() else load_runtime_frame("portfolio_priors:holdings_normalized")
+
+    save_runtime_frame("portfolio_priors:valuation_summary", valuation, {"source": "load_portfolio_priors"})
+    save_runtime_frame("portfolio_priors:screener", screener, {"source": "load_portfolio_priors"})
+    save_runtime_frame("portfolio_priors:holdings_normalized", holdings, {"source": "load_portfolio_priors"})
 
     valuation = valuation.rename(columns={"ticker": "ticker"})
     screener = screener.rename(columns={"ticker": "ticker"})
@@ -158,21 +184,28 @@ def load_portfolio_priors(paths: PathConfig, fmp_client: FMPClient | None = None
 
 
 def load_membership_history(paths: PathConfig) -> pd.DataFrame:
-    membership = pd.read_csv(paths.caria_data_root / "sp500_constituents_history.csv")
+    membership_path = paths.caria_data_root / "sp500_constituents_history.csv"
+    membership = pd.read_csv(membership_path) if membership_path.exists() else load_runtime_frame("market:sp500_constituents_history")
+    if membership.empty:
+        raise FileNotFoundError("S&P 500 membership history is unavailable in both local and runtime storage.")
     membership["date"] = pd.to_datetime(membership["date"])
     membership["ticker"] = membership["ticker"].astype(str)
-    return membership.drop_duplicates(["date", "ticker"])
+    membership = membership.drop_duplicates(["date", "ticker"])
+    save_runtime_frame("market:sp500_constituents_history", membership, {"source": "load_membership_history"})
+    return membership
 
 
 def load_sp500_price_panel(paths: PathConfig, start_date: str | None = None, end_date: str | None = None) -> pd.DataFrame:
-    prices = pd.read_parquet(paths.caria_data_root / "sp500_universe_fmp.parquet")
-    prices = to_datetime_index(prices)
-    if start_date:
-        prices = prices.loc[pd.to_datetime(start_date) :]
-    if end_date:
-        prices = prices.loc[: pd.to_datetime(end_date)]
-    prices = prices.sort_index()
-    return prices
+    parquet_path = paths.caria_data_root / "sp500_universe_fmp.parquet"
+    if parquet_path.exists():
+        prices = pd.read_parquet(parquet_path)
+        prices = to_datetime_index(prices)
+        prices = _slice_frame(prices, start_date, end_date)
+        save_runtime_frame("market:sp500_price_panel", prices, {"source": "load_sp500_price_panel"})
+        return prices
+
+    prices = to_datetime_index(load_runtime_frame("market:sp500_price_panel"))
+    return _slice_frame(prices, start_date, end_date)
 
 
 def load_alpha_volume_panel(
@@ -199,9 +232,14 @@ def load_alpha_volume_panel(
         if frame.empty:
             continue
         panel[ticker] = (frame["adjClose"] * frame["volume"]).rename(ticker).set_axis(frame["date"])
-    if not panel:
-        return pd.DataFrame()
-    return pd.DataFrame(panel).sort_index()
+    if panel:
+        result = pd.DataFrame(panel).sort_index()
+        save_runtime_frame("market:alpha_volume_panel", result, {"source": "load_alpha_volume_panel"})
+        return result
+    runtime_panel = to_datetime_index(load_runtime_frame("market:alpha_volume_panel"))
+    available = [ticker for ticker in tickers if ticker in runtime_panel.columns]
+    runtime_panel = runtime_panel[available] if available else pd.DataFrame(index=runtime_panel.index)
+    return _slice_frame(runtime_panel, start_date, end_date)
 
 
 def _load_local_eod_csv(csv_path: Path) -> pd.Series:
@@ -277,6 +315,19 @@ def load_defense_price_panel(
         except Exception as exc:
             warnings.append(f"yfinance defense fallback failed: {exc}")
 
+    if (not series_map or any(series_map[ticker].dropna().empty for ticker in tickers if ticker in series_map)):
+        runtime_panel = to_datetime_index(load_runtime_frame("market:defense_price_panel"))
+        if not runtime_panel.empty:
+            for ticker in tickers:
+                if ticker in runtime_panel.columns:
+                    fetched = runtime_panel[ticker].dropna()
+                    if fetched.empty:
+                        continue
+                    if ticker in series_map:
+                        series_map[ticker] = fetched.combine_first(series_map[ticker])
+                    else:
+                        series_map[ticker] = fetched
+
     for ticker in tickers:
         if ticker not in series_map:
             warnings.append(f"{ticker} history unavailable; using synthetic flat series.")
@@ -284,6 +335,8 @@ def load_defense_price_panel(
             series_map[ticker] = pd.Series(100.0, index=index, name=ticker)
 
     panel = pd.DataFrame(series_map).sort_index().ffill().dropna(how="all")
+    if not panel.empty:
+        save_runtime_frame("market:defense_price_panel", panel, {"source": "load_defense_price_panel"})
     return panel, warnings
 
 
@@ -350,7 +403,23 @@ def load_fmp_market_proxy_panel(
                             series_map[ticker] = fetched
         except Exception:
             pass
+    if missing:
+        runtime_panel = to_datetime_index(load_runtime_frame("market:fmp_market_proxy_panel"))
+        for ticker in list(missing):
+            if ticker not in runtime_panel.columns:
+                continue
+            fetched = runtime_panel[ticker].dropna()
+            if fetched.empty:
+                continue
+            if ticker in series_map:
+                series_map[ticker] = fetched.combine_first(series_map[ticker])
+            else:
+                series_map[ticker] = fetched
     if not series_map:
-        return pd.DataFrame()
+        runtime_panel = to_datetime_index(load_runtime_frame("market:fmp_market_proxy_panel"))
+        available = [ticker for ticker in tickers if ticker in runtime_panel.columns]
+        runtime_panel = runtime_panel[available] if available else pd.DataFrame(index=runtime_panel.index)
+        return _slice_frame(runtime_panel, start_date, end_date)
     panel = pd.DataFrame(series_map).sort_index().ffill().dropna(how="all")
+    save_runtime_frame("market:fmp_market_proxy_panel", panel, {"source": "load_fmp_market_proxy_panel"})
     return panel

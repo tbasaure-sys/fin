@@ -8,13 +8,21 @@ import webbrowser
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import sys
+from datetime import datetime, timezone
 from urllib.parse import urlparse
+
+if sys.version_info >= (3, 11):
+    from datetime import UTC
+else:
+    UTC = timezone.utc
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
 from ..decision_runtime.events import summarize_decision_events
 from ..decision_runtime.packet import build_decision_packet
 from ..research.chrono_fragility import latest_chrono_alert
 from ..research.decision_audit import DecisionAudit, AuditSummary
+from ..storage.runtime_store import mark_refresh_run
 from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cached_snapshot, remote_snapshot_url
 
 
@@ -84,6 +92,60 @@ class DashboardService:
             t = threading.Thread(target=self._background_refresh, args=(boot_refresh_delay,), daemon=True)
             t.start()
 
+    def _begin_refresh(self) -> bool:
+        with self._lock:
+            if self._refreshing:
+                return False
+            self._refreshing = True
+        return True
+
+    def _run_refresh_job(self, source: str, refresh_key: str) -> None:
+        mark_refresh_run(
+            refresh_key=refresh_key,
+            trigger_source=source,
+            status="started",
+            details={"source": source},
+        )
+        try:
+            new_snapshot = build_dashboard_snapshot(
+                self.paths,
+                self.research_settings,
+                self.allocator_settings,
+                self.dashboard_settings,
+                refresh_outputs=True,
+            )
+            with self._lock:
+                self._snapshot = self._ensure_decision_packet(new_snapshot)
+                self._refreshing = False
+            mark_refresh_run(
+                refresh_key=refresh_key,
+                trigger_source=source,
+                status="completed",
+                details={"generated_at": new_snapshot.get("generated_at")},
+                completed_at=datetime.now(tz=UTC),
+            )
+            print(f"[dashboard] {source} refresh completed")
+        except Exception as exc:  # noqa: BLE001
+            with self._lock:
+                self._refreshing = False
+            mark_refresh_run(
+                refresh_key=refresh_key,
+                trigger_source=source,
+                status="failed",
+                error_message=str(exc),
+                details={"source": source},
+                completed_at=datetime.now(tz=UTC),
+            )
+            print(f"[dashboard] {source} refresh failed: {exc}")
+
+    def _schedule_refresh(self, source: str) -> bool:
+        if not self._begin_refresh():
+            return False
+        refresh_key = f"{source}:{datetime.now(tz=UTC).isoformat()}"
+        t = threading.Thread(target=self._run_refresh_job, args=(source, refresh_key), daemon=True)
+        t.start()
+        return True
+
     def _ensure_decision_packet(self, snapshot: dict | None) -> dict | None:
         if snapshot is None:
             return None
@@ -99,29 +161,13 @@ class DashboardService:
     def _background_refresh(self, delay: int) -> None:
         if delay > 0:
             time.sleep(delay)
-        try:
-            if self._artifact_only:
-                cached = load_cached_snapshot(self.paths, self.dashboard_settings)
-                if cached is not None:
-                    with self._lock:
-                        self._snapshot = self._ensure_decision_packet(cached)
-                return
-            with self._lock:
-                self._refreshing = True
-            new_snapshot = build_dashboard_snapshot(
-                self.paths,
-                self.research_settings,
-                self.allocator_settings,
-                self.dashboard_settings,
-                refresh_outputs=True,
-            )
-            with self._lock:
-                self._snapshot = self._ensure_decision_packet(new_snapshot)
-                self._refreshing = False
-        except Exception as exc:  # noqa: BLE001
-            with self._lock:
-                self._refreshing = False
-            print(f"[dashboard] background refresh failed: {exc}")
+        if self._artifact_only:
+            cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+            if cached is not None:
+                with self._lock:
+                    self._snapshot = self._ensure_decision_packet(cached)
+            return
+        self._schedule_refresh("background")
 
     def snapshot(self) -> dict:
         with self._lock:
@@ -166,22 +212,18 @@ class DashboardService:
             return {"available": False, "error": str(exc)}
 
     def refresh(self) -> dict:
-        """Trigger a synchronous refresh (called via POST /api/refresh)."""
-        with self._lock:
-            if self._artifact_only:
-                cached = load_cached_snapshot(self.paths, self.dashboard_settings)
-                if cached is not None:
+        """Trigger a background refresh and return the latest snapshot immediately."""
+        if self._artifact_only:
+            cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+            if cached is not None:
+                with self._lock:
                     self._snapshot = self._ensure_decision_packet(cached)
-                return self._snapshot
-
-            self._snapshot = self._ensure_decision_packet(build_dashboard_snapshot(
-                self.paths,
-                self.research_settings,
-                self.allocator_settings,
-                self.dashboard_settings,
-                refresh_outputs=True,
-            ))
             return self._snapshot
+
+        started = self._schedule_refresh("manual")
+        if not started:
+            print("[dashboard] refresh request ignored: refresh already in progress")
+        return self.snapshot()
 
 
 def _json_bytes(payload: dict) -> bytes:
@@ -414,6 +456,8 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
             self._send_json(
                 {
                     "ok": True,
+                    "accepted": True,
+                    "refreshing": service.is_refreshing(),
                     "generated_at": snapshot.get("generated_at"),
                     "overview": snapshot.get("overview", {}),
                     "status": snapshot.get("status", {}),
