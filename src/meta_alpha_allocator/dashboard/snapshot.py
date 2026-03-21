@@ -968,9 +968,6 @@ def load_cached_snapshot(paths: PathConfig, dashboard_settings: DashboardSetting
         payload = _safe_remote_json_load(remote_url)
         if payload is not None:
             return payload
-    snapshot_cache = load_runtime_snapshot()
-    if snapshot_cache is not None:
-        return snapshot_cache
     persisted = load_runtime_document("dashboard_snapshot")
     if persisted is not None:
         return persisted
