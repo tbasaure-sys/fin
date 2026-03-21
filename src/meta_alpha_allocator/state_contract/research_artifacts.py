@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any
 
 import pandas as pd
 
+from ..storage.runtime_store import load_runtime_frame, save_runtime_frame
+
 if TYPE_CHECKING:
     from ..config import PathConfig
 
@@ -236,6 +238,38 @@ def load_research_artifacts(paths: 'PathConfig | None') -> dict[str, Any]:
     for key, entries in conflicts.items():
         if key in loaded:
             loaded[key]['conflicts'] = entries
+    for key, payload in loaded.items():
+        frame = payload.get('frame')
+        if isinstance(frame, pd.DataFrame) and not frame.empty:
+            save_runtime_frame(
+                f"research_artifact:{key}",
+                frame,
+                {
+                    **(payload.get('metadata') or {}),
+                    'artifact_key': key,
+                    'source': 'local_research_artifact',
+                },
+            )
+    if loaded:
+        return loaded
+    for key in ARTIFACT_FILE_MAP:
+        frame = load_runtime_frame(f"research_artifact:{key}")
+        if frame.empty:
+            continue
+        loaded[key] = {
+            'path': None,
+            'frame': frame,
+            'metadata': {
+                'artifact_key': key,
+                'source_path': 'runtime_store',
+                'source_filename': ARTIFACT_FILE_MAP[key],
+                'root_family': 'runtime_store',
+                'row_count': int(len(frame.index)),
+                'column_count': int(len(frame.columns)),
+                'loaded': True,
+            },
+            'conflicts': [],
+        }
     return loaded
 
 

@@ -22,6 +22,7 @@ import pandas as pd
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
 from ..chile.desk import build_chile_market_snapshot
 from ..data.adapters import load_fmp_market_proxy_panel, load_state_panel
+from ..data.runtime_bootstrap import ensure_runtime_inputs
 from ..data.fred_client import FREDClient
 from ..data.fmp_client import FMPClient
 from ..models import DashboardSnapshot
@@ -33,6 +34,12 @@ from ..research.statement_intel import run_statement_intelligence
 from ..policy.engine import build_policy_state_frame
 from ..research.regime_labels import build_daily_regime_frame
 from ..decision_runtime.packet import build_decision_packet
+from ..storage.runtime_store import (
+    has_runtime_frame,
+    load_runtime_document,
+    load_runtime_frame,
+    save_runtime_document,
+)
 from ..state_contract import build_bls_state_contract_v1
 from ..runtime import run_production
 from ..utils import ensure_directory, time_safe_join
@@ -86,6 +93,12 @@ def _safe_semicolon_csv(path: Path) -> pd.DataFrame:
     return _safe_csv_load(path, sep=";", decimal=",", thousands=".")
 
 
+def _load_runtime_backed_csv(path: Path, dataset_key: str, *, sep: str = ",", decimal: str = ".", thousands: str | None = None) -> pd.DataFrame:
+    if path.exists():
+        return _safe_csv_load(path, sep=sep, decimal=decimal, thousands=thousands)
+    return load_runtime_frame(dataset_key)
+
+
 def _required_production_inputs(paths: PathConfig) -> list[Path]:
     latest_root = paths.resolve_portfolio_manager_latest_root(
         "screener.csv",
@@ -102,8 +115,30 @@ def _required_production_inputs(paths: PathConfig) -> list[Path]:
     ]
 
 
+def _has_runtime_input(path: Path, paths: PathConfig) -> bool:
+    latest_root = paths.resolve_portfolio_manager_latest_root(
+        "screener.csv",
+        "valuation_summary.csv",
+        "holdings_normalized.csv",
+    )
+    runtime_keys = {
+        paths.fin_model_root / "data_processed" / "tension_metrics.csv": "state_panel",
+        paths.caria_data_root / "sp500_constituents_history.csv": "market:sp500_constituents_history",
+        paths.caria_data_root / "sp500_universe_fmp.parquet": "market:sp500_price_panel",
+        latest_root / "screener.csv": "portfolio_priors:screener",
+        latest_root / "valuation_summary.csv": "portfolio_priors:valuation_summary",
+        latest_root / "holdings_normalized.csv": "portfolio_priors:holdings_normalized",
+    }
+    dataset_key = runtime_keys.get(path)
+    return has_runtime_frame(dataset_key) if dataset_key else False
+
+
 def _missing_production_inputs(paths: PathConfig) -> list[Path]:
-    return [path for path in _required_production_inputs(paths) if not path.exists()]
+    return [
+        path
+        for path in _required_production_inputs(paths)
+        if not path.exists() and not _has_runtime_input(path, paths)
+    ]
 
 
 def _format_missing_input(path: Path, project_root: Path) -> str:
@@ -933,6 +968,12 @@ def load_cached_snapshot(paths: PathConfig, dashboard_settings: DashboardSetting
         payload = _safe_remote_json_load(remote_url)
         if payload is not None:
             return payload
+    snapshot_cache = load_runtime_snapshot()
+    if snapshot_cache is not None:
+        return snapshot_cache
+    persisted = load_runtime_document("dashboard_snapshot")
+    if persisted is not None:
+        return persisted
     for snapshot_path in _artifact_snapshot_candidates(paths, dashboard_settings):
         payload = _safe_json_load(snapshot_path)
         if payload is not None:
@@ -1011,7 +1052,6 @@ def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]
 
 
 def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
-    ensure_directory(output_dir)
     bls_state = snapshot.get("bls_state_v1") or {}
     files = {
         "dashboard_snapshot.json": snapshot,
@@ -1077,8 +1117,58 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
         },
         "status.json": snapshot.get("status", {}),
     }
-    for name, payload in files.items():
-        (output_dir / name).write_text(json.dumps(payload, indent=2, default=_json_default), encoding="utf-8")
+    local_write_error: Exception | None = None
+    try:
+        ensure_directory(output_dir)
+        for name, payload in files.items():
+            (output_dir / name).write_text(json.dumps(payload, indent=2, default=_json_default), encoding="utf-8")
+    except Exception as exc:  # noqa: BLE001
+        local_write_error = exc
+        print(f"[dashboard] local snapshot cache write failed: {exc}")
+
+    runtime_write_error: Exception | None = None
+    try:
+        save_runtime_document(
+            "dashboard_snapshot",
+            snapshot,
+            {
+                "generated_at": snapshot.get("generated_at"),
+                "as_of_date": snapshot.get("as_of_date"),
+                "source": "dashboard_snapshot",
+            },
+        )
+    except Exception as exc:  # noqa: BLE001
+        runtime_write_error = exc
+        print(f"[dashboard] runtime snapshot cache write failed: {exc}")
+
+    try:
+        save_runtime_snapshot(
+            snapshot,
+            snapshot_key="dashboard/latest",
+            source="dashboard_snapshot",
+            status="ready",
+        )
+    except Exception as exc:  # noqa: BLE001
+        if runtime_write_error is None:
+            runtime_write_error = exc
+        print(f"[dashboard] runtime snapshot table write failed: {exc}")
+
+    if local_write_error is not None and runtime_write_error is not None:
+        raise local_write_error
+
+
+def _load_current_payload(paths: PathConfig) -> dict[str, Any] | None:
+    local_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
+    if local_payload is not None:
+        save_runtime_document(
+            "current_allocator_decision",
+            local_payload,
+            {
+                "source": "local_output",
+            },
+        )
+        return local_payload
+    return load_runtime_document("current_allocator_decision")
 
 
 def build_dashboard_snapshot(
@@ -1095,19 +1185,25 @@ def build_dashboard_snapshot(
         warnings.extend(chile_market["warnings"])
     current_payload = None
     if refresh_outputs:
+        bootstrap_result = ensure_runtime_inputs(paths, research_settings, fmp_client=FMPClient.from_env(paths.cache_root))
+        if bootstrap_result.bootstrapped:
+            warnings.append(
+                "runtime bootstrap populated: " + ", ".join(bootstrap_result.bootstrapped[:6])
+                + ("..." if len(bootstrap_result.bootstrapped) > 6 else "")
+            )
         missing_inputs = _missing_production_inputs(paths)
         if missing_inputs:
             missing_labels = ", ".join(_format_missing_input(path, paths.project_root) for path in missing_inputs[:6])
             warnings.append(f"production refresh skipped: missing required inputs ({missing_labels})")
-            current_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
+            current_payload = _load_current_payload(paths)
         else:
             try:
                 current_payload = run_production(paths, research_settings, allocator_settings)
             except Exception as exc:
                 warnings.append(f"production refresh failed: {exc}")
-                current_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
+                current_payload = _load_current_payload(paths)
     else:
-        current_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
+        current_payload = _load_current_payload(paths)
 
     if current_payload is None:
         cached = load_cached_snapshot(paths, dashboard_settings)
@@ -1170,9 +1266,9 @@ def build_dashboard_snapshot(
     market_panel, market_quotes = _build_live_market_panel(paths, dashboard_settings, market_tickers, fmp_client=fmp_client)
 
     production_root = paths.output_root / "production" / "latest"
-    sector_map = _safe_csv_load(production_root / "current_sector_map.csv")
-    international_map = _safe_csv_load(production_root / "current_international_map.csv")
-    hedge_ranking = _safe_csv_load(production_root / "current_hedge_ranking.csv")
+    sector_map = _load_runtime_backed_csv(production_root / "current_sector_map.csv", "production:current_sector_map")
+    international_map = _load_runtime_backed_csv(production_root / "current_international_map.csv", "production:current_international_map")
+    hedge_ranking = _load_runtime_backed_csv(production_root / "current_hedge_ranking.csv", "production:current_hedge_ranking")
 
     sectors = {
         "records": _frame_to_records(sector_map),

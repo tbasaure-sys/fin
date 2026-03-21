@@ -19,6 +19,8 @@
     "start": "next start",
     "db:neon:apply": "node scripts/neon-apply.mjs",
     "db:holdings:bootstrap": "node scripts/bootstrap-neon-holdings.mjs",
+    "db:runtime:seed": "node scripts/runtime-store-seed.mjs",
+    "db:runtime:seed:full": "python3 scripts/runtime_store_seed.py",
     "test:web": "node --test tests-node/*.test.mjs"
   }
 }

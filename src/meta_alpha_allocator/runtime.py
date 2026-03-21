@@ -14,6 +14,7 @@ from .data.adapters import (
     load_sp500_price_panel,
     load_state_panel,
 )
+from .data.runtime_bootstrap import ensure_runtime_inputs
 from .data.fred_client import FREDClient
 from .data.fmp_client import FMPClient
 from .policy.engine import build_current_policy_output, build_policy_state_frame
@@ -24,6 +25,7 @@ from .research.features import build_asset_feature_panel
 from .research.labels import build_forward_return_labels
 from .research.scoring import compute_selection_diagnostics, estimate_feature_weights, score_cross_section
 from .research.tail_risk import run_tail_risk_pipeline
+from .storage.runtime_store import save_runtime_document, save_runtime_frame
 from .utils import ensure_directory, time_safe_join
 
 
@@ -55,6 +57,7 @@ def run_production(paths: PathConfig, research_settings: ResearchSettings, alloc
     ensure_directory(research_settings.policy_output_dir)
     fmp_client = FMPClient.from_env(paths.cache_root)
     fred_client = FREDClient.from_env(paths.cache_root)
+    ensure_runtime_inputs(paths, research_settings, fmp_client=fmp_client)
 
     state = load_state_panel(paths)
     tail_risk = run_tail_risk_pipeline(paths, research_settings, state, fmp_client=fmp_client, fred_client=fred_client)
@@ -146,11 +149,22 @@ def run_production(paths: PathConfig, research_settings: ResearchSettings, alloc
         "weights": {key: float(value) for key, value in full_weights.sort_values(ascending=False).items()},
     }
     (allocator_settings.output_dir / "current_allocator_decision.json").write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    save_runtime_document(
+        "current_allocator_decision",
+        payload,
+        {
+            "source": "run_production",
+            "recommended_policy": payload.get("recommended_policy"),
+        },
+    )
     basket.rename("weight").to_csv(allocator_settings.output_dir / "current_selected_basket.csv", index=True)
     (allocator_settings.output_dir / "current_meta_allocator_view.json").write_text(json.dumps(overlay_report.overview, indent=2), encoding="utf-8")
     overlay_report.sector_map.to_csv(allocator_settings.output_dir / "current_sector_map.csv", index=False)
     overlay_report.international_map.to_csv(allocator_settings.output_dir / "current_international_map.csv", index=False)
     overlay_report.hedge_ranking.to_csv(allocator_settings.output_dir / "current_hedge_ranking.csv", index=False)
+    save_runtime_frame("production:current_sector_map", overlay_report.sector_map, {"source": "run_production"})
+    save_runtime_frame("production:current_international_map", overlay_report.international_map, {"source": "run_production"})
+    save_runtime_frame("production:current_hedge_ranking", overlay_report.hedge_ranking, {"source": "run_production"})
     (research_settings.policy_output_dir / "current_policy_decision.json").write_text(json.dumps(policy_decision, indent=2), encoding="utf-8")
     return payload
 

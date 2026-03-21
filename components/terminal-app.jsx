@@ -3,10 +3,29 @@
 import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 
+const PORTFOLIO_RANGES = ["1D", "1W", "1M", "YTD", "ALL"];
+
 function formatPct(value, digits = 1) {
   const number = Number(value);
   if (!Number.isFinite(number)) return value || "-";
   return `${(number * 100).toFixed(digits)}%`;
+}
+
+function formatSignedPct(value, digits = 1) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return value || "-";
+  const prefix = number > 0 ? "+" : "";
+  return `${prefix}${(number * 100).toFixed(digits)}%`;
+}
+
+function formatCurrency(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "-";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: number >= 1000 ? 0 : 2,
+  }).format(number);
 }
 
 function formatDateTime(value) {
@@ -121,6 +140,175 @@ function InlineList({ items, emptyLabel }) {
         <li key={`${renderInlineItem(item)}-${index}`}>{renderInlineItem(item)}</li>
       ))}
     </ul>
+  );
+}
+
+function parseSeriesDate(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function filterPortfolioSeries(series, range) {
+  const rows = safeList(series);
+  if (!rows.length) return [];
+  if (range === "1D") return rows.slice(-2);
+  if (range === "1W") return rows.slice(-5);
+  if (range === "1M") return rows.slice(-22);
+  if (range === "YTD") {
+    const currentYear = new Date().getFullYear();
+    const filtered = rows.filter((row) => parseSeriesDate(row.date)?.getFullYear() === currentYear);
+    return filtered.length ? filtered : rows.slice(-60);
+  }
+  return rows;
+}
+
+function buildLinePath(points, width, height, padding) {
+  if (!points.length) return "";
+  const values = points.map((point) => point.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const safeRange = max - min || 1;
+
+  return points
+    .map((point, index) => {
+      const x = padding + ((width - (padding * 2)) * index) / Math.max(points.length - 1, 1);
+      const y = height - padding - (((point.value - min) / safeRange) * (height - (padding * 2)));
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+function PortfolioMiniChart({ series, benchmarkSymbol }) {
+  const width = 460;
+  const height = 200;
+  const padding = 18;
+  const rows = safeList(series);
+
+  const portfolioPoints = rows
+    .map((row) => ({ date: row.date, value: Number(row.portfolio) }))
+    .filter((row) => Number.isFinite(row.value));
+  const benchmarkPoints = rows
+    .map((row) => ({ date: row.date, value: Number(row.benchmark) }))
+    .filter((row) => Number.isFinite(row.value));
+
+  if (portfolioPoints.length < 2) {
+    return <p className="panel-empty">Portfolio history is still building. This chart will fill in as live snapshots accumulate.</p>;
+  }
+
+  const portfolioPath = buildLinePath(portfolioPoints, width, height, padding);
+  const benchmarkPath = buildLinePath(benchmarkPoints, width, height, padding);
+  const latestPortfolio = portfolioPoints[portfolioPoints.length - 1];
+
+  return (
+    <div className="portfolio-hero-chart">
+      <svg className="portfolio-hero-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Portfolio performance chart">
+        <defs>
+          <linearGradient id="portfolioHeroLine" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(248, 200, 111, 0.85)" />
+            <stop offset="100%" stopColor="rgba(122, 210, 194, 1)" />
+          </linearGradient>
+        </defs>
+        <path className="portfolio-hero-gridline" d={`M ${padding} ${height - padding} L ${width - padding} ${height - padding}`} />
+        {benchmarkPath ? <path className="portfolio-hero-benchmark" d={benchmarkPath} /> : null}
+        <path className="portfolio-hero-line" d={portfolioPath} />
+        <circle
+          className="portfolio-hero-point"
+          cx={padding + ((width - (padding * 2)) * (portfolioPoints.length - 1)) / Math.max(portfolioPoints.length - 1, 1)}
+          cy={(() => {
+            const values = portfolioPoints.map((point) => point.value);
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            const safeRange = max - min || 1;
+            return height - padding - (((latestPortfolio.value - min) / safeRange) * (height - (padding * 2)));
+          })()}
+          r="4"
+        />
+      </svg>
+
+      <div className="portfolio-hero-legend">
+        <span><i className="legend-swatch is-portfolio" />Your portfolio</span>
+        <span><i className="legend-swatch is-benchmark" />{benchmarkSymbol || "SPY"}</span>
+      </div>
+    </div>
+  );
+}
+
+function PortfolioHero({ portfolioModule, range, onRangeChange }) {
+  const portfolio = portfolioModule || {};
+  const analytics = portfolio.analytics || {};
+  const chartSeries = filterPortfolioSeries(portfolio?.charts?.growthComparison, range);
+  const topHoldings = safeList(portfolio.holdings).slice(0, 4);
+
+  return (
+    <section className="workspace-portfolio-hero">
+      <div className="card-header-row">
+        <div>
+          <p className="panel-kicker">Your portfolio</p>
+          <h2>{analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "Portfolio connected"}</h2>
+        </div>
+        <div className="chip-row">
+          <span className="info-chip">{analytics.holdingsCount || 0} holdings</span>
+          <span className="info-chip">{portfolio.chartSource || "Portfolio data loading"}</span>
+        </div>
+      </div>
+
+      <div className="portfolio-hero-summary">
+        <div className="portfolio-metric">
+          <span>Annualized return</span>
+          <strong>{analytics.annualReturnLabel || "History needed"}</strong>
+        </div>
+        <div className="portfolio-metric">
+          <span>Since tracking started</span>
+          <strong>{analytics.totalReturnLabel || "History needed"}</strong>
+        </div>
+        <div className="portfolio-metric">
+          <span>vs {analytics.benchmarkSymbol || "SPY"}</span>
+          <strong>{analytics.excessReturnLabel || "History needed"}</strong>
+        </div>
+      </div>
+
+      <div className="portfolio-range-row" role="tablist" aria-label="Portfolio ranges">
+        {PORTFOLIO_RANGES.map((option) => (
+          <button
+            key={option}
+            className={`range-chip ${range === option ? "is-active" : ""}`}
+            onClick={() => onRangeChange(option)}
+            type="button"
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+
+      <PortfolioMiniChart series={chartSeries} benchmarkSymbol={analytics.benchmarkSymbol} />
+
+      <div className="portfolio-hero-bottom">
+        <div>
+          <span className="support-label">Largest positions</span>
+          {topHoldings.length ? (
+            <ul className="portfolio-holding-inline-list">
+              {topHoldings.map((holding) => (
+                <li key={holding.ticker}>
+                  <strong>{holding.ticker}</strong>
+                  <span>{holding.weight || "-"}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="panel-empty">No holdings are loaded into this workspace yet.</p>
+          )}
+        </div>
+
+        <div>
+          <span className="support-label">What this means</span>
+          <p className="portfolio-hero-note">
+            {analytics.historySessions
+              ? `Performance is based on ${analytics.historySessions} stored portfolio snapshots.`
+              : "Holdings are connected, but performance will become more useful after the app stores more live history."}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -311,10 +499,12 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [banner, setBanner] = useState("");
   const [error, setError] = useState("");
   const [pendingKey, setPendingKey] = useState(null);
+  const [portfolioRange, setPortfolioRange] = useState("1M");
   const [isPending, startTransition] = useTransition();
 
   const workspaceId = dashboard?.workspace_summary?.id || initialSession?.workspace?.id;
   const stateSummary = dashboard?.state_summary || {};
+  const portfolioModule = dashboard?.modules?.portfolio || null;
   const primaryAction = dashboard?.primary_action || null;
   const secondaryActions = safeList(dashboard?.secondary_actions);
   const blockedAction = dashboard?.blocked_action || null;
@@ -435,7 +625,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <p className="workspace-kicker">RecoveryOS</p>
           <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || "BLS Prime"}</h1>
           <p className="workspace-subtitle">
-            One workspace for what is legitimate now, what is staged, and what your decisions are teaching the system.
+            Your portfolio, your next move, and the live market context behind it.
           </p>
         </div>
 
@@ -490,6 +680,12 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <h2>{stateSummary.stance || "Stay patient"}</h2>
           <p>{stateSummary.decisionSummary || "No decision summary is available yet."}</p>
         </div>
+
+        <PortfolioHero
+          onRangeChange={setPortfolioRange}
+          portfolioModule={portfolioModule}
+          range={portfolioRange}
+        />
 
         <div className="state-chip-grid">
           <StateChip label="Mode" value={stateSummary.mode} tone="is-neutral" />
