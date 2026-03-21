@@ -73,6 +73,19 @@ function safeList(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
 }
 
+function renderInlineItem(item) {
+  if (item === null || item === undefined) return "";
+  if (typeof item === "string" || typeof item === "number") return String(item);
+  if (typeof item === "object") {
+    const label = String(item.label || item.title || item.name || "").trim();
+    const value = String(item.value || item.meaning || item.detail || "").trim();
+    if (label && value) return `${label}: ${value}`;
+    if (label) return label;
+    if (value) return value;
+  }
+  return String(item);
+}
+
 async function parseResponse(response) {
   let payload = null;
   try {
@@ -104,8 +117,8 @@ function InlineList({ items, emptyLabel }) {
 
   return (
     <ul className="inline-list">
-      {values.map((item) => (
-        <li key={item}>{item}</li>
+      {values.map((item, index) => (
+        <li key={`${renderInlineItem(item)}-${index}`}>{renderInlineItem(item)}</li>
       ))}
     </ul>
   );
