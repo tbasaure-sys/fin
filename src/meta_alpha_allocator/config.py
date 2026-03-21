@@ -9,9 +9,27 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 FINANCE_ROOT = PROJECT_ROOT.parent
 CT_ROOT = FINANCE_ROOT.parent
 
-# When running on Railway/Vercel/any cloud host, set META_ALLOCATOR_CLOUD=1
-# to activate safe defaults that don't assume a local filesystem layout.
-_IS_CLOUD = os.environ.get("META_ALLOCATOR_CLOUD", "").strip() in {"1", "true", "yes"}
+def _looks_like_cloud_host() -> bool:
+    indicators = (
+        "META_ALLOCATOR_CLOUD",
+        "RAILWAY_ENVIRONMENT",
+        "RAILWAY_SERVICE_ID",
+        "RAILWAY_PROJECT_ID",
+        "VERCEL",
+        "FLY_APP_NAME",
+        "K_SERVICE",
+        "RENDER",
+    )
+    for name in indicators:
+        value = os.environ.get(name, "").strip().lower()
+        if value and value not in {"0", "false", "no"}:
+            return True
+    return False
+
+
+# When running on Railway/Vercel/any cloud host, prefer safe defaults that do
+# not assume a local filesystem layout.
+_IS_CLOUD = _looks_like_cloud_host()
 
 # In cloud mode the "local-only" roots fall back to subdirs inside the project
 # so the server boots without FileNotFoundError even when those dirs are absent.
@@ -79,6 +97,18 @@ class PathConfig:
     )
     output_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_OUTPUT_ROOT", PROJECT_ROOT / "output"))
     cache_root: Path = field(default_factory=lambda: _env_path("META_ALLOCATOR_CACHE_ROOT", PROJECT_ROOT / "cache"))
+
+    def portfolio_manager_latest_roots(self) -> tuple[Path, ...]:
+        return (
+            self.portfolio_manager_root / "output" / "latest",
+            self.portfolio_manager_root / "latest_inputs",
+        )
+
+    def resolve_portfolio_manager_latest_root(self, *required_files: str) -> Path:
+        for root in self.portfolio_manager_latest_roots():
+            if all((root / name).exists() for name in required_files):
+                return root
+        return self.portfolio_manager_latest_roots()[0]
 
 
 @dataclass(frozen=True)

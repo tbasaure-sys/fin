@@ -1,0 +1,37 @@
+ticker;asset_type;quantity;currency;avg_cost_clp;avg_cost_usd;current_price_clp;current_price_usd;market_value_clp;market_value_usd;weight;source_sheet;sector;industry
+ABEV;equity;308,769;USD;;2,43;;2,86;;975,71;0,024661;Portfolio_Base;Consumer Staples;Beverages - Brewers
+ADUR;equity;52,69;USD;;14,23;;11,16;;571,69;0,014449;Portfolio_Base;Industrials;Pollution & Treatment Controls
+ASML;equity;0,992265;USD;;742,56;;1.345,69;;1.439,34;0,036379;Portfolio_Base;Technology;Semiconductor Equipment & Materials
+ASTS;equity;17,585;USD;;39,21;;86,34;;1.392,56;0,035196;Portfolio_Base;Technology;Communication Equipment
+BABA;equity;10,0065;USD;;117,47;;135,21;;1.442,03;0,036447;Portfolio_Base;Consumer Discretionary;Internet Retail
+BFLY;equity;310,604;USD;;0,8;;3,8;;1.177,19;0,029753;Portfolio_Base;Healthcare;Medical Devices
+BIDU;equity;9,0808;USD;;108,23;;124,07;;1.130,02;0,028561;Portfolio_Base;Communication Services;Internet Content & Information
+BROS;equity;14,5413;USD;;51,58;;47,3;;779,56;0,019703;Portfolio_Base;Consumer Discretionary;Restaurants
+COPX;etf;14,2741;USD;;66,55;;76,39;;1.366,03;0,034526;Portfolio_Base;ETF;ETF
+EEM;etf;11,9582;USD;;62,72;;56,8;;748,34;0,018914;Portfolio_Base;ETF;ETF
+EWY;etf;3,9837;USD;;133,01;;124,15;;603,01;0,015241;Portfolio_Base;ETF;ETF
+EWZ;etf;39,7487;USD;;28,93;;35,49;;1.539,47;0,038909;Portfolio_Base;ETF;ETF
+IBRX;equity;47,8015;USD;;7,5529;;8,39;;467,49;0,011816;Portfolio_Base;Healthcare;Biotechnology
+INDA;etf;14,1954;USD;;52,87;;48,06;;741,99;0,018754;Portfolio_Base;ETF;ETF
+IREN;equity;12,0623;USD;;40,32;;41,58;;493,95;0,012484;Portfolio_Base;Financials;Capital Markets
+ISRG;equity;1,676;USD;;447,47;;472,16;;843,88;0,021329;Portfolio_Base;Healthcare;Medical Instruments & Supplies
+MELI;equity;0,462099;USD;;2.164,6;;1.670;;812,18;0,020528;Portfolio_Base;Consumer Discretionary;Internet Retail
+NBIS;equity;8,8682;USD;;84,57;;112,95;;808,69;0,020439;Portfolio_Base;Communication Services;Internet Content & Information
+NFLX;equity;12,0219;USD;;86,77;;95,31;;1.156,99;0,029242;Portfolio_Base;Communication Services;Entertainment
+NTR;equity;10,2445;USD;;73,21;;82,85;;769,05;0,019437;Portfolio_Base;Materials;Agricultural Inputs
+NU;equity;59,1217;USD;;13,53;;13,89;;885,64;0,022384;Portfolio_Base;Financials;Banks - Regional
+ONDS;equity;74,2677;USD;;10,1;;10,16;;748,62;0,018921;Portfolio_Base;Technology;Communication Equipment
+OSCR;equity;85,7514;USD;;2,77;;13,23;;1.169,65;0,029562;Portfolio_Base;Healthcare;Healthcare Plans
+PAGS;equity;74,2406;USD;;9,43;;9,37;;787,69;0,019909;Portfolio_Base;Technology;Software - Infrastructure
+PEP;equity;6,1251;USD;;130,61;;159,88;;1.039,68;0,026277;Portfolio_Base;Consumer Staples;Beverages - Non-Alcoholic
+REMX;etf;12,7116;USD;;7,22;;89,51;;1.269,38;0,032083;Portfolio_Base;ETF;ETF
+SGOV;etf;29,861;USD;;100,52;;100,52;;3.005,21;0,075955;Portfolio_Base;ETF;ETF
+SPOT;equity;1,8053;USD;;420,07;;516,06;;929,62;0,023496;Portfolio_Base;Communication Services;Internet Content & Information
+STZ;equity;6,7039;USD;;134,24;;150,14;;1.058,27;0,026747;Portfolio_Base;Consumer Staples;Beverages - Brewers
+TLT;etf;30,9971;USD;;88,96;;86,54;;2.815,16;0,071152;Portfolio_Base;ETF;ETF
+UBER;equity;18,7003;USD;;85,56;;73,33;;1.410,38;0,035647;Portfolio_Base;Technology;Software - Application
+UNH;equity;8,2416;USD;;285,51;;282,09;;2.417,03;0,061089;Portfolio_Base;Healthcare;Healthcare Plans
+XLE;etf;15,3965;USD;;55,21;;57,7;;860,97;0,021761;Portfolio_Base;ETF;ETF
+ZETA;equity;53,9949;USD;;17,59;;17,84;;915,21;0,023132;Portfolio_Base;Technology;Software - Infrastructure
+ZVRA;equity;53,4977;USD;;9,35;;9,98;;477,73;0,012074;Portfolio_Base;Healthcare;Biotechnology
+DWBDS;cash;516;USD;;1;;1;;516;0,013042;Portfolio_Base;;

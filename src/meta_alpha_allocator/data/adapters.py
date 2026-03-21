@@ -90,7 +90,11 @@ def load_state_panel(paths: PathConfig) -> pd.DataFrame:
 
 
 def load_portfolio_priors(paths: PathConfig, fmp_client: FMPClient | None = None) -> pd.DataFrame:
-    output_root = paths.portfolio_manager_root / "output" / "latest"
+    output_root = paths.resolve_portfolio_manager_latest_root(
+        "screener.csv",
+        "valuation_summary.csv",
+        "holdings_normalized.csv",
+    )
     valuation = _parse_semicolon_csv(output_root / "valuation_summary.csv")
     screener = _parse_semicolon_csv(output_root / "screener.csv")
     holdings = _parse_semicolon_csv(output_root / "holdings_normalized.csv")

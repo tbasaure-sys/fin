@@ -77,7 +77,11 @@ def _build_commentary(row: pd.Series) -> str:
 def run_statement_intelligence(paths: PathConfig, settings: ResearchSettings) -> StatementIntelArtifacts:
     ensure_directory(settings.statement_output_dir)
     fmp_client = FMPClient.from_env(paths.cache_root)
-    latest_root = paths.portfolio_manager_root / "output" / "latest"
+    latest_root = paths.resolve_portfolio_manager_latest_root(
+        "screener.csv",
+        "valuation_summary.csv",
+        "holdings_normalized.csv",
+    )
     screener = _safe_semicolon_csv(latest_root / "screener.csv")
     valuation = _safe_semicolon_csv(latest_root / "valuation_summary.csv")
     holdings = _safe_semicolon_csv(latest_root / "holdings_normalized.csv")

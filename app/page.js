@@ -8,35 +8,44 @@ export default async function HomePage() {
   const session = await getServerAuthSession();
 
   return (
-    <main className="access-shell">
-      <div className="access-card marketing-card">
-        <p className="eyebrow">BLS Prime</p>
-        <h1>Clear portfolio decisions, with the real workspace kept private.</h1>
-        <p className="access-copy">
-          The public site explains the product. The private workspace holds your portfolio, your watchlist, your holdings updates, and your portfolio-specific guidance.
-        </p>
-        <div className="access-grid">
-          <div className="access-panel">
-            <span>Public</span>
-            <strong>Product overview</strong>
-          </div>
-          <div className="access-panel">
-            <span>Private</span>
-            <strong>Your workspace</strong>
+    <main className="brand-page">
+      <section className="landing-hero">
+        <div className="landing-visual-plane" aria-hidden="true">
+          <div className="landing-visual-grid" />
+          <div className="landing-visual-scan" />
+          <div className="landing-visual-orbit" />
+        </div>
+
+        <div className="landing-shell">
+          <header className="landing-header">
+            <Link className="brand-lockup" href="/">
+              <span className="brand-lockup-name">BLS Prime</span>
+            </Link>
+            <div className="hero-cta-row">
+              {session ? (
+                <form method="post" action="/api/auth/logout">
+                  <button className="ghost-button" type="submit">Sign out</button>
+                </form>
+              ) : null}
+            </div>
+          </header>
+
+          <div className="landing-copy">
+            <p className="landing-kicker">Private portfolio workspace</p>
+            <p className="brand-wordmark">BLS Prime</p>
+            <h1>See what to do with your portfolio before you add risk.</h1>
+            <p className="landing-support">
+              A private workspace for clear portfolio decisions, live market pressure, and the next move worth making.
+            </p>
+            <div className="hero-cta-row">
+              <Link className="primary-button" href={session ? "/app" : "/login"}>
+                {session ? "Open workspace" : "Enter private workspace"}
+              </Link>
+              <Link className="ghost-button" href="/login">Member sign in</Link>
+            </div>
           </div>
         </div>
-        <div className="hero-cta-row">
-          <Link className="primary-button" href={session ? "/app" : "/login"}>
-            {session ? "Open workspace" : "Member sign in"}
-          </Link>
-          <Link className="ghost-button" href="/legacy">Legacy</Link>
-        </div>
-        {session ? (
-          <form method="post" action="/api/auth/logout">
-            <button className="ghost-button" type="submit">Sign out</button>
-          </form>
-        ) : null}
-      </div>
+      </section>
     </main>
   );
 }

@@ -9,13 +9,13 @@ export default function Error({ error, reset }) {
   }, [error]);
 
   return (
-    <main className="terminal-root">
-      <div className="terminal-noise" />
-      <section className="access-card premium-card">
-        <p className="eyebrow">Workspace problem</p>
+    <main className="status-page">
+      <div className="status-shell premium-card">
+        <p className="landing-kicker">Workspace problem</p>
+        <p className="brand-wordmark">BLS Prime</p>
         <h1>We could not open the workspace.</h1>
-        <p className="support-copy">
-          Please try again. If the problem keeps showing up, sign in again and refresh the live data.
+        <p className="landing-support">
+          Try the workspace again. If the problem persists, sign in again and refresh the live data.
         </p>
         <div className="hero-cta-row">
           <button className="primary-button" onClick={() => reset()}>
@@ -28,7 +28,7 @@ export default function Error({ error, reset }) {
             Home
           </Link>
         </div>
-      </section>
+      </div>
     </main>
   );
 }

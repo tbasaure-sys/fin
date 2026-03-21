@@ -69,7 +69,10 @@ def _first_available(frame: pd.DataFrame, columns: list[str]) -> pd.Series:
 
 
 def _build_universe(paths: PathConfig) -> pd.DataFrame:
-    latest_root = paths.portfolio_manager_root / "output" / "latest"
+    latest_root = paths.resolve_portfolio_manager_latest_root(
+        "screener.csv",
+        "holdings_normalized.csv",
+    )
     screener = _safe_semicolon_csv(latest_root / "screener.csv")
     holdings = _safe_semicolon_csv(latest_root / "holdings_normalized.csv")
     daily_hits = _safe_semicolon_csv(latest_root / "daily_screener_hits.csv")

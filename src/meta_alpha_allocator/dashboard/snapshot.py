@@ -86,6 +86,33 @@ def _safe_semicolon_csv(path: Path) -> pd.DataFrame:
     return _safe_csv_load(path, sep=";", decimal=",", thousands=".")
 
 
+def _required_production_inputs(paths: PathConfig) -> list[Path]:
+    latest_root = paths.resolve_portfolio_manager_latest_root(
+        "screener.csv",
+        "valuation_summary.csv",
+        "holdings_normalized.csv",
+    )
+    return [
+        paths.fin_model_root / "data_processed" / "tension_metrics.csv",
+        paths.caria_data_root / "sp500_constituents_history.csv",
+        paths.caria_data_root / "sp500_universe_fmp.parquet",
+        latest_root / "screener.csv",
+        latest_root / "valuation_summary.csv",
+        latest_root / "holdings_normalized.csv",
+    ]
+
+
+def _missing_production_inputs(paths: PathConfig) -> list[Path]:
+    return [path for path in _required_production_inputs(paths) if not path.exists()]
+
+
+def _format_missing_input(path: Path, project_root: Path) -> str:
+    try:
+        return str(path.relative_to(project_root))
+    except ValueError:
+        return str(path)
+
+
 def _artifact_snapshot_candidates(paths: PathConfig, dashboard_settings: DashboardSettings) -> list[Path]:
     artifact_paths = [
         paths.artifact_root / "dashboard" / "latest" / "dashboard_snapshot.json",
@@ -291,7 +318,11 @@ def _build_portfolio_snapshot(
     market_panel: pd.DataFrame,
     market_quotes: dict[str, Any],
 ) -> dict[str, Any]:
-    latest_root = paths.portfolio_manager_root / "output" / "latest"
+    latest_root = paths.resolve_portfolio_manager_latest_root(
+        "screener.csv",
+        "valuation_summary.csv",
+        "holdings_normalized.csv",
+    )
     portfolio_summary = _safe_json_load(latest_root / "portfolio_summary.json") or {}
     holdings = _safe_semicolon_csv(latest_root / "holdings_normalized.csv")
     valuation = _safe_semicolon_csv(latest_root / "valuation_summary.csv")
@@ -615,7 +646,11 @@ def _build_protocol_snapshot(
 
 
 def _build_screener_snapshot(paths: PathConfig, statement_overlay: pd.DataFrame | None = None) -> dict[str, Any]:
-    latest_root = paths.portfolio_manager_root / "output" / "latest"
+    latest_root = paths.resolve_portfolio_manager_latest_root(
+        "screener.csv",
+        "valuation_summary.csv",
+        "holdings_normalized.csv",
+    )
     screener_source = latest_root / "discovery_screener.csv" if (latest_root / "discovery_screener.csv").exists() else latest_root / "screener.csv"
     screener = _load_preferred_screener(latest_root)
     daily_hits = _safe_csv_load(latest_root / "daily_screener_hits.csv", sep=";", decimal=",", thousands=".")
@@ -961,11 +996,17 @@ def build_dashboard_snapshot(
         warnings.extend(chile_market["warnings"])
     current_payload = None
     if refresh_outputs:
-        try:
-            current_payload = run_production(paths, research_settings, allocator_settings)
-        except Exception as exc:
-            warnings.append(f"production refresh failed: {exc}")
+        missing_inputs = _missing_production_inputs(paths)
+        if missing_inputs:
+            missing_labels = ", ".join(_format_missing_input(path, paths.project_root) for path in missing_inputs[:6])
+            warnings.append(f"production refresh skipped: missing required inputs ({missing_labels})")
             current_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
+        else:
+            try:
+                current_payload = run_production(paths, research_settings, allocator_settings)
+            except Exception as exc:
+                warnings.append(f"production refresh failed: {exc}")
+                current_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
     else:
         current_payload = _safe_json_load(paths.output_root / "production" / "latest" / "current_allocator_decision.json")
 
@@ -1014,7 +1055,12 @@ def build_dashboard_snapshot(
     if not tail_risk_panel.empty and "date" in tail_risk_panel.columns:
         merge_cols = ["date"] + [column for column in tail_risk_panel.columns if column != "date" and column not in state_panel.columns]
         state_panel = time_safe_join(state_panel, tail_risk_panel[merge_cols], on="date")
-    holdings = _safe_semicolon_csv(paths.portfolio_manager_root / "output" / "latest" / "holdings_normalized.csv")
+    latest_root = paths.resolve_portfolio_manager_latest_root(
+        "screener.csv",
+        "valuation_summary.csv",
+        "holdings_normalized.csv",
+    )
+    holdings = _safe_semicolon_csv(latest_root / "holdings_normalized.csv")
     holding_tickers = holdings["ticker"].astype(str).tolist() if not holdings.empty and "ticker" in holdings.columns else []
     market_tickers = holding_tickers + ["SPY", *research_settings.hedge_tickers, *research_settings.market_proxy_tickers]
     market_panel, market_quotes = _build_live_market_panel(paths, dashboard_settings, market_tickers, fmp_client=fmp_client)
