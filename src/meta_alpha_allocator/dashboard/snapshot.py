@@ -435,6 +435,105 @@ def _build_portfolio_snapshot(
     }
 
 
+def _refresh_cached_snapshot_market_data(
+    cached: dict[str, Any],
+    paths: PathConfig,
+    research_settings: ResearchSettings,
+    dashboard_settings: DashboardSettings,
+) -> dict[str, Any]:
+    refreshed = json.loads(json.dumps(cached, default=_json_default))
+    portfolio = dict(refreshed.get("portfolio", {}) or {})
+    holdings_rows = portfolio.get("holdings") or portfolio.get("top_holdings") or []
+    holding_tickers = [
+        str(row.get("ticker"))
+        for row in holdings_rows
+        if isinstance(row, dict) and row.get("ticker")
+    ]
+    selected_hedge = refreshed.get("overview", {}).get("selected_hedge")
+    market_tickers = holding_tickers + ["SPY", *(research_settings.hedge_tickers or []), *(research_settings.market_proxy_tickers or [])]
+    if selected_hedge:
+        market_tickers.append(str(selected_hedge))
+
+    fmp_client = FMPClient.from_env(paths.cache_root)
+    market_panel, market_quotes = _build_live_market_panel(paths, dashboard_settings, market_tickers, fmp_client=fmp_client)
+    quote_map = {
+        str(row.get("ticker")): row
+        for row in (market_quotes.get("quotes") or [])
+        if isinstance(row, dict) and row.get("ticker")
+    }
+
+    refreshed_holdings: list[dict[str, Any]] = []
+    for row in holdings_rows:
+        if not isinstance(row, dict):
+            continue
+        updated = dict(row)
+        quote = quote_map.get(str(row.get("ticker")))
+        price = quote.get("price") if quote else None
+        if price is not None:
+            updated["current_price_usd"] = float(price)
+            quantity = pd.to_numeric(updated.get("quantity"), errors="coerce")
+            if pd.notna(quantity):
+                updated["market_value_usd"] = float(quantity) * float(price)
+        refreshed_holdings.append(updated)
+
+    if refreshed_holdings:
+        total_value = sum(max(float(row.get("market_value_usd") or 0), 0.0) for row in refreshed_holdings)
+        for row in refreshed_holdings:
+            market_value = pd.to_numeric(row.get("market_value_usd"), errors="coerce")
+            row["weight"] = float(market_value / total_value) if pd.notna(market_value) and total_value > 0 else row.get("weight")
+
+        weighted_rows = [row for row in refreshed_holdings if row.get("ticker") in market_panel.columns]
+        if weighted_rows and "SPY" in market_panel.columns:
+            weights = pd.Series(
+                {str(row["ticker"]): float(pd.to_numeric(row.get("weight"), errors="coerce") or 0.0) for row in weighted_rows},
+                dtype=float,
+            )
+            if not weights.empty and float(weights.sum()) > 0:
+                weights = weights / float(weights.sum())
+                returns = market_panel.loc[:, list(weights.index) + ["SPY"]].pct_change().fillna(0.0)
+                portfolio_returns = returns[list(weights.index)].mul(weights, axis=1).sum(axis=1)
+                growth = pd.DataFrame(
+                    {
+                        "date": returns.index,
+                        "portfolio_growth": _series_growth(portfolio_returns),
+                        "spy_growth": _series_growth(returns["SPY"]),
+                    }
+                ).tail(180)
+                portfolio["current_mix_vs_spy"] = _frame_to_records(growth)
+
+        sector_weights = (
+            pd.DataFrame(refreshed_holdings)
+            .assign(weight=lambda frame: pd.to_numeric(frame.get("weight"), errors="coerce").fillna(0.0))
+            .groupby("sector", dropna=False)["weight"]
+            .sum()
+            .sort_values(ascending=False)
+            .reset_index()
+            .rename(columns={"weight": "portfolio_weight"})
+        )
+        portfolio["holdings"] = refreshed_holdings
+        portfolio["top_holdings"] = sorted(
+            refreshed_holdings,
+            key=lambda row: float(pd.to_numeric(row.get("market_value_usd"), errors="coerce") or 0.0),
+            reverse=True,
+        )[:12]
+        portfolio["sector_weights"] = _frame_to_records(sector_weights)
+
+    portfolio["quotes"] = market_quotes.get("quotes", [])
+    portfolio["quotes_as_of"] = market_quotes.get("quotes_as_of")
+    portfolio["quotes_stale_days"] = market_quotes.get("quotes_stale_days")
+    portfolio["quotes_source"] = market_quotes.get("quotes_source")
+    portfolio["stale_days"] = market_quotes.get("quotes_stale_days")
+    portfolio["holdings_source_label"] = portfolio.get("holdings_source_label") or "Cached research snapshot"
+
+    refreshed["portfolio"] = portfolio
+    refreshed["generated_at"] = datetime.now(tz=UTC).isoformat()
+    if market_quotes.get("quotes_as_of"):
+        refreshed["as_of_date"] = market_quotes.get("quotes_as_of")
+        refreshed.setdefault("overview", {})
+        refreshed["overview"]["as_of_date"] = market_quotes.get("quotes_as_of")
+    return refreshed
+
+
 def _number_or(value: Any, fallback: float | None = None) -> float | None:
     try:
         if value is None or pd.isna(value):
@@ -1013,6 +1112,11 @@ def build_dashboard_snapshot(
     if current_payload is None:
         cached = load_cached_snapshot(paths, dashboard_settings)
         if cached is not None:
+            try:
+                cached = _refresh_cached_snapshot_market_data(cached, paths, research_settings, dashboard_settings)
+                warnings.append("using cached research snapshot with refreshed market data")
+            except Exception as exc:
+                warnings.append(f"market refresh on cached snapshot failed: {exc}")
             cached.setdefault("status", {})
             cached["status"]["warnings"] = list(cached["status"].get("warnings", [])) + warnings + ["using cached snapshot because current payload is unavailable"]
             if not cached.get("bls_state_v1"):
