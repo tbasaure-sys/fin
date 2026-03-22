@@ -4826,3 +4826,239 @@ a {
     align-items: start;
   }
 }
+
+.decision-landing-copy .brand-wordmark {
+  font-size: clamp(3.1rem, 7vw, 6rem);
+  line-height: 0.94;
+  letter-spacing: -0.06em;
+}
+
+.decision-landing-copy h1 {
+  font-size: clamp(2.5rem, 5vw, 4.9rem);
+  max-width: 10ch;
+}
+
+.decision-landing-copy .landing-support {
+  max-width: 34rem;
+  font-size: 1.02rem;
+}
+
+.decision-panel-header > div,
+.xray-role-copy,
+.xray-role-metrics,
+.frontier-card-head > div,
+.story-hero > div,
+.story-hero-side,
+.twin-scenario > div,
+.ledger-row > div {
+  min-width: 0;
+}
+
+.decision-panel-header h2,
+.frontier-card-head h3,
+.story-hero h3 {
+  margin: 0.15rem 0 0;
+}
+
+.decision-panel-header h2 {
+  font-size: clamp(1.28rem, 1.7vw, 1.85rem);
+  letter-spacing: -0.03em;
+  max-width: 14ch;
+}
+
+.decision-panel-header p,
+.decision-os-intro p,
+.xray-role-copy span,
+.xray-role-metrics span,
+.xray-carrier span,
+.story-tab span,
+.story-hero-side span,
+.twin-exposure span {
+  color: rgba(186, 200, 224, 0.82);
+}
+
+.decision-panel-header p,
+.decision-os-intro p {
+  margin: 0;
+  max-width: 42ch;
+  line-height: 1.45;
+}
+
+.decision-os-intro {
+  align-items: start;
+  padding-bottom: 1.2rem;
+}
+
+.decision-os-intro h2 {
+  font-size: clamp(1.8rem, 2.8vw, 2.7rem);
+  max-width: 16ch;
+}
+
+.xray-summary-grid article {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.xray-summary-grid article strong {
+  display: block;
+  font-size: clamp(1.28rem, 1.9vw, 1.9rem);
+  line-height: 1;
+}
+
+.xray-role-row {
+  grid-template-columns: minmax(0, 1.2fr) minmax(72px, 0.7fr) minmax(96px, auto);
+  gap: 0.7rem;
+}
+
+.xray-role-copy strong,
+.xray-role-metrics strong,
+.xray-carrier strong,
+.story-tab strong,
+.story-hero-side strong,
+.twin-exposure strong {
+  display: block;
+}
+
+.xray-role-copy strong {
+  font-size: 1rem;
+  margin-bottom: 0.12rem;
+}
+
+.xray-role-copy span {
+  display: block;
+  font-size: 0.93rem;
+  line-height: 1.32;
+  max-width: 24ch;
+}
+
+.xray-role-metrics {
+  text-align: right;
+}
+
+.xray-role-metrics strong {
+  font-size: 1rem;
+}
+
+.xray-carrier-list {
+  margin-top: 0.6rem;
+}
+
+.xray-carrier {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.85rem 0.95rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(133, 166, 190, 0.12);
+  background: rgba(14, 25, 38, 0.72);
+}
+
+.xray-carrier em {
+  font-style: normal;
+  color: rgba(248, 200, 111, 0.92);
+}
+
+.frontier-lanes {
+  gap: 0.8rem;
+}
+
+.frontier-card {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.frontier-card-head h3 {
+  font-size: clamp(1.1rem, 1.3vw, 1.35rem);
+  line-height: 1.08;
+  max-width: 11ch;
+}
+
+.frontier-summary {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.42;
+  max-width: 28ch;
+}
+
+.frontier-meta-grid {
+  grid-template-columns: 1fr;
+}
+
+.frontier-meta-grid > div,
+.frontier-support-line,
+.twin-live-note {
+  padding: 0.85rem 0.95rem;
+  border-radius: 1rem;
+  background: rgba(14, 25, 38, 0.64);
+  border: 1px solid rgba(133, 166, 190, 0.1);
+}
+
+.frontier-support-line p,
+.twin-live-note p {
+  margin: 0.2rem 0 0;
+}
+
+.confidence-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.twin-history-label {
+  display: block;
+  padding: 0 1.5rem 0.6rem;
+}
+
+.twin-scenario {
+  align-items: start;
+}
+
+.twin-scenario strong,
+.story-hero-side strong {
+  font-size: 1.1rem;
+}
+
+.twin-scenario-side span,
+.story-hero-side span {
+  display: block;
+  margin-top: 0.18rem;
+}
+
+.mandate-option-row {
+  flex-wrap: wrap;
+}
+
+.story-tab {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.story-grid > div {
+  min-width: 0;
+}
+
+.recoverability-map-shell {
+  min-height: 17rem;
+}
+
+.recoverability-point span {
+  white-space: nowrap;
+}
+
+@media (max-width: 1180px) {
+  .decision-panel-header h2,
+  .frontier-card-head h3 {
+    max-width: none;
+  }
+
+  .xray-role-row,
+  .xray-carriers {
+    grid-template-columns: 1fr;
+  }
+
+  .xray-role-metrics {
+    text-align: left;
+  }
+}
