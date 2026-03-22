@@ -5,6 +5,10 @@ import { useEffect, useState, useTransition } from "react";
 
 const PORTFOLIO_RANGES = ["1D", "1W", "1M", "YTD", "ALL"];
 
+function sleep(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
 function formatPct(value, digits = 1) {
   const number = Number(value);
   if (!Number.isFinite(number)) return value || "-";
@@ -74,7 +78,7 @@ function actionToneClass(action) {
 function statusToneClass(status) {
   const value = String(status || "").toLowerCase();
   if (["ready", "executed", "live", "fresh"].includes(value)) return "is-good";
-  if (["staged", "briefing", "medium"].includes(value)) return "is-warn";
+  if (["staged", "briefing", "medium", "stale", "aging"].includes(value)) return "is-warn";
   if (["revoked", "cancelled", "expired", "high", "down"].includes(value)) return "is-bad";
   if (["low"].includes(value)) return "is-low";
   return "is-neutral";
@@ -1808,6 +1812,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const memoryGuidance = dashboard?.memory_guidance || {};
   const recoverabilityMap = dashboard?.recoverability_map || { items: [] };
   const mandate = dashboard?.mandate || {};
+  const dataControl = dashboard?.data_control || {};
   const actionLookup = Object.fromEntries([primaryAction, ...secondaryActions].filter(Boolean).map((action) => [action.id, action]));
   const escrowLookup = Object.fromEntries(safeList(escrow.items).map((item) => [item.id, item]));
 
@@ -1845,10 +1850,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
     try {
       const payload = await requestFactory();
+      const nextBanner = payload?.__refreshMessage || successMessage;
       startTransition(() => {
         setDashboard(payload);
       });
-      setBanner(successMessage);
+      setBanner(nextBanner);
     } catch (requestError) {
       setError(String(requestError?.message || requestError || "Request failed."));
     } finally {
@@ -1860,10 +1866,28 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     await runWorkspaceAction(
       "refresh",
       async () => {
-        const response = await fetch(`/api/v1/workspaces/${workspaceId}/workspace`, { cache: "no-store" });
-        return parseResponse(response);
+        const refreshResponse = await fetch("/api/refresh", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          cache: "no-store",
+        });
+        const refreshPayload = await parseResponse(refreshResponse);
+        let latestWorkspace = dashboard;
+
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          if (attempt > 0) {
+            await sleep(2200);
+          }
+          const response = await fetch(`/api/v1/workspaces/${workspaceId}/workspace`, { cache: "no-store" });
+          latestWorkspace = await parseResponse(response);
+        }
+
+        return {
+          ...latestWorkspace,
+          __refreshMessage: refreshPayload?.message || "Live refresh started.",
+        };
       },
-      "Workspace refreshed.",
+      "Live refresh requested.",
     );
   }
 
@@ -1999,6 +2023,24 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <h2>{stateSummary.stance || mandate?.label || "Stay patient"}</h2>
         </div>
         <p>{stateSummary.decisionSummary || mandate?.statement || "The workspace is waiting for the next legitimate move."}</p>
+      </section>
+
+      <section className="workspace-service-strip" aria-label="Workspace service status">
+        <StateChip
+          label="Analysis"
+          tone={statusToneClass(dashboard?.workspace_summary?.backend_status)}
+          value={dataControl.analysisSource || "Status unavailable"}
+        />
+        <StateChip
+          label="Holdings"
+          tone={portfolioModule?.analytics?.holdingsCount ? "is-good" : "is-warn"}
+          value={dataControl.holdingsSource?.label || "No private holdings source"}
+        />
+        <StateChip
+          label="Market data"
+          tone="is-neutral"
+          value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
+        />
       </section>
 
       <section className="decision-os-hero">
