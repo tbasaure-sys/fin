@@ -1,12 +1,13 @@
 import TerminalApp from "@/components/terminal-app";
 import { requireServerAuthSession, buildAuthenticatedSessionPayload } from "@/lib/server/auth/session";
 import { getWorkspaceDashboard } from "@/lib/server/dashboard-service";
+import { buildDecisionOsSections } from "@/lib/server/decision-os";
 
 export const dynamic = "force-dynamic";
 
 function buildWorkspacePageFallback(authSession, error) {
   const message = String(error?.message || error || "The workspace could not be assembled.");
-  return {
+  const fallback = {
     workspace_summary: {
       id: authSession.workspace.id,
       name: authSession.workspace.name || "BLS Prime",
@@ -68,6 +69,10 @@ function buildWorkspacePageFallback(authSession, error) {
         body: message,
       },
     ],
+  };
+  return {
+    ...fallback,
+    ...buildDecisionOsSections(fallback),
   };
 }
 
