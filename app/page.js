@@ -62,9 +62,9 @@ export default async function HomePage() {
           <div className="decision-landing-copy">
             <p className="landing-kicker">Decision OS for capital under uncertainty</p>
             <p className="brand-wordmark">BLS Prime</p>
-            <h1>See what is unlocked, what is staged, and what is still illegitimate before you move capital.</h1>
+            <h1>The decision surface for your live portfolio.</h1>
             <p className="landing-support">
-              BLS Prime turns your live book, the market state, and your own decision memory into one operating system for action, restraint, and staged conviction.
+              BLS Prime turns your live book, the market state, and your own decision memory into one serious operating system for action, restraint, and staged conviction.
             </p>
             <div className="hero-cta-row">
               <Link className="primary-button" href={session ? "/app" : "/login"}>

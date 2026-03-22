@@ -940,9 +940,14 @@ function CapitalTwinRail({ twin, portfolioModule, range, onRangeChange }) {
       <div className="decision-panel-header">
         <div>
           <p className="panel-kicker">Capital twin</p>
-          <h2>{twin?.headline || "Capital twin"}</h2>
-          <p>{twin?.subhead || "A live shadow book for the paths that matter."}</p>
+          <h2>{twin?.currentValueUsd ? formatCurrency(twin.currentValueUsd) : "Current live book"}</h2>
+          <p>{twin?.baselineLabel || twin?.subhead || "Compared with the current connected book."}</p>
         </div>
+      </div>
+
+      <div className="support-block twin-live-note">
+        <span className="support-label">What this is comparing</span>
+        <p>{twin?.historyLabel || "The chart is the stored portfolio path versus the benchmark. The scenarios below are projected against the current live book, not against SPY."}</p>
       </div>
 
       <div className="portfolio-range-row" role="tablist" aria-label="Twin ranges">
@@ -958,22 +963,27 @@ function CapitalTwinRail({ twin, portfolioModule, range, onRangeChange }) {
         ))}
       </div>
 
+      <span className="support-label twin-history-label">Stored history vs {portfolioModule?.analytics?.benchmarkSymbol || "SPY"}</span>
       <PortfolioMiniChart benchmarkSymbol={portfolioModule?.analytics?.benchmarkSymbol} series={chartSeries} />
 
-      <div className="twin-scenario-stack">
-        {safeList(twin?.scenarios).map((scenario) => (
-          <article className="twin-scenario" key={scenario.id}>
-            <div>
-              <strong>{scenario.label}</strong>
-              <p>{scenario.explanation}</p>
-            </div>
-            <div className="twin-scenario-side">
-              <strong>{scenario.deltaLabel}</strong>
-              <span>{scenario.projectedValueUsd ? formatCurrency(scenario.projectedValueUsd) : "Projected"}</span>
-            </div>
-          </article>
-        ))}
-      </div>
+      {safeList(twin?.scenarios).length ? (
+        <div className="twin-scenario-stack">
+          {safeList(twin?.scenarios).map((scenario) => (
+            <article className="twin-scenario" key={scenario.id}>
+              <div>
+                <strong>{scenario.label}</strong>
+                <p>{scenario.explanation}</p>
+              </div>
+              <div className="twin-scenario-side">
+                <strong>{scenario.deltaLabel}</strong>
+                <span>{scenario.projectedValueUsd ? formatCurrency(scenario.projectedValueUsd) : "Projected"}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="panel-empty">Twin scenarios will appear once the live state and stored portfolio history are both available.</p>
+      )}
 
       <div className="twin-exposure-list">
         {safeList(twin?.exposures).map((item) => (
