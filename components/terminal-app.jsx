@@ -5,6 +5,12 @@ import { useEffect, useState, useTransition } from "react";
 
 const PORTFOLIO_RANGES = ["1D", "1W", "1M", "YTD", "ALL"];
 
+const PLAN_LABELS = {
+  free: "Free",
+  pro: "Pro",
+  founder: "Founder",
+};
+
 function sleep(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
@@ -94,6 +100,42 @@ function responseToneClass(response) {
 
 function safeList(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
+}
+
+function normalizePlanId(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (["founder", "founding", "founding_member"].includes(text)) return "founder";
+  if (["pro", "pro_trial", "trial", "paid"].includes(text)) return "pro";
+  if (["free", "starter"].includes(text)) return "free";
+  return "";
+}
+
+function resolveWorkspacePlan(session, dashboard) {
+  const candidates = [
+    session?.plan?.current,
+    dashboard?.workspace_summary?.plan?.id,
+    dashboard?.workspace_summary?.plan?.tier,
+    dashboard?.workspace_summary?.plan,
+    dashboard?.subscription?.plan?.id,
+    dashboard?.subscription?.plan,
+    session?.plan?.id,
+    session?.plan?.tier,
+    session?.subscription?.plan,
+    session?.workspace?.plan?.id,
+    session?.workspace?.plan,
+    session?.user?.plan,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizePlanId(candidate);
+    if (normalized) return normalized;
+  }
+
+  return "free";
+}
+
+function canUsePaidFeatures(planId) {
+  return planId === "pro" || planId === "founder";
 }
 
 function renderInlineItem(item) {
@@ -814,6 +856,58 @@ function ActivityPanel({ ledger }) {
       ) : (
         <p className="panel-empty">As you stage, defer, or reject ideas, this log will show what happened next.</p>
       )}
+    </section>
+  );
+}
+
+function WorkspacePlanBanner({ planId, onUpgrade, onManageBilling, billingConfigured, portalAvailable }) {
+  const isFree = planId === "free";
+  return (
+    <section className={`workspace-plan-banner ${isFree ? "is-upsell" : "is-member"}`} aria-label="Workspace plan">
+      <div>
+        <p className="panel-kicker">Plan</p>
+        <h3>{PLAN_LABELS[planId] || "Pro"} workspace</h3>
+        <p>
+          {isFree
+            ? "You can see the portfolio and today’s call. Pro unlocks natural-language updates, staged actions, activity history, and mandate controls."
+            : "Operational features are unlocked in this workspace, including staged actions and portfolio updates from natural-language trade notes."}
+        </p>
+      </div>
+      <div className="hero-cta-row">
+        {isFree ? (
+          <>
+            <button className="primary-button" onClick={() => onUpgrade("pro")} type="button">
+              {billingConfigured ? "Upgrade to Pro" : "Stripe setup needed"}
+            </button>
+            <Link className="ghost-button" href="/">See plans</Link>
+          </>
+        ) : (
+          <>
+            {portalAvailable ? (
+              <button className="ghost-button" onClick={onManageBilling} type="button">Manage billing</button>
+            ) : null}
+            <Link className="ghost-button" href="/">Billing and plans</Link>
+          </>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function LockedFeatureCard({ title, summary, cta = "Upgrade to Pro", onUpgrade }) {
+  return (
+    <section className="workspace-card compact-surface-card locked-feature-card">
+      <div className="card-header-row">
+        <div>
+          <p className="panel-kicker">Pro feature</p>
+          <h3>{title}</h3>
+        </div>
+        <span className="info-chip">Locked</span>
+      </div>
+      <p className="card-summary">{summary}</p>
+      <div className="hero-cta-row">
+        <button className="primary-button" onClick={() => onUpgrade("pro")} type="button">{cta}</button>
+      </div>
     </section>
   );
 }
@@ -2076,6 +2170,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const ledger = dashboard?.counterfactual_ledger || { items: [] };
   const mandate = dashboard?.mandate || {};
   const dataControl = dashboard?.data_control || {};
+  const planId = resolveWorkspacePlan(initialSession, dashboard);
+  const paidFeaturesEnabled = canUsePaidFeatures(planId);
+  const billingConfigured = Boolean(initialSession?.plan?.billingConfigured);
+  const portalAvailable = Boolean(initialSession?.plan?.portalAvailable);
 
   useEffect(() => {
     if (!workspaceId) return undefined;
@@ -2119,6 +2217,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function submitTradeInstruction() {
+    if (!paidFeaturesEnabled) {
+      setTradeError("Upgrade to Pro to unlock natural-language portfolio updates.");
+      return;
+    }
     const trimmed = String(tradeInstruction || "").trim();
     if (!workspaceId || !trimmed) return;
 
@@ -2175,6 +2277,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function stageAction(action) {
+    if (!paidFeaturesEnabled) {
+      setError("Upgrade to Pro to stage actions.");
+      return;
+    }
     await runWorkspaceAction(
       `stage:${action.id}`,
       async () => {
@@ -2212,6 +2318,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function patchEscrow(item, payload, successMessage) {
+    if (!paidFeaturesEnabled) {
+      setError("Upgrade to Pro to manage staged actions.");
+      return;
+    }
     await runWorkspaceAction(
       `${payload.action || "update"}:${item.id}`,
       async () => {
@@ -2230,6 +2340,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function updateMandate(activeMandateId) {
+    if (!paidFeaturesEnabled) {
+      setError("Upgrade to Pro to unlock mandate controls.");
+      return;
+    }
     if (!workspaceId) return;
     await runWorkspaceAction(
       "mandate",
@@ -2251,6 +2365,38 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     );
   }
 
+  async function startCheckout(plan = "pro") {
+    setError("");
+    try {
+      const response = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan }),
+      });
+      const payload = await parseResponse(response);
+      if (payload?.url) {
+        window.location.assign(payload.url);
+      }
+    } catch (requestError) {
+      setError(String(requestError?.message || requestError || "Checkout could not be started."));
+    }
+  }
+
+  async function openBillingPortal() {
+    setError("");
+    try {
+      const response = await fetch("/api/billing/portal", {
+        method: "POST",
+      });
+      const payload = await parseResponse(response);
+      if (payload?.url) {
+        window.location.assign(payload.url);
+      }
+    } catch (requestError) {
+      setError(String(requestError?.message || requestError || "Billing portal is unavailable."));
+    }
+  }
+
   return (
     <main className="workspace-shell decision-os-shell">
       <div className="workspace-noise decision-os-noise" aria-hidden="true" />
@@ -2265,6 +2411,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <div className="workspace-header-side">
           <div className="workspace-meta-row">
             <span className="info-chip">{initialSession?.user?.name || "Member workspace"}</span>
+            <span className="info-chip">{PLAN_LABELS[planId] || "Pro"}</span>
             <span className={`status-pill ${statusToneClass(dashboard?.workspace_summary?.backend_status)}`}>
               {capitalize(dashboard?.workspace_summary?.backend_status, "Live")}
             </span>
@@ -2299,6 +2446,14 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           ))}
         </section>
       ) : null}
+
+      <WorkspacePlanBanner
+        billingConfigured={billingConfigured}
+        onManageBilling={openBillingPortal}
+        onUpgrade={startCheckout}
+        planId={planId}
+        portalAvailable={portalAvailable}
+      />
 
       <section className="workspace-service-strip" aria-label="Workspace service status">
         <StateChip
@@ -2337,14 +2492,31 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           />
 
           <div className="workspace-mini-strip">
-            <StagedActionsPanel
-              escrow={escrow}
-              onCancelEscrow={(value) => patchEscrow(value, { action: "cancel" }, `${value.title} cancelled.`)}
-              onExecuteEscrow={(value) => patchEscrow(value, { action: "execute" }, `${value.title} executed.`)}
-              pendingKey={pendingKey}
-            />
-          <WatchlistIdeasPanel actions={secondaryActions} />
-            <ActivityPanel ledger={ledger} />
+            {paidFeaturesEnabled ? (
+              <StagedActionsPanel
+                escrow={escrow}
+                onCancelEscrow={(value) => patchEscrow(value, { action: "cancel" }, `${value.title} cancelled.`)}
+                onExecuteEscrow={(value) => patchEscrow(value, { action: "execute" }, `${value.title} executed.`)}
+                pendingKey={pendingKey}
+              />
+            ) : (
+              <LockedFeatureCard
+                onUpgrade={startCheckout}
+                summary="Prepare trades before acting and keep them staged until you are ready to execute."
+                title="Staged actions"
+              />
+            )}
+            <WatchlistIdeasPanel actions={secondaryActions} />
+            {paidFeaturesEnabled ? (
+              <ActivityPanel ledger={ledger} />
+            ) : (
+              <LockedFeatureCard
+                cta="Unlock activity log"
+                onUpgrade={startCheckout}
+                summary="Track what happened after each staged, deferred, or rejected decision."
+                title="Activity history"
+              />
+            )}
           </div>
         </aside>
       </div>
@@ -2353,21 +2525,39 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <section className="workspace-panel workspace-panel-now">
           <PortfolioHoldingsSpotlight portfolioModule={portfolioModule} />
 
-          <PortfolioQuickTradeComposer
-            error={tradeError}
-            onChange={setTradeInstruction}
-            onSubmit={submitTradeInstruction}
-            pending={pendingKey?.startsWith("trade:")}
-            value={tradeInstruction}
-          />
+          {paidFeaturesEnabled ? (
+            <PortfolioQuickTradeComposer
+              error={tradeError}
+              onChange={setTradeInstruction}
+              onSubmit={submitTradeInstruction}
+              pending={pendingKey?.startsWith("trade:")}
+              value={tradeInstruction}
+            />
+          ) : (
+            <LockedFeatureCard
+              cta="Unlock quick updates"
+              onUpgrade={startCheckout}
+              summary="Update holdings with phrases like 'compre 100 usd de NVDA' instead of editing quantities manually."
+              title="Natural-language portfolio updates"
+            />
+          )}
         </section>
 
         <aside className="workspace-secondary-side">
-          <MandateQuickSelect
-            mandate={mandate}
-            onChange={updateMandate}
-            pending={pendingKey === "mandate"}
-          />
+          {paidFeaturesEnabled ? (
+            <MandateQuickSelect
+              mandate={mandate}
+              onChange={updateMandate}
+              pending={pendingKey === "mandate"}
+            />
+          ) : (
+            <LockedFeatureCard
+              cta="Unlock mandate controls"
+              onUpgrade={startCheckout}
+              summary="Define the standing rule set that shapes ranking, staging, and how the system frames today’s call."
+              title="Mandate controls"
+            />
+          )}
 
           {(stateSummary?.decisionSummary || mandate?.statement) ? (
             <section className="workspace-card compact-surface-card workspace-brief-card">
