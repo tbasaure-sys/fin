@@ -3176,8 +3176,9 @@ a {
 
 .portfolio-holdings-stage {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.8fr);
+  grid-template-columns: minmax(180px, 0.82fr) minmax(0, 1.18fr);
   gap: 14px;
+  align-items: stretch;
 }
 
 .portfolio-holdings-copy {
@@ -3191,25 +3192,29 @@ a {
 
 .portfolio-holdings-copy h3 {
   margin: 8px 0 10px;
-  font-size: clamp(36px, 5vw, 54px);
-  line-height: 0.94;
+  font-size: clamp(22px, 3vw, 34px);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
 }
 
 .portfolio-holdings-copy p {
   margin: 0;
-  max-width: 28ch;
+  max-width: 18ch;
   color: var(--muted);
+  line-height: 1.35;
 }
 
 .portfolio-holding-stage-card {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   padding: 18px;
   border-radius: 22px;
   border: 1px solid rgba(122, 210, 194, 0.16);
   background:
     radial-gradient(circle at 85% 15%, rgba(122, 210, 194, 0.16), transparent 35%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  min-width: 0;
 }
 
 .holding-stage-top,
@@ -3221,8 +3226,10 @@ a {
 }
 
 .holding-stage-top strong {
-  font-size: 28px;
+  font-size: clamp(22px, 2.2vw, 30px);
   letter-spacing: -0.04em;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .holding-stage-top span,
@@ -3241,14 +3248,16 @@ a {
 }
 
 .portfolio-holding-tile {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
   min-height: 104px;
   padding: 14px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(255, 255, 255, 0.03);
+  gap: 10px;
+  min-width: 0;
 }
 
 .portfolio-holding-tile strong,
@@ -3256,17 +3265,26 @@ a {
   display: block;
 }
 
+.portfolio-holding-tile strong {
+  font-size: 15px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
 .portfolio-holding-tile span {
   display: block;
   margin-top: 6px;
   color: var(--muted);
   font-size: 12px;
+  line-height: 1.25;
 }
 
 .portfolio-holding-tile em {
   color: var(--text);
   font-style: normal;
-  font-size: 18px;
+  font-size: 15px;
+  align-self: end;
+  white-space: nowrap;
 }
 
 .portfolio-holding-tile.tile-1 {
@@ -3431,6 +3449,10 @@ a {
 .portfolio-hero-note {
   margin: 8px 0 0;
   color: var(--muted);
+}
+
+.portfolio-hero-summary .portfolio-metric strong {
+  overflow-wrap: anywhere;
 }
 
 @keyframes holdings-glow {
