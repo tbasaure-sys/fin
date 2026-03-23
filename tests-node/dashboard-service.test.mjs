@@ -532,3 +532,41 @@ test("normalizeWorkspaceDashboard derives escrow readiness and memory events for
   assert.equal(dashboard.memory.stats.deferred, 1);
   assert.ok(dashboard.memory.weeklyBrief.some((line) => /watch for/i.test(line)));
 });
+
+test("normalizeWorkspaceDashboard exposes plan and access control when billing is present", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      generated_at: "2026-03-16T01:36:46.568441+00:00",
+      overview: {},
+      portfolio: {},
+      screener: { rows: [] },
+      status: { warnings: [], panels: [] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+    billingPlan: {
+      id: "pro",
+      label: "Pro",
+      status: "active",
+      access: {
+        privateWorkspace: true,
+        upgradeRequired: false,
+      },
+      capabilities: {
+        privateWorkspace: true,
+        stagedActions: true,
+      },
+    },
+  });
+
+  assert.equal(dashboard.plan.id, "pro");
+  assert.equal(dashboard.workspace_summary.plan_id, "pro");
+  assert.equal(dashboard.access_control.privateWorkspace, true);
+  assert.equal(dashboard.data_control.plan.id, "pro");
+});

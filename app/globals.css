@@ -2947,6 +2947,36 @@ a {
   color: var(--bad);
 }
 
+.workspace-plan-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 14px;
+  padding: 12px 16px;
+  border-radius: 22px;
+  border: 1px solid rgba(133, 166, 190, 0.14);
+  background: rgba(10, 18, 30, 0.68);
+}
+
+.workspace-plan-banner.is-upsell {
+  border-color: rgba(248, 200, 111, 0.26);
+  background:
+    radial-gradient(circle at top right, rgba(248, 200, 111, 0.08), transparent 34%),
+    rgba(10, 18, 30, 0.78);
+}
+
+.workspace-plan-banner h3 {
+  margin: 0.2rem 0 0.35rem;
+  font-size: 1.4rem;
+}
+
+.workspace-plan-banner p {
+  margin: 0;
+  max-width: 52rem;
+  color: var(--muted);
+}
+
 .workspace-alert-strip {
   flex-direction: column;
   align-items: stretch;
@@ -3778,6 +3808,14 @@ a {
   min-width: 0;
 }
 
+.locked-feature-card {
+  border-style: dashed;
+  border-color: rgba(248, 200, 111, 0.2);
+  background:
+    linear-gradient(180deg, rgba(248, 200, 111, 0.05), rgba(255, 255, 255, 0.015)),
+    rgba(10, 18, 30, 0.74);
+}
+
 .decision-focus-card {
   min-height: 100%;
 }
@@ -3865,6 +3903,7 @@ a {
   .portfolio-hero-summary,
   .portfolio-hero-bottom,
   .decision-focus-grid,
+  .decision-pricing-grid,
   .state-chip-grid,
   .memory-stat-row {
     grid-template-columns: 1fr;
@@ -3896,7 +3935,9 @@ a {
   .header-action-row,
   .card-header-row,
   .section-heading,
-  .memory-event {
+  .memory-event,
+  .workspace-plan-banner,
+  .pricing-card-head {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -4593,6 +4634,108 @@ a {
 .decision-landing-strip article {
   padding: 1.2rem 0;
   border-top: 1px solid rgba(133, 166, 190, 0.16);
+}
+
+.landing-plan-caption {
+  margin: 1rem 0 0;
+  color: rgba(186, 200, 224, 0.78);
+}
+
+.decision-pricing-strip {
+  position: relative;
+  z-index: 1;
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 1.7rem 3rem;
+  display: grid;
+  gap: 1.4rem;
+}
+
+.decision-pricing-intro {
+  max-width: 44rem;
+}
+
+.decision-pricing-intro h2 {
+  margin: 0.3rem 0 0.8rem;
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.decision-pricing-intro p {
+  margin: 0;
+  color: rgba(198, 210, 224, 0.8);
+  line-height: 1.55;
+}
+
+.decision-pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.pricing-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(133, 166, 190, 0.14);
+  background: rgba(10, 18, 30, 0.72);
+}
+
+.pricing-card.is-featured {
+  border-color: rgba(122, 210, 194, 0.28);
+  background:
+    radial-gradient(circle at top right, rgba(122, 210, 194, 0.12), transparent 34%),
+    rgba(10, 18, 30, 0.82);
+}
+
+.pricing-card.is-current {
+  box-shadow: inset 0 0 0 1px rgba(248, 200, 111, 0.18);
+}
+
+.pricing-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.pricing-card-head h3 {
+  margin: 0.2rem 0 0;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 0.95;
+}
+
+.pricing-card-blurb {
+  margin: 0;
+  color: rgba(198, 210, 224, 0.8);
+  line-height: 1.5;
+}
+
+.pricing-feature-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.pricing-feature-list li {
+  position: relative;
+  padding-left: 1rem;
+  color: rgba(232, 237, 245, 0.88);
+}
+
+.pricing-feature-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55rem;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 999px;
+  background: rgba(122, 210, 194, 0.9);
 }
 
 .decision-auth-page {
