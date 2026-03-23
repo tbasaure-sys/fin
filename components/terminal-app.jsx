@@ -443,7 +443,7 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
   const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis unavailable";
   const comparisonLabel = analytics.hasBenchmarkHistory
     ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}`
-    : "Waiting for enough live history to compare against SPY";
+    : "Benchmark comparison needs more stored history.";
   const performanceNarrative = analytics.hasPerformanceHistory
     ? `Live performance is based on ${analytics.historySessions} stored portfolio snapshots.`
     : `Current gain is ${currentGainLabel}. The app needs more stored sessions before performance and benchmark comparisons are reliable.`;
@@ -800,15 +800,16 @@ function StagedActionsPanel({ escrow, pendingKey, onExecuteEscrow, onCancelEscro
   );
 }
 
-function WatchlistIdeasPanel({ actions }) {
+function WatchlistIdeasPanel({ actions, backendStatus, lastUpdatedLabel }) {
   const items = safeList(actions).slice(0, 4);
+  const rebuilding = backendStatus === "briefing" || backendStatus === "stale";
 
   return (
     <section className="workspace-card compact-surface-card">
       <div className="card-header-row">
         <div>
           <p className="panel-kicker">Watch next</p>
-          <h3>{items.length ? "Ideas to keep warm" : "No live watchlist"}</h3>
+          <h3>{items.length ? "Ideas to keep warm" : rebuilding ? "Analysis rebuilding" : "No live watchlist"}</h3>
         </div>
       </div>
       {items.length ? (
@@ -821,7 +822,11 @@ function WatchlistIdeasPanel({ actions }) {
           ))}
         </div>
       ) : (
-        <p className="panel-empty">The system will surface the next ideas here once live analysis improves.</p>
+        <p className="panel-empty">
+          {rebuilding
+            ? `The live decision feed is still rebuilding${lastUpdatedLabel ? ` from ${lastUpdatedLabel}` : ""}.`
+            : "No watch ideas are active right now."}
+        </p>
       )}
     </section>
   );
@@ -853,7 +858,7 @@ function ActivityPanel({ ledger }) {
           ))}
         </div>
       ) : (
-        <p className="panel-empty">As you stage, defer, or reject ideas, this log will show what happened next.</p>
+        <p className="panel-empty">Your decision log starts after the first staged, deferred, or rejected move.</p>
       )}
     </section>
   );
@@ -876,7 +881,7 @@ function WorkspacePlanBanner({ planId, onUpgrade, onManageBilling, billingConfig
         {isFree ? (
           <>
             <button className="primary-button" onClick={() => onUpgrade("pro")} type="button">
-              {billingConfigured ? "Upgrade to Pro" : "Stripe setup needed"}
+              {billingConfigured ? "Upgrade to Pro" : "Billing setup needed"}
             </button>
             <Link className="ghost-button" href="/">See plans</Link>
           </>
@@ -2250,6 +2255,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     await runWorkspaceAction(
       "refresh",
       async () => {
+        const previousUpdatedAt = dashboard?.workspace_summary?.last_updated || null;
         const refreshResponse = await fetch("/api/refresh", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -2268,7 +2274,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
         return {
           ...latestWorkspace,
-          __refreshMessage: refreshPayload?.message || "Live refresh started.",
+          __refreshMessage:
+            latestWorkspace?.workspace_summary?.last_updated &&
+            latestWorkspace.workspace_summary.last_updated !== previousUpdatedAt
+              ? "Live analysis refreshed."
+              : refreshPayload?.message || "Refresh queued. Analysis is still rebuilding.",
         };
       },
       "Live refresh requested.",
@@ -2421,7 +2431,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <button className="ghost-button" disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
               {pendingKey === "refresh" ? "Refreshing..." : "Refresh"}
             </button>
-            <Link className="text-link" href="/legacy">Legacy surface</Link>
+            <Link className="text-link" href="/">Plans</Link>
             <form action="/api/auth/logout" method="post">
               <button className="text-button" type="submit">Sign out</button>
             </form>
@@ -2505,7 +2515,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 title="Staged actions"
               />
             )}
-            <WatchlistIdeasPanel actions={secondaryActions} />
+            <WatchlistIdeasPanel
+              actions={secondaryActions}
+              backendStatus={dashboard?.workspace_summary?.backend_status}
+              lastUpdatedLabel={dashboard?.workspace_summary?.last_updated_label}
+            />
             {paidFeaturesEnabled ? (
               <ActivityPanel ledger={ledger} />
             ) : (

@@ -70,36 +70,8 @@ function resolvePlan(session) {
     if (normalized) return normalized;
   }
 
-  if (session?.user?.email) return "pro";
   return "free";
 }
-
-const FRONTIER_VISUAL = [
-  {
-    id: "unlocked",
-    label: "Unlocked",
-    lines: [
-      "Stage only the repairs that already cleared legitimacy.",
-      "Size stays earned, never assumed.",
-    ],
-  },
-  {
-    id: "staged",
-    label: "Staged",
-    lines: [
-      "Escrow holds the option while the state proves itself.",
-      "Recovery must improve before conviction grows.",
-    ],
-  },
-  {
-    id: "illegitimate",
-    label: "Illegitimate",
-    lines: [
-      "Tempting risk stays visible instead of getting rationalized away.",
-      "Every blocked move carries an explicit disproof path.",
-    ],
-  },
-];
 
 export default async function HomePage() {
   const session = await getServerAuthSession();
@@ -109,7 +81,7 @@ export default async function HomePage() {
     <main className="brand-page decision-brand-page">
       <section className="decision-landing-hero">
         <div className="decision-landing-backdrop" aria-hidden="true">
-          <div className="decision-landing-grid" />
+          <div className="decision-landing-photo" />
           <div className="decision-landing-scan" />
         </div>
 
@@ -133,48 +105,35 @@ export default async function HomePage() {
           <div className="decision-landing-copy">
             <p className="landing-kicker">Decision OS for capital under uncertainty</p>
             <p className="brand-wordmark">BLS Prime</p>
-            <h1>The decision surface for your live portfolio.</h1>
+            <h1>Operate your portfolio with one clear daily surface.</h1>
             <p className="landing-support">
-              BLS Prime turns your live book, the market state, and your own decision memory into one serious operating system for action, restraint, and staged conviction.
+              Keep the private book current, know what to do today, and stage decisions before you act.
             </p>
             <div className="hero-cta-row">
               <Link className="primary-button" href={session ? "/app" : "/login"}>
-                {session ? "Open Decision OS" : "Enter Decision OS"}
+                {session ? "Open workspace" : "Open workspace"}
               </Link>
-              <Link className="ghost-button" href={session ? "/app" : "/login"}>{session ? "View workspace" : "Private workspace"}</Link>
+              <Link className="ghost-button" href={session ? "/app" : "/login"}>{session ? "View portfolio" : "Member sign in"}</Link>
             </div>
             <p className="landing-plan-caption">
               {session ? `Current access: ${currentPlan === "founder" ? "Founder" : currentPlan === "pro" ? "Pro" : "Free"}` : "Free access opens the portfolio and today’s call. Pro unlocks the operating features."}
             </p>
-          </div>
-
-          <div className="decision-landing-visual" aria-hidden="true">
-            <div className="frontier-visual-frame">
-              {FRONTIER_VISUAL.map((lane) => (
-                <section className={`frontier-visual-lane lane-${lane.id}`} key={lane.id}>
-                  <span className="frontier-visual-label">{lane.label}</span>
-                  {lane.lines.map((line) => (
-                    <p key={line}>{line}</p>
-                  ))}
-                </section>
-              ))}
-            </div>
           </div>
         </div>
       </section>
 
       <section className="decision-landing-strip">
         <article>
-          <span className="support-label">Action frontier</span>
-          <p>Stop reading generic recommendations. See which actions are legitimate now, which belong in escrow, and which are still wrong.</p>
+          <span className="support-label">Private portfolio</span>
+          <p>See the real book, top positions, live holdings updates, and the stored history behind it.</p>
         </article>
         <article>
-          <span className="support-label">Portfolio X-Ray</span>
-          <p>Read the book by what is actually carrying it: role, concentration, fragility, and recovery contribution.</p>
+          <span className="support-label">Today&apos;s decision</span>
+          <p>One serious daily call: what to do now, why, and what would need to change before you widen risk.</p>
         </article>
         <article>
-          <span className="support-label">Capital twin</span>
-          <p>Shadow the live book through recovery, breakdown, phantom rebound, and improving sponsorship before you act.</p>
+          <span className="support-label">Staged actions</span>
+          <p>Prepare trades, keep them queued, and build a private decision log without forcing action too early.</p>
         </article>
       </section>
 

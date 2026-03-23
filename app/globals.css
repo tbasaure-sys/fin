@@ -5498,3 +5498,179 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+.decision-landing-hero {
+  position: relative;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 1.2rem 1.4rem 2rem;
+  isolation: isolate;
+}
+
+.decision-landing-backdrop {
+  background: #09111b;
+}
+
+.decision-landing-photo {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(6, 11, 19, 0.9) 0%, rgba(6, 11, 19, 0.76) 34%, rgba(6, 11, 19, 0.34) 68%, rgba(6, 11, 19, 0.18) 100%),
+    linear-gradient(180deg, rgba(7, 12, 20, 0.18) 0%, rgba(7, 12, 20, 0.58) 100%),
+    url("/images/bls-prime-hero.png");
+  background-position: center center, center center, center right;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: saturate(0.92) contrast(1.04);
+  transform: scale(1.02);
+  animation: landingPhotoDrift 18s ease-in-out infinite alternate;
+}
+
+.decision-landing-grid {
+  display: none;
+}
+
+.decision-landing-scan {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(246, 191, 96, 0.14), transparent 26%),
+    radial-gradient(circle at 76% 34%, rgba(95, 173, 192, 0.16), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 38%);
+  animation: landingScanPulse 9s ease-in-out infinite;
+}
+
+.decision-landing-header,
+.decision-landing-composition,
+.decision-landing-strip,
+.decision-pricing-strip {
+  position: relative;
+  z-index: 1;
+}
+
+.decision-landing-composition {
+  display: flex;
+  align-items: flex-end;
+  min-height: calc(100svh - 7rem);
+}
+
+.decision-landing-copy {
+  max-width: 35rem;
+  padding-bottom: 1.4rem;
+  animation: landingCopyRise 700ms ease both;
+}
+
+.landing-kicker {
+  margin-bottom: 0.7rem;
+}
+
+.brand-wordmark {
+  margin: 0;
+  font-size: clamp(3.2rem, 8vw, 5.4rem);
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+}
+
+.decision-landing-copy h1 {
+  max-width: 10.5ch;
+  margin: 0.8rem 0 0;
+  font-size: clamp(2.8rem, 5.8vw, 4.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.landing-support {
+  max-width: 30rem;
+  margin-top: 1rem;
+  font-size: 1.08rem;
+  line-height: 1.6;
+}
+
+.landing-plan-caption {
+  margin-top: 1rem;
+  color: rgba(214, 225, 241, 0.74);
+}
+
+.decision-landing-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 1rem 1.4rem 0;
+}
+
+.decision-landing-strip article {
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.decision-landing-strip p {
+  margin: 0.35rem 0 0;
+  color: rgba(214, 225, 241, 0.78);
+  max-width: 28ch;
+}
+
+.decision-pricing-strip {
+  padding-top: 3.2rem;
+}
+
+.pricing-card {
+  transition: transform 220ms ease, border-color 220ms ease, background-color 220ms ease;
+}
+
+.pricing-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(248, 200, 111, 0.24);
+  background: rgba(10, 18, 30, 0.84);
+}
+
+@keyframes landingPhotoDrift {
+  from {
+    transform: scale(1.02) translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: scale(1.05) translate3d(-1.2%, 0.4%, 0);
+  }
+}
+
+@keyframes landingScanPulse {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes landingCopyRise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 900px) {
+  .decision-landing-composition {
+    min-height: calc(100svh - 8.5rem);
+    align-items: flex-end;
+  }
+
+  .decision-landing-strip {
+    grid-template-columns: 1fr;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .decision-landing-copy h1 {
+    max-width: 12ch;
+  }
+}
