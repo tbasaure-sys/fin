@@ -759,7 +759,7 @@ function StagedActionsPanel({ escrow, pendingKey, onExecuteEscrow, onCancelEscro
   );
 }
 
-function WatchlistIdeasPanel({ actions, onSelectStory }) {
+function WatchlistIdeasPanel({ actions }) {
   const items = safeList(actions).slice(0, 4);
 
   return (
@@ -773,15 +773,10 @@ function WatchlistIdeasPanel({ actions, onSelectStory }) {
       {items.length ? (
         <div className="watchlist-row">
           {items.map((action) => (
-            <button
-              key={action.id}
-              className="watch-chip"
-              onClick={() => action.ticker && onSelectStory(action.ticker)}
-              type="button"
-            >
+            <div key={action.id} className="watch-chip">
               <strong>{action.ticker || action.title}</strong>
               <span>{action.summary || action.slot || "Watch"}</span>
-            </button>
+            </div>
           ))}
         </div>
       ) : (
@@ -2348,7 +2343,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               onExecuteEscrow={(value) => patchEscrow(value, { action: "execute" }, `${value.title} executed.`)}
               pendingKey={pendingKey}
             />
-            <WatchlistIdeasPanel actions={secondaryActions} onSelectStory={setSelectedStoryTicker} />
+          <WatchlistIdeasPanel actions={secondaryActions} />
             <ActivityPanel ledger={ledger} />
           </div>
         </aside>
