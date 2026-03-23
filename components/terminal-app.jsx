@@ -282,9 +282,8 @@ function hasUsableBenchmarkSeries(points) {
   if (!Array.isArray(points) || points.length < 2) return false;
   const values = points.map((point) => Number(point?.value)).filter(Number.isFinite);
   if (values.length < 2) return false;
-  const min = Math.min(...values);
   const max = Math.max(...values);
-  return max > 0 && Math.abs(max - min) > 0.0001;
+  return max > 0;
 }
 
 function PortfolioMiniChart({ series, benchmarkSymbol }) {
@@ -302,7 +301,7 @@ function PortfolioMiniChart({ series, benchmarkSymbol }) {
   const showBenchmark = hasUsableBenchmarkSeries(benchmarkPoints);
 
   if (portfolioPoints.length < 2) {
-    return <p className="panel-empty">Portfolio history is still building. This chart will fill in as live snapshots accumulate.</p>;
+    return <p className="panel-empty">Portfolio history is still limited.</p>;
   }
 
   const portfolioPath = buildLinePath(portfolioPoints, width, height, padding);
@@ -383,7 +382,7 @@ function PortfolioHoldingsSpotlight({ portfolioModule }) {
                   </div>
                   <div className="portfolio-spotlight-meta">
                     <strong>{holding.weight || "-"}</strong>
-                    <span>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "Value pending"}</span>
+                    <span>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "Value unavailable"}</span>
                   </div>
                 </div>
                 <div className="portfolio-spotlight-rank" aria-label={`Rank ${index + 1}`}>
@@ -408,7 +407,7 @@ function PortfolioHoldingsSpotlight({ portfolioModule }) {
                     <span style={{ width: `${Math.max(10, Math.round((sector.normalized || sector.value || 0) * 100))}%` }} />
                   </div>
                 </div>
-              )) : <p className="panel-empty">Sector balance will appear as holdings metadata fills in.</p>}
+              )) : <p className="panel-empty">Sector balance unavailable.</p>}
             </div>
           </div>
 
@@ -441,7 +440,7 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
   const topHoldings = safeList(portfolio.holdings).slice(0, 6);
   const featuredHolding = topHoldings[0] || null;
   const supportingHoldings = topHoldings.slice(1, 6);
-  const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis still syncing";
+  const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis unavailable";
   const comparisonLabel = analytics.hasBenchmarkHistory
     ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}`
     : "Waiting for enough live history to compare against SPY";
@@ -465,17 +464,17 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
       <div className="portfolio-hero-summary">
         <div className="portfolio-metric">
           <span>Annualized return</span>
-          <strong>{analytics.hasPerformanceHistory ? analytics.annualReturnLabel : "Building history"}</strong>
+          <strong>{analytics.hasPerformanceHistory ? analytics.annualReturnLabel : "History limited"}</strong>
           <small>{analytics.hasPerformanceHistory ? "Based on stored snapshots" : currentGainLabel}</small>
         </div>
         <div className="portfolio-metric">
           <span>Since tracking started</span>
-          <strong>{analytics.totalReturnLabel || "History needed"}</strong>
+          <strong>{analytics.totalReturnLabel || "History limited"}</strong>
           <small>{analytics.historySessions ? `${analytics.historySessions} stored observations` : "Holdings are connected"}</small>
         </div>
         <div className="portfolio-metric">
           <span>vs {analytics.benchmarkSymbol || "SPY"}</span>
-          <strong>{analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Not ready"}</strong>
+          <strong>{analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Benchmark limited"}</strong>
           <small>{comparisonLabel}</small>
         </div>
       </div>
@@ -489,7 +488,7 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
               <p>
                 {featuredHolding
                   ? `${featuredHolding.weight || "-"} of the book, ${featuredHolding.sector || "Unassigned sector"}`
-                  : "Your private holdings are connected and ready to render here."}
+                  : "Your private holdings are connected."}
               </p>
             </div>
 
@@ -501,8 +500,8 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
                 </div>
                 <p>{featuredHolding.sector || "Unknown sector"}</p>
                 <div className="holding-stage-meta">
-                  <span>{featuredHolding.marketValueUsd ? formatCurrency(featuredHolding.marketValueUsd) : "Value syncing"}</span>
-                  <span>{featuredHolding.currentPriceUsd ? formatCurrency(featuredHolding.currentPriceUsd) : "Price syncing"}</span>
+                  <span>{featuredHolding.marketValueUsd ? formatCurrency(featuredHolding.marketValueUsd) : "Value unavailable"}</span>
+                  <span>{featuredHolding.currentPriceUsd ? formatCurrency(featuredHolding.currentPriceUsd) : "Price unavailable"}</span>
                 </div>
               </div>
             ) : null}
@@ -523,7 +522,7 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
                 ))}
               </div>
             ) : (
-              <p className="panel-empty">No holdings are loaded into this workspace yet.</p>
+              <p className="panel-empty">No holdings loaded.</p>
             )}
           </div>
 
@@ -540,7 +539,7 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
                   ))}
                 </ul>
               ) : (
-                <p className="panel-empty">No holdings are loaded into this workspace yet.</p>
+                <p className="panel-empty">No holdings loaded.</p>
               )}
             </div>
 
@@ -1352,7 +1351,7 @@ function CapitalTwinRail({ twin, portfolioModule, range, onRangeChange }) {
           ))}
         </div>
       ) : (
-        <p className="panel-empty">Twin scenarios will appear once the live state and stored portfolio history are both available.</p>
+        <p className="panel-empty">Twin scenarios unavailable.</p>
       )}
 
       <div className="twin-exposure-list">
