@@ -147,6 +147,47 @@ function StateChip({ label, value, tone = "is-neutral" }) {
   );
 }
 
+function WorkspaceDebugRail({ session, dashboard, portfolioModule }) {
+  const holdingsSource = dashboard?.data_control?.holdingsSource || portfolioModule?.holdingsSource || {};
+  const analytics = portfolioModule?.analytics || {};
+  const syncLabel = portfolioModule?.holdingsSync?.label || dashboard?.portfolio_state?.holdings_sync_label || "-";
+
+  return (
+    <section className="workspace-debug-rail" aria-label="Workspace diagnostics">
+      <div className="workspace-debug-header">
+        <span className="support-label">Current session</span>
+        <strong>Live routing diagnostics</strong>
+      </div>
+      <div className="workspace-debug-grid">
+        <article>
+          <span>User</span>
+          <strong>{session?.user?.email || session?.user?.name || "-"}</strong>
+        </article>
+        <article>
+          <span>Workspace id</span>
+          <strong>{dashboard?.workspace_summary?.id || session?.workspace?.id || "-"}</strong>
+        </article>
+        <article>
+          <span>Holdings source</span>
+          <strong>{holdingsSource?.label || holdingsSource?.source || "No holdings source"}</strong>
+        </article>
+        <article>
+          <span>Sync</span>
+          <strong>{syncLabel}</strong>
+        </article>
+        <article>
+          <span>Holdings count</span>
+          <strong>{analytics?.holdingsCount ?? dashboard?.portfolio_state?.holdings_count ?? 0}</strong>
+        </article>
+        <article>
+          <span>Market data</span>
+          <strong>{dashboard?.workspace_summary?.market_data_label || "-"}</strong>
+        </article>
+      </div>
+    </section>
+  );
+}
+
 function InlineList({ items, emptyLabel }) {
   const values = safeList(items);
   if (!values.length) return <p className="panel-empty">{emptyLabel}</p>;
@@ -2042,6 +2083,12 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
         />
       </section>
+
+      <WorkspaceDebugRail
+        dashboard={dashboard}
+        portfolioModule={portfolioModule}
+        session={initialSession}
+      />
 
       <section className="decision-os-hero">
         <PortfolioXRayPanel onSelectStory={setSelectedStoryTicker} xray={xray} />
