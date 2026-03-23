@@ -630,6 +630,199 @@ function ActionCard({
   );
 }
 
+function TodayDecisionPanel({
+  stateSummary,
+  primaryAction,
+  blockedAction,
+  pendingKey,
+  onStage,
+  onDefer,
+  onReject,
+}) {
+  const activeAction = primaryAction || blockedAction || null;
+  const isBlocked = !primaryAction && Boolean(blockedAction);
+
+  return (
+    <section className="workspace-card decision-focus-card">
+      <div className="card-header-row">
+        <div>
+          <p className="panel-kicker">Today&apos;s call</p>
+          <h3>{primaryAction?.title || blockedAction?.title || stateSummary?.stance || "Hold the line"}</h3>
+        </div>
+        <span className={`status-pill ${statusToneClass(isBlocked ? "briefing" : (primaryAction?.status || "ready"))}`}>
+          {isBlocked ? "Wait" : "Actionable"}
+        </span>
+      </div>
+
+      <p className="card-summary">
+        {primaryAction?.summary || blockedAction?.summary || stateSummary?.decisionSummary || "No new legitimate move is open right now."}
+      </p>
+
+      <div className="decision-focus-grid">
+        <article>
+          <span className="support-label">What to do now</span>
+          <strong>{primaryAction?.title || "Protect capital and keep flexibility."}</strong>
+          <p>{primaryAction?.whyNow || stateSummary?.decisionSummary || "Wait for a cleaner setup before widening risk."}</p>
+        </article>
+        <article>
+          <span className="support-label">Why</span>
+          <p>{primaryAction?.whyNow || blockedAction?.whyNow || blockedAction?.summary || "The current structure still does not justify broader risk."}</p>
+        </article>
+        <article>
+          <span className="support-label">Size</span>
+          <strong>{activeAction ? formatSize(activeAction) : "No change"}</strong>
+          <p>{activeAction?.funding || "Preserve current sizing until the setup improves."}</p>
+        </article>
+        <article>
+          <span className="support-label">What would change this</span>
+          <p>{primaryAction?.watchFor || blockedAction?.watchFor || "A stronger recoverability read and cleaner breadth confirmation."}</p>
+        </article>
+      </div>
+
+      {primaryAction ? (
+        <div className="action-controls">
+          <button
+            className="primary-button"
+            disabled={pendingKey !== null}
+            onClick={() => onStage(primaryAction)}
+            type="button"
+          >
+            {pendingKey === `stage:${primaryAction.id}` ? "Staging..." : "Stage"}
+          </button>
+          <button
+            className="ghost-button"
+            disabled={pendingKey !== null}
+            onClick={() => onDefer(primaryAction)}
+            type="button"
+          >
+            {pendingKey === `deferred:${primaryAction.id}` ? "Saving..." : "Not now"}
+          </button>
+          <button
+            className="text-button"
+            disabled={pendingKey !== null}
+            onClick={() => onReject(primaryAction)}
+            type="button"
+          >
+            {pendingKey === `rejected:${primaryAction.id}` ? "Saving..." : "Pass"}
+          </button>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function StagedActionsPanel({ escrow, pendingKey, onExecuteEscrow, onCancelEscrow }) {
+  const items = safeList(escrow?.items).slice(0, 3);
+
+  return (
+    <section className="workspace-card compact-surface-card">
+      <div className="card-header-row">
+        <div>
+          <p className="panel-kicker">Staged</p>
+          <h3>{items.length ? `${items.length} staged actions` : "Nothing staged"}</h3>
+        </div>
+      </div>
+
+      {items.length ? (
+        <div className="compact-list">
+          {items.map((item) => (
+            <article className="compact-list-item" key={item.id}>
+              <div>
+                <strong>{item.title}</strong>
+                <p>{item.summary || item.slot || "Ready when you are."}</p>
+              </div>
+              <div className="compact-list-actions">
+                <button
+                  className="ghost-button"
+                  disabled={pendingKey !== null}
+                  onClick={() => onExecuteEscrow(item)}
+                  type="button"
+                >
+                  {pendingKey === `execute:${item.id}` ? "Executing..." : "Execute"}
+                </button>
+                <button
+                  className="text-button"
+                  disabled={pendingKey !== null}
+                  onClick={() => onCancelEscrow(item)}
+                  type="button"
+                >
+                  {pendingKey === `cancel:${item.id}` ? "Updating..." : "Cancel"}
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="panel-empty">Stage decisions here when you want to prepare a move without acting yet.</p>
+      )}
+    </section>
+  );
+}
+
+function WatchlistIdeasPanel({ actions, onSelectStory }) {
+  const items = safeList(actions).slice(0, 4);
+
+  return (
+    <section className="workspace-card compact-surface-card">
+      <div className="card-header-row">
+        <div>
+          <p className="panel-kicker">Watch next</p>
+          <h3>{items.length ? "Ideas to keep warm" : "No live watchlist"}</h3>
+        </div>
+      </div>
+      {items.length ? (
+        <div className="watchlist-row">
+          {items.map((action) => (
+            <button
+              key={action.id}
+              className="watch-chip"
+              onClick={() => action.ticker && onSelectStory(action.ticker)}
+              type="button"
+            >
+              <strong>{action.ticker || action.title}</strong>
+              <span>{action.summary || action.slot || "Watch"}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="panel-empty">The system will surface the next ideas here once live analysis improves.</p>
+      )}
+    </section>
+  );
+}
+
+function ActivityPanel({ ledger }) {
+  const items = safeList(ledger?.items).slice(0, 4);
+
+  return (
+    <section className="workspace-card compact-surface-card">
+      <div className="card-header-row">
+        <div>
+          <p className="panel-kicker">Activity</p>
+          <h3>{items.length ? "What happened next" : "No settled outcomes yet"}</h3>
+        </div>
+      </div>
+      {items.length ? (
+        <div className="compact-list">
+          {items.map((item) => (
+            <article className="compact-list-item" key={item.id || item.title}>
+              <div>
+                <strong>{item.title || item.label || "Decision event"}</strong>
+                <p>{item.summary || item.outcome || "Outcome is still settling."}</p>
+              </div>
+              <span className={`status-pill ${responseToneClass(item.userResponse || item.outcomeTone || "noted")}`}>
+                {item.resultLabel || capitalize(item.userResponse, "Noted")}
+              </span>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="panel-empty">As you stage, defer, or reject ideas, this log will show what happened next.</p>
+      )}
+    </section>
+  );
+}
+
 function EscrowCard({ item, pending, onExecute, onCancel, onToggleAuto }) {
   const terminal = ["executed", "cancelled", "expired", "revoked"].includes(item.status);
   const readiness = Math.max(0, Math.min(1, Number(item.readiness || 0)));
@@ -1869,13 +2062,10 @@ function MandatePanel({ mandate, draft, onDraftChange, onSave, saving }) {
 
 export default function TerminalApp({ initialSession, initialDashboard }) {
   const [dashboard, setDashboard] = useState(initialDashboard);
-  const [showEvidence, setShowEvidence] = useState(false);
   const [banner, setBanner] = useState("");
   const [error, setError] = useState("");
   const [pendingKey, setPendingKey] = useState(null);
   const [portfolioRange, setPortfolioRange] = useState("1M");
-  const [selectedStoryTicker, setSelectedStoryTicker] = useState(null);
-  const [recoverabilityFilter, setRecoverabilityFilter] = useState("holdings");
   const [tradeInstruction, setTradeInstruction] = useState("");
   const [tradeError, setTradeError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -1886,21 +2076,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const primaryAction = dashboard?.primary_action || null;
   const secondaryActions = safeList(dashboard?.secondary_actions);
   const blockedAction = dashboard?.blocked_action || null;
-  const evidence = dashboard?.evidence_drawer || {};
   const escrow = dashboard?.escrow || { items: [] };
   const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 2);
-  const frontier = dashboard?.frontier || {};
-  const xray = dashboard?.xray || {};
-  const confidencePanel = dashboard?.confidence_panel || {};
-  const capitalTwin = dashboard?.capital_twin || {};
-  const positionStories = dashboard?.position_stories || { items: [] };
   const ledger = dashboard?.counterfactual_ledger || { items: [] };
-  const memoryGuidance = dashboard?.memory_guidance || {};
-  const recoverabilityMap = dashboard?.recoverability_map || { items: [] };
   const mandate = dashboard?.mandate || {};
   const dataControl = dashboard?.data_control || {};
-  const actionLookup = Object.fromEntries([primaryAction, ...secondaryActions].filter(Boolean).map((action) => [action.id, action]));
-  const escrowLookup = Object.fromEntries(safeList(escrow.items).map((item) => [item.id, item]));
 
   useEffect(() => {
     if (!workspaceId) return undefined;
@@ -1919,14 +2099,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
     return () => window.clearInterval(interval);
   }, [workspaceId]);
-
-  useEffect(() => {
-    const firstStory = safeList(positionStories?.items)[0]?.ticker || null;
-    setSelectedStoryTicker((current) => {
-      if (current && safeList(positionStories?.items).some((story) => story.ticker === current)) return current;
-      return firstStory;
-    });
-  }, [positionStories]);
 
   async function runWorkspaceAction(key, requestFactory, successMessage) {
     if (!workspaceId) return;
@@ -2090,9 +2262,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
       <header className="workspace-header decision-os-header">
         <div>
-          <p className="workspace-kicker">Decision OS</p>
+          <p className="workspace-kicker">Private workspace</p>
           <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || "BLS Prime"}</h1>
-          <p className="workspace-subtitle">A personal operating system for capital under uncertainty.</p>
+          <p className="workspace-subtitle">Your portfolio, today&apos;s decision, and what changed.</p>
         </div>
 
         <div className="workspace-header-side">
@@ -2133,14 +2305,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </section>
       ) : null}
 
-      <section className="decision-os-intro">
-        <div>
-          <p className="panel-kicker">Current mandate</p>
-          <h2>{stateSummary.stance || mandate?.label || "Stay patient"}</h2>
-        </div>
-        <p>{stateSummary.decisionSummary || mandate?.statement || "The workspace is waiting for the next legitimate move."}</p>
-      </section>
-
       <section className="workspace-service-strip" aria-label="Workspace service status">
         <StateChip
           label="Analysis"
@@ -2159,75 +2323,70 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         />
       </section>
 
-      <WorkspaceDebugRail
-        dashboard={dashboard}
-        portfolioModule={portfolioModule}
-        session={initialSession}
-      />
+      <div className="workspace-primary-grid">
+        <PortfolioHero
+          onRangeChange={setPortfolioRange}
+          portfolioModule={portfolioModule}
+          range={portfolioRange}
+        />
 
-      <section className="decision-os-hero">
-        <PortfolioXRayPanel
-          onSelectStory={setSelectedStoryTicker}
-          tradeComposer={(
-            <PortfolioQuickTradeComposer
-              error={tradeError}
-              onChange={setTradeInstruction}
-              onSubmit={submitTradeInstruction}
-              pending={pendingKey?.startsWith("trade:")}
-              value={tradeInstruction}
+        <aside className="workspace-primary-side">
+          <TodayDecisionPanel
+            blockedAction={blockedAction}
+            onDefer={(action) => recordDecision(action, "deferred")}
+            onReject={(action) => recordDecision(action, "rejected")}
+            onStage={stageAction}
+            pendingKey={pendingKey}
+            primaryAction={primaryAction}
+            stateSummary={stateSummary}
+          />
+
+          <div className="workspace-mini-strip">
+            <StagedActionsPanel
+              escrow={escrow}
+              onCancelEscrow={(value) => patchEscrow(value, { action: "cancel" }, `${value.title} cancelled.`)}
+              onExecuteEscrow={(value) => patchEscrow(value, { action: "execute" }, `${value.title} executed.`)}
+              pendingKey={pendingKey}
             />
-          )}
-          xray={xray}
-        />
+            <WatchlistIdeasPanel actions={secondaryActions} onSelectStory={setSelectedStoryTicker} />
+            <ActivityPanel ledger={ledger} />
+          </div>
+        </aside>
+      </div>
 
-        <ActionFrontierPanel
-          actionLookup={new Map(Object.entries(actionLookup))}
-          escrowLookup={new Map(Object.entries(escrowLookup))}
-          frontier={frontier}
-          onCancelEscrow={(value) => patchEscrow(value, { action: "cancel" }, `${value.title} cancelled.`)}
-          onDefer={(action) => recordDecision(action, "deferred")}
-          onExecuteEscrow={(value) => patchEscrow(value, { action: "execute" }, `${value.title} executed.`)}
-          onReject={(action) => recordDecision(action, "rejected")}
-          onSelectStory={setSelectedStoryTicker}
-          onStage={stageAction}
-          pendingKey={pendingKey}
-        />
+      <div className="workspace-secondary-grid">
+        <section className="workspace-panel workspace-panel-now">
+          <PortfolioHoldingsSpotlight portfolioModule={portfolioModule} />
 
-        <div className="decision-os-right-rail">
-          <TruthfulConfidencePanelRail
-            confidence={confidencePanel}
-            evidenceDrawer={evidence}
-            onToggleEvidence={() => setShowEvidence((current) => !current)}
-            showEvidence={showEvidence}
+          <PortfolioQuickTradeComposer
+            error={tradeError}
+            onChange={setTradeInstruction}
+            onSubmit={submitTradeInstruction}
+            pending={pendingKey?.startsWith("trade:")}
+            value={tradeInstruction}
           />
-          <CapitalTwinRail
-            onRangeChange={setPortfolioRange}
-            portfolioModule={portfolioModule}
-            range={portfolioRange}
-            twin={capitalTwin}
-          />
+        </section>
+
+        <aside className="workspace-secondary-side">
           <MandateQuickSelect
             mandate={mandate}
             onChange={updateMandate}
             pending={pendingKey === "mandate"}
           />
-        </div>
-      </section>
 
-      <section className="decision-os-lower-grid">
-        <PositionStoriesRail
-          onSelectTicker={setSelectedStoryTicker}
-          selectedTicker={selectedStoryTicker}
-          stories={positionStories}
-        />
-        <CounterfactualLedgerRail ledger={ledger} />
-        <MemoryGuidanceRail guidance={memoryGuidance} />
-        <RecoverabilityMapRail
-          filterId={recoverabilityFilter}
-          map={recoverabilityMap}
-          onFilterChange={setRecoverabilityFilter}
-        />
-      </section>
+          {(stateSummary?.decisionSummary || mandate?.statement) ? (
+            <section className="workspace-card compact-surface-card workspace-brief-card">
+              <div className="card-header-row">
+                <div>
+                  <p className="panel-kicker">Current brief</p>
+                  <h3>{stateSummary?.stance || mandate?.label || "Stay patient"}</h3>
+                </div>
+              </div>
+              <p className="card-summary">{stateSummary?.decisionSummary || mandate?.statement}</p>
+            </section>
+          ) : null}
+        </aside>
+      </div>
 
       {isPending ? <div className="workspace-footer-note">Applying update...</div> : null}
     </main>

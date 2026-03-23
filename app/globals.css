@@ -3507,6 +3507,26 @@ a {
   align-items: start;
 }
 
+.workspace-primary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.34fr) minmax(320px, 0.86fr);
+  gap: 18px;
+  align-items: start;
+  margin-top: 0.35rem;
+}
+
+.workspace-secondary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+  margin-top: 18px;
+}
+
+.monetizable-grid {
+  margin-top: 0.25rem;
+}
+
 .workspace-side {
   position: sticky;
   top: 20px;
@@ -3526,6 +3546,23 @@ a {
 
 .workspace-panel-now {
   min-width: 0;
+}
+
+.monetizable-side {
+  display: grid;
+  gap: 18px;
+}
+
+.workspace-primary-side,
+.workspace-secondary-side {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.workspace-mini-strip {
+  display: grid;
+  gap: 14px;
 }
 
 .section-heading {
@@ -3714,8 +3751,86 @@ a {
   margin-top: 14px;
 }
 
+.decision-focus-card,
+.compact-surface-card {
+  min-width: 0;
+}
+
+.decision-focus-card {
+  min-height: 100%;
+}
+
+.decision-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.decision-focus-grid article,
+.compact-list-item,
+.watch-chip,
+.portfolio-quick-trade {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.decision-focus-grid article {
+  padding: 16px;
+}
+
+.decision-focus-grid article strong,
+.compact-list-item strong,
+.watch-chip strong {
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.decision-focus-grid article p,
+.compact-list-item p,
+.watch-chip span {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.compact-list {
+  display: grid;
+  gap: 12px;
+}
+
+.compact-list-item {
+  display: grid;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.compact-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.watchlist-row {
+  display: grid;
+  gap: 12px;
+}
+
+.watch-chip {
+  width: 100%;
+  padding: 14px 16px;
+  text-align: left;
+}
+
+.workspace-brief-card {
+  justify-content: center;
+}
+
 @media (max-width: 1180px) {
   .workspace-overview,
+  .workspace-primary-grid,
+  .workspace-secondary-grid,
   .workspace-grid,
   .action-grid,
   .trigger-grid,
@@ -3727,6 +3842,7 @@ a {
   .portfolio-holding-mosaic,
   .portfolio-hero-summary,
   .portfolio-hero-bottom,
+  .decision-focus-grid,
   .state-chip-grid,
   .memory-stat-row {
     grid-template-columns: 1fr;
