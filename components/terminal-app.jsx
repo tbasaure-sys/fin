@@ -236,6 +236,15 @@ function buildLinePath(points, width, height, padding) {
     .join(" ");
 }
 
+function hasUsableBenchmarkSeries(points) {
+  if (!Array.isArray(points) || points.length < 2) return false;
+  const values = points.map((point) => Number(point?.value)).filter(Number.isFinite);
+  if (values.length < 2) return false;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  return max > 0 && Math.abs(max - min) > 0.0001;
+}
+
 function PortfolioMiniChart({ series, benchmarkSymbol }) {
   const width = 460;
   const height = 200;
@@ -248,13 +257,14 @@ function PortfolioMiniChart({ series, benchmarkSymbol }) {
   const benchmarkPoints = rows
     .map((row) => ({ date: row.date, value: Number(row.benchmark) }))
     .filter((row) => Number.isFinite(row.value));
+  const showBenchmark = hasUsableBenchmarkSeries(benchmarkPoints);
 
   if (portfolioPoints.length < 2) {
     return <p className="panel-empty">Portfolio history is still building. This chart will fill in as live snapshots accumulate.</p>;
   }
 
   const portfolioPath = buildLinePath(portfolioPoints, width, height, padding);
-  const benchmarkPath = buildLinePath(benchmarkPoints, width, height, padding);
+  const benchmarkPath = showBenchmark ? buildLinePath(benchmarkPoints, width, height, padding) : "";
   const latestPortfolio = portfolioPoints[portfolioPoints.length - 1];
 
   return (
@@ -285,7 +295,7 @@ function PortfolioMiniChart({ series, benchmarkSymbol }) {
 
       <div className="portfolio-hero-legend">
         <span><i className="legend-swatch is-portfolio" />Your portfolio</span>
-        <span><i className="legend-swatch is-benchmark" />{benchmarkSymbol || "SPY"}</span>
+        {showBenchmark ? <span><i className="legend-swatch is-benchmark" />{benchmarkSymbol || "SPY"}</span> : null}
       </div>
     </div>
   );
@@ -859,7 +869,7 @@ function ActionFrontierPanel({
   );
 }
 
-function PortfolioXRayPanel({ xray, onSelectStory }) {
+function PortfolioXRayPanel({ xray, onSelectStory, tradeComposer }) {
   return (
     <section className="decision-panel xray-panel">
       <div className="decision-panel-header">
@@ -932,6 +942,39 @@ function PortfolioXRayPanel({ xray, onSelectStory }) {
           )}
         </div>
       </div>
+
+      {tradeComposer}
+    </section>
+  );
+}
+
+function PortfolioQuickTradeComposer({ value, onChange, onSubmit, pending, error }) {
+  return (
+    <section className="portfolio-quick-trade" aria-label="Quick portfolio update">
+      <div className="portfolio-quick-trade-copy">
+        <span className="support-label">Quick update</span>
+        <strong>Write the trade naturally.</strong>
+        <p>For example: “compre 100 usd de NVDA” or “sold 2 shares of AAPL”.</p>
+      </div>
+      <form
+        className="portfolio-quick-trade-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit();
+        }}
+      >
+        <input
+          className="portfolio-quick-trade-input"
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="compre 100 usd de NVDA"
+          type="text"
+          value={value}
+        />
+        <button className="primary-button" disabled={pending || !String(value || "").trim()} type="submit">
+          {pending ? "Updating..." : "Update holdings"}
+        </button>
+      </form>
+      {error ? <p className="portfolio-quick-trade-error">{error}</p> : null}
     </section>
   );
 }
@@ -1833,6 +1876,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [portfolioRange, setPortfolioRange] = useState("1M");
   const [selectedStoryTicker, setSelectedStoryTicker] = useState(null);
   const [recoverabilityFilter, setRecoverabilityFilter] = useState("holdings");
+  const [tradeInstruction, setTradeInstruction] = useState("");
+  const [tradeError, setTradeError] = useState("");
   const [isPending, startTransition] = useTransition();
 
   const workspaceId = dashboard?.workspace_summary?.id || initialSession?.workspace?.id;
@@ -1888,6 +1933,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
     setPendingKey(key);
     setError("");
+    if (!String(key || "").startsWith("trade:")) {
+      setTradeError("");
+    }
 
     try {
       const payload = await requestFactory();
@@ -1898,6 +1946,33 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       setBanner(nextBanner);
     } catch (requestError) {
       setError(String(requestError?.message || requestError || "Request failed."));
+    } finally {
+      setPendingKey(null);
+    }
+  }
+
+  async function submitTradeInstruction() {
+    const trimmed = String(tradeInstruction || "").trim();
+    if (!workspaceId || !trimmed) return;
+
+    setTradeError("");
+    setPendingKey(`trade:${trimmed}`);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ instruction: trimmed }),
+      });
+      const payload = await parseResponse(response);
+      startTransition(() => {
+        setDashboard(payload);
+      });
+      setTradeInstruction("");
+      setBanner("Holdings updated from your trade note.");
+    } catch (requestError) {
+      setTradeError(String(requestError?.message || requestError || "Trade update failed."));
     } finally {
       setPendingKey(null);
     }
@@ -2091,7 +2166,19 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       />
 
       <section className="decision-os-hero">
-        <PortfolioXRayPanel onSelectStory={setSelectedStoryTicker} xray={xray} />
+        <PortfolioXRayPanel
+          onSelectStory={setSelectedStoryTicker}
+          tradeComposer={(
+            <PortfolioQuickTradeComposer
+              error={tradeError}
+              onChange={setTradeInstruction}
+              onSubmit={submitTradeInstruction}
+              pending={pendingKey?.startsWith("trade:")}
+              value={tradeInstruction}
+            />
+          )}
+          xray={xray}
+        />
 
         <ActionFrontierPanel
           actionLookup={new Map(Object.entries(actionLookup))}

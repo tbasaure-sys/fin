@@ -4536,13 +4536,15 @@ a {
 
 .decision-os-hero {
   display: grid;
-  grid-template-columns: minmax(300px, 0.95fr) minmax(420px, 1.2fr) minmax(320px, 0.95fr);
+  grid-template-columns: minmax(280px, 0.92fr) minmax(340px, 1.04fr) minmax(300px, 0.9fr);
   gap: 1.2rem;
+  align-items: start;
 }
 
 .decision-os-right-rail {
   display: grid;
   gap: 1.2rem;
+  min-width: 0;
 }
 
 .xray-summary-grid,
@@ -4638,6 +4640,7 @@ a {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
+  align-items: start;
 }
 
 .frontier-lane-header,
@@ -4661,6 +4664,7 @@ a {
 
 .frontier-card {
   padding: 1rem;
+  min-width: 0;
 }
 
 .frontier-summary,
@@ -4972,14 +4976,16 @@ a {
 .frontier-card-head h3 {
   font-size: clamp(1.1rem, 1.3vw, 1.35rem);
   line-height: 1.08;
-  max-width: 11ch;
+  max-width: 14ch;
+  overflow-wrap: anywhere;
 }
 
 .frontier-summary {
   margin: 0;
   font-size: 0.98rem;
   line-height: 1.42;
-  max-width: 28ch;
+  max-width: none;
+  overflow-wrap: anywhere;
 }
 
 .frontier-meta-grid {
@@ -4998,6 +5004,29 @@ a {
 .frontier-support-line p,
 .twin-live-note p {
   margin: 0.2rem 0 0;
+}
+
+.frontier-lane,
+.frontier-lane-stack,
+.xray-panel,
+.frontier-panel,
+.confidence-panel,
+.twin-panel,
+.mandate-panel,
+.chip-row,
+.action-controls,
+.frontier-card-head,
+.frontier-meta-grid > div,
+.frontier-support-line,
+.panel-empty {
+  min-width: 0;
+}
+
+.frontier-meta-grid p,
+.frontier-support-line p,
+.support-block p,
+.panel-empty {
+  overflow-wrap: anywhere;
 }
 
 .confidence-grid {
@@ -5039,6 +5068,57 @@ a {
   min-width: 0;
 }
 
+.portfolio-quick-trade {
+  display: grid;
+  gap: 0.8rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(133, 166, 190, 0.12);
+  background: rgba(14, 25, 38, 0.62);
+}
+
+.portfolio-quick-trade-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.portfolio-quick-trade-copy strong {
+  font-size: 1rem;
+}
+
+.portfolio-quick-trade-copy p,
+.portfolio-quick-trade-error {
+  margin: 0;
+  color: rgba(186, 200, 224, 0.82);
+  line-height: 1.4;
+}
+
+.portfolio-quick-trade-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+}
+
+.portfolio-quick-trade-input {
+  min-width: 0;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba(133, 166, 190, 0.16);
+  background: rgba(7, 14, 26, 0.82);
+  color: rgba(244, 239, 231, 0.96);
+}
+
+.portfolio-quick-trade-input::placeholder {
+  color: rgba(186, 200, 224, 0.52);
+}
+
+.portfolio-quick-trade-error {
+  color: rgba(229, 140, 140, 0.92);
+}
+
 .recoverability-map-shell {
   min-height: 17rem;
 }
@@ -5053,6 +5133,8 @@ a {
     max-width: none;
   }
 
+  .decision-os-hero,
+  .frontier-lanes,
   .xray-role-row,
   .xray-carriers {
     grid-template-columns: 1fr;
