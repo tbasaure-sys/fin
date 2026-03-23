@@ -1,6 +1,5 @@
 import TerminalApp from "@/components/terminal-app";
 import { requireServerAuthSession, buildAuthenticatedSessionPayload } from "@/lib/server/auth/session";
-import { syncCheckoutSessionForUser } from "@/lib/server/billing";
 import { getWorkspaceDashboard } from "@/lib/server/dashboard-service";
 import { buildDecisionOsSections } from "@/lib/server/decision-os";
 
@@ -79,13 +78,6 @@ function buildWorkspacePageFallback(authSession, error) {
 
 export default async function PrivateWorkspacePage({ searchParams }) {
   const authSession = await requireServerAuthSession("/app");
-  const checkoutSessionId = searchParams?.session_id;
-  if (checkoutSessionId) {
-    await syncCheckoutSessionForUser({
-      userId: authSession.user.id,
-      sessionId: checkoutSessionId,
-    }).catch(() => null);
-  }
   const session = await buildAuthenticatedSessionPayload(authSession);
   let dashboard;
 
