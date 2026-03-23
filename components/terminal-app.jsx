@@ -5,12 +5,6 @@ import { useEffect, useState, useTransition } from "react";
 
 const PORTFOLIO_RANGES = ["1D", "1W", "1M", "YTD", "ALL"];
 
-const PLAN_LABELS = {
-  free: "Free",
-  pro: "Pro",
-  founder: "Founder",
-};
-
 function sleep(ms) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
@@ -100,42 +94,6 @@ function responseToneClass(response) {
 
 function safeList(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
-}
-
-function normalizePlanId(value) {
-  const text = String(value || "").trim().toLowerCase();
-  if (["founder", "founding", "founding_member"].includes(text)) return "founder";
-  if (["pro", "pro_trial", "trial", "paid"].includes(text)) return "pro";
-  if (["free", "starter"].includes(text)) return "free";
-  return "";
-}
-
-function resolveWorkspacePlan(session, dashboard) {
-  const candidates = [
-    session?.plan?.current,
-    dashboard?.workspace_summary?.plan?.id,
-    dashboard?.workspace_summary?.plan?.tier,
-    dashboard?.workspace_summary?.plan,
-    dashboard?.subscription?.plan?.id,
-    dashboard?.subscription?.plan,
-    session?.plan?.id,
-    session?.plan?.tier,
-    session?.subscription?.plan,
-    session?.workspace?.plan?.id,
-    session?.workspace?.plan,
-    session?.user?.plan,
-  ];
-
-  for (const candidate of candidates) {
-    const normalized = normalizePlanId(candidate);
-    if (normalized) return normalized;
-  }
-
-  return "free";
-}
-
-function canUsePaidFeatures(planId) {
-  return planId === "pro" || planId === "founder";
 }
 
 function renderInlineItem(item) {
@@ -427,6 +385,61 @@ function PortfolioHoldingsSpotlight({ portfolioModule }) {
             <strong>{holding.ticker}</strong>
             <span>{holding.weight || holding.sector || "-"}</span>
           </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PortfolioHoldingsTable({ portfolioModule }) {
+  const portfolio = portfolioModule || {};
+  const holdings = safeList(portfolio.holdings);
+
+  if (!holdings.length) {
+    return (
+      <section className="portfolio-holdings-table" aria-label="All holdings">
+        <div className="portfolio-holdings-table-head">
+          <div>
+            <span className="support-label">All holdings</span>
+            <h3>Your full book will appear here.</h3>
+          </div>
+        </div>
+        <p className="panel-empty">Add a trade note or sync your private holdings to start building the list.</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="portfolio-holdings-table" aria-label="All holdings">
+      <div className="portfolio-holdings-table-head">
+        <div>
+          <span className="support-label">All holdings</span>
+          <h3>Everything currently in the book.</h3>
+        </div>
+        <span className="info-chip">{holdings.length} positions</span>
+      </div>
+
+      <div className="portfolio-holdings-table-grid" role="table" aria-label="Holdings table">
+        <div className="portfolio-holdings-table-row is-head" role="row">
+          <span role="columnheader">Ticker</span>
+          <span role="columnheader">Role</span>
+          <span role="columnheader">Weight</span>
+          <span role="columnheader">Value</span>
+          <span role="columnheader">Price</span>
+        </div>
+        {holdings.map((holding) => (
+          <article className="portfolio-holdings-table-row" key={`holding-row-${holding.ticker}`} role="row">
+            <div className="holding-table-symbol" role="cell">
+              <strong>{holding.ticker}</strong>
+              <span>{holding.sector || holding.assetType || "Holding"}</span>
+            </div>
+            <div className="holding-table-role" role="cell">
+              <span>{holding.thesisBucket || holding.industry || "Core exposure"}</span>
+            </div>
+            <strong role="cell">{holding.weight || "-"}</strong>
+            <strong role="cell">{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "-"}</strong>
+            <span role="cell">{holding.currentPriceUsd ? formatCurrency(holding.currentPriceUsd) : "-"}</span>
+          </article>
         ))}
       </div>
     </section>
@@ -794,7 +807,7 @@ function StagedActionsPanel({ escrow, pendingKey, onExecuteEscrow, onCancelEscro
           ))}
         </div>
       ) : (
-        <p className="panel-empty">Stage decisions here when you want to prepare a move without acting yet.</p>
+        <p className="panel-empty">Nothing is staged yet. Save a move here when you want to prepare it before acting.</p>
       )}
     </section>
   );
@@ -809,7 +822,7 @@ function WatchlistIdeasPanel({ actions, backendStatus, lastUpdatedLabel }) {
       <div className="card-header-row">
         <div>
           <p className="panel-kicker">Watch next</p>
-          <h3>{items.length ? "Ideas to keep warm" : rebuilding ? "Analysis rebuilding" : "No live watchlist"}</h3>
+          <h3>{items.length ? "Ideas to keep warm" : rebuilding ? "Fresh ideas are on the way" : "No fresh ideas today"}</h3>
         </div>
       </div>
       {items.length ? (
@@ -824,8 +837,8 @@ function WatchlistIdeasPanel({ actions, backendStatus, lastUpdatedLabel }) {
       ) : (
         <p className="panel-empty">
           {rebuilding
-            ? `The live decision feed is still rebuilding${lastUpdatedLabel ? ` from ${lastUpdatedLabel}` : ""}.`
-            : "No watch ideas are active right now."}
+            ? `We are refreshing the market view${lastUpdatedLabel ? ` from ${lastUpdatedLabel}` : ""}. New ideas will appear here after the refresh finishes.`
+            : "Nothing new needs attention right now."}
         </p>
       )}
     </section>
@@ -858,60 +871,8 @@ function ActivityPanel({ ledger }) {
           ))}
         </div>
       ) : (
-        <p className="panel-empty">Your decision log starts after the first staged, deferred, or rejected move.</p>
+        <p className="panel-empty">Your timeline starts after your first trade note, staged move, or decision.</p>
       )}
-    </section>
-  );
-}
-
-function WorkspacePlanBanner({ planId, onUpgrade, onManageBilling, billingConfigured, portalAvailable }) {
-  const isFree = planId === "free";
-  return (
-    <section className={`workspace-plan-banner ${isFree ? "is-upsell" : "is-member"}`} aria-label="Workspace plan">
-      <div>
-        <p className="panel-kicker">Plan</p>
-        <h3>{PLAN_LABELS[planId] || "Pro"} workspace</h3>
-        <p>
-          {isFree
-            ? "You can see the portfolio and today’s call. Pro unlocks natural-language updates, staged actions, activity history, and mandate controls."
-            : "Operational features are unlocked in this workspace, including staged actions and portfolio updates from natural-language trade notes."}
-        </p>
-      </div>
-      <div className="hero-cta-row">
-        {isFree ? (
-          <>
-            <button className="primary-button" onClick={() => onUpgrade("pro")} type="button">
-              {billingConfigured ? "Upgrade to Pro" : "Billing setup needed"}
-            </button>
-            <Link className="ghost-button" href="/">See plans</Link>
-          </>
-        ) : (
-          <>
-            {portalAvailable ? (
-              <button className="ghost-button" onClick={onManageBilling} type="button">Manage billing</button>
-            ) : null}
-            <Link className="ghost-button" href="/">Billing and plans</Link>
-          </>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function LockedFeatureCard({ title, summary, cta = "Upgrade to Pro", onUpgrade }) {
-  return (
-    <section className="workspace-card compact-surface-card locked-feature-card">
-      <div className="card-header-row">
-        <div>
-          <p className="panel-kicker">Pro feature</p>
-          <h3>{title}</h3>
-        </div>
-        <span className="info-chip">Locked</span>
-      </div>
-      <p className="card-summary">{summary}</p>
-      <div className="hero-cta-row">
-        <button className="primary-button" onClick={() => onUpgrade("pro")} type="button">{cta}</button>
-      </div>
     </section>
   );
 }
@@ -1376,9 +1337,9 @@ function MandateQuickSelect({ mandate, pending, onChange }) {
     <section className="decision-panel mandate-panel">
       <div className="decision-panel-header">
         <div>
-          <p className="panel-kicker">Mandate engine</p>
-          <h2>{mandate?.label || "Active mandate"}</h2>
-          <p>{mandate?.statement || "The current mandate shapes ranking, staging, and scenario language."}</p>
+          <p className="panel-kicker">Your investing rule</p>
+          <h2>{mandate?.label || "Active rule set"}</h2>
+          <p>{mandate?.statement || "This rule set keeps the workspace aligned with how you want to invest."}</p>
         </div>
       </div>
 
@@ -2174,10 +2135,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const ledger = dashboard?.counterfactual_ledger || { items: [] };
   const mandate = dashboard?.mandate || {};
   const dataControl = dashboard?.data_control || {};
-  const planId = resolveWorkspacePlan(initialSession, dashboard);
-  const paidFeaturesEnabled = canUsePaidFeatures(planId);
-  const billingConfigured = Boolean(initialSession?.plan?.billingConfigured);
-  const portalAvailable = Boolean(initialSession?.plan?.portalAvailable);
+  const paidFeaturesEnabled = true;
 
   useEffect(() => {
     if (!workspaceId) return undefined;
@@ -2221,10 +2179,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function submitTradeInstruction() {
-    if (!paidFeaturesEnabled) {
-      setTradeError("Upgrade to Pro to unlock natural-language portfolio updates.");
-      return;
-    }
     const trimmed = String(tradeInstruction || "").trim();
     if (!workspaceId || !trimmed) return;
 
@@ -2286,10 +2240,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function stageAction(action) {
-    if (!paidFeaturesEnabled) {
-      setError("Upgrade to Pro to stage actions.");
-      return;
-    }
     await runWorkspaceAction(
       `stage:${action.id}`,
       async () => {
@@ -2327,10 +2277,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function patchEscrow(item, payload, successMessage) {
-    if (!paidFeaturesEnabled) {
-      setError("Upgrade to Pro to manage staged actions.");
-      return;
-    }
     await runWorkspaceAction(
       `${payload.action || "update"}:${item.id}`,
       async () => {
@@ -2349,10 +2295,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   async function updateMandate(activeMandateId) {
-    if (!paidFeaturesEnabled) {
-      setError("Upgrade to Pro to unlock mandate controls.");
-      return;
-    }
     if (!workspaceId) return;
     await runWorkspaceAction(
       "mandate",
@@ -2374,38 +2316,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     );
   }
 
-  async function startCheckout(plan = "pro") {
-    setError("");
-    try {
-      const response = await fetch("/api/billing/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan }),
-      });
-      const payload = await parseResponse(response);
-      if (payload?.url) {
-        window.location.assign(payload.url);
-      }
-    } catch (requestError) {
-      setError(String(requestError?.message || requestError || "Checkout could not be started."));
-    }
-  }
-
-  async function openBillingPortal() {
-    setError("");
-    try {
-      const response = await fetch("/api/billing/portal", {
-        method: "POST",
-      });
-      const payload = await parseResponse(response);
-      if (payload?.url) {
-        window.location.assign(payload.url);
-      }
-    } catch (requestError) {
-      setError(String(requestError?.message || requestError || "Billing portal is unavailable."));
-    }
-  }
-
   return (
     <main className="workspace-shell decision-os-shell">
       <div className="workspace-noise decision-os-noise" aria-hidden="true" />
@@ -2420,7 +2330,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <div className="workspace-header-side">
           <div className="workspace-meta-row">
             <span className="info-chip">{initialSession?.user?.name || "Member workspace"}</span>
-            <span className="info-chip">{PLAN_LABELS[planId] || "Pro"}</span>
+            <span className="info-chip">Free access</span>
             <span className={`status-pill ${statusToneClass(dashboard?.workspace_summary?.backend_status)}`}>
               {capitalize(dashboard?.workspace_summary?.backend_status, "Live")}
             </span>
@@ -2431,7 +2341,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <button className="ghost-button" disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
               {pendingKey === "refresh" ? "Refreshing..." : "Refresh"}
             </button>
-            <Link className="text-link" href="/">Plans</Link>
+            <Link className="text-link" href="/">Home</Link>
             <form action="/api/auth/logout" method="post">
               <button className="text-button" type="submit">Sign out</button>
             </form>
@@ -2455,14 +2365,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           ))}
         </section>
       ) : null}
-
-      <WorkspacePlanBanner
-        billingConfigured={billingConfigured}
-        onManageBilling={openBillingPortal}
-        onUpgrade={startCheckout}
-        planId={planId}
-        portalAvailable={portalAvailable}
-      />
 
       <section className="workspace-service-strip" aria-label="Workspace service status">
         <StateChip
@@ -2501,35 +2403,18 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           />
 
           <div className="workspace-mini-strip">
-            {paidFeaturesEnabled ? (
-              <StagedActionsPanel
-                escrow={escrow}
-                onCancelEscrow={(value) => patchEscrow(value, { action: "cancel" }, `${value.title} cancelled.`)}
-                onExecuteEscrow={(value) => patchEscrow(value, { action: "execute" }, `${value.title} executed.`)}
-                pendingKey={pendingKey}
-              />
-            ) : (
-              <LockedFeatureCard
-                onUpgrade={startCheckout}
-                summary="Prepare trades before acting and keep them staged until you are ready to execute."
-                title="Staged actions"
-              />
-            )}
+            <StagedActionsPanel
+              escrow={escrow}
+              onCancelEscrow={(value) => patchEscrow(value, { action: "cancel" }, `${value.title} cancelled.`)}
+              onExecuteEscrow={(value) => patchEscrow(value, { action: "execute" }, `${value.title} executed.`)}
+              pendingKey={pendingKey}
+            />
             <WatchlistIdeasPanel
               actions={secondaryActions}
               backendStatus={dashboard?.workspace_summary?.backend_status}
               lastUpdatedLabel={dashboard?.workspace_summary?.last_updated_label}
             />
-            {paidFeaturesEnabled ? (
-              <ActivityPanel ledger={ledger} />
-            ) : (
-              <LockedFeatureCard
-                cta="Unlock activity log"
-                onUpgrade={startCheckout}
-                summary="Track what happened after each staged, deferred, or rejected decision."
-                title="Activity history"
-              />
-            )}
+            <ActivityPanel ledger={ledger} />
           </div>
         </aside>
       </div>
@@ -2537,40 +2422,23 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       <div className="workspace-secondary-grid">
         <section className="workspace-panel workspace-panel-now">
           <PortfolioHoldingsSpotlight portfolioModule={portfolioModule} />
+          <PortfolioHoldingsTable portfolioModule={portfolioModule} />
 
-          {paidFeaturesEnabled ? (
-            <PortfolioQuickTradeComposer
-              error={tradeError}
-              onChange={setTradeInstruction}
-              onSubmit={submitTradeInstruction}
-              pending={pendingKey?.startsWith("trade:")}
-              value={tradeInstruction}
-            />
-          ) : (
-            <LockedFeatureCard
-              cta="Unlock quick updates"
-              onUpgrade={startCheckout}
-              summary="Update holdings with phrases like 'compre 100 usd de NVDA' instead of editing quantities manually."
-              title="Natural-language portfolio updates"
-            />
-          )}
+          <PortfolioQuickTradeComposer
+            error={tradeError}
+            onChange={setTradeInstruction}
+            onSubmit={submitTradeInstruction}
+            pending={pendingKey?.startsWith("trade:")}
+            value={tradeInstruction}
+          />
         </section>
 
         <aside className="workspace-secondary-side">
-          {paidFeaturesEnabled ? (
-            <MandateQuickSelect
-              mandate={mandate}
-              onChange={updateMandate}
-              pending={pendingKey === "mandate"}
-            />
-          ) : (
-            <LockedFeatureCard
-              cta="Unlock mandate controls"
-              onUpgrade={startCheckout}
-              summary="Define the standing rule set that shapes ranking, staging, and how the system frames today’s call."
-              title="Mandate controls"
-            />
-          )}
+          <MandateQuickSelect
+            mandate={mandate}
+            onChange={updateMandate}
+            pending={pendingKey === "mandate"}
+          />
 
           {(stateSummary?.decisionSummary || mandate?.statement) ? (
             <section className="workspace-card compact-surface-card workspace-brief-card">

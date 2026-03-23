@@ -38,7 +38,9 @@ from ..storage.runtime_store import (
     has_runtime_frame,
     load_runtime_document,
     load_runtime_frame,
+    load_runtime_snapshot,
     save_runtime_document,
+    save_runtime_snapshot,
 )
 from ..state_contract import build_bls_state_contract_v1
 from ..runtime import run_production
@@ -97,6 +99,25 @@ def _load_runtime_backed_csv(path: Path, dataset_key: str, *, sep: str = ",", de
     if path.exists():
         return _safe_csv_load(path, sep=sep, decimal=decimal, thousands=thousands)
     return load_runtime_frame(dataset_key)
+
+
+def _load_runtime_backed_semicolon_csv(path: Path, dataset_key: str) -> pd.DataFrame:
+    if path.exists():
+        return _safe_semicolon_csv(path)
+    return load_runtime_frame(dataset_key)
+
+
+def _frame_columns(frame: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    if frame.empty:
+        return pd.DataFrame(columns=columns)
+    available = [column for column in columns if column in frame.columns]
+    if not available:
+        return pd.DataFrame(columns=columns)
+    subset = frame[available].copy()
+    for column in columns:
+        if column not in subset.columns:
+            subset[column] = None
+    return subset.loc[:, columns]
 
 
 def _required_production_inputs(paths: PathConfig) -> list[Path]:
@@ -359,9 +380,9 @@ def _build_portfolio_snapshot(
         "holdings_normalized.csv",
     )
     portfolio_summary = _safe_json_load(latest_root / "portfolio_summary.json") or {}
-    holdings = _safe_semicolon_csv(latest_root / "holdings_normalized.csv")
-    valuation = _safe_semicolon_csv(latest_root / "valuation_summary.csv")
-    screener = _safe_semicolon_csv(latest_root / "screener.csv")
+    holdings = _load_runtime_backed_semicolon_csv(latest_root / "holdings_normalized.csv", "portfolio_priors:holdings_normalized")
+    valuation = _load_runtime_backed_semicolon_csv(latest_root / "valuation_summary.csv", "portfolio_priors:valuation_summary")
+    screener = _load_runtime_backed_semicolon_csv(latest_root / "screener.csv", "portfolio_priors:screener")
     simulation = _safe_semicolon_csv(latest_root / "simulation_summary.csv")
     workbook_meta = _read_workbook_meta(latest_root / "portfolio_snapshot.xlsx")
 
@@ -385,11 +406,24 @@ def _build_portfolio_snapshot(
                 screener[column] = pd.to_numeric(screener[column], errors="coerce")
 
     merged_holdings = holdings.merge(
-        valuation[["ticker", "fair_value", "upside", "confidence"]].copy(),
+        _frame_columns(valuation, ["ticker", "fair_value", "upside", "confidence"]),
         on="ticker",
         how="left",
     ).merge(
-        screener[["ticker", "composite_score", "quality_score", "value_score", "risk_score", "momentum_6m", "thesis_bucket", "suggested_position", "analyst_consensus"]].copy(),
+        _frame_columns(
+            screener,
+            [
+                "ticker",
+                "composite_score",
+                "quality_score",
+                "value_score",
+                "risk_score",
+                "momentum_6m",
+                "thesis_bucket",
+                "suggested_position",
+                "analyst_consensus",
+            ],
+        ),
         on="ticker",
         how="left",
     )
@@ -968,6 +1002,9 @@ def load_cached_snapshot(paths: PathConfig, dashboard_settings: DashboardSetting
         payload = _safe_remote_json_load(remote_url)
         if payload is not None:
             return payload
+    persisted_snapshot = load_runtime_snapshot("dashboard/latest")
+    if persisted_snapshot is not None:
+        return persisted_snapshot
     persisted = load_runtime_document("dashboard_snapshot")
     if persisted is not None:
         return persisted
