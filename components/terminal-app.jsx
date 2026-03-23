@@ -1513,9 +1513,9 @@ function RecoverabilityMapRail({ map, filterId, onFilterChange }) {
     <section className="decision-panel recoverability-panel">
       <div className="decision-panel-header">
         <div>
-          <p className="panel-kicker">Recoverability map</p>
-          <h2>{map?.headline || "Recoverability map"}</h2>
-          <p>{map?.subhead || "Read holdings and ideas by recoverability and phantom rebound risk."}</p>
+          <p className="panel-kicker">Market map</p>
+          <h2>{map?.headline || "Market map"}</h2>
+          <p>{map?.subhead || "See which holdings and ideas look steadier, and which ones still need a cleaner setup."}</p>
         </div>
       </div>
 
@@ -2007,16 +2007,16 @@ function RecoverabilityMapPanel({ map }) {
     <section className="decision-surface map-surface">
       <div className="surface-heading compact">
         <div>
-          <p className="panel-kicker">Recoverability Map</p>
-          <h2>{map?.title || "Recoverability Map"}</h2>
+          <p className="panel-kicker">Market map</p>
+          <h2>{map?.title || "Market map"}</h2>
         </div>
       </div>
       <p className="surface-summary">
-        Holdings, watch ideas, and blocked temptations are plotted by recoverability contribution and phantom rebound risk.
+        Holdings, watch ideas, and blocked ideas are plotted by downside resilience and rebound risk.
       </p>
 
       <div className="recoverability-map-shell">
-        <svg className="recoverability-map" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Recoverability map">
+        <svg className="recoverability-map" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Market map">
           <path className="recoverability-axis" d={`M ${padding} ${height - padding} L ${width - padding} ${height - padding}`} />
           <path className="recoverability-axis" d={`M ${padding} ${height - padding} L ${padding} ${padding}`} />
           {safeList(map?.points).map((point) => {
