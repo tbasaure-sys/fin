@@ -1,0 +1,239 @@
+.page {
+  position: relative;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 24% 18%, rgba(248, 200, 111, 0.14), transparent 28%),
+    radial-gradient(circle at 78% 12%, rgba(122, 210, 194, 0.1), transparent 26%),
+    linear-gradient(180deg, #071018 0%, #09131d 100%);
+}
+
+.page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.014) 1px, transparent 1px);
+  background-size: 100% 88px, 88px 100%;
+}
+
+.stage {
+  min-height: 100vh;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: clamp(1rem, 2vw, 2rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(380px, 520px);
+  gap: 2rem;
+  align-items: center;
+}
+
+.copy {
+  max-width: 38rem;
+  animation: loginRise 700ms ease both;
+}
+
+.kicker,
+.panelKicker,
+.copyNotes span,
+.field span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.kicker,
+.panelKicker {
+  margin: 0 0 0.7rem;
+}
+
+.wordmark {
+  margin: 0;
+  font-size: clamp(3.2rem, 7vw, 6rem);
+  line-height: 0.9;
+  letter-spacing: -0.08em;
+}
+
+.copy h1 {
+  max-width: 10ch;
+  margin: 0.7rem 0 0;
+  font-size: clamp(2.8rem, 6vw, 4.8rem);
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+}
+
+.support,
+.panelSupport,
+.copyNotes p {
+  margin: 0;
+  color: rgba(214, 225, 241, 0.8);
+  line-height: 1.6;
+}
+
+.support {
+  margin-top: 1rem;
+  max-width: 30rem;
+}
+
+.copyNotes {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.4rem;
+}
+
+.copyNotes article {
+  max-width: 30rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.copyNotes span {
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.panel {
+  position: relative;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(10, 19, 30, 0.94), rgba(8, 15, 24, 0.88)),
+    linear-gradient(90deg, rgba(248, 200, 111, 0.05), transparent 28%, transparent 72%, rgba(122, 210, 194, 0.05));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+  padding: 1.4rem;
+  animation: loginRise 900ms ease both;
+  animation-delay: 80ms;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  line-height: 0.98;
+}
+
+.panelSupport {
+  margin-top: 0.45rem;
+}
+
+.form {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.2rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.field input {
+  width: 100%;
+  min-height: 3rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  padding: 0.8rem 0.95rem;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: rgba(122, 210, 194, 0.35);
+  box-shadow: 0 0 0 4px rgba(122, 210, 194, 0.06);
+}
+
+.error {
+  margin: 0.9rem 0 0;
+  color: #ffc4bc;
+}
+
+.panelFootnote {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.panelFootnote span {
+  color: var(--accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.panelFootnote p {
+  margin: 0.35rem 0 0;
+  color: rgba(214, 225, 241, 0.74);
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.2rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.9rem;
+  padding: 0.78rem 1rem;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.primaryButton:hover,
+.secondaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.primaryButton {
+  border: 1px solid rgba(248, 200, 111, 0.28);
+  background: linear-gradient(180deg, rgba(248, 200, 111, 0.22), rgba(248, 200, 111, 0.1));
+  color: var(--text);
+}
+
+.secondaryButton {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+}
+
+@keyframes loginRise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 980px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+
+  .copy h1 {
+    max-width: 12ch;
+  }
+}
+
+@media (max-width: 760px) {
+  .stage {
+    padding: 1rem;
+  }
+
+  .panel {
+    padding: 1.1rem;
+    border-radius: 24px;
+  }
+}

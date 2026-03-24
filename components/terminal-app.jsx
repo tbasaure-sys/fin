@@ -1,199 +1,52 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 
-const PORTFOLIO_RANGES = ["1D", "1W", "1M", "YTD", "ALL"];
+import {
+  PORTFOLIO_RANGES,
+  actionTone,
+  capitalize,
+  filterPortfolioSeries,
+  formatCurrency,
+  formatDate,
+  formatDateTime,
+  formatPct,
+  renderInlineItem,
+  formatSignedPct,
+  formatSize,
+  parseDisplayPercent,
+  responseTone,
+  safeList,
+  statusTone,
+} from "@/components/workspace/formatters";
+import { parseResponse, useWorkspaceLiveData } from "@/components/workspace/live-data";
+import styles from "@/components/workspace/shell.module.css";
 
-function sleep(ms) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
-}
-
-function formatPct(value, digits = 1) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return value || "-";
-  return `${(number * 100).toFixed(digits)}%`;
-}
-
-function formatSignedPct(value, digits = 1) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return value || "-";
-  const prefix = number > 0 ? "+" : "";
-  return `${prefix}${(number * 100).toFixed(digits)}%`;
-}
-
-function formatCurrency(value) {
-  const number = Number(value);
-  if (!Number.isFinite(number)) return "-";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: number >= 1000 ? 0 : 2,
-  }).format(number);
-}
-
-function formatDateTime(value) {
-  if (!value) return "No timestamp";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString([], {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-function formatDate(value) {
-  if (!value) return "No expiry";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString([], {
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatSize(action) {
-  if (!action) return "-";
-  if (Number.isFinite(Number(action.sizeValue))) return formatPct(Number(action.sizeValue));
-  return action.sizeLabel || "-";
-}
-
-function capitalize(value, fallback = "Unknown") {
-  const text = String(value || "").trim();
-  if (!text) return fallback;
-  return text.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
-
-function actionToneClass(action) {
-  if (!action) return "is-neutral";
-  if (action.status === "blocked") return "is-bad";
-  const tone = String(action.tone || "").toLowerCase();
-  if (["add", "buy", "quality", "good"].includes(tone)) return "is-good";
-  if (["trim", "hedge", "hold", "watch"].includes(tone)) return "is-warn";
-  return "is-neutral";
-}
-
-function statusToneClass(status) {
-  const value = String(status || "").toLowerCase();
-  if (["ready", "executed", "live", "fresh"].includes(value)) return "is-good";
-  if (["staged", "briefing", "medium", "stale", "aging"].includes(value)) return "is-warn";
-  if (["revoked", "cancelled", "expired", "high", "down"].includes(value)) return "is-bad";
-  if (["low"].includes(value)) return "is-low";
-  return "is-neutral";
-}
-
-function responseToneClass(response) {
-  const value = String(response || "").toLowerCase();
-  if (["staged", "executed"].includes(value)) return "is-good";
-  if (["deferred", "noted"].includes(value)) return "is-warn";
-  if (["rejected", "cancelled"].includes(value)) return "is-bad";
-  return "is-neutral";
-}
-
-function safeList(value) {
-  return Array.isArray(value) ? value.filter(Boolean) : [];
-}
-
-function renderInlineItem(item) {
-  if (item === null || item === undefined) return "";
-  if (typeof item === "string" || typeof item === "number") return String(item);
-  if (typeof item === "object") {
-    const label = String(item.label || item.title || item.name || "").trim();
-    const value = String(item.value || item.meaning || item.detail || "").trim();
-    if (label && value) return `${label}: ${value}`;
-    if (label) return label;
-    if (value) return value;
-  }
-  return String(item);
-}
-
-function parseDisplayPercent(value) {
-  if (value === null || value === undefined) return null;
-  const text = String(value).trim();
-  if (!text) return null;
-  if (text.endsWith("%")) {
-    const parsed = Number.parseFloat(text);
-    return Number.isFinite(parsed) ? parsed / 100 : null;
-  }
-  const parsed = Number(text);
-  if (!Number.isFinite(parsed)) return null;
-  return Math.abs(parsed) > 1 ? parsed / 100 : parsed;
-}
-
-async function parseResponse(response) {
-  let payload = null;
-  try {
-    payload = await response.json();
-  } catch {
-    payload = null;
-  }
-
-  if (!response.ok) {
-    const message = payload?.error || payload?.message || `Request failed with status ${response.status}`;
-    throw new Error(message);
-  }
-
-  return payload;
-}
-
-function StateChip({ label, value, tone = "is-neutral" }) {
+function ToneBadge({ tone = "neutral", children }) {
   return (
-    <div className={`state-chip ${tone}`}>
-      <span>{label}</span>
-      <strong>{value || "-"}</strong>
-    </div>
+    <span className={styles.badge} data-tone={tone}>
+      {children}
+    </span>
   );
 }
 
-function WorkspaceDebugRail({ session, dashboard, portfolioModule }) {
-  const holdingsSource = dashboard?.data_control?.holdingsSource || portfolioModule?.holdingsSource || {};
-  const analytics = portfolioModule?.analytics || {};
-  const syncLabel = portfolioModule?.holdingsSync?.label || dashboard?.portfolio_state?.holdings_sync_label || "-";
-
+function MetricTile({ label, value, detail, tone = "neutral" }) {
   return (
-    <section className="workspace-debug-rail" aria-label="Workspace diagnostics">
-      <div className="workspace-debug-header">
-        <span className="support-label">Current session</span>
-        <strong>Live routing diagnostics</strong>
-      </div>
-      <div className="workspace-debug-grid">
-        <article>
-          <span>User</span>
-          <strong>{session?.user?.email || session?.user?.name || "-"}</strong>
-        </article>
-        <article>
-          <span>Workspace id</span>
-          <strong>{dashboard?.workspace_summary?.id || session?.workspace?.id || "-"}</strong>
-        </article>
-        <article>
-          <span>Holdings source</span>
-          <strong>{holdingsSource?.label || holdingsSource?.source || "No holdings source"}</strong>
-        </article>
-        <article>
-          <span>Sync</span>
-          <strong>{syncLabel}</strong>
-        </article>
-        <article>
-          <span>Holdings count</span>
-          <strong>{analytics?.holdingsCount ?? dashboard?.portfolio_state?.holdings_count ?? 0}</strong>
-        </article>
-        <article>
-          <span>Market data</span>
-          <strong>{dashboard?.workspace_summary?.market_data_label || "-"}</strong>
-        </article>
-      </div>
-    </section>
+    <article className={styles.metricTile} data-tone={tone}>
+      <span>{label}</span>
+      <strong>{value || "-"}</strong>
+      {detail ? <small>{detail}</small> : null}
+    </article>
   );
 }
 
 function InlineList({ items, emptyLabel }) {
   const values = safeList(items);
-  if (!values.length) return <p className="panel-empty">{emptyLabel}</p>;
+  if (!values.length) return <p className={styles.emptyCopy}>{emptyLabel}</p>;
 
   return (
-    <ul className="inline-list">
+    <ul className={styles.inlineList}>
       {values.map((item, index) => (
         <li key={`${renderInlineItem(item)}-${index}`}>{renderInlineItem(item)}</li>
       ))}
@@ -201,236 +54,102 @@ function InlineList({ items, emptyLabel }) {
   );
 }
 
-function parseSeriesDate(value) {
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? null : date;
+function RangeTabs({ value, onChange }) {
+  return (
+    <div className={styles.rangeTabs} role="tablist" aria-label="Portfolio range">
+      {PORTFOLIO_RANGES.map((option) => (
+        <button
+          key={option}
+          className={styles.rangeButton}
+          data-active={value === option}
+          onClick={() => onChange(option)}
+          type="button"
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  );
 }
 
-function filterPortfolioSeries(series, range) {
-  const rows = safeList(series);
-  if (!rows.length) return [];
-  if (range === "1D") return rows.slice(-2);
-  if (range === "1W") return rows.slice(-5);
-  if (range === "1M") return rows.slice(-22);
-  if (range === "YTD") {
-    const currentYear = new Date().getFullYear();
-    const filtered = rows.filter((row) => parseSeriesDate(row.date)?.getFullYear() === currentYear);
-    return filtered.length ? filtered : rows.slice(-60);
-  }
-  return rows;
-}
-
-function buildLinePath(points, width, height, padding) {
-  if (!points.length) return "";
-  const values = points.map((point) => point.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const safeRange = max - min || 1;
-
-  return points
-    .map((point, index) => {
-      const x = padding + ((width - (padding * 2)) * index) / Math.max(points.length - 1, 1);
-      const y = height - padding - (((point.value - min) / safeRange) * (height - (padding * 2)));
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
-    })
-    .join(" ");
-}
-
-function hasUsableBenchmarkSeries(points) {
-  if (!Array.isArray(points) || points.length < 2) return false;
-  const values = points.map((point) => Number(point?.value)).filter(Number.isFinite);
-  if (values.length < 3) return false;
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  return max > 0 && (max - min) > 0.0005;
-}
-
-function PortfolioMiniChart({ series, benchmarkSymbol }) {
-  const width = 460;
-  const height = 200;
+function PortfolioChart({ series, benchmarkSymbol }) {
+  const width = 640;
+  const height = 220;
   const padding = 18;
   const rows = safeList(series);
-
   const portfolioPoints = rows
     .map((row) => ({ date: row.date, value: Number(row.portfolio) }))
     .filter((row) => Number.isFinite(row.value));
   const benchmarkPoints = rows
     .map((row) => ({ date: row.date, value: Number(row.benchmark) }))
     .filter((row) => Number.isFinite(row.value));
-  const showBenchmark = hasUsableBenchmarkSeries(benchmarkPoints);
 
   if (portfolioPoints.length < 2) {
-    return <p className="panel-empty">Portfolio history is still limited.</p>;
+    return <p className={styles.emptyCopy}>Portfolio history is still limited. Stored snapshots will populate this chart.</p>;
   }
 
-  const portfolioPath = buildLinePath(portfolioPoints, width, height, padding);
-  const benchmarkPath = showBenchmark ? buildLinePath(benchmarkPoints, width, height, padding) : "";
-  const latestPortfolio = portfolioPoints[portfolioPoints.length - 1];
+  const values = portfolioPoints.map((point) => point.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const safeRange = max - min || 1;
+
+  const buildPath = (points) => points
+    .map((point, index) => {
+      const x = padding + ((width - (padding * 2)) * index) / Math.max(points.length - 1, 1);
+      const y = height - padding - (((point.value - min) / safeRange) * (height - (padding * 2)));
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  const latest = portfolioPoints[portfolioPoints.length - 1];
+  const latestX = padding + ((width - (padding * 2)) * (portfolioPoints.length - 1)) / Math.max(portfolioPoints.length - 1, 1);
+  const latestY = height - padding - (((latest.value - min) / safeRange) * (height - (padding * 2)));
+  const hasBenchmark = benchmarkPoints.length >= 3;
 
   return (
-    <div className="portfolio-hero-chart">
-      <svg className="portfolio-hero-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Portfolio performance chart">
+    <div className={styles.chartBlock}>
+      <svg className={styles.chart} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Portfolio performance">
         <defs>
-          <linearGradient id="portfolioHeroLine" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(248, 200, 111, 0.85)" />
-            <stop offset="100%" stopColor="rgba(122, 210, 194, 1)" />
+          <linearGradient id="workspaceChartLine" x1="0%" x2="100%" y1="0%" y2="0%">
+            <stop offset="0%" stopColor="rgba(248, 200, 111, 0.95)" />
+            <stop offset="100%" stopColor="rgba(122, 210, 194, 0.95)" />
           </linearGradient>
         </defs>
-        <path className="portfolio-hero-gridline" d={`M ${padding} ${height - padding} L ${width - padding} ${height - padding}`} />
-        {benchmarkPath ? <path className="portfolio-hero-benchmark" d={benchmarkPath} /> : null}
-        <path className="portfolio-hero-line" d={portfolioPath} />
-        <circle
-          className="portfolio-hero-point"
-          cx={padding + ((width - (padding * 2)) * (portfolioPoints.length - 1)) / Math.max(portfolioPoints.length - 1, 1)}
-          cy={(() => {
-            const values = portfolioPoints.map((point) => point.value);
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            const safeRange = max - min || 1;
-            return height - padding - (((latestPortfolio.value - min) / safeRange) * (height - (padding * 2)));
-          })()}
-          r="4"
-        />
+        <path className={styles.chartGrid} d={`M ${padding} ${height - padding} L ${width - padding} ${height - padding}`} />
+        {hasBenchmark ? <path className={styles.chartBenchmark} d={buildPath(benchmarkPoints)} /> : null}
+        <path className={styles.chartLine} d={buildPath(portfolioPoints)} />
+        <circle className={styles.chartPoint} cx={latestX} cy={latestY} r="4" />
       </svg>
 
-      <div className="portfolio-hero-legend">
-        <span><i className="legend-swatch is-portfolio" />Your portfolio</span>
-        {showBenchmark ? <span><i className="legend-swatch is-benchmark" />{benchmarkSymbol || "SPY"}</span> : null}
+      <div className={styles.chartLegend}>
+        <span><i className={styles.legendSwatch} data-series="portfolio" />Portfolio</span>
+        {hasBenchmark ? <span><i className={styles.legendSwatch} data-series="benchmark" />{benchmarkSymbol || "SPY"}</span> : null}
       </div>
     </div>
   );
 }
 
-function PortfolioHoldingsSpotlight({ portfolioModule }) {
-  const portfolio = portfolioModule || {};
-  const holdings = safeList(portfolio.holdings).slice(0, 6);
-  const sectors = safeList(portfolio?.charts?.sectorExposure).slice(0, 4);
-  const analytics = portfolio.analytics || {};
-
-  if (!holdings.length) return null;
-
-  const shownWeight = holdings.reduce((sum, holding) => sum + (parseDisplayPercent(holding.weight) || 0), 0);
+function AlertsPanel({ alerts }) {
+  const values = safeList(alerts);
+  if (!values.length) return null;
 
   return (
-    <section className="portfolio-spotlight" aria-label="Portfolio holdings overview">
-      <div className="portfolio-spotlight-header">
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
         <div>
-          <span className="support-label">Composition</span>
-          <h3>What is carrying the book today.</h3>
-        </div>
-        <span className="info-chip">
-          {holdings.length} of {analytics.holdingsCount || holdings.length} shown
-        </span>
-      </div>
-
-      <div className="portfolio-spotlight-grid">
-        <div className="portfolio-spotlight-stack" role="list" aria-label="Largest positions">
-          {holdings.map((holding, index) => {
-            const weightValue = parseDisplayPercent(holding.weight);
-            const width = `${Math.max(16, Math.round((weightValue || 0.06) * 100))}%`;
-
-            return (
-              <article className="portfolio-spotlight-holding" key={holding.ticker} role="listitem">
-                <div className="portfolio-spotlight-meter" aria-hidden="true">
-                  <span style={{ width }} />
-                </div>
-                <div className="portfolio-spotlight-main">
-                  <div className="portfolio-spotlight-symbol">
-                    <strong>{holding.ticker}</strong>
-                    <span>{holding.sector || "Unclassified"}</span>
-                  </div>
-                  <div className="portfolio-spotlight-meta">
-                    <strong>{holding.weight || "-"}</strong>
-                    <span>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "Value unavailable"}</span>
-                  </div>
-                </div>
-                <div className="portfolio-spotlight-rank" aria-label={`Rank ${index + 1}`}>
-                  0{index + 1}
-                </div>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className="portfolio-spotlight-sidebar">
-          <div className="portfolio-spotlight-panel">
-            <span className="support-label">Sector balance</span>
-            <div className="portfolio-sector-list">
-              {sectors.length ? sectors.map((sector) => (
-                <div className="portfolio-sector-row" key={sector.label}>
-                  <div className="portfolio-sector-copy">
-                    <strong>{sector.label}</strong>
-                    <span>{formatPct(sector.value || 0)}</span>
-                  </div>
-                  <div className="portfolio-sector-track" aria-hidden="true">
-                    <span style={{ width: `${Math.max(10, Math.round((sector.normalized || sector.value || 0) * 100))}%` }} />
-                  </div>
-                </div>
-              )) : <p className="panel-empty">Sector balance unavailable.</p>}
-            </div>
-          </div>
-
-          <div className="portfolio-spotlight-panel">
-            <span className="support-label">Reading</span>
-            <p className="portfolio-spotlight-note">
-              The largest visible positions represent {formatPct(shownWeight)} of the current book
-              {analytics.totalValueUsd ? ` across ${formatCurrency(analytics.totalValueUsd)} in tracked value.` : "."}
-            </p>
-          </div>
+          <p className={styles.kicker}>Alerts</p>
+          <h2>What needs attention now</h2>
         </div>
       </div>
-    </section>
-  );
-}
 
-function PortfolioHoldingsTable({ portfolioModule }) {
-  const portfolio = portfolioModule || {};
-  const holdings = safeList(portfolio.holdings);
-
-  if (!holdings.length) {
-    return (
-      <section className="portfolio-holdings-table" aria-label="All holdings">
-        <div className="portfolio-holdings-table-head">
-          <div>
-            <span className="support-label">All holdings</span>
-            <h3>Your full book will appear here.</h3>
-          </div>
-        </div>
-        <p className="panel-empty">Add a trade note or sync your private holdings to start building the list.</p>
-      </section>
-    );
-  }
-
-  return (
-    <section className="portfolio-holdings-table" aria-label="All holdings">
-      <div className="portfolio-holdings-table-head">
-        <div>
-          <span className="support-label">All holdings</span>
-          <h3>Everything currently in the book.</h3>
-        </div>
-        <span className="info-chip">{holdings.length} positions</span>
-      </div>
-
-      <div className="portfolio-holdings-table-grid" role="table" aria-label="Holdings table">
-        <div className="portfolio-holdings-table-row is-head" role="row">
-          <span role="columnheader">Ticker</span>
-          <span role="columnheader">Role</span>
-          <span role="columnheader">Weight</span>
-          <span role="columnheader">Value</span>
-          <span role="columnheader">Price</span>
-        </div>
-        {holdings.map((holding) => (
-          <article className="portfolio-holdings-table-row" key={`holding-row-${holding.ticker}`} role="row">
-            <div className="holding-table-symbol" role="cell">
-              <strong>{holding.ticker}</strong>
-              <span>{holding.sector || holding.assetType || "Holding"}</span>
+      <div className={styles.alertStack}>
+        {values.map((alert) => (
+          <article className={styles.alertRow} key={alert.id}>
+            <ToneBadge tone={statusTone(alert.severity)}>{capitalize(alert.severity)}</ToneBadge>
+            <div>
+              <strong>{alert.title}</strong>
+              <p>{alert.body}</p>
             </div>
-            <div className="holding-table-role" role="cell">
-              <span>{holding.thesisBucket || holding.industry || "Core exposure"}</span>
-            </div>
-            <strong role="cell">{holding.weight || "-"}</strong>
-            <strong role="cell">{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "-"}</strong>
-            <span role="cell">{holding.currentPriceUsd ? formatCurrency(holding.currentPriceUsd) : "-"}</span>
           </article>
         ))}
       </div>
@@ -438,280 +157,59 @@ function PortfolioHoldingsTable({ portfolioModule }) {
   );
 }
 
-function PortfolioHero({ portfolioModule, range, onRangeChange }) {
-  const portfolio = portfolioModule || {};
-  const analytics = portfolio.analytics || {};
-  const chartSeries = filterPortfolioSeries(portfolio?.charts?.growthComparison, range);
-  const topHoldings = safeList(portfolio.holdings).slice(0, 6);
-  const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis unavailable";
-  const comparisonLabel = analytics.hasBenchmarkHistory
-    ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}`
-    : "Benchmark comparison needs more stored history.";
-  const performanceNarrative = analytics.hasPerformanceHistory
-    ? `Live performance is based on ${analytics.historySessions} stored portfolio snapshots.`
-    : `Current gain is ${currentGainLabel}. The app needs more stored sessions before performance and benchmark comparisons are reliable.`;
-
-  return (
-    <section className="workspace-portfolio-hero">
-      <div className="card-header-row">
-        <div>
-          <p className="panel-kicker">Your portfolio</p>
-          <h2>{analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "Portfolio connected"}</h2>
-        </div>
-        <div className="chip-row">
-          <span className="info-chip">{analytics.holdingsCount || 0} holdings</span>
-          <span className="info-chip">{portfolio.chartSource || "Portfolio data loading"}</span>
-        </div>
-      </div>
-
-      <div className="portfolio-hero-summary">
-        <div className="portfolio-metric">
-          <span>Annualized return</span>
-          <strong>{analytics.hasPerformanceHistory ? analytics.annualReturnLabel : "History limited"}</strong>
-          <small>{analytics.hasPerformanceHistory ? "Based on stored snapshots" : currentGainLabel}</small>
-        </div>
-        <div className="portfolio-metric">
-          <span>Since tracking started</span>
-          <strong>{analytics.totalReturnLabel || "History limited"}</strong>
-          <small>{analytics.historySessions ? `${analytics.historySessions} stored observations` : "Holdings are connected"}</small>
-        </div>
-        <div className="portfolio-metric">
-          <span>vs {analytics.benchmarkSymbol || "SPY"}</span>
-          <strong>{analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Benchmark limited"}</strong>
-          <small>{comparisonLabel}</small>
-        </div>
-      </div>
-
-      <div className="portfolio-hero-main">
-        <div className="portfolio-hero-chart-shell">
-          <div className="portfolio-range-row" role="tablist" aria-label="Portfolio ranges">
-            {PORTFOLIO_RANGES.map((option) => (
-              <button
-                key={option}
-                className={`range-chip ${range === option ? "is-active" : ""}`}
-                onClick={() => onRangeChange(option)}
-                type="button"
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-
-          <PortfolioMiniChart series={chartSeries} benchmarkSymbol={analytics.benchmarkSymbol} />
-          <p className="portfolio-hero-note">{performanceNarrative}</p>
-        </div>
-
-        <div className="portfolio-hero-sidecard">
-          <div className="portfolio-side-head">
-            <div>
-              <span className="support-label">Largest positions</span>
-              <h3>What is driving the book.</h3>
-            </div>
-            <span className="info-chip">{topHoldings.length} shown</span>
-          </div>
-
-          {topHoldings.length ? (
-            <div className="portfolio-hero-holding-list" role="list" aria-label="Largest positions">
-              {topHoldings.map((holding) => (
-                <article className="portfolio-hero-holding-row" key={`hero-${holding.ticker}`} role="listitem">
-                  <div className="portfolio-hero-holding-copy">
-                    <strong>{holding.ticker}</strong>
-                    <span>{holding.sector || "Holding"}</span>
-                  </div>
-                  <div className="portfolio-hero-holding-meta">
-                    <strong>{holding.weight || "-"}</strong>
-                    <span>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "Value unavailable"}</span>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className="panel-empty">No holdings loaded.</p>
-          )}
-
-          <div className="portfolio-hero-side-note">
-            <span className="support-label">Benchmark status</span>
-            <p>{comparisonLabel}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ActionCard({
-  action,
-  label,
-  description,
-  showControls,
-  pendingKey,
-  onStage,
-  onDefer,
-  onReject,
-}) {
-  if (!action) {
-    return (
-      <article className="workspace-card action-card action-card-empty">
-        <p className="panel-kicker">{label}</p>
-        <h3>No action surfaced</h3>
-        <p className="panel-empty">{description}</p>
-      </article>
-    );
-  }
-
-  const metaLines = [
-    `Size ${formatSize(action)}`,
-    action.funding ? `Funding ${action.funding}` : null,
-    action.sourceLabel ? `Source ${action.sourceLabel}` : null,
-  ].filter(Boolean);
-
-  return (
-    <article className={`workspace-card action-card ${actionToneClass(action)}`}>
-      <div className="card-header-row">
-        <div>
-          <p className="panel-kicker">{label}</p>
-          <h3>{action.title}</h3>
-        </div>
-        <span className={`status-pill ${statusToneClass(action.status)}`}>
-          {capitalize(action.status === "allowed" ? action.slot : action.status)}
-        </span>
-      </div>
-
-      <p className="card-summary">{action.summary || description}</p>
-
-      <div className="chip-row">
-        {action.ticker ? <span className="info-chip">{action.ticker}</span> : null}
-        {metaLines.map((item) => (
-          <span className="info-chip" key={item}>{item}</span>
-        ))}
-      </div>
-
-      {action.whyNow ? (
-        <div className="support-block">
-          <span className="support-label">Why now</span>
-          <p>{action.whyNow}</p>
-        </div>
-      ) : null}
-
-      {safeList(action.effects).length ? (
-        <div className="support-block">
-          <span className="support-label">Likely effects</span>
-          <InlineList items={safeList(action.effects).slice(0, 3)} emptyLabel="" />
-        </div>
-      ) : null}
-
-      {safeList(action.evidenceLines).length ? (
-        <div className="support-block">
-          <span className="support-label">Evidence</span>
-          <InlineList items={safeList(action.evidenceLines).slice(0, 3)} emptyLabel="" />
-        </div>
-      ) : null}
-
-      {showControls ? (
-        <div className="action-controls">
-          <button
-            className="primary-button"
-            disabled={pendingKey !== null}
-            onClick={() => onStage(action)}
-            type="button"
-          >
-            {pendingKey === "stage" ? "Staging..." : "Stage"}
-          </button>
-          <button
-            className="ghost-button"
-            disabled={pendingKey !== null}
-            onClick={() => onDefer(action)}
-            type="button"
-          >
-            {pendingKey === "defer" ? "Saving..." : "Not now"}
-          </button>
-          <button
-            className="text-button"
-            disabled={pendingKey !== null}
-            onClick={() => onReject(action)}
-            type="button"
-          >
-            {pendingKey === "reject" ? "Saving..." : "Pass"}
-          </button>
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
-function TodayDecisionPanel({
-  stateSummary,
-  primaryAction,
-  blockedAction,
-  pendingKey,
-  onStage,
-  onDefer,
-  onReject,
-}) {
+function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendingKey, onStage, onDefer, onReject }) {
   const activeAction = primaryAction || blockedAction || null;
   const isBlocked = !primaryAction && Boolean(blockedAction);
+  const title = primaryAction?.title || blockedAction?.title || stateSummary?.stance || "Hold the line";
 
   return (
-    <section className="workspace-card decision-focus-card">
-      <div className="card-header-row">
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
         <div>
-          <p className="panel-kicker">Today&apos;s call</p>
-          <h3>{primaryAction?.title || blockedAction?.title || stateSummary?.stance || "Hold the line"}</h3>
+          <p className={styles.kicker}>Today&apos;s call</p>
+          <h2>{title}</h2>
         </div>
-        <span className={`status-pill ${statusToneClass(isBlocked ? "briefing" : (primaryAction?.status || "ready"))}`}>
+        <ToneBadge tone={statusTone(isBlocked ? "briefing" : (primaryAction?.status || "ready"))}>
           {isBlocked ? "Wait" : "Actionable"}
-        </span>
+        </ToneBadge>
       </div>
 
-      <p className="card-summary">
+      <p className={styles.lead}>
         {primaryAction?.summary || blockedAction?.summary || stateSummary?.decisionSummary || "No new legitimate move is open right now."}
       </p>
 
-      <div className="decision-focus-grid">
-        <article>
-          <span className="support-label">What to do now</span>
-          <strong>{primaryAction?.title || "Protect capital and keep flexibility."}</strong>
-          <p>{primaryAction?.whyNow || stateSummary?.decisionSummary || "Wait for a cleaner setup before widening risk."}</p>
-        </article>
-        <article>
-          <span className="support-label">Why</span>
-          <p>{primaryAction?.whyNow || blockedAction?.whyNow || blockedAction?.summary || "The current structure still does not justify broader risk."}</p>
-        </article>
-        <article>
-          <span className="support-label">Size</span>
-          <strong>{activeAction ? formatSize(activeAction) : "No change"}</strong>
-          <p>{activeAction?.funding || "Preserve current sizing until the setup improves."}</p>
-        </article>
-        <article>
-          <span className="support-label">What would change this</span>
-          <p>{primaryAction?.watchFor || blockedAction?.watchFor || "A stronger recoverability read and cleaner breadth confirmation."}</p>
-        </article>
+      <div className={styles.decisionGrid}>
+        <MetricTile
+          detail={primaryAction?.whyNow || stateSummary?.decisionSummary || "Wait for a cleaner setup before widening risk."}
+          label="What to do"
+          value={primaryAction?.title || "Protect capital"}
+        />
+        <MetricTile
+          detail={primaryAction?.watchFor || blockedAction?.watchFor || "A stronger recoverability read and cleaner breadth confirmation."}
+          label="What changes it"
+          value={activeAction ? formatSize(activeAction) : "No size change"}
+        />
+        <MetricTile
+          detail={activeAction?.funding || "Preserve current sizing until the setup improves."}
+          label="Funding"
+          value={activeAction?.funding || "No funding change"}
+        />
+        <MetricTile
+          detail={blockedAction?.summary || "The current structure still does not justify broader risk."}
+          label="Why now"
+          value={stateSummary?.stance || "Selective posture"}
+        />
       </div>
 
       {primaryAction ? (
-        <div className="action-controls">
-          <button
-            className="primary-button"
-            disabled={pendingKey !== null}
-            onClick={() => onStage(primaryAction)}
-            type="button"
-          >
+        <div className={styles.buttonRow}>
+          <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={() => onStage(primaryAction)} type="button">
             {pendingKey === `stage:${primaryAction.id}` ? "Staging..." : "Stage"}
           </button>
-          <button
-            className="ghost-button"
-            disabled={pendingKey !== null}
-            onClick={() => onDefer(primaryAction)}
-            type="button"
-          >
+          <button className={styles.secondaryButton} disabled={pendingKey !== null} onClick={() => onDefer(primaryAction)} type="button">
             {pendingKey === `deferred:${primaryAction.id}` ? "Saving..." : "Not now"}
           </button>
-          <button
-            className="text-button"
-            disabled={pendingKey !== null}
-            onClick={() => onReject(primaryAction)}
-            type="button"
-          >
+          <button className={styles.textButton} disabled={pendingKey !== null} onClick={() => onReject(primaryAction)} type="button">
             {pendingKey === `rejected:${primaryAction.id}` ? "Saving..." : "Pass"}
           </button>
         </div>
@@ -720,1357 +218,191 @@ function TodayDecisionPanel({
   );
 }
 
-function StagedActionsPanel({ escrow, pendingKey, onExecuteEscrow, onCancelEscrow }) {
-  const items = safeList(escrow?.items).slice(0, 3);
+function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
+  const portfolio = portfolioModule || {};
+  const analytics = portfolio.analytics || {};
+  const holdings = safeList(portfolio.holdings);
+  const topHoldings = holdings.slice(0, 5);
+  const chartSeries = filterPortfolioSeries(portfolio?.charts?.growthComparison, range);
+  const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis unavailable";
 
   return (
-    <section className="workspace-card compact-surface-card">
-      <div className="card-header-row">
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
         <div>
-          <p className="panel-kicker">Staged</p>
-          <h3>{items.length ? `${items.length} staged actions` : "Nothing staged"}</h3>
+          <p className={styles.kicker}>Portfolio</p>
+          <h2>{analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "Portfolio connected"}</h2>
+        </div>
+        <div className={styles.headerMeta}>
+          <ToneBadge tone={holdings.length ? "good" : "warn"}>{analytics.holdingsCount || holdings.length} holdings</ToneBadge>
+          <ToneBadge tone="neutral">{portfolio.chartSource || "Portfolio data loading"}</ToneBadge>
         </div>
       </div>
 
-      {items.length ? (
-        <div className="compact-list">
-          {items.map((item) => (
-            <article className="compact-list-item" key={item.id}>
-              <div>
-                <strong>{item.title}</strong>
-                <p>{item.summary || item.slot || "Ready when you are."}</p>
-              </div>
-              <div className="compact-list-actions">
-                <button
-                  className="ghost-button"
-                  disabled={pendingKey !== null}
-                  onClick={() => onExecuteEscrow(item)}
-                  type="button"
-                >
-                  {pendingKey === `execute:${item.id}` ? "Executing..." : "Execute"}
-                </button>
-                <button
-                  className="text-button"
-                  disabled={pendingKey !== null}
-                  onClick={() => onCancelEscrow(item)}
-                  type="button"
-                >
-                  {pendingKey === `cancel:${item.id}` ? "Updating..." : "Cancel"}
-                </button>
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="panel-empty">Nothing is staged yet. Save a move here when you want to prepare it before acting.</p>
-      )}
-    </section>
-  );
-}
-
-function WatchlistIdeasPanel({ actions, backendStatus, lastUpdatedLabel }) {
-  const items = safeList(actions).slice(0, 4);
-  const rebuilding = backendStatus === "briefing" || backendStatus === "stale";
-
-  return (
-    <section className="workspace-card compact-surface-card">
-      <div className="card-header-row">
-        <div>
-          <p className="panel-kicker">Watch next</p>
-          <h3>{items.length ? "Ideas to keep warm" : rebuilding ? "Fresh ideas are on the way" : "No fresh ideas today"}</h3>
-        </div>
-      </div>
-      {items.length ? (
-        <div className="watchlist-row">
-          {items.map((action) => (
-            <div key={action.id} className="watch-chip">
-              <strong>{action.ticker || action.title}</strong>
-              <span>{action.summary || action.slot || "Watch"}</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="panel-empty">
-          {rebuilding
-            ? `We are refreshing the market view${lastUpdatedLabel ? ` from ${lastUpdatedLabel}` : ""}. New ideas will appear here after the refresh finishes.`
-            : "Nothing new needs attention right now."}
-        </p>
-      )}
-    </section>
-  );
-}
-
-function ActivityPanel({ ledger }) {
-  const items = safeList(ledger?.items).slice(0, 4);
-
-  return (
-    <section className="workspace-card compact-surface-card">
-      <div className="card-header-row">
-        <div>
-          <p className="panel-kicker">Activity</p>
-          <h3>{items.length ? "What happened next" : "No settled outcomes yet"}</h3>
-        </div>
-      </div>
-      {items.length ? (
-        <div className="compact-list">
-          {items.map((item) => (
-            <article className="compact-list-item" key={item.id || item.title}>
-              <div>
-                <strong>{item.title || item.label || "Decision event"}</strong>
-                <p>{item.summary || item.outcome || "Outcome is still settling."}</p>
-              </div>
-              <span className={`status-pill ${responseToneClass(item.userResponse || item.outcomeTone || "noted")}`}>
-                {item.resultLabel || capitalize(item.userResponse, "Noted")}
-              </span>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="panel-empty">Your timeline starts after your first trade note, staged move, or decision.</p>
-      )}
-    </section>
-  );
-}
-
-function EscrowCard({ item, pending, onExecute, onCancel, onToggleAuto }) {
-  const terminal = ["executed", "cancelled", "expired", "revoked"].includes(item.status);
-  const readiness = Math.max(0, Math.min(1, Number(item.readiness || 0)));
-  const readinessLabel = `${Math.round(readiness * 100)}% ready`;
-
-  return (
-    <article className="workspace-card escrow-card">
-      <div className="card-header-row">
-        <div>
-          <p className="panel-kicker">Escrow</p>
-          <h3>{item.title}</h3>
-        </div>
-        <span className={`status-pill ${statusToneClass(item.status)}`}>{capitalize(item.status)}</span>
-      </div>
-
-      <p className="card-summary">{item.summary || "Waiting for state confirmation."}</p>
-
-      <div className="chip-row">
-        {item.ticker ? <span className="info-chip">{item.ticker}</span> : null}
-        <span className="info-chip">Size {formatSize(item)}</span>
-        <span className="info-chip">Expires {formatDate(item.expiresAt)}</span>
-      </div>
-
-      <div className="readiness-row">
-        <div className="readiness-track">
-          <span className="readiness-fill" style={{ width: `${readiness * 100}%` }} />
-        </div>
-        <strong>{readinessLabel}</strong>
-      </div>
-
-      <div className="escrow-details">
-        <div>
-          <span className="support-label">Maturity</span>
-          <InlineList items={safeList(item.maturityConditions).slice(0, 2)} emptyLabel="No maturity condition set." />
-        </div>
-        <div>
-          <span className="support-label">Invalidation</span>
-          <InlineList items={safeList(item.invalidationConditions).slice(0, 2)} emptyLabel="No invalidation condition set." />
-        </div>
-      </div>
-
-      <label className={`toggle-row ${terminal ? "is-disabled" : ""}`}>
-        <input
-          checked={Boolean(item.autoMature)}
-          disabled={terminal || pending}
-          onChange={() => onToggleAuto(item)}
-          type="checkbox"
+      <div className={styles.metricsGrid}>
+        <MetricTile
+          detail={analytics.hasPerformanceHistory ? "Based on stored snapshots" : currentGainLabel}
+          label="Annualized return"
+          value={analytics.hasPerformanceHistory ? analytics.annualReturnLabel : "History limited"}
         />
-        <span>Guarded auto-mature</span>
-      </label>
-
-      {item.autoMature && !terminal ? (
-        <p className="support-note">
-          Auto-mature is armed. The decision will still stay inside size caps and state rules.
-        </p>
-      ) : null}
-
-      {!terminal ? (
-        <div className="action-controls">
-          <button
-            className="primary-button"
-            disabled={pending || item.status !== "ready"}
-            onClick={() => onExecute(item)}
-            type="button"
-          >
-            {pending && item.status === "ready" ? "Executing..." : "Execute"}
-          </button>
-          <button
-            className="ghost-button"
-            disabled={pending}
-            onClick={() => onCancel(item)}
-            type="button"
-          >
-            {pending ? "Updating..." : "Cancel"}
-          </button>
-        </div>
-      ) : null}
-    </article>
-  );
-}
-
-function ActionFrontierPanel({
-  frontier,
-  actionLookup,
-  escrowLookup,
-  pendingKey,
-  onStage,
-  onDefer,
-  onReject,
-  onExecuteEscrow,
-  onCancelEscrow,
-  onSelectStory,
-}) {
-  const lanes = safeList(frontier?.lanes);
-
-  return (
-    <section className="decision-panel frontier-panel">
-      <div className="decision-panel-header">
-        <div>
-          <p className="panel-kicker">Action frontier</p>
-          <h2>{frontier?.headline || "Action frontier"}</h2>
-          <p>{frontier?.subhead || "See what is unlocked, staged, or blocked before you move."}</p>
-        </div>
-        <div className="chip-row">
-          {safeList(frontier?.laneSummary).map((lane) => (
-            <span className="info-chip" key={lane.id}>{lane.label} {lane.count}</span>
-          ))}
-        </div>
+        <MetricTile
+          detail={analytics.historySessions ? `${analytics.historySessions} stored observations` : "Holdings are connected"}
+          label="Since tracking started"
+          value={analytics.totalReturnLabel || "History limited"}
+        />
+        <MetricTile
+          detail={analytics.hasBenchmarkHistory ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "Benchmark comparison needs more stored history."}
+          label={`vs ${analytics.benchmarkSymbol || "SPY"}`}
+          tone={analytics.hasBenchmarkHistory ? "good" : "neutral"}
+          value={analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Benchmark limited"}
+        />
       </div>
 
-      <div className="frontier-lanes">
-        {lanes.map((lane) => (
-          <section className={`frontier-lane lane-${lane.id}`} key={lane.id}>
-            <div className="frontier-lane-header">
-              <div>
-                <span className="support-label">{lane.label}</span>
-                <strong>{safeList(lane.items).length ? `${safeList(lane.items).length} live` : "Empty"}</strong>
-              </div>
+      <div className={styles.portfolioGrid}>
+        <div className={styles.chartPanel}>
+          <RangeTabs onChange={onRangeChange} value={range} />
+          <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
+          <p className={styles.supportText}>
+            {analytics.hasPerformanceHistory
+              ? `Live performance is based on ${analytics.historySessions} stored portfolio snapshots.`
+              : `Current gain is ${currentGainLabel}. The app needs more stored sessions before performance and benchmark comparisons are reliable.`}
+          </p>
+        </div>
+
+        <aside className={styles.sidePanel}>
+          <div className={styles.sidePanelHeader}>
+            <div>
+              <p className={styles.kicker}>Largest positions</p>
+              <h3>What is carrying the book</h3>
             </div>
+            <ToneBadge tone="neutral">{topHoldings.length} shown</ToneBadge>
+          </div>
 
-            <div className="frontier-lane-stack">
-              {safeList(lane.items).length ? safeList(lane.items).map((item) => {
-                const liveAction = item?.id ? actionLookup.get(item.id) : null;
-                const liveEscrow = item?.id ? escrowLookup.get(item.id) : null;
-                return (
-                  <article className={`frontier-card lane-${lane.id}`} key={item.id}>
-                    <div className="frontier-card-head">
-                      <div>
-                        <span className="support-label">{item.laneLabel}</span>
-                        <h3>{item.title}</h3>
-                      </div>
-                      {item.ticker ? (
-                        <button className="info-chip frontier-ticker-button" onClick={() => onSelectStory(item.ticker)} type="button">
-                          {item.ticker}
-                        </button>
-                      ) : null}
-                    </div>
-
-                    <p className="frontier-summary">{item.summary || item.whyLane}</p>
-
-                    <div className="chip-row">
-                      <span className="info-chip">Size {item.sizeLabel || "-"}</span>
-                      <span className="info-chip">{item.funding || "No funding note"}</span>
-                      <span className="info-chip">{item.evidenceBand || "Usable"} confidence</span>
-                    </div>
-
-                    <div className="frontier-meta-grid">
-                      <div>
-                        <span className="support-label">Why it sits here</span>
-                        <p>{item.whyLane}</p>
-                      </div>
-                      <div>
-                        <span className="support-label">What would make it wrong</span>
-                        <p>{item.disproofCondition || "No disproof condition published yet."}</p>
-                      </div>
-                    </div>
-
-                    {item.watchFor ? (
-                      <div className="frontier-support-line">
-                        <span className="support-label">Watch for</span>
-                        <p>{item.watchFor}</p>
-                      </div>
-                    ) : null}
-
-                    {lane.id === "unlocked" && liveAction ? (
-                      <div className="action-controls">
-                        <button
-                          className="primary-button"
-                          disabled={pendingKey !== null}
-                          onClick={() => onStage(liveAction)}
-                          type="button"
-                        >
-                          {pendingKey === `stage:${liveAction.id}` ? "Staging..." : "Stage"}
-                        </button>
-                        <button
-                          className="ghost-button"
-                          disabled={pendingKey !== null}
-                          onClick={() => onDefer(liveAction)}
-                          type="button"
-                        >
-                          {pendingKey === `deferred:${liveAction.id}` ? "Saving..." : "Not now"}
-                        </button>
-                        <button
-                          className="text-button"
-                          disabled={pendingKey !== null}
-                          onClick={() => onReject(liveAction)}
-                          type="button"
-                        >
-                          {pendingKey === `rejected:${liveAction.id}` ? "Saving..." : "Pass"}
-                        </button>
-                      </div>
-                    ) : null}
-
-                    {lane.id === "staged" && liveEscrow ? (
-                      <div className="action-controls">
-                        <button
-                          className="ghost-button"
-                          disabled={pendingKey !== null}
-                          onClick={() => onExecuteEscrow(liveEscrow)}
-                          type="button"
-                        >
-                          {pendingKey === `execute:${liveEscrow.id}` ? "Executing..." : "Execute"}
-                        </button>
-                        <button
-                          className="text-button"
-                          disabled={pendingKey !== null}
-                          onClick={() => onCancelEscrow(liveEscrow)}
-                          type="button"
-                        >
-                          {pendingKey === `cancel:${liveEscrow.id}` ? "Updating..." : "Cancel"}
-                        </button>
-                      </div>
-                    ) : null}
-                  </article>
-                );
-              }) : (
-                <article className="frontier-card is-empty">
-                  <p className="panel-empty">No items in this lane right now.</p>
+          {topHoldings.length ? (
+            <div className={styles.holdingStack}>
+              {topHoldings.map((holding) => (
+                <article className={styles.holdingRow} key={`hero-${holding.ticker}`}>
+                  <div>
+                    <strong>{holding.ticker}</strong>
+                    <span>{holding.sector || "Holding"}</span>
+                  </div>
+                  <div>
+                    <strong>{holding.weight || "-"}</strong>
+                    <span>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "Value unavailable"}</span>
+                  </div>
                 </article>
-              )}
+              ))}
             </div>
-          </section>
-        ))}
-      </div>
-
-      <div className="frontier-footer">
-        <div>
-          <span className="support-label">Next unlock condition</span>
-          <p>{frontier?.nextUnlockCondition || "Waiting for a cleaner recoverability signal."}</p>
-        </div>
-        <div>
-          <span className="support-label">What closes the range again</span>
-          <p>{frontier?.closeCondition || "A weaker structure would close the range again."}</p>
-        </div>
+          ) : (
+            <p className={styles.emptyCopy}>No holdings loaded yet.</p>
+          )}
+        </aside>
       </div>
     </section>
   );
 }
 
-function PortfolioXRayPanel({ xray, onSelectStory, tradeComposer }) {
+function HoldingsPanel({ portfolioModule, tradeInstruction, onTradeInstructionChange, onSubmitTrade, pendingTrade, tradeError }) {
+  const portfolio = portfolioModule || {};
+  const holdings = safeList(portfolio.holdings);
+
   return (
-    <section className="decision-panel xray-panel">
-      <div className="decision-panel-header">
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
         <div>
-          <p className="panel-kicker">Portfolio X-Ray</p>
-          <h2>{xray?.headline || "What is carrying the book"}</h2>
-          <p>{xray?.subhead || "Read the book by role, concentration, fragility, and recovery."}</p>
+          <p className={styles.kicker}>Holdings</p>
+          <h2>{holdings.length ? "Everything currently in the book" : "Your full book will appear here"}</h2>
         </div>
+        <ToneBadge tone="neutral">{holdings.length} positions</ToneBadge>
       </div>
 
-      <div className="xray-summary-grid">
-        <article>
-          <span className="support-label">Book value</span>
-          <strong>{xray?.totalValueUsd ? formatCurrency(xray.totalValueUsd) : "Connected"}</strong>
-        </article>
-        <article>
-          <span className="support-label">Holdings</span>
-          <strong>{xray?.holdingsCount || 0}</strong>
-        </article>
-        <article>
-          <span className="support-label">Top five</span>
-          <strong>{xray?.concentration?.topFive || "-"}</strong>
-        </article>
-        <article>
-          <span className="support-label">Ballast</span>
-          <strong>{xray?.concentration?.ballast || "-"}</strong>
-        </article>
-      </div>
-
-      <div className="xray-role-stack">
-        {safeList(xray?.roleBands).map((band) => (
-          <article className="xray-role-row" key={band.id}>
-            <div className="xray-role-copy">
-              <strong>{band.label}</strong>
-              <span>{band.description}</span>
-            </div>
-            <div className="xray-role-track" aria-hidden="true">
-              <span style={{ width: `${Math.max(8, Math.round((Number(band.weightValue || 0)) * 100))}%` }} />
-            </div>
-            <div className="xray-role-metrics">
-              <strong>{band.weight}</strong>
-              <span>Recovery {band.recoveryLabel}</span>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      <div className="xray-carriers">
-        <div>
-          <span className="support-label">Main carriers</span>
-          <div className="xray-carrier-list">
-            {safeList(xray?.carriers).map((carrier) => (
-              <button className="xray-carrier" key={carrier.ticker} onClick={() => onSelectStory(carrier.ticker)} type="button">
-                <div>
-                  <strong>{carrier.ticker}</strong>
-                  <span>{carrier.role}</span>
+      {holdings.length ? (
+        <div className={styles.tableShell}>
+          <div className={styles.tableHeader} role="row">
+            <span>Ticker</span>
+            <span>Role</span>
+            <span>Weight</span>
+            <span>Value</span>
+            <span>Price</span>
+          </div>
+          <div className={styles.tableBody}>
+            {holdings.map((holding) => (
+              <article className={styles.tableRow} key={`holding-row-${holding.ticker}`} role="row">
+                <div className={styles.tablePrimary}>
+                  <strong>{holding.ticker}</strong>
+                  <span>{holding.sector || holding.assetType || "Holding"}</span>
                 </div>
-                <em>{carrier.weight}</em>
-              </button>
+                <span>{holding.thesisBucket || holding.industry || "Core exposure"}</span>
+                <strong>{holding.weight || "-"}</strong>
+                <strong>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "-"}</strong>
+                <span>{holding.currentPriceUsd ? formatCurrency(holding.currentPriceUsd) : "-"}</span>
+              </article>
             ))}
           </div>
         </div>
+      ) : (
+        <p className={styles.emptyCopy}>Add a trade note or sync your private holdings to start building the list.</p>
+      )}
 
-        <div className="xray-warning-stack">
-          <span className="support-label">Concentration watch</span>
-          {safeList(xray?.concentrationWarnings).length ? (
-            <InlineList items={safeList(xray.concentrationWarnings)} emptyLabel="" />
-          ) : (
-            <p className="panel-empty">No concentration warning is firing right now.</p>
-          )}
-        </div>
-      </div>
-
-      {tradeComposer}
-    </section>
-  );
-}
-
-function PortfolioQuickTradeComposer({ value, onChange, onSubmit, pending, error }) {
-  return (
-    <section className="portfolio-quick-trade" aria-label="Quick portfolio update">
-      <div className="portfolio-quick-trade-copy">
-        <span className="support-label">Quick update</span>
-        <strong>Write the trade naturally.</strong>
-        <p>For example: “compre 100 usd de NVDA” or “sold 2 shares of AAPL”.</p>
-      </div>
       <form
-        className="portfolio-quick-trade-form"
+        className={styles.tradeComposer}
         onSubmit={(event) => {
           event.preventDefault();
-          onSubmit();
+          onSubmitTrade();
         }}
       >
-        <input
-          className="portfolio-quick-trade-input"
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="compre 100 usd de NVDA"
-          type="text"
-          value={value}
-        />
-        <button className="primary-button" disabled={pending || !String(value || "").trim()} type="submit">
-          {pending ? "Updating..." : "Update holdings"}
-        </button>
+        <div className={styles.tradeCopy}>
+          <p className={styles.kicker}>Quick update</p>
+          <h3>Write the trade naturally</h3>
+          <p>For example: “compre 100 usd de NVDA” or “sold 2 shares of AAPL”.</p>
+        </div>
+        <div className={styles.tradeForm}>
+          <input
+            className={styles.textInput}
+            onChange={(event) => onTradeInstructionChange(event.target.value)}
+            placeholder="compre 100 usd de NVDA"
+            type="text"
+            value={tradeInstruction}
+          />
+          <button className={styles.primaryButton} disabled={pendingTrade || !String(tradeInstruction || "").trim()} type="submit">
+            {pendingTrade ? "Updating..." : "Update holdings"}
+          </button>
+        </div>
+        {tradeError ? <p className={styles.errorText}>{tradeError}</p> : null}
       </form>
-      {error ? <p className="portfolio-quick-trade-error">{error}</p> : null}
     </section>
   );
 }
 
-function TruthfulConfidencePanelRail({ confidence, evidenceDrawer, showEvidence, onToggleEvidence }) {
-  return (
-    <section className="decision-panel confidence-panel">
-      <div className="decision-panel-header">
-        <div>
-          <p className="panel-kicker">Truthful confidence</p>
-          <h2>{confidence?.confidenceBand || "Usable"}</h2>
-          <p>{confidence?.note || "Confidence stays paired with disproof conditions."}</p>
-        </div>
-        <button className="ghost-button" onClick={onToggleEvidence} type="button">
-          {showEvidence ? "Hide evidence" : "Show evidence"}
-        </button>
-      </div>
-
-      <div className="confidence-grid">
-        <StateChip label="Trust" value={confidence?.trustState || "-"} tone="is-neutral" />
-        <StateChip label="Rights" value={confidence?.decisionRights || "-"} tone="is-neutral" />
-        <StateChip label="Tier" value={confidence?.evidenceTier || "-"} tone="is-neutral" />
-        <StateChip label="Analogs" value={String(confidence?.analogCount ?? 0)} tone="is-neutral" />
-      </div>
-
-      <div className="support-block">
-        <span className="support-label">Disproof conditions</span>
-        <InlineList items={safeList(confidence?.disproofConditions)} emptyLabel="No disproof conditions are available yet." />
-      </div>
-
-      {showEvidence ? (
-        <div className="confidence-evidence">
-          <div>
-            <span className="support-label">Current read</span>
-            <InlineList items={safeList(evidenceDrawer?.currentRead)} emptyLabel="No current read published." />
-          </div>
-          <div>
-            <span className="support-label">Thresholds</span>
-            <InlineList items={safeList(evidenceDrawer?.thresholds)} emptyLabel="No thresholds published." />
-          </div>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function CapitalTwinRail({ twin, portfolioModule, range, onRangeChange }) {
-  const chartSeries = filterPortfolioSeries(portfolioModule?.charts?.growthComparison, range);
-  return (
-    <section className="decision-panel twin-panel">
-      <div className="decision-panel-header">
-        <div>
-          <p className="panel-kicker">Capital twin</p>
-          <h2>{twin?.currentValueUsd ? formatCurrency(twin.currentValueUsd) : "Current live book"}</h2>
-          <p>{twin?.baselineLabel || twin?.subhead || "Compared with the current connected book."}</p>
-        </div>
-      </div>
-
-      <div className="support-block twin-live-note">
-        <span className="support-label">What this is comparing</span>
-        <p>{twin?.historyLabel || "The chart is the stored portfolio path versus the benchmark. The scenarios below are projected against the current live book, not against SPY."}</p>
-      </div>
-
-      <div className="portfolio-range-row" role="tablist" aria-label="Twin ranges">
-        {PORTFOLIO_RANGES.map((option) => (
-          <button
-            key={option}
-            className={`range-chip ${range === option ? "is-active" : ""}`}
-            onClick={() => onRangeChange(option)}
-            type="button"
-          >
-            {option}
-          </button>
-        ))}
-      </div>
-
-      <span className="support-label twin-history-label">Stored history vs {portfolioModule?.analytics?.benchmarkSymbol || "SPY"}</span>
-      <PortfolioMiniChart benchmarkSymbol={portfolioModule?.analytics?.benchmarkSymbol} series={chartSeries} />
-
-      {safeList(twin?.scenarios).length ? (
-        <div className="twin-scenario-stack">
-          {safeList(twin?.scenarios).map((scenario) => (
-            <article className="twin-scenario" key={scenario.id}>
-              <div>
-                <strong>{scenario.label}</strong>
-                <p>{scenario.explanation}</p>
-              </div>
-              <div className="twin-scenario-side">
-                <strong>{scenario.deltaLabel}</strong>
-                <span>{scenario.projectedValueUsd ? formatCurrency(scenario.projectedValueUsd) : "Projected"}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="panel-empty">Twin scenarios unavailable.</p>
-      )}
-
-      <div className="twin-exposure-list">
-        {safeList(twin?.exposures).map((item) => (
-          <div className="twin-exposure" key={item.label}>
-            <strong>{item.label}</strong>
-            <span>{item.weight}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function MandateQuickSelect({ mandate, pending, onChange }) {
-  return (
-    <section className="decision-panel mandate-panel">
-      <div className="decision-panel-header">
-        <div>
-          <p className="panel-kicker">Your investing rule</p>
-          <h2>{mandate?.label || "Active rule set"}</h2>
-          <p>{mandate?.statement || "This rule set keeps the workspace aligned with how you want to invest."}</p>
-        </div>
-      </div>
-
-      <div className="mandate-option-row" role="tablist" aria-label="Mandate options">
-        {safeList(mandate?.options).map((option) => (
-          <button
-            key={option.id}
-            className={`range-chip ${mandate?.id === option.id ? "is-active" : ""}`}
-            disabled={pending}
-            onClick={() => onChange(option.id)}
-            type="button"
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="support-block">
-        <span className="support-label">Guardrails</span>
-        <InlineList items={safeList(mandate?.guardrails)} emptyLabel="No guardrails configured yet." />
-      </div>
-    </section>
-  );
-}
-
-function PositionStoriesRail({ stories, selectedTicker, onSelectTicker }) {
-  const items = safeList(stories?.items);
-  const activeStory = items.find((item) => item.ticker === selectedTicker) || items[0] || null;
-
-  return (
-    <section className="decision-panel stories-panel">
-      <div className="decision-panel-header">
-        <div>
-          <p className="panel-kicker">Position stories</p>
-          <h2>{stories?.headline || "Position stories"}</h2>
-          <p>{stories?.subhead || "Every major position should explain itself."}</p>
-        </div>
-      </div>
-
-      <div className="stories-layout">
-        <div className="story-tab-list" role="tablist" aria-label="Holdings stories">
-          {items.map((story) => (
-            <button
-              className={`story-tab ${story.ticker === activeStory?.ticker ? "is-active" : ""}`}
-              key={story.ticker}
-              onClick={() => onSelectTicker(story.ticker)}
-              type="button"
-            >
-              <strong>{story.ticker}</strong>
-              <span>{story.role}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="story-detail">
-          {activeStory ? (
-            <>
-              <div className="story-hero">
-                <div>
-                  <span className="support-label">{activeStory.role}</span>
-                  <h3>{activeStory.ticker}</h3>
-                  <p>{activeStory.roleDescription}</p>
-                </div>
-                <div className="story-hero-side">
-                  <strong>{activeStory.weight || "-"}</strong>
-                  <span>{activeStory.marketValueUsd ? formatCurrency(activeStory.marketValueUsd) : "Value syncing"}</span>
-                </div>
-              </div>
-
-              <div className="story-grid">
-                <div>
-                  <span className="support-label">Why it exists</span>
-                  <InlineList items={safeList(activeStory.whyExists)} emptyLabel="No rationale saved yet." />
-                </div>
-                <div>
-                  <span className="support-label">What would break it</span>
-                  <InlineList items={safeList(activeStory.whatBreaks)} emptyLabel="No break condition saved yet." />
-                </div>
-                <div>
-                  <span className="support-label">What could replace it</span>
-                  <InlineList items={safeList(activeStory.whatCouldReplace)} emptyLabel="No replacement candidates yet." />
-                </div>
-                <div>
-                  <span className="support-label">What improves confidence</span>
-                  <InlineList items={safeList(activeStory.improvesConfidence)} emptyLabel="No confidence triggers yet." />
-                </div>
-              </div>
-            </>
-          ) : (
-            <p className="panel-empty">No holding stories are available yet.</p>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CounterfactualLedgerRail({ ledger }) {
-  return (
-    <section className="decision-panel ledger-panel">
-      <div className="decision-panel-header">
-        <div>
-          <p className="panel-kicker">Counterfactual ledger</p>
-          <h2>{ledger?.headline || "Counterfactual ledger"}</h2>
-          <p>{ledger?.subhead || "Track what your decisions taught the system."}</p>
-        </div>
-      </div>
-
-      {safeList(ledger?.items).length ? (
-        <div className="ledger-stack">
-          {safeList(ledger?.items).map((item) => (
-            <article className="ledger-row" key={item.id}>
-              <div>
-                <div className="chip-row">
-                  <span className={`status-pill ${responseToneClass(item.responseKey)}`}>{item.response}</span>
-                  <span className="info-chip">{formatDateTime(item.occurredAt)}</span>
-                </div>
-                <strong>{item.title}</strong>
-                <p>{item.lesson}</p>
-              </div>
-              <div className="ledger-side">
-                <strong>{item.excessDeltaLabel}</strong>
-                <span>{item.verdict}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="panel-empty">No settled decision outcomes yet. This ledger fills in after you act, wait, or pass.</p>
-      )}
-    </section>
-  );
-}
-
-function MemoryGuidanceRail({ guidance }) {
-  return (
-    <section className="decision-panel memory-guidance-panel">
-      <div className="decision-panel-header">
-        <div>
-          <p className="panel-kicker">Memory-driven guidance</p>
-          <h2>{guidance?.profileLabel || "Still learning"}</h2>
-          <p>{guidance?.profileSummary || "The system is still learning your decision pattern."}</p>
-        </div>
-      </div>
-
-      <div className="support-block">
-        <span className="support-label">Behavior overlay</span>
-        <InlineList items={safeList(guidance?.overlays)} emptyLabel="No overlays yet." />
-      </div>
-
-      {safeList(guidance?.warnings).length ? (
-        <div className="support-block">
-          <span className="support-label">Warnings</span>
-          <InlineList items={safeList(guidance?.warnings)} emptyLabel="" />
-        </div>
-      ) : null}
-
-      <div className="support-block">
-        <span className="support-label">Live brief</span>
-        <InlineList items={safeList(guidance?.brief)} emptyLabel="No weekly guidance note yet." />
-      </div>
-    </section>
-  );
-}
-
-function RecoverabilityMapRail({ map, filterId, onFilterChange }) {
-  const filters = safeList(map?.filters);
-  const visibleItems = safeList(map?.items).filter((item) => item.filter === filterId);
-
-  return (
-    <section className="decision-panel recoverability-panel">
-      <div className="decision-panel-header">
-        <div>
-          <p className="panel-kicker">Market map</p>
-          <h2>{map?.headline || "Market map"}</h2>
-          <p>{map?.subhead || "See which holdings and ideas look steadier, and which ones still need a cleaner setup."}</p>
-        </div>
-      </div>
-
-      <div className="mandate-option-row" role="tablist" aria-label="Recoverability filters">
-        {filters.map((item) => (
-          <button
-            className={`range-chip ${filterId === item.id ? "is-active" : ""}`}
-            key={item.id}
-            onClick={() => onFilterChange(item.id)}
-            type="button"
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="recoverability-map-shell">
-        <div className="recoverability-axis axis-x">Recoverability</div>
-        <div className="recoverability-axis axis-y">Phantom rebound risk</div>
-        <div className="recoverability-plane">
-          {visibleItems.map((item) => (
-            <div
-              className={`recoverability-point is-${item.legitimacy}`}
-              key={item.id}
-              style={{ left: `${Math.max(6, Math.min(94, item.x * 100))}%`, top: `${Math.max(6, Math.min(94, (1 - item.y) * 100))}%` }}
-              title={`${item.label} · ${item.meta}`}
-            >
-              <span>{item.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FrontierLane({
-  lane,
-  heading,
-  summary,
-  items,
-  actionLookup,
-  escrowLookup,
-  pendingKey,
-  onStage,
-  onDefer,
-  onReject,
-  onExecuteEscrow,
-  onCancelEscrow,
-  onOpenStory,
-}) {
+function CompactActionPanel({ title, kicker, emptyLabel, items, renderItem }) {
   const values = safeList(items);
 
   return (
-    <section className="frontier-lane">
-      <div className="frontier-lane-header">
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
         <div>
-          <span className="support-label">{heading}</span>
-          <h3>{heading}</h3>
-        </div>
-        <span className="info-chip">{values.length}</span>
-      </div>
-      <p className="frontier-lane-summary">{summary}</p>
-
-      <div className="frontier-lane-stack">
-        {values.length ? values.map((item) => {
-          const action = actionLookup[item.id];
-          const escrowItem = escrowLookup[item.id];
-          const isUnlocked = lane === "unlocked" && action;
-          const isStaged = lane === "staged" && escrowItem;
-          const currentPending = isUnlocked
-            ? pendingKey === `stage:${action.id}` ? "stage" : pendingKey === `deferred:${action.id}` ? "defer" : pendingKey === `rejected:${action.id}` ? "reject" : null
-            : null;
-
-          return (
-            <article className={`frontier-item ${lane}`} key={item.id}>
-              <div className="frontier-item-top">
-                <div>
-                  <span className="frontier-item-kicker">{item.ticker || item.laneLabel}</span>
-                  <h4>{item.title}</h4>
-                </div>
-                <span className={`status-pill ${statusToneClass(item.status || lane)}`}>
-                  {capitalize(item.status || item.laneLabel)}
-                </span>
-              </div>
-
-              <p className="frontier-item-summary">{item.summary || item.rationale}</p>
-
-              <div className="frontier-item-meta">
-                <span>Size {item.sizeLabel}</span>
-                <span>{item.funding}</span>
-                <span>{item.evidenceBand}</span>
-              </div>
-
-              <div className="frontier-item-details">
-                <div>
-                  <span className="support-label">Why it belongs here</span>
-                  <p>{item.whyItBelongsHere}</p>
-                </div>
-                <div>
-                  <span className="support-label">What would make this wrong</span>
-                  <p>{item.disproofCondition}</p>
-                </div>
-              </div>
-
-              {safeList(item.effects).length ? (
-                <div className="frontier-item-effects">
-                  {safeList(item.effects).map((effect, index) => (
-                    <span className="info-chip" key={`${item.id}-effect-${index}`}>
-                      {renderInlineItem(effect)}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-
-              <div className="frontier-item-actions">
-                {item.ticker ? (
-                  <button className="text-button" onClick={() => onOpenStory(item.ticker)} type="button">
-                    Open story
-                  </button>
-                ) : <span />}
-
-                {isUnlocked ? (
-                  <div className="frontier-button-row">
-                    <button className="primary-button" disabled={pendingKey !== null} onClick={() => onStage(action)} type="button">
-                      {currentPending === "stage" ? "Staging..." : "Stage"}
-                    </button>
-                    <button className="ghost-button" disabled={pendingKey !== null} onClick={() => onDefer(action)} type="button">
-                      {currentPending === "defer" ? "Saving..." : "Not now"}
-                    </button>
-                    <button className="text-button" disabled={pendingKey !== null} onClick={() => onReject(action)} type="button">
-                      {currentPending === "reject" ? "Saving..." : "Pass"}
-                    </button>
-                  </div>
-                ) : null}
-
-                {isStaged ? (
-                  <div className="frontier-button-row">
-                    <button
-                      className="ghost-button"
-                      disabled={pendingKey?.endsWith(`:${escrowItem.id}`) || escrowItem.status !== "ready"}
-                      onClick={() => onExecuteEscrow(escrowItem)}
-                      type="button"
-                    >
-                      Execute
-                    </button>
-                    <button
-                      className="text-button"
-                      disabled={pendingKey?.endsWith(`:${escrowItem.id}`) || false}
-                      onClick={() => onCancelEscrow(escrowItem)}
-                      type="button"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-            </article>
-          );
-        }) : <p className="panel-empty">No items in this lane right now.</p>}
-      </div>
-    </section>
-  );
-}
-
-function ActionFrontier({
-  frontier,
-  actionLookup,
-  escrowLookup,
-  pendingKey,
-  onStage,
-  onDefer,
-  onReject,
-  onExecuteEscrow,
-  onCancelEscrow,
-  onOpenStory,
-}) {
-  return (
-    <section className="decision-surface frontier-surface">
-      <div className="surface-heading">
-        <div>
-          <p className="panel-kicker">Action Frontier</p>
-          <h2>{frontier?.headline || "Wait for a cleaner state"}</h2>
-        </div>
-        <p className="surface-summary">{frontier?.summary || "The frontier separates what is legitimate now from what only feels tempting."}</p>
-      </div>
-
-      <div className="frontier-grid">
-        <FrontierLane
-          actionLookup={actionLookup}
-          escrowLookup={escrowLookup}
-          heading={frontier?.unlocked?.lane || "Unlocked"}
-          items={frontier?.unlocked?.items}
-          lane="unlocked"
-          onCancelEscrow={onCancelEscrow}
-          onDefer={onDefer}
-          onExecuteEscrow={onExecuteEscrow}
-          onOpenStory={onOpenStory}
-          onReject={onReject}
-          onStage={onStage}
-          pendingKey={pendingKey}
-          summary={frontier?.unlocked?.summary}
-        />
-        <FrontierLane
-          actionLookup={actionLookup}
-          escrowLookup={escrowLookup}
-          heading={frontier?.staged?.lane || "Staged"}
-          items={frontier?.staged?.items}
-          lane="staged"
-          onCancelEscrow={onCancelEscrow}
-          onDefer={onDefer}
-          onExecuteEscrow={onExecuteEscrow}
-          onOpenStory={onOpenStory}
-          onReject={onReject}
-          onStage={onStage}
-          pendingKey={pendingKey}
-          summary={frontier?.staged?.summary}
-        />
-        <FrontierLane
-          actionLookup={actionLookup}
-          escrowLookup={escrowLookup}
-          heading={frontier?.illegitimate?.lane || "Illegitimate"}
-          items={frontier?.illegitimate?.items}
-          lane="illegitimate"
-          onCancelEscrow={onCancelEscrow}
-          onDefer={onDefer}
-          onExecuteEscrow={onExecuteEscrow}
-          onOpenStory={onOpenStory}
-          onReject={onReject}
-          onStage={onStage}
-          pendingKey={pendingKey}
-          summary={frontier?.illegitimate?.summary}
-        />
-      </div>
-    </section>
-  );
-}
-
-function PortfolioXRay({ xray, selectedStoryTicker, onSelectStory }) {
-  return (
-    <section className="decision-surface xray-surface">
-      <div className="surface-heading">
-        <div>
-          <p className="panel-kicker">Portfolio X-Ray</p>
-          <h2>{xray?.totalValueLabel || "Portfolio connected"}</h2>
-        </div>
-        <div className="chip-row">
-          <span className="info-chip">{xray?.holdingsCount || 0} holdings</span>
-          <span className="info-chip">Top five {xray?.concentration?.topFiveWeightLabel || "-"}</span>
+          <p className={styles.kicker}>{kicker}</p>
+          <h2>{title}</h2>
         </div>
       </div>
 
-      <div className="xray-warning-stack">
-        {safeList(xray?.concentration?.warnings).map((warning, index) => (
-          <p className="support-note" key={`xray-warning-${index}`}>{warning}</p>
-        ))}
-      </div>
-
-      <div className="xray-role-list" role="list">
-        {safeList(xray?.roleMap).map((holding) => (
-          <button
-            className={`xray-role-item ${selectedStoryTicker === holding.ticker ? "is-selected" : ""}`}
-            key={holding.ticker}
-            onClick={() => onSelectStory(holding.ticker)}
-            type="button"
-          >
-            <div className="xray-role-top">
-              <div>
-                <strong>{holding.ticker}</strong>
-                <span>{holding.roleLabel}</span>
-              </div>
-              <em>{holding.weightLabel}</em>
-            </div>
-            <div className="xray-role-meter">
-              <span style={{ width: `${Math.max(10, Math.round((holding.weight || 0.05) * 100))}%` }} />
-            </div>
-            <div className="xray-role-bottom">
-              <span>Fragility {holding.fragilityLabel}</span>
-              <span>Recovery {holding.recoveryContributionLabel}</span>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      <div className="xray-sector-balance">
-        <span className="support-label">Sector balance</span>
-        {safeList(xray?.sectorBalance).map((sector) => (
-          <div className="portfolio-sector-row" key={sector.id}>
-            <div className="portfolio-sector-copy">
-              <strong>{sector.label}</strong>
-              <span>{sector.weightLabel}</span>
-            </div>
-            <div className="portfolio-sector-track" aria-hidden="true">
-              <span style={{ width: `${Math.max(10, Math.round(sector.ratio * 100))}%` }} />
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function TruthfulConfidencePanel({ confidence }) {
-  return (
-    <section className="decision-surface confidence-surface">
-      <div className="surface-heading compact">
-        <div>
-          <p className="panel-kicker">Truthful Confidence</p>
-          <h2>{confidence?.bandLabel || "Thin evidence"}</h2>
+      {values.length ? (
+        <div className={styles.compactStack}>
+          {values.map(renderItem)}
         </div>
-      </div>
-
-      <div className="confidence-grid">
-        <StateChip label="Tier" tone="is-neutral" value={confidence?.evidenceTier || "-"} />
-        <StateChip label="Authority" tone="is-neutral" value={confidence?.authorityLabel || "-"} />
-        <StateChip label="Samples" tone="is-neutral" value={String(confidence?.sampleBasis?.packageSamples ?? "-")} />
-      </div>
-
-      <div className="support-block">
-        <span className="support-label">Analog read</span>
-        <p>{confidence?.analogRead || "No analog read yet"}</p>
-      </div>
-
-      <div className="support-block">
-        <span className="support-label">What would make this wrong</span>
-        <InlineList emptyLabel="No disproof condition yet." items={safeList(confidence?.disproofs).slice(0, 3)} />
-      </div>
-
-      <div className="support-block">
-        <span className="support-label">Benchmark honesty</span>
-        <p>{confidence?.benchmarkNote || "Relative performance remains hidden until enough history exists."}</p>
-      </div>
-    </section>
-  );
-}
-
-function CapitalTwinPanel({ twin, portfolioModule, range, onRangeChange }) {
-  const chartSeries = filterPortfolioSeries(portfolioModule?.charts?.growthComparison, range);
-  return (
-    <section className="decision-surface twin-surface">
-      <div className="surface-heading compact">
-        <div>
-          <p className="panel-kicker">Capital Twin</p>
-          <h2>{twin?.currentValueLabel || "Portfolio connected"}</h2>
-        </div>
-        <span className="info-chip">{range}</span>
-      </div>
-
-      <p className="surface-summary">{twin?.note || "This twin shadows the live book without executing anything on its own."}</p>
-
-      <div className="portfolio-range-row" role="tablist" aria-label="Twin ranges">
-        {PORTFOLIO_RANGES.map((option) => (
-          <button
-            key={option}
-            className={`range-chip ${range === option ? "is-active" : ""}`}
-            onClick={() => onRangeChange(option)}
-            type="button"
-          >
-            {option}
-          </button>
-        ))}
-      </div>
-
-      <PortfolioMiniChart benchmarkSymbol={portfolioModule?.analytics?.benchmarkSymbol} series={chartSeries} />
-
-      <div className="twin-scenario-grid">
-        {safeList(twin?.scenarios).map((scenario) => (
-          <article className="twin-scenario" key={scenario.id}>
-            <span className="support-label">{scenario.label}</span>
-            <strong>{scenario.returnRange}</strong>
-            <p>{scenario.note}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function PositionStoriesPanel({ stories, selectedStoryTicker, onSelectStory }) {
-  const selectedStory = safeList(stories?.items).find((item) => item.ticker === selectedStoryTicker) || safeList(stories?.items)[0];
-
-  return (
-    <section className="decision-surface stories-surface">
-      <div className="surface-heading compact">
-        <div>
-          <p className="panel-kicker">Position Stories</p>
-          <h2>{selectedStory?.ticker || "Select a holding"}</h2>
-        </div>
-      </div>
-
-      <div className="story-selector-row">
-        {safeList(stories?.items).map((story) => (
-          <button
-            className={`story-chip ${selectedStory?.ticker === story.ticker ? "is-active" : ""}`}
-            key={story.ticker}
-            onClick={() => onSelectStory(story.ticker)}
-            type="button"
-          >
-            {story.ticker}
-          </button>
-        ))}
-      </div>
-
-      {selectedStory ? (
-        <div className="story-detail-grid">
-          <div className="story-detail-panel">
-            <span className="support-label">Why it exists</span>
-            <p>{selectedStory.whyItExists}</p>
-          </div>
-          <div className="story-detail-panel">
-            <span className="support-label">What would break it</span>
-            <p>{selectedStory.whatWouldBreakIt}</p>
-          </div>
-          <div className="story-detail-panel">
-            <span className="support-label">What could replace it</span>
-            <p>{selectedStory.whatCouldReplaceIt}</p>
-          </div>
-          <div className="story-detail-panel">
-            <span className="support-label">What would improve confidence</span>
-            <p>{selectedStory.confidenceUpgrade}</p>
-          </div>
-        </div>
-      ) : <p className="panel-empty">No position stories are available yet.</p>}
-    </section>
-  );
-}
-
-function CounterfactualLedgerPanel({ ledger }) {
-  return (
-    <section className="decision-surface ledger-surface">
-      <div className="surface-heading compact">
-        <div>
-          <p className="panel-kicker">Counterfactual Ledger</p>
-          <h2>{ledger?.title || "Decision outcomes"}</h2>
-        </div>
-      </div>
-      <p className="surface-summary">{ledger?.summary || "Decision outcomes will settle against the stored portfolio history."}</p>
-
-      <div className="ledger-list">
-        {safeList(ledger?.items).length ? safeList(ledger?.items).map((item) => (
-          <article className="ledger-item" key={item.id}>
-            <div className="ledger-item-top">
-              <div>
-                <strong>{item.title}</strong>
-                <p>{item.note}</p>
-              </div>
-              <span className={`status-pill ${responseToneClass(item.response)}`}>{item.response}</span>
-            </div>
-            <div className="ledger-item-metrics">
-              <span>Portfolio {item.portfolioMoveLabel}</span>
-              <span>Benchmark {item.benchmarkMoveLabel}</span>
-              <span>Spread {item.spreadLabel}</span>
-            </div>
-            <p className="support-note">{item.verdict}</p>
-          </article>
-        )) : <p className="panel-empty">No decision outcomes are available yet.</p>}
-      </div>
-    </section>
-  );
-}
-
-function MemoryGuidancePanel({ guidance }) {
-  return (
-    <section className="decision-surface guidance-surface">
-      <div className="surface-heading compact">
-        <div>
-          <p className="panel-kicker">Memory-Driven Guidance</p>
-          <h2>{guidance?.tone || "Learning"}</h2>
-        </div>
-      </div>
-      <p className="surface-summary">{guidance?.overlay || "Behavior changes framing and staging guidance, not the underlying policy rules."}</p>
-      <InlineList emptyLabel="No guidance yet." items={safeList(guidance?.habits)} />
-      {safeList(guidance?.recentLearnings).length ? (
-        <div className="support-block">
-          <span className="support-label">Recent learnings</span>
-          <InlineList emptyLabel="" items={safeList(guidance?.recentLearnings)} />
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function RecoverabilityMapPanel({ map }) {
-  const width = 420;
-  const height = 240;
-  const padding = 28;
-
-  return (
-    <section className="decision-surface map-surface">
-      <div className="surface-heading compact">
-        <div>
-          <p className="panel-kicker">Market map</p>
-          <h2>{map?.title || "Market map"}</h2>
-        </div>
-      </div>
-      <p className="surface-summary">
-        Holdings, watch ideas, and blocked ideas are plotted by downside resilience and rebound risk.
-      </p>
-
-      <div className="recoverability-map-shell">
-        <svg className="recoverability-map" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Market map">
-          <path className="recoverability-axis" d={`M ${padding} ${height - padding} L ${width - padding} ${height - padding}`} />
-          <path className="recoverability-axis" d={`M ${padding} ${height - padding} L ${padding} ${padding}`} />
-          {safeList(map?.points).map((point) => {
-            const x = padding + ((width - (padding * 2)) * clamp01(point.x));
-            const y = height - padding - ((height - (padding * 2)) * clamp01(point.y));
-            return (
-              <g className={`recoverability-point ${point.legitimacy}`} key={point.id}>
-                <circle cx={x} cy={y} r="6" />
-                <text x={x + 10} y={y - 6}>{point.label}</text>
-              </g>
-            );
-          })}
-        </svg>
-        <div className="recoverability-legend">
-          {safeList(map?.legend).map((item) => (
-            <span className={`info-chip ${item.tone ? `tone-${item.tone}` : ""}`} key={item.id}>{item.label}</span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function MandatePanel({ mandate, draft, onDraftChange, onSave, saving }) {
-  return (
-    <section className="decision-surface mandate-surface">
-      <div className="surface-heading compact">
-        <div>
-          <p className="panel-kicker">Mandate Engine</p>
-          <h2>{mandate?.title || "Active mandate"}</h2>
-        </div>
-        <span className="info-chip">{mandate?.source || "workspace"}</span>
-      </div>
-
-      <p className="surface-summary">{mandate?.summary || "One active mandate governs how the frontier is ordered and how the twin is framed."}</p>
-
-      <div className="mandate-form-grid">
-        <label className="access-field">
-          <span>Mandate title</span>
-          <input
-            onChange={(event) => onDraftChange({ ...draft, title: event.target.value })}
-            type="text"
-            value={draft?.title || ""}
-          />
-        </label>
-        <label className="access-field">
-          <span>Mandate summary</span>
-          <input
-            onChange={(event) => onDraftChange({ ...draft, summary: event.target.value })}
-            type="text"
-            value={draft?.summary || ""}
-          />
-        </label>
-        <label className="access-field">
-          <span>Min recoverability</span>
-          <input
-            max="1"
-            min="0"
-            onChange={(event) => onDraftChange({
-              ...draft,
-              thresholds: { ...(draft?.thresholds || {}), minRecoverability: Number(event.target.value) },
-            })}
-            step="0.01"
-            type="number"
-            value={draft?.thresholds?.minRecoverability ?? 0.48}
-          />
-        </label>
-        <label className="access-field">
-          <span>Max phantom rebound</span>
-          <input
-            max="1"
-            min="0"
-            onChange={(event) => onDraftChange({
-              ...draft,
-              thresholds: { ...(draft?.thresholds || {}), maxPhantomRebound: Number(event.target.value) },
-            })}
-            step="0.01"
-            type="number"
-            value={draft?.thresholds?.maxPhantomRebound ?? 0.38}
-          />
-        </label>
-      </div>
-
-      <div className="support-block">
-        <span className="support-label">Guardrails</span>
-        <InlineList emptyLabel="No guardrails configured." items={safeList(mandate?.guardrails)} />
-      </div>
-
-      <div className="header-action-row">
-        <button className="primary-button" disabled={saving} onClick={onSave} type="button">
-          {saving ? "Saving..." : "Save mandate"}
-        </button>
-      </div>
+      ) : (
+        <p className={styles.emptyCopy}>{emptyLabel}</p>
+      )}
     </section>
   );
 }
 
 export default function TerminalApp({ initialSession, initialDashboard }) {
-  const [dashboard, setDashboard] = useState(initialDashboard);
+  const workspaceId = initialDashboard?.workspace_summary?.id || initialSession?.workspace?.id;
+  const { connection, dashboard, refreshSnapshot, setDashboard } = useWorkspaceLiveData({
+    initialDashboard,
+    workspaceId,
+  });
   const [banner, setBanner] = useState("");
   const [error, setError] = useState("");
   const [pendingKey, setPendingKey] = useState(null);
@@ -2079,82 +411,38 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [tradeError, setTradeError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const workspaceId = dashboard?.workspace_summary?.id || initialSession?.workspace?.id;
   const stateSummary = dashboard?.state_summary || {};
   const portfolioModule = dashboard?.modules?.portfolio || null;
   const primaryAction = dashboard?.primary_action || null;
-  const secondaryActions = safeList(dashboard?.secondary_actions);
+  const secondaryActions = safeList(dashboard?.secondary_actions).slice(0, 4);
   const blockedAction = dashboard?.blocked_action || null;
-  const escrow = dashboard?.escrow || { items: [] };
-  const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 2);
-  const ledger = dashboard?.counterfactual_ledger || { items: [] };
-  const mandate = dashboard?.mandate || {};
+  const escrowItems = safeList(dashboard?.escrow?.items).slice(0, 4);
+  const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).slice(0, 4);
+  const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 3);
   const dataControl = dashboard?.data_control || {};
-  const paidFeaturesEnabled = true;
 
-  useEffect(() => {
-    if (!workspaceId) return undefined;
-
-    const interval = window.setInterval(async () => {
-      try {
-        const response = await fetch(`/api/v1/workspaces/${workspaceId}/workspace`, { cache: "no-store" });
-        const payload = await parseResponse(response);
-        startTransition(() => {
-          setDashboard(payload);
-        });
-      } catch {
-        // Keep the current snapshot if a background refresh fails.
-      }
-    }, 60000);
-
-    return () => window.clearInterval(interval);
-  }, [workspaceId]);
+  async function applyWorkspacePayload(payload, successMessage) {
+    startTransition(() => {
+      setDashboard(payload);
+    });
+    if (successMessage) setBanner(successMessage);
+  }
 
   async function runWorkspaceAction(key, requestFactory, successMessage) {
     if (!workspaceId) return;
 
     setPendingKey(key);
     setError("");
-    if (!String(key || "").startsWith("trade:")) {
+    if (!String(key).startsWith("trade:")) {
       setTradeError("");
     }
 
     try {
       const payload = await requestFactory();
       const nextBanner = payload?.__refreshMessage || successMessage;
-      startTransition(() => {
-        setDashboard(payload);
-      });
-      setBanner(nextBanner);
+      await applyWorkspacePayload(payload, nextBanner);
     } catch (requestError) {
       setError(String(requestError?.message || requestError || "Request failed."));
-    } finally {
-      setPendingKey(null);
-    }
-  }
-
-  async function submitTradeInstruction() {
-    const trimmed = String(tradeInstruction || "").trim();
-    if (!workspaceId || !trimmed) return;
-
-    setTradeError("");
-    setPendingKey(`trade:${trimmed}`);
-    setError("");
-
-    try {
-      const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ instruction: trimmed }),
-      });
-      const payload = await parseResponse(response);
-      startTransition(() => {
-        setDashboard(payload);
-      });
-      setTradeInstruction("");
-      setBanner("Holdings updated from your trade note.");
-    } catch (requestError) {
-      setTradeError(String(requestError?.message || requestError || "Trade update failed."));
     } finally {
       setPendingKey(null);
     }
@@ -2164,34 +452,50 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     await runWorkspaceAction(
       "refresh",
       async () => {
-        const previousUpdatedAt = dashboard?.workspace_summary?.last_updated || null;
         const refreshResponse = await fetch("/api/refresh", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           cache: "no-store",
         });
         const refreshPayload = await parseResponse(refreshResponse);
-        let latestWorkspace = dashboard;
-
-        for (let attempt = 0; attempt < 4; attempt += 1) {
-          if (attempt > 0) {
-            await sleep(2200);
-          }
-          const response = await fetch(`/api/v1/workspaces/${workspaceId}/workspace`, { cache: "no-store" });
-          latestWorkspace = await parseResponse(response);
-        }
+        await new Promise((resolve) => window.setTimeout(resolve, 1200));
+        const latestWorkspace = await refreshSnapshot();
 
         return {
           ...latestWorkspace,
           __refreshMessage:
             latestWorkspace?.workspace_summary?.last_updated &&
-            latestWorkspace.workspace_summary.last_updated !== previousUpdatedAt
+            latestWorkspace.workspace_summary.last_updated !== dashboard?.workspace_summary?.last_updated
               ? "Live analysis refreshed."
               : refreshPayload?.message || "Refresh queued. Analysis is still rebuilding.",
         };
       },
       "Live refresh requested.",
     );
+  }
+
+  async function submitTradeInstruction() {
+    const trimmed = String(tradeInstruction || "").trim();
+    if (!workspaceId || !trimmed) return;
+
+    setPendingKey(`trade:${trimmed}`);
+    setTradeError("");
+    setError("");
+
+    try {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ instruction: trimmed }),
+      });
+      const payload = await parseResponse(response);
+      await applyWorkspacePayload(payload, "Holdings updated from your trade note.");
+      setTradeInstruction("");
+    } catch (requestError) {
+      setTradeError(String(requestError?.message || requestError || "Trade update failed."));
+    } finally {
+      setPendingKey(null);
+    }
   }
 
   async function stageAction(action) {
@@ -2249,104 +553,74 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     );
   }
 
-  async function updateMandate(activeMandateId) {
-    if (!workspaceId) return;
-    await runWorkspaceAction(
-      "mandate",
-      async () => {
-        const response = await fetch(`/api/v1/workspaces/${workspaceId}/mandate`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ activeMandateId }),
-        });
-        const payload = await parseResponse(response);
-        return {
-          ...dashboard,
-          mandate: payload?.mandate || dashboard?.mandate,
-          frontier: payload?.frontier || dashboard?.frontier,
-          capital_twin: payload?.capital_twin || dashboard?.capital_twin,
-        };
-      },
-      "Mandate updated.",
-    );
-  }
-
   return (
-    <main className="workspace-shell decision-os-shell">
-      <div className="workspace-noise decision-os-noise" aria-hidden="true" />
+    <main className={styles.shell}>
+      <div className={styles.backdrop} aria-hidden="true" />
 
-      <header className="workspace-header decision-os-header">
+      <header className={styles.header}>
         <div>
-          <p className="workspace-kicker">Private workspace</p>
+          <p className={styles.eyebrow}>Private workspace</p>
           <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || "BLS Prime"}</h1>
-          <p className="workspace-subtitle">Your portfolio, today&apos;s decision, and what changed.</p>
+          <p className={styles.subtitle}>One operating surface for portfolio state, decisions, and fresh analysis.</p>
         </div>
 
-        <div className="workspace-header-side">
-          <div className="workspace-meta-row">
-            <span className="info-chip">{initialSession?.user?.name || "Member workspace"}</span>
-            <span className="info-chip">Free access</span>
-            <span className={`status-pill ${statusToneClass(dashboard?.workspace_summary?.backend_status)}`}>
+        <div className={styles.headerActions}>
+          <div className={styles.headerMeta}>
+            <ToneBadge tone="neutral">{initialSession?.user?.name || "Member workspace"}</ToneBadge>
+            <ToneBadge tone={statusTone(dashboard?.workspace_summary?.backend_status)}>
               {capitalize(dashboard?.workspace_summary?.backend_status, "Live")}
-            </span>
-            <span className="info-chip">{dashboard?.workspace_summary?.last_updated_label || "No refresh time"}</span>
+            </ToneBadge>
+            <ToneBadge tone={connection.status === "live" ? "good" : connection.status === "polling" ? "warn" : "neutral"}>
+              {connection.label}
+            </ToneBadge>
+            <ToneBadge tone="neutral">{dashboard?.workspace_summary?.last_updated_label || "No refresh time"}</ToneBadge>
           </div>
 
-          <div className="header-action-row">
-            <button className="ghost-button" disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
+          <div className={styles.buttonRow}>
+            <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
               {pendingKey === "refresh" ? "Refreshing..." : "Refresh"}
             </button>
-            <Link className="text-link" href="/">Home</Link>
+            <Link className={styles.secondaryLink} href="/">Home</Link>
             <form action="/api/auth/logout" method="post">
-              <button className="text-button" type="submit">Sign out</button>
+              <button className={styles.textButton} type="submit">Sign out</button>
             </form>
           </div>
         </div>
       </header>
 
-      {banner ? <div className="workspace-banner">{banner}</div> : null}
-      {error ? <div className="workspace-banner is-error">{error}</div> : null}
+      {banner ? <div className={styles.banner}>{banner}</div> : null}
+      {error ? <div className={styles.banner} data-tone="error">{error}</div> : null}
 
-      {alerts.length ? (
-        <section className="workspace-alert-strip" aria-label="Current alerts">
-          {alerts.map((alert) => (
-            <article className="workspace-alert" key={alert.id}>
-              <span className={`status-pill ${statusToneClass(alert.severity)}`}>{capitalize(alert.severity)}</span>
-              <div>
-                <strong>{alert.title}</strong>
-                <p>{alert.body}</p>
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : null}
-
-      <section className="workspace-service-strip" aria-label="Workspace service status">
-        <StateChip
+      <section className={styles.statusGrid}>
+        <MetricTile
+          detail={dataControl.notes?.[0] || "Refresh asks Railway to rebuild the analysis snapshot."}
           label="Analysis"
-          tone={statusToneClass(dashboard?.workspace_summary?.backend_status)}
+          tone={statusTone(dashboard?.workspace_summary?.backend_status)}
           value={dataControl.analysisSource || "Status unavailable"}
         />
-        <StateChip
+        <MetricTile
+          detail={dataControl.notes?.[3] || "Private holdings overlay is not connected."}
           label="Holdings"
-          tone={portfolioModule?.analytics?.holdingsCount ? "is-good" : "is-warn"}
+          tone={portfolioModule?.analytics?.holdingsCount ? "good" : "warn"}
           value={dataControl.holdingsSource?.label || "No private holdings source"}
         />
-        <StateChip
+        <MetricTile
+          detail={dataControl.notes?.[1] || "Price tiles use the latest market date in the snapshot."}
           label="Market data"
-          tone="is-neutral"
+          tone="neutral"
           value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
+        />
+        <MetricTile
+          detail={connection.detail}
+          label="Live link"
+          tone={connection.status === "live" ? "good" : connection.status === "polling" ? "warn" : "neutral"}
+          value={connection.label}
         />
       </section>
 
-      <div className="workspace-primary-grid">
-        <PortfolioHero
-          onRangeChange={setPortfolioRange}
-          portfolioModule={portfolioModule}
-          range={portfolioRange}
-        />
-
-        <aside className="workspace-primary-side">
+      <div className={styles.layout}>
+        <section className={styles.mainColumn}>
+          <AlertsPanel alerts={alerts} />
           <TodayDecisionPanel
             blockedAction={blockedAction}
             onDefer={(action) => recordDecision(action, "deferred")}
@@ -2356,60 +630,108 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             primaryAction={primaryAction}
             stateSummary={stateSummary}
           />
-
-          <div className="workspace-mini-strip">
-            <StagedActionsPanel
-              escrow={escrow}
-              onCancelEscrow={(value) => patchEscrow(value, { action: "cancel" }, `${value.title} cancelled.`)}
-              onExecuteEscrow={(value) => patchEscrow(value, { action: "execute" }, `${value.title} executed.`)}
-              pendingKey={pendingKey}
-            />
-            <WatchlistIdeasPanel
-              actions={secondaryActions}
-              backendStatus={dashboard?.workspace_summary?.backend_status}
-              lastUpdatedLabel={dashboard?.workspace_summary?.last_updated_label}
-            />
-            <ActivityPanel ledger={ledger} />
-          </div>
-        </aside>
-      </div>
-
-      <div className="workspace-secondary-grid">
-        <section className="workspace-panel workspace-panel-now">
-          <PortfolioHoldingsSpotlight portfolioModule={portfolioModule} />
-          <PortfolioHoldingsTable portfolioModule={portfolioModule} />
-
-          <PortfolioQuickTradeComposer
-            error={tradeError}
-            onChange={setTradeInstruction}
-            onSubmit={submitTradeInstruction}
-            pending={pendingKey?.startsWith("trade:")}
-            value={tradeInstruction}
+          <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
+          <HoldingsPanel
+            onSubmitTrade={submitTradeInstruction}
+            onTradeInstructionChange={setTradeInstruction}
+            pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
+            portfolioModule={portfolioModule}
+            tradeError={tradeError}
+            tradeInstruction={tradeInstruction}
           />
         </section>
 
-        <aside className="workspace-secondary-side">
-          <MandateQuickSelect
-            mandate={mandate}
-            onChange={updateMandate}
-            pending={pendingKey === "mandate"}
+        <aside className={styles.sideColumn}>
+          <CompactActionPanel
+            emptyLabel="Nothing is staged yet. Save a move here when you want to prepare it before acting."
+            items={escrowItems}
+            kicker="Staged"
+            renderItem={(item) => (
+              <article className={styles.compactRow} key={item.id}>
+                <div>
+                  <strong>{item.title}</strong>
+                  <p>{item.summary || item.slot || "Ready when you are."}</p>
+                  <span>Expires {formatDate(item.expiresAt)}</span>
+                </div>
+                <div className={styles.compactActions}>
+                  <button
+                    className={styles.secondaryButton}
+                    disabled={pendingKey !== null}
+                    onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} executed.`)}
+                    type="button"
+                  >
+                    {pendingKey === `execute:${item.id}` ? "Executing..." : "Execute"}
+                  </button>
+                  <button
+                    className={styles.textButton}
+                    disabled={pendingKey !== null}
+                    onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelled.`)}
+                    type="button"
+                  >
+                    {pendingKey === `cancel:${item.id}` ? "Updating..." : "Cancel"}
+                  </button>
+                </div>
+              </article>
+            )}
+            title={escrowItems.length ? `${escrowItems.length} staged actions` : "Nothing staged"}
           />
 
-          {(stateSummary?.decisionSummary || mandate?.statement) ? (
-            <section className="workspace-card compact-surface-card workspace-brief-card">
-              <div className="card-header-row">
+          <CompactActionPanel
+            emptyLabel={
+              dashboard?.workspace_summary?.backend_status === "briefing" || dashboard?.workspace_summary?.backend_status === "stale"
+                ? `We are refreshing the market view${dashboard?.workspace_summary?.last_updated_label ? ` from ${dashboard.workspace_summary.last_updated_label}` : ""}. New ideas will appear here after the refresh finishes.`
+                : "Nothing new needs attention right now."
+            }
+            items={secondaryActions}
+            kicker="Watch next"
+            renderItem={(action) => (
+              <article className={styles.compactRow} key={action.id}>
                 <div>
-                  <p className="panel-kicker">Current brief</p>
-                  <h3>{stateSummary?.stance || mandate?.label || "Stay patient"}</h3>
+                  <strong>{action.ticker || action.title}</strong>
+                  <p>{action.summary || action.slot || "Watch"}</p>
                 </div>
+                <ToneBadge tone={actionTone(action)}>{action.sizeLabel || formatSize(action)}</ToneBadge>
+              </article>
+            )}
+            title={secondaryActions.length ? "Ideas to keep warm" : "No fresh ideas today"}
+          />
+
+          <CompactActionPanel
+            emptyLabel="Your timeline starts after your first trade note, staged move, or decision."
+            items={ledgerItems}
+            kicker="Activity"
+            renderItem={(item) => (
+              <article className={styles.compactRow} key={item.id || item.title}>
+                <div>
+                  <strong>{item.title || "Decision event"}</strong>
+                  <p>{item.summary || item.note || "Outcome is still settling."}</p>
+                  <span>{formatDateTime(item.occurredAt)}</span>
+                </div>
+                <ToneBadge tone={responseTone(item.userResponse || item.response || "noted")}>
+                  {item.resultLabel || capitalize(item.userResponse || item.response, "Noted")}
+                </ToneBadge>
+              </article>
+            )}
+            title={ledgerItems.length ? "What happened next" : "No settled outcomes yet"}
+          />
+
+          <section className={styles.panel}>
+            <div className={styles.panelHeader}>
+              <div>
+                <p className={styles.kicker}>Current brief</p>
+                <h2>{stateSummary?.stance || "Stay patient"}</h2>
               </div>
-              <p className="card-summary">{stateSummary?.decisionSummary || mandate?.statement}</p>
-            </section>
-          ) : null}
+            </div>
+            <p className={styles.lead}>{stateSummary?.decisionSummary || "The workspace will keep surfacing the clearest next action as live analysis refreshes."}</p>
+            <InlineList
+              emptyLabel="No evidence notes are available yet."
+              items={safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3)}
+            />
+          </section>
         </aside>
       </div>
 
-      {isPending ? <div className="workspace-footer-note">Applying update...</div> : null}
+      {isPending ? <div className={styles.pendingNote}>Applying update...</div> : null}
     </main>
   );
 }

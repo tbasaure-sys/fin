@@ -1,14 +1,16 @@
-import { requireApiAuthSession } from "@/lib/server/auth/session";
+import { requireInternalRefreshAccess } from "@/lib/server/internal-refresh-auth";
 import { queueWorkspaceRefresh } from "@/lib/server/refresh-dispatch";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 async function refreshResponse(request) {
-  const auth = await requireApiAuthSession(request);
-  if (auth instanceof Response) return auth;
+  const unauthorized = requireInternalRefreshAccess(request);
+  if (unauthorized) return unauthorized;
 
-  const payload = await queueWorkspaceRefresh("manual");
+  const source = String(request.headers.get("x-refresh-source") || "scheduled").trim() || "scheduled";
+  const payload = await queueWorkspaceRefresh(source);
+
   return Response.json(payload, {
     status: 202,
     headers: { "Cache-Control": "no-store" },
