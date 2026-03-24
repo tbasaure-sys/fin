@@ -18,7 +18,7 @@ export async function POST(request) {
 
   try {
     const session = await signInWithAccessCode({ email, name, accessCode });
-    const response = NextResponse.redirect(new URL(next.startsWith("/") ? next : "/app", request.url));
+    const response = NextResponse.redirect(new URL(next.startsWith("/") ? next : "/app", request.url), 303);
     response.cookies.set(
       getSessionCookieName(),
       session.token,
@@ -29,6 +29,6 @@ export async function POST(request) {
     const url = new URL("/login", request.url);
     url.searchParams.set("next", next.startsWith("/") ? next : "/app");
     url.searchParams.set("error", String(error?.message || error || "Could not sign in."));
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(url, 303);
   }
 }
