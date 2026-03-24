@@ -3011,15 +3011,11 @@ a {
 
 .portfolio-spotlight {
   display: grid;
-  gap: 16px;
-  padding: 20px;
-  border-radius: 26px;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background:
-    radial-gradient(circle at 12% 18%, rgba(248, 200, 111, 0.14), transparent 28%),
-    radial-gradient(circle at 84% 22%, rgba(122, 210, 194, 0.16), transparent 30%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
-  animation: holdings-glow 16s ease-in-out infinite;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.015));
 }
 
 .portfolio-spotlight-header,
@@ -3038,9 +3034,9 @@ a {
 
 .portfolio-spotlight-header h3 {
   margin: 0;
-  max-width: 18ch;
-  font-size: clamp(22px, 2vw, 30px);
-  line-height: 1.06;
+  max-width: 20ch;
+  font-size: clamp(20px, 1.8vw, 26px);
+  line-height: 1.08;
   letter-spacing: -0.03em;
 }
 
@@ -3061,7 +3057,7 @@ a {
 .portfolio-spotlight-panel {
   position: relative;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(255, 255, 255, 0.025);
 }
@@ -3151,18 +3147,11 @@ a {
   line-height: 1.55;
 }
 
-.portfolio-spotlight-ticker-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
 .portfolio-spotlight-pill {
   padding: 10px 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: rgba(255, 255, 255, 0.02);
-  animation: holdings-drift 18s linear infinite;
 }
 
 .portfolio-spotlight-pill strong {
@@ -3243,15 +3232,14 @@ a {
   flex-direction: column;
   gap: 16px;
   padding: 20px;
-  border-radius: 26px;
+  border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   background:
-    radial-gradient(circle at 75% 25%, rgba(122, 210, 194, 0.16), transparent 32%),
-    linear-gradient(180deg, rgba(10, 18, 30, 0.92), rgba(10, 18, 30, 0.72));
+    radial-gradient(circle at 78% 18%, rgba(122, 210, 194, 0.1), transparent 26%),
+    linear-gradient(180deg, rgba(10, 18, 30, 0.92), rgba(10, 18, 30, 0.76));
 }
 
-.portfolio-hero-summary,
-.portfolio-hero-bottom {
+.portfolio-hero-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
@@ -3259,146 +3247,84 @@ a {
 
 .portfolio-hero-main {
   display: grid;
-  grid-template-columns: minmax(0, 1.02fr) minmax(320px, 0.98fr);
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
   gap: 18px;
   align-items: start;
 }
 
-.portfolio-hero-holdings,
-.portfolio-hero-chart-shell {
+.portfolio-hero-chart-shell,
+.portfolio-hero-sidecard {
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
 }
 
-.portfolio-holdings-stage {
-  display: grid;
-  grid-template-columns: minmax(180px, 0.82fr) minmax(0, 1.18fr);
-  gap: 14px;
-  align-items: stretch;
-}
-
-.portfolio-holdings-copy {
-  padding: 18px;
-  border-radius: 22px;
+.portfolio-hero-sidecard {
+  padding: 16px;
+  border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.06);
-  background:
-    radial-gradient(circle at 0% 0%, rgba(248, 200, 111, 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
+  background: rgba(255, 255, 255, 0.028);
 }
 
-.portfolio-holdings-copy h3 {
-  margin: 8px 0 10px;
-  font-size: clamp(22px, 3vw, 34px);
-  line-height: 0.96;
-  letter-spacing: -0.04em;
-  overflow-wrap: anywhere;
-}
-
-.portfolio-holdings-copy p {
-  margin: 0;
-  max-width: 18ch;
-  color: var(--muted);
-  line-height: 1.35;
-}
-
-.portfolio-holding-stage-card {
-  display: grid;
-  gap: 12px;
-  padding: 18px;
-  border-radius: 22px;
-  border: 1px solid rgba(122, 210, 194, 0.16);
-  background:
-    radial-gradient(circle at 85% 15%, rgba(122, 210, 194, 0.16), transparent 35%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
-  min-width: 0;
-}
-
-.holding-stage-top,
-.holding-stage-meta {
+.portfolio-side-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
 
-.holding-stage-top strong {
-  font-size: clamp(22px, 2.2vw, 30px);
-  letter-spacing: -0.04em;
-  min-width: 0;
-  overflow-wrap: anywhere;
+.portfolio-side-head h3 {
+  margin: 0;
+  font-size: clamp(18px, 1.5vw, 22px);
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
-.holding-stage-top span,
-.holding-stage-meta span {
-  color: var(--muted);
-}
-
-.holding-stage-meta {
-  font-size: 13px;
-}
-
-.portfolio-holding-mosaic {
+.portfolio-hero-holding-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
-.portfolio-holding-tile {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  min-height: 104px;
-  padding: 14px;
-  border-radius: 20px;
+.portfolio-hero-holding-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.03);
-  gap: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.portfolio-hero-holding-copy,
+.portfolio-hero-holding-meta {
+  display: grid;
+  gap: 4px;
   min-width: 0;
 }
 
-.portfolio-holding-tile strong,
-.portfolio-holding-tile em {
-  display: block;
-}
-
-.portfolio-holding-tile strong {
+.portfolio-hero-holding-copy strong,
+.portfolio-hero-holding-meta strong {
   font-size: 15px;
-  line-height: 1.05;
+  line-height: 1.1;
   overflow-wrap: anywhere;
 }
 
-.portfolio-holding-tile span {
-  display: block;
-  margin-top: 6px;
+.portfolio-hero-holding-copy span,
+.portfolio-hero-holding-meta span,
+.portfolio-hero-side-note p {
+  margin: 0;
   color: var(--muted);
-  font-size: 12px;
-  line-height: 1.25;
 }
 
-.portfolio-holding-tile em {
-  color: var(--text);
-  font-style: normal;
-  font-size: 15px;
-  align-self: end;
-  white-space: nowrap;
+.portfolio-hero-holding-meta {
+  justify-items: end;
+  text-align: right;
 }
 
-.portfolio-holding-tile.tile-1 {
-  background: linear-gradient(180deg, rgba(248, 200, 111, 0.09), rgba(255, 255, 255, 0.02));
-}
-
-.portfolio-holding-tile.tile-2 {
-  background: linear-gradient(180deg, rgba(122, 210, 194, 0.09), rgba(255, 255, 255, 0.02));
-}
-
-.portfolio-holding-tile.tile-3 {
-  background: linear-gradient(180deg, rgba(131, 166, 255, 0.09), rgba(255, 255, 255, 0.02));
-}
-
-.portfolio-holding-tile.tile-4 {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+.portfolio-hero-side-note {
+  padding-top: 2px;
 }
 
 .portfolio-metric {
@@ -3523,30 +3449,10 @@ a {
   background: rgba(255, 255, 255, 0.45);
 }
 
-.portfolio-holding-inline-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.portfolio-holding-inline-list li {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.portfolio-holding-inline-list li span {
-  color: var(--muted);
-}
-
 .portfolio-hero-note {
-  margin: 8px 0 0;
+  margin: 0;
   color: var(--muted);
+  line-height: 1.5;
 }
 
 .portfolio-hero-summary .portfolio-metric strong {
