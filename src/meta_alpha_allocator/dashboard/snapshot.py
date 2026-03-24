@@ -1228,14 +1228,12 @@ def build_dashboard_snapshot(
         missing_inputs = _missing_production_inputs(paths)
         if missing_inputs:
             missing_labels = ", ".join(_format_missing_input(path, paths.project_root) for path in missing_inputs[:6])
-            warnings.append(f"production refresh skipped: missing required inputs ({missing_labels})")
+            warnings.append(f"production refresh continuing with partial runtime inputs ({missing_labels})")
+        try:
+            current_payload = run_production(paths, research_settings, allocator_settings)
+        except Exception as exc:
+            warnings.append(f"production refresh failed: {exc}")
             current_payload = _load_current_payload(paths)
-        else:
-            try:
-                current_payload = run_production(paths, research_settings, allocator_settings)
-            except Exception as exc:
-                warnings.append(f"production refresh failed: {exc}")
-                current_payload = _load_current_payload(paths)
     else:
         current_payload = _load_current_payload(paths)
 
