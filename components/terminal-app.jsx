@@ -239,9 +239,10 @@ function buildLinePath(points, width, height, padding) {
 function hasUsableBenchmarkSeries(points) {
   if (!Array.isArray(points) || points.length < 2) return false;
   const values = points.map((point) => Number(point?.value)).filter(Number.isFinite);
-  if (values.length < 2) return false;
+  if (values.length < 3) return false;
   const max = Math.max(...values);
-  return max > 0;
+  const min = Math.min(...values);
+  return max > 0 && (max - min) > 0.0005;
 }
 
 function PortfolioMiniChart({ series, benchmarkSymbol }) {
@@ -303,7 +304,7 @@ function PortfolioMiniChart({ series, benchmarkSymbol }) {
 function PortfolioHoldingsSpotlight({ portfolioModule }) {
   const portfolio = portfolioModule || {};
   const holdings = safeList(portfolio.holdings).slice(0, 6);
-  const sectors = safeList(portfolio.sectorExposure).slice(0, 4);
+  const sectors = safeList(portfolio?.charts?.sectorExposure).slice(0, 4);
   const analytics = portfolio.analytics || {};
 
   if (!holdings.length) return null;
@@ -315,7 +316,7 @@ function PortfolioHoldingsSpotlight({ portfolioModule }) {
       <div className="portfolio-spotlight-header">
         <div>
           <span className="support-label">Composition</span>
-          <h3>Largest positions and where the book is leaning.</h3>
+          <h3>What is carrying the book today.</h3>
         </div>
         <span className="info-chip">
           {holdings.length} of {analytics.holdingsCount || holdings.length} shown
@@ -377,15 +378,6 @@ function PortfolioHoldingsSpotlight({ portfolioModule }) {
             </p>
           </div>
         </div>
-      </div>
-
-      <div className="portfolio-spotlight-ticker-row" aria-label="Holdings quick view">
-        {holdings.map((holding) => (
-          <span className="portfolio-spotlight-pill" key={`${holding.ticker}-pill`}>
-            <strong>{holding.ticker}</strong>
-            <span>{holding.weight || holding.sector || "-"}</span>
-          </span>
-        ))}
       </div>
     </section>
   );
@@ -451,8 +443,6 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
   const analytics = portfolio.analytics || {};
   const chartSeries = filterPortfolioSeries(portfolio?.charts?.growthComparison, range);
   const topHoldings = safeList(portfolio.holdings).slice(0, 6);
-  const featuredHolding = topHoldings[0] || null;
-  const supportingHoldings = topHoldings.slice(1, 6);
   const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis unavailable";
   const comparisonLabel = analytics.hasBenchmarkHistory
     ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}`
@@ -493,76 +483,6 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
       </div>
 
       <div className="portfolio-hero-main">
-        <div className="portfolio-hero-holdings">
-          <div className="portfolio-holdings-stage">
-            <div className="portfolio-holdings-copy">
-              <span className="support-label">Portfolio view</span>
-              <h3>{featuredHolding?.ticker || "Holdings connected"}</h3>
-              <p>
-                {featuredHolding
-                  ? `${featuredHolding.weight || "-"} of the book, ${featuredHolding.sector || "Unassigned sector"}`
-                  : "Your private holdings are connected."}
-              </p>
-            </div>
-
-            {featuredHolding ? (
-              <div className="portfolio-holding-stage-card">
-                <div className="holding-stage-top">
-                  <strong>{featuredHolding.ticker}</strong>
-                  <span>{featuredHolding.weight || "-"}</span>
-                </div>
-                <p>{featuredHolding.sector || "Unknown sector"}</p>
-                <div className="holding-stage-meta">
-                  <span>{featuredHolding.marketValueUsd ? formatCurrency(featuredHolding.marketValueUsd) : "Value unavailable"}</span>
-                  <span>{featuredHolding.currentPriceUsd ? formatCurrency(featuredHolding.currentPriceUsd) : "Price unavailable"}</span>
-                </div>
-              </div>
-            ) : null}
-
-            {supportingHoldings.length ? (
-              <div className="portfolio-holding-mosaic">
-                {supportingHoldings.map((holding, index) => (
-                  <article
-                    className={`portfolio-holding-tile tile-${(index % 4) + 1}`}
-                    key={holding.ticker}
-                  >
-                    <div>
-                      <strong>{holding.ticker}</strong>
-                      <span>{holding.sector || "Unknown sector"}</span>
-                    </div>
-                    <em>{holding.weight || "-"}</em>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="panel-empty">No holdings loaded.</p>
-            )}
-          </div>
-
-          <div className="portfolio-hero-bottom">
-            <div>
-              <span className="support-label">Largest positions</span>
-              {topHoldings.length ? (
-                <ul className="portfolio-holding-inline-list">
-                  {topHoldings.map((holding) => (
-                    <li key={holding.ticker}>
-                      <strong>{holding.ticker}</strong>
-                      <span>{holding.weight || "-"}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="panel-empty">No holdings loaded.</p>
-              )}
-            </div>
-
-            <div>
-              <span className="support-label">What this means</span>
-              <p className="portfolio-hero-note">{performanceNarrative}</p>
-            </div>
-          </div>
-        </div>
-
         <div className="portfolio-hero-chart-shell">
           <div className="portfolio-range-row" role="tablist" aria-label="Portfolio ranges">
             {PORTFOLIO_RANGES.map((option) => (
@@ -578,6 +498,41 @@ function PortfolioHero({ portfolioModule, range, onRangeChange }) {
           </div>
 
           <PortfolioMiniChart series={chartSeries} benchmarkSymbol={analytics.benchmarkSymbol} />
+          <p className="portfolio-hero-note">{performanceNarrative}</p>
+        </div>
+
+        <div className="portfolio-hero-sidecard">
+          <div className="portfolio-side-head">
+            <div>
+              <span className="support-label">Largest positions</span>
+              <h3>What is driving the book.</h3>
+            </div>
+            <span className="info-chip">{topHoldings.length} shown</span>
+          </div>
+
+          {topHoldings.length ? (
+            <div className="portfolio-hero-holding-list" role="list" aria-label="Largest positions">
+              {topHoldings.map((holding) => (
+                <article className="portfolio-hero-holding-row" key={`hero-${holding.ticker}`} role="listitem">
+                  <div className="portfolio-hero-holding-copy">
+                    <strong>{holding.ticker}</strong>
+                    <span>{holding.sector || "Holding"}</span>
+                  </div>
+                  <div className="portfolio-hero-holding-meta">
+                    <strong>{holding.weight || "-"}</strong>
+                    <span>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "Value unavailable"}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="panel-empty">No holdings loaded.</p>
+          )}
+
+          <div className="portfolio-hero-side-note">
+            <span className="support-label">Benchmark status</span>
+            <p>{comparisonLabel}</p>
+          </div>
         </div>
       </div>
     </section>
