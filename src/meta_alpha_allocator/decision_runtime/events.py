@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +16,7 @@ def _output_root(snapshot: dict[str, Any], output_root: Path | None = None) -> P
     raw = snapshot.get("_output_root")
     if raw:
         return Path(str(raw))
-    return Path(__file__).resolve().parents[3] / "output"
+    return Path(os.environ.get("META_ALLOCATOR_OUTPUT_ROOT", Path(__file__).resolve().parents[3] / "output")).expanduser()
 
 
 def _events_path(snapshot: dict[str, Any], output_root: Path | None = None) -> Path:

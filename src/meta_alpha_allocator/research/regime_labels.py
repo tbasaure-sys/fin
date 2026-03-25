@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
+import os
+from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
@@ -31,7 +34,7 @@ class Episode:
 
 
 def load_episodes() -> list[Episode]:
-    raw_episodes = {
+    default_episodes = {
         "crashes": [
             {"name": "1929_crash", "start": "1929-09-01", "end": "1932-06-01", "regime": "crash"},
             {"name": "1987_black_monday", "start": "1987-10-01", "end": "1987-12-01", "regime": "crash"},
@@ -53,17 +56,29 @@ def load_episodes() -> list[Episode]:
             {"name": "qe3", "start": "2012-09-01", "end": "2014-10-01", "regime": "qe"},
             {"name": "taper_tantrum", "start": "2013-05-01", "end": "2013-09-01", "regime": "tightening"},
             {"name": "covid_qe", "start": "2020-03-01", "end": "2021-11-01", "regime": "qe"},
-            {"name": "2022_tightening", "start": "2022-03-01", "end": "2023-07-01", "regime": "tightening"},
+            {"name": "2022_tightening", "start": "2022-03-01", "end": None, "regime": "tightening"},
         ],
     }
+    raw_episodes = default_episodes
+    catalog_path = os.environ.get("META_ALLOCATOR_EPISODE_CATALOG_PATH", "").strip()
+    catalog_json = os.environ.get("META_ALLOCATOR_EPISODE_CATALOG_JSON", "").strip()
+    try:
+        if catalog_path:
+            raw_episodes = json.loads(Path(catalog_path).read_text(encoding="utf-8"))
+        elif catalog_json:
+            raw_episodes = json.loads(catalog_json)
+    except Exception:
+        raw_episodes = default_episodes
+
     episodes: list[Episode] = []
+    open_end = pd.Timestamp.utcnow().normalize().tz_localize(None)
     for group, rows in raw_episodes.items():
         for row in rows:
             episodes.append(
                 Episode(
                     name=row["name"],
                     start=pd.to_datetime(row["start"]),
-                    end=pd.to_datetime(row["end"]),
+                    end=pd.to_datetime(row["end"]) if row.get("end") else open_end,
                     regime=row["regime"],
                     group=group,
                 )

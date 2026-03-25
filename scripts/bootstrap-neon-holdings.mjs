@@ -3,6 +3,7 @@ import path from "path";
 
 import { config as loadEnv } from "dotenv";
 import { neon } from "@neondatabase/serverless";
+import { getServerConfig } from "../lib/server/config.js";
 
 loadEnv({ path: ".env.local" });
 loadEnv({ path: ".env" });
@@ -85,11 +86,12 @@ async function main() {
   }
 
   const sql = neon(process.env.DATABASE_URL);
+  const { defaultWorkspaceName } = getServerConfig();
   await sql.query(
     `INSERT INTO bls_workspaces (id, name, slug, visibility)
      VALUES ($1, $2, $3, 'private')
      ON CONFLICT (id) DO NOTHING`,
-    [workspaceId, "BLS Prime Workspace", workspaceId],
+    [workspaceId, defaultWorkspaceName, workspaceId],
   );
 
   await sql.query(`DELETE FROM bls_portfolio_positions WHERE workspace_id = $1`, [workspaceId]);

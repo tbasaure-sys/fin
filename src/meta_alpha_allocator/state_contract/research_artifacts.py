@@ -89,13 +89,29 @@ def _candidate_roots(paths: 'PathConfig | None') -> list[Path]:
     env_root = os.environ.get('META_ALLOCATOR_RESEARCH_ARTIFACT_ROOT')
     if env_root:
         roots.append(Path(env_root).expanduser())
+    env_roots = os.environ.get('META_ALLOCATOR_RESEARCH_ARTIFACT_ROOTS', '')
+    for chunk in env_roots.split(os.pathsep):
+        text = chunk.strip()
+        if text:
+            roots.append(Path(text).expanduser())
     if paths is not None:
         roots.extend([paths.finance_root / 'data_processed', paths.ct_root / '02_Finance' / 'data_processed'])
     home = Path.home()
-    roots.extend([home / 'workspace' / 'CT' / '02_Finance' / 'data_processed', home / 'code' / 'CT' / '02_Finance' / 'data_processed'])
+    home_patterns = [
+        'workspace/CT/02_Finance/data_processed',
+        'code/CT/02_Finance/data_processed',
+    ]
+    custom_home_patterns = os.environ.get('META_ALLOCATOR_RESEARCH_ARTIFACT_HOME_PATTERNS', '')
+    if custom_home_patterns.strip():
+        home_patterns = [item.strip() for item in custom_home_patterns.split(',') if item.strip()]
+    roots.extend([home / pattern for pattern in home_patterns])
     users_root = Path('/mnt/c/Users')
     if users_root.exists():
-        for pattern in ['*/OneDrive/Escritorio/CT/02_Finance/data_processed', '*/OneDrive/Desktop/CT/02_Finance/data_processed']:
+        windows_patterns = ['*/OneDrive/Escritorio/CT/02_Finance/data_processed', '*/OneDrive/Desktop/CT/02_Finance/data_processed']
+        custom_windows_patterns = os.environ.get('META_ALLOCATOR_RESEARCH_ARTIFACT_WINDOWS_PATTERNS', '')
+        if custom_windows_patterns.strip():
+            windows_patterns = [item.strip() for item in custom_windows_patterns.split(',') if item.strip()]
+        for pattern in windows_patterns:
             roots.extend(users_root.glob(pattern))
     deduped: list[Path] = []
     seen = set()

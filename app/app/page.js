@@ -1,16 +1,18 @@
 import TerminalApp from "@/components/terminal-app";
 import { requireServerAuthSession, buildAuthenticatedSessionPayload } from "@/lib/server/auth/session";
+import { getServerConfig } from "@/lib/server/config";
 import { getWorkspaceDashboard } from "@/lib/server/dashboard-service";
 import { buildDecisionOsSections } from "@/lib/server/decision-os";
 
 export const dynamic = "force-dynamic";
 
 function buildWorkspacePageFallback(authSession, error) {
+  const config = getServerConfig();
   const message = String(error?.message || error || "The workspace could not be assembled.");
   const fallback = {
     workspace_summary: {
       id: authSession.workspace.id,
-      name: authSession.workspace.name || "BLS Prime",
+      name: authSession.workspace.name || config.appName,
       backend_status: "briefing",
       last_updated_label: "Unavailable",
     },

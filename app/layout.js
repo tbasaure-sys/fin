@@ -1,7 +1,9 @@
 import "./globals.css";
 
+const appName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
+
 export const metadata = {
-  title: "BLS Prime",
+  title: appName,
   description: "Decision support workspace for clearer portfolio moves, risk control, and opportunity discovery.",
 };
 

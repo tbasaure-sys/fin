@@ -11,6 +11,7 @@ $financeRoot = Split-Path -Parent $metaRoot
 $portfolioRoot = Join-Path $financeRoot "portfolio_manager"
 $artifactRoot = Join-Path $metaRoot "artifacts\dashboard\latest"
 $redactScript = Join-Path $PSScriptRoot "redact_dashboard_artifact.py"
+$appName = if ($env:BLS_PRIME_APP_NAME) { $env:BLS_PRIME_APP_NAME } elseif ($env:NEXT_PUBLIC_BLS_APP_NAME) { $env:NEXT_PUBLIC_BLS_APP_NAME } else { "Allocator Workspace" }
 
 if (!(Test-Path $PythonExe)) {
   throw "Python executable not found at $PythonExe"
@@ -50,7 +51,7 @@ if (-not $SkipPortfolioManager) {
 
 if ($DailyScreenOnly) {
   Write-Step "Daily screen only mode selected"
-  Write-Host "This updates portfolio_manager daily screen files, but it does NOT rebuild the full BLS Prime snapshot."
+  Write-Host "This updates portfolio_manager daily screen files, but it does NOT rebuild the full $appName snapshot."
   Write-Host "Run again without -DailyScreenOnly to refresh discovery_screener.csv and the full terminal-facing stack."
   Show-Stamp (Join-Path $portfolioRoot "output\daily_screen\daily_screener.csv")
   exit 0
@@ -77,4 +78,4 @@ New-Item -ItemType Directory -Force $artifactRoot | Out-Null
 Show-Stamp (Join-Path $artifactRoot "dashboard_snapshot.json")
 
 Write-Host ""
-Write-Host "Local BLS Prime refresh complete and artifact published." -ForegroundColor Green
+Write-Host "Local $appName refresh complete and artifact published." -ForegroundColor Green

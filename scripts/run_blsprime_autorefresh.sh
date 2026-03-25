@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REFRESH_SCRIPT="$ROOT_DIR/scripts/refresh_blsprime_local.sh"
 INTERVAL_SECONDS="${INTERVAL_SECONDS:-300}"
+APP_NAME="${BLS_PRIME_APP_NAME:-${NEXT_PUBLIC_BLS_APP_NAME:-Allocator Workspace}}"
 ARGS=()
 
 usage() {
@@ -37,7 +38,7 @@ done
 
 trap 'printf "\nStopping auto-refresh loop.\n"; exit 0' INT TERM
 
-printf 'Starting BLS Prime auto-refresh loop (interval=%ss)\n' "$INTERVAL_SECONDS"
+printf 'Starting %s auto-refresh loop (interval=%ss)\n' "$APP_NAME" "$INTERVAL_SECONDS"
 
 while true; do
   printf '\n[%s] Running refresh...\n' "$(date '+%Y-%m-%d %H:%M:%S')"

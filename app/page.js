@@ -1,11 +1,13 @@
 import Link from "next/link";
 
 import { getServerAuthSession } from "@/lib/server/auth/session";
+import { getServerConfig } from "@/lib/server/config";
 import styles from "@/app/public-home.module.css";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const config = getServerConfig();
   const session = await getServerAuthSession();
   const primaryHref = session ? "/app" : "/login";
 
@@ -19,7 +21,7 @@ export default async function HomePage() {
 
         <header className={styles.header}>
           <Link className={styles.lockup} href="/">
-            <span className={styles.lockupName}>BLS Prime</span>
+            <span className={styles.lockupName}>{config.appName}</span>
           </Link>
 
           <div className={styles.headerActions}>
@@ -36,7 +38,7 @@ export default async function HomePage() {
         <div className={styles.composition}>
           <div className={styles.copy}>
             <p className={styles.kicker}>Decision OS for capital under uncertainty</p>
-            <p className={styles.wordmark}>BLS Prime</p>
+            <p className={styles.wordmark}>{config.appName}</p>
             <h1>Operate your portfolio with one clear daily surface.</h1>
             <p className={styles.support}>
               Keep the private book current, know what to do today, and stage decisions before you act.
@@ -159,7 +161,7 @@ export default async function HomePage() {
           <p className={styles.sectionKicker}>Ready</p>
           <h2>Stay inside one surface that knows what matters today.</h2>
           <p>
-            BLS Prime is most useful when it becomes the page you return to first and the page you leave open longest.
+            {config.appName} is most useful when it becomes the page you return to first and the page you leave open longest.
           </p>
         </div>
         <div className={styles.ctaRow}>

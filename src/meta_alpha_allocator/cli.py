@@ -23,50 +23,51 @@ from .runtime import run_phantom, run_policy, run_production
 def main() -> None:
     parser = argparse.ArgumentParser(description="Meta Allocator")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    default_research_settings = ResearchSettings()
     default_dashboard_settings = DashboardSettings()
 
     research_parser = subparsers.add_parser("research", help="Run walk-forward research backtest")
-    research_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    research_parser.add_argument("--start-date", default=default_research_settings.start_date)
     research_parser.add_argument("--end-date", default=None)
-    research_parser.add_argument("--top-n", type=int, default=ResearchSettings.top_n)
+    research_parser.add_argument("--top-n", type=int, default=default_research_settings.top_n)
 
     train_parser = subparsers.add_parser("train", help="Alias for full research training run")
-    train_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    train_parser.add_argument("--start-date", default=default_research_settings.start_date)
     train_parser.add_argument("--end-date", default=None)
-    train_parser.add_argument("--top-n", type=int, default=ResearchSettings.top_n)
+    train_parser.add_argument("--top-n", type=int, default=default_research_settings.top_n)
 
     production_parser = subparsers.add_parser("production", help="Build current allocator decision")
-    production_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    production_parser.add_argument("--start-date", default=default_research_settings.start_date)
     production_parser.add_argument("--end-date", default=None)
 
     report_parser = subparsers.add_parser("report", help="Build current meta allocator view")
-    report_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    report_parser.add_argument("--start-date", default=default_research_settings.start_date)
     report_parser.add_argument("--end-date", default=None)
 
     policy_parser = subparsers.add_parser("policy", help="Build current policy learner decision")
-    policy_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    policy_parser.add_argument("--start-date", default=default_research_settings.start_date)
     policy_parser.add_argument("--end-date", default=None)
 
     phantom_parser = subparsers.add_parser("phantom", help="Render live phantom terminal in CLI")
-    phantom_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    phantom_parser.add_argument("--start-date", default=default_research_settings.start_date)
     phantom_parser.add_argument("--end-date", default=None)
 
     dashboard_parser = subparsers.add_parser("dashboard", help="Run the local workstation dashboard")
     dashboard_subparsers = dashboard_parser.add_subparsers(dest="dashboard_command", required=True)
 
     dashboard_serve = dashboard_subparsers.add_parser("serve", help="Serve the local workstation UI")
-    dashboard_serve.add_argument("--start-date", default=ResearchSettings.start_date)
+    dashboard_serve.add_argument("--start-date", default=default_research_settings.start_date)
     dashboard_serve.add_argument("--end-date", default=None)
     dashboard_serve.add_argument("--host", default=default_dashboard_settings.host)
     dashboard_serve.add_argument("--port", type=int, default=default_dashboard_settings.port)
     dashboard_serve.add_argument("--open-browser", action="store_true")
 
     dashboard_refresh = dashboard_subparsers.add_parser("refresh", help="Refresh the workstation snapshot")
-    dashboard_refresh.add_argument("--start-date", default=ResearchSettings.start_date)
+    dashboard_refresh.add_argument("--start-date", default=default_research_settings.start_date)
     dashboard_refresh.add_argument("--end-date", default=None)
 
     dashboard_snapshot = dashboard_subparsers.add_parser("snapshot", help="Print the latest workstation snapshot")
-    dashboard_snapshot.add_argument("--start-date", default=ResearchSettings.start_date)
+    dashboard_snapshot.add_argument("--start-date", default=default_research_settings.start_date)
     dashboard_snapshot.add_argument("--end-date", default=None)
     dashboard_snapshot.add_argument("--json", action="store_true")
 
@@ -78,35 +79,35 @@ def main() -> None:
     chile_snapshot.add_argument("--json", action="store_true")
 
     tail_parser = subparsers.add_parser("tail-risk", help="Run multi-horizon tail-risk model")
-    tail_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    tail_parser.add_argument("--start-date", default=default_research_settings.start_date)
     tail_parser.add_argument("--end-date", default=None)
 
     forecast_parser = subparsers.add_parser("forecast-baseline", help="Run mlforecast-style market baselines")
-    forecast_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    forecast_parser.add_argument("--start-date", default=default_research_settings.start_date)
     forecast_parser.add_argument("--end-date", default=None)
 
     statement_parser = subparsers.add_parser("statement-intel", help="Build financial statement intelligence layer")
-    statement_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    statement_parser.add_argument("--start-date", default=default_research_settings.start_date)
     statement_parser.add_argument("--end-date", default=None)
 
     kernel_parser = subparsers.add_parser("earnings-cash-kernel", help="Run experimental earnings-to-cash kernel")
-    kernel_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    kernel_parser.add_argument("--start-date", default=default_research_settings.start_date)
     kernel_parser.add_argument("--end-date", default=None)
 
     spectral_backtest_parser = subparsers.add_parser("spectral-backtest", help="Research backtest for spectral compression overlay")
-    spectral_backtest_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    spectral_backtest_parser.add_argument("--start-date", default=default_research_settings.start_date)
     spectral_backtest_parser.add_argument("--end-date", default=None)
 
     chrono_parser = subparsers.add_parser("chrono-fragility", help="Run chrono-fragility representational compression research")
-    chrono_parser.add_argument("--start-date", default=ResearchSettings.start_date)
+    chrono_parser.add_argument("--start-date", default=default_research_settings.start_date)
     chrono_parser.add_argument("--end-date", default=None)
 
     args = parser.parse_args()
     paths = PathConfig()
     research_settings = ResearchSettings(
-        start_date=getattr(args, "start_date", ResearchSettings.start_date),
-        end_date=getattr(args, "end_date", ResearchSettings.end_date),
-        top_n=getattr(args, "top_n", ResearchSettings.top_n),
+        start_date=getattr(args, "start_date", default_research_settings.start_date),
+        end_date=getattr(args, "end_date", default_research_settings.end_date),
+        top_n=getattr(args, "top_n", default_research_settings.top_n),
     )
     allocator_settings = AllocatorSettings()
 

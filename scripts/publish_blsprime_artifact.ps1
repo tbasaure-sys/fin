@@ -1,6 +1,6 @@
 param(
   [string]$PythonExe = "C:\conda\python.exe",
-  [string]$CommitMessage = "Update BLS Prime dashboard artifact",
+  [string]$CommitMessage = $(if ($env:BLS_PRIME_ARTIFACT_COMMIT_MESSAGE) { $env:BLS_PRIME_ARTIFACT_COMMIT_MESSAGE } elseif ($env:BLS_PRIME_APP_NAME) { "Update $($env:BLS_PRIME_APP_NAME) dashboard artifact" } elseif ($env:NEXT_PUBLIC_BLS_APP_NAME) { "Update $($env:NEXT_PUBLIC_BLS_APP_NAME) dashboard artifact" } else { "Update dashboard artifact" }),
   [switch]$Push,
   [switch]$SkipRefresh,
   [switch]$SkipPortfolioManager

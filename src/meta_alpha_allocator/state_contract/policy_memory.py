@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -10,7 +11,7 @@ MEMORY_FILE = 'policy_memory.json'
 
 
 def _memory_path(snapshot: dict[str, Any]) -> Path:
-    output_root = Path(snapshot.get('_output_root') or Path(__file__).resolve().parents[3] / 'output')
+    output_root = Path(snapshot.get('_output_root') or os.environ.get('META_ALLOCATOR_OUTPUT_ROOT', Path(__file__).resolve().parents[3] / 'output')).expanduser()
     return output_root / 'state_contract' / 'latest' / MEMORY_FILE
 
 
