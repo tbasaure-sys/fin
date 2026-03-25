@@ -10,6 +10,7 @@ export default async function HomePage() {
   const config = getServerConfig();
   const session = await getServerAuthSession();
   const primaryHref = session ? "/app" : "/login";
+  const secondaryHref = session ? "/app" : "/";
 
   return (
     <main className={styles.page}>
@@ -37,34 +38,19 @@ export default async function HomePage() {
 
         <div className={styles.heroBody}>
           <div className={styles.heroCopy}>
-            <p className={styles.kicker}>Decision OS for private capital</p>
+            <p className={styles.kicker}>Private workspace</p>
             <p className={styles.wordmark}>{config.appName}</p>
-            <h1>One beautiful surface for the book, the call, and the next move.</h1>
+            <h1>Portfolio, state, and action in one place.</h1>
             <p className={styles.lead}>
-              Keep the portfolio current, read the state fast, and stage action without breaking focus.
+              Open the workspace, see what changed, and decide what to do next.
             </p>
             <div className={styles.heroActions}>
               <Link className={styles.primaryButton} href={primaryHref}>
                 {session ? "Return to workspace" : "Open workspace"}
               </Link>
-              <Link className={styles.secondaryButton} href={primaryHref}>
-                {session ? "View portfolio" : "Use access code"}
+              <Link className={styles.secondaryButton} href={secondaryHref}>
+                {session ? "Stay on home" : "Back"}
               </Link>
-            </div>
-          </div>
-
-          <div className={styles.heroAside}>
-            <div className={styles.asideRow}>
-              <span>Private holdings</span>
-              <p>The actual book, current weights, and live overlays stay in one place.</p>
-            </div>
-            <div className={styles.asideRow}>
-              <span>One clear read</span>
-              <p>The workspace tells you what matters now and what would reopen the decision.</p>
-            </div>
-            <div className={styles.asideRow}>
-              <span>Stage before acting</span>
-              <p>Queue the move, keep the memory, and let freshness state confirm the setup.</p>
             </div>
           </div>
         </div>
@@ -72,56 +58,31 @@ export default async function HomePage() {
 
       <section className={styles.support}>
         <div className={styles.supportLead}>
-          <p className={styles.sectionKicker}>Why it sticks</p>
-          <h2>Fast enough for every morning. Serious enough to leave open all day.</h2>
+          <p className={styles.sectionKicker}>What you get</p>
+          <h2>The essentials, without the noise.</h2>
         </div>
         <div className={styles.supportRail}>
           <article>
-            <span>01</span>
-            <strong>Book state</strong>
-            <p>Open on the real portfolio instead of a generic dashboard.</p>
+            <strong>Portfolio</strong>
+            <p>Current holdings, weights, and exposure in one view.</p>
           </article>
           <article>
-            <span>02</span>
-            <strong>Decision state</strong>
-            <p>See the current call, the size logic, and the invalidation path immediately.</p>
+            <strong>Decision</strong>
+            <p>The current call, sizing, and reason to act or wait.</p>
           </article>
           <article>
-            <span>03</span>
-            <strong>Freshness state</strong>
-            <p>Know whether the read is live, aging, stale, or already refreshed.</p>
+            <strong>Freshness</strong>
+            <p>A clear signal for whether the read is current.</p>
           </article>
-        </div>
-      </section>
-
-      <section className={styles.detail}>
-        <div className={styles.detailImage} aria-hidden="true" />
-        <div className={styles.detailCopy}>
-          <p className={styles.sectionKicker}>Operator flow</p>
-          <h2>Read. stage. return.</h2>
-          <div className={styles.flowList}>
-            <div>
-              <strong>Open on the right context</strong>
-              <p>The first screen already knows the holdings, the structure, and the current pressure.</p>
-            </div>
-            <div>
-              <strong>Absorb the call in seconds</strong>
-              <p>One primary action, a few supporting reads, and a visible reason not to overtrade.</p>
-            </div>
-            <div>
-              <strong>Keep the memory honest</strong>
-              <p>Staged moves, decision history, and counterfactuals make the surface sharper over time.</p>
-            </div>
-          </div>
         </div>
       </section>
 
       <section className={styles.closer}>
         <div className={styles.closerCopy}>
-          <p className={styles.sectionKicker}>Daily surface</p>
-          <h2>Make this the first tab you trust.</h2>
+          <p className={styles.sectionKicker}>Open it</p>
+          <h2>Go straight to the workspace.</h2>
           <p>
-            {config.appName} works best when the book, the state, and the next decision all live in the same calm place.
+            {config.appName} is built to keep the book and the current read in the same place.
           </p>
         </div>
         <div className={styles.closerActions}>
