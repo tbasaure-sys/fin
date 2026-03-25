@@ -47,7 +47,6 @@
 .header,
 .heroBody,
 .support,
-.detail,
 .closer {
   position: relative;
   z-index: 1;
@@ -80,23 +79,19 @@
 
 .heroBody {
   min-height: calc(100svh - 4.5rem);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
-  gap: 2rem;
+  display: flex;
   align-items: end;
   padding: 1.5rem 1.4rem 1.8rem;
 }
 
 .heroCopy {
-  max-width: 34rem;
+  max-width: 32rem;
   padding-bottom: 0.5rem;
   animation: rise 700ms ease both;
 }
 
 .kicker,
-.sectionKicker,
-.asideRow span,
-.supportRail span {
+.sectionKicker {
   margin: 0;
   color: #e3b867;
   font-size: 0.72rem;
@@ -106,14 +101,13 @@
 
 .wordmark {
   margin: 0 0 0.35rem;
-  font-size: clamp(4rem, 10vw, 7rem);
+  font-size: clamp(3.6rem, 9vw, 6rem);
   line-height: 0.84;
   letter-spacing: -0.09em;
 }
 
 .heroCopy h1,
 .supportLead h2,
-.detailCopy h2,
 .closerCopy h2 {
   margin: 0;
   letter-spacing: -0.06em;
@@ -128,17 +122,15 @@
 .lead,
 .closerCopy p,
 .supportLead p,
-.asideRow p,
-.supportRail p,
-.flowList p {
+.supportRail p {
   color: rgba(235, 239, 244, 0.76);
 }
 
 .lead {
-  max-width: 28rem;
+  max-width: 24rem;
   margin: 1rem 0 0;
   font-size: 1.02rem;
-  line-height: 1.7;
+  line-height: 1.6;
 }
 
 .primaryButton,
@@ -174,35 +166,17 @@
   background: rgba(255, 255, 255, 0.03);
 }
 
-.heroAside {
-  align-self: end;
-  display: grid;
-  gap: 0.95rem;
-  padding-bottom: 0.3rem;
-  animation: rise 820ms ease both;
-  animation-delay: 100ms;
-}
-
-.asideRow {
-  padding-top: 0.9rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.asideRow p,
-.supportRail p,
-.flowList p {
+.supportRail p {
   margin: 0.3rem 0 0;
   line-height: 1.55;
 }
 
 .support,
-.detail,
 .closer {
   padding: 5.5rem 1.4rem 0;
 }
 
 .support,
-.detail,
 .closer {
   max-width: 1320px;
   margin: 0 auto;
@@ -210,72 +184,39 @@
 
 .support {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 2rem;
+  gap: 1.75rem;
 }
 
 .supportLead {
-  max-width: 26rem;
+  max-width: 32rem;
 }
 
 .supportLead h2,
-.detailCopy h2,
 .closerCopy h2 {
   font-size: clamp(2.2rem, 4vw, 3.8rem);
 }
 
 .supportRail {
   display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
 }
 
-.supportRail article,
-.flowList > div {
+.supportRail article {
   padding-top: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.09);
   transition: transform 220ms ease, border-color 220ms ease;
 }
 
-.supportRail article:hover,
-.flowList > div:hover {
+.supportRail article:hover {
   transform: translateX(8px);
   border-color: rgba(227, 184, 103, 0.24);
 }
 
-.supportRail strong,
-.flowList strong {
+.supportRail strong {
   display: block;
-  margin-top: 0.25rem;
   font-size: 1.2rem;
   line-height: 1.14;
-}
-
-.detail {
-  display: grid;
-  grid-template-columns: minmax(18rem, 0.82fr) minmax(0, 1fr);
-  gap: 2rem;
-  align-items: start;
-}
-
-.detailImage {
-  min-height: 31rem;
-  border-radius: 28px;
-  background:
-    linear-gradient(180deg, rgba(8, 13, 19, 0.14), rgba(8, 13, 19, 0.54)),
-    url("/images/bls-prime-hero.png");
-  background-size: cover;
-  background-position: center;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-}
-
-.detailCopy {
-  max-width: 35rem;
-}
-
-.flowList {
-  display: grid;
-  gap: 1.1rem;
-  margin-top: 1.5rem;
 }
 
 .closer {
@@ -326,29 +267,12 @@
 }
 
 @media (max-width: 980px) {
-  .heroBody,
-  .support,
-  .detail,
-  .closer {
-    grid-template-columns: 1fr;
-  }
-
   .heroBody {
-    min-height: auto;
-    padding-top: 4rem;
+    min-height: calc(100svh - 4.5rem);
   }
 
-  .heroAside {
-    max-width: 28rem;
-  }
-
-  .detailImage {
-    min-height: 20rem;
-    order: 2;
-  }
-
-  .detailCopy {
-    order: 1;
+  .supportRail {
+    grid-template-columns: 1fr;
   }
 
   .closer {
@@ -360,7 +284,6 @@
   .header,
   .heroBody,
   .support,
-  .detail,
   .closer {
     padding-left: 1rem;
     padding-right: 1rem;
@@ -372,7 +295,6 @@
 
   .heroBody {
     padding-bottom: 1.25rem;
-    gap: 1.4rem;
   }
 
   .heroPhoto {
@@ -384,13 +306,7 @@
   }
 
   .support,
-  .detail,
   .closer {
     padding-top: 4rem;
-  }
-
-  .detailImage {
-    min-height: 16rem;
-    border-radius: 22px;
   }
 }
