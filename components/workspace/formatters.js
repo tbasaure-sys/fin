@@ -1,4 +1,6 @@
 export const PORTFOLIO_RANGES = ["1D", "1W", "1M", "YTD", "ALL"];
+const DEFAULT_LOCALE = process.env.NEXT_PUBLIC_BLS_FORMAT_LOCALE || "en-US";
+const DEFAULT_CURRENCY = process.env.NEXT_PUBLIC_BLS_FORMAT_CURRENCY || "USD";
 
 export function safeList(value) {
   return Array.isArray(value) ? value.filter(Boolean) : [];
@@ -39,9 +41,9 @@ export function formatSignedPct(value, digits = 1) {
 export function formatCurrency(value) {
   const number = Number(value);
   if (!Number.isFinite(number)) return "-";
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat(DEFAULT_LOCALE, {
     style: "currency",
-    currency: "USD",
+    currency: DEFAULT_CURRENCY,
     maximumFractionDigits: number >= 1000 ? 0 : 2,
   }).format(number);
 }

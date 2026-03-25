@@ -23,6 +23,8 @@ import {
 import { parseResponse, useWorkspaceLiveData } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
 
+const DEFAULT_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
+
 function ToneBadge({ tone = "neutral", children }) {
   return (
     <span className={styles.badge} data-tone={tone}>
@@ -560,7 +562,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       <header className={styles.header}>
         <div>
           <p className={styles.eyebrow}>Private workspace</p>
-          <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || "BLS Prime"}</h1>
+          <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME}</h1>
           <p className={styles.subtitle}>One operating surface for portfolio state, decisions, and fresh analysis.</p>
         </div>
 

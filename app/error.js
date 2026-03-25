@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
+const appName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
+
 export default function Error({ error, reset }) {
   useEffect(() => {
     console.error(error);
@@ -12,7 +14,7 @@ export default function Error({ error, reset }) {
     <main className="status-page">
       <div className="status-shell premium-card">
         <p className="landing-kicker">Workspace problem</p>
-        <p className="brand-wordmark">BLS Prime</p>
+        <p className="brand-wordmark">{appName}</p>
         <h1>We could not open the workspace.</h1>
         <p className="landing-support">
           Try the workspace again. If the problem persists, sign in again and refresh the live data.

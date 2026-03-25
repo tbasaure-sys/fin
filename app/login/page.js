@@ -1,9 +1,11 @@
 import Link from "next/link";
 import styles from "@/app/login-page.module.css";
+import { getServerConfig } from "@/lib/server/config";
 
 export const dynamic = "force-dynamic";
 
 export default function LoginPage({ searchParams }) {
+  const config = getServerConfig();
   const next = typeof searchParams?.next === "string" ? searchParams.next : "/app";
   const error = typeof searchParams?.error === "string" ? searchParams.error : "";
 
@@ -12,7 +14,7 @@ export default function LoginPage({ searchParams }) {
       <div className={styles.stage}>
         <section className={styles.copy}>
           <p className={styles.kicker}>Private workspace access</p>
-          <p className={styles.wordmark}>BLS Prime</p>
+          <p className={styles.wordmark}>{config.appName}</p>
           <h1>Enter your private decision workspace.</h1>
           <p className={styles.support}>
             Your holdings, staged actions, counterfactual ledger, and mandate stay scoped to your signed-in workspace.
@@ -37,13 +39,13 @@ export default function LoginPage({ searchParams }) {
         <form className={styles.panel} method="post" action="/api/auth/login">
           <input type="hidden" name="next" value={next} />
           <p className={styles.panelKicker}>Member sign in</p>
-          <h2>Open BLS Prime.</h2>
+          <h2>Open {config.appName}.</h2>
           <p className={styles.panelSupport}>Use the private access code configured for this deployment.</p>
           {error ? <p className={styles.error}>{error}</p> : null}
           <div className={styles.form}>
             <label className={styles.field}>
               <span>Name</span>
-              <input name="name" type="text" placeholder="Tomas" autoComplete="name" />
+              <input name="name" type="text" placeholder={config.loginNamePlaceholder} autoComplete="name" />
             </label>
             <label className={styles.field}>
               <span>Email</span>

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
 
 import numpy as np
 import pandas as pd
@@ -22,7 +23,8 @@ def _safe_business_range(start_date: str, end_date: str | None) -> pd.DatetimeIn
 
 
 def _fetch_current_sp500_membership(start_date: str) -> pd.DataFrame:
-    sources = [
+    raw_sources = os.environ.get("META_ALLOCATOR_SP500_MEMBERSHIP_URLS", "").strip()
+    sources = [item.strip() for item in raw_sources.split(",") if item.strip()] or [
         "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
     ]
     start = pd.to_datetime(start_date).normalize()

@@ -1,5 +1,5 @@
 param(
-  [string]$TaskName = "BLS Prime Artifact Refresh",
+  [string]$TaskName = $(if ($env:BLS_PRIME_TASK_NAME) { $env:BLS_PRIME_TASK_NAME } elseif ($env:BLS_PRIME_APP_NAME) { "$($env:BLS_PRIME_APP_NAME) Artifact Refresh" } elseif ($env:NEXT_PUBLIC_BLS_APP_NAME) { "$($env:NEXT_PUBLIC_BLS_APP_NAME) Artifact Refresh" } else { "Allocator Workspace Artifact Refresh" }),
   [string]$RepoRoot = "/home/t14_ultra_7_tomas/code/fin",
   [switch]$PushArtifacts,
   [switch]$SkipPortfolioManager
