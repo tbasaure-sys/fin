@@ -14,161 +14,121 @@ export default async function HomePage() {
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
-        <div className={styles.backdrop} aria-hidden="true">
-          <div className={styles.photo} />
-          <div className={styles.scan} />
+        <div className={styles.heroMedia} aria-hidden="true">
+          <div className={styles.heroPhoto} />
+          <div className={styles.heroVeil} />
+          <div className={styles.heroGlow} />
         </div>
 
         <header className={styles.header}>
-          <Link className={styles.lockup} href="/">
-            <span className={styles.lockupName}>{config.appName}</span>
+          <Link className={styles.brand} href="/">
+            <span className={styles.brandName}>{config.appName}</span>
           </Link>
-
           <div className={styles.headerActions}>
             {session ? (
               <form action="/api/auth/logout" method="post">
-                <button className={styles.secondaryButton} type="submit">Sign out</button>
+                <button className={styles.ghostButton} type="submit">Sign out</button>
               </form>
             ) : (
-              <Link className={styles.secondaryButton} href="/login">Member sign in</Link>
+              <Link className={styles.ghostButton} href="/login">Member sign in</Link>
             )}
           </div>
         </header>
 
-        <div className={styles.composition}>
-          <div className={styles.copy}>
-            <p className={styles.kicker}>Decision OS for capital under uncertainty</p>
+        <div className={styles.heroBody}>
+          <div className={styles.heroCopy}>
+            <p className={styles.kicker}>Decision OS for private capital</p>
             <p className={styles.wordmark}>{config.appName}</p>
-            <h1>Operate your portfolio with one clear daily surface.</h1>
-            <p className={styles.support}>
-              Keep the private book current, know what to do today, and stage decisions before you act.
+            <h1>One beautiful surface for the book, the call, and the next move.</h1>
+            <p className={styles.lead}>
+              Keep the portfolio current, read the state fast, and stage action without breaking focus.
             </p>
-            <div className={styles.ctaRow}>
+            <div className={styles.heroActions}>
               <Link className={styles.primaryButton} href={primaryHref}>
-                Open workspace
+                {session ? "Return to workspace" : "Open workspace"}
               </Link>
               <Link className={styles.secondaryButton} href={primaryHref}>
-                {session ? "View portfolio" : "Member sign in"}
+                {session ? "View portfolio" : "Use access code"}
               </Link>
             </div>
-            <p className={styles.caption}>
-              {session ? "Your private workspace is ready." : "Simple sign in, private workspace, everything available from day one."}
-            </p>
           </div>
 
-          <div className={styles.heroPanel}>
-            <div className={styles.heroPanelTop}>
-              <span>Freshness</span>
-              <strong>Railway-backed analysis with private portfolio overlays</strong>
+          <div className={styles.heroAside}>
+            <div className={styles.asideRow}>
+              <span>Private holdings</span>
+              <p>The actual book, current weights, and live overlays stay in one place.</p>
             </div>
-            <div className={styles.heroStack}>
-              <article>
-                <span>Private holdings</span>
-                <strong>Real book context</strong>
-                <p>Track the actual positions, the current weights, and the history behind the book instead of a demo surface.</p>
-              </article>
-              <article>
-                <span>Today&apos;s call</span>
-                <strong>One explicit next action</strong>
-                <p>Open the workspace and see what to do now, why it matters, and what would invalidate the read.</p>
-              </article>
-              <article>
-                <span>Staged execution</span>
-                <strong>Prepare before acting</strong>
-                <p>Queue a move, keep the decision log, and let freshness state tell you when the setup has improved.</p>
-              </article>
+            <div className={styles.asideRow}>
+              <span>One clear read</span>
+              <p>The workspace tells you what matters now and what would reopen the decision.</p>
+            </div>
+            <div className={styles.asideRow}>
+              <span>Stage before acting</span>
+              <p>Queue the move, keep the memory, and let freshness state confirm the setup.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <section className={styles.supportStrip}>
-        <article>
-          <span>Private portfolio</span>
-          <p>See the actual book, the current weights, and live holdings updates without leaving the operating surface.</p>
-        </article>
-        <article>
-          <span>Decision clarity</span>
-          <p>One serious daily call: what to do now, why it is justified, and what has to change before risk expands.</p>
-        </article>
-        <article>
-          <span>Live state</span>
-          <p>Railway remains the source of truth, while the app shows freshness, stale state, and refresh progress honestly.</p>
-        </article>
-      </section>
-
-      <section className={styles.proofSection}>
-        <div className={styles.sectionIntro}>
-          <p className={styles.sectionKicker}>Why it holds attention</p>
-          <h2>Everything important is visible before the first click.</h2>
+      <section className={styles.support}>
+        <div className={styles.supportLead}>
+          <p className={styles.sectionKicker}>Why it sticks</p>
+          <h2>Fast enough for every morning. Serious enough to leave open all day.</h2>
         </div>
-        <div className={styles.proofGrid}>
-          <article>
-            <span>Book state</span>
-            <strong>Live holdings, current weights, stored history</strong>
-            <p>The workspace opens on the actual portfolio context instead of dropping you into a generic overview.</p>
-          </article>
-          <article>
-            <span>Decision state</span>
-            <strong>One recommendation with explicit invalidation</strong>
-            <p>The product stays persuasive because it tells you what changed, what to do, and what would make the read wrong.</p>
-          </article>
-          <article>
-            <span>Freshness state</span>
-            <strong>Manual refresh, scheduled refresh, live status</strong>
-            <p>You never need to guess whether the screen is current. Freshness is part of the product, not hidden plumbing.</p>
-          </article>
-        </div>
-      </section>
-
-      <section className={styles.workflowSection}>
-        <div className={styles.workflowLead}>
-          <p className={styles.sectionKicker}>Operator flow</p>
-          <h2>Read. stage. update. come back tomorrow.</h2>
-          <p>
-            The experience is designed like a repeated daily ritual: open the workspace, absorb the live state in seconds,
-            stage a move if the read is legitimate, and keep the book current with a natural-language trade note.
-          </p>
-        </div>
-
-        <div className={styles.workflowRail}>
+        <div className={styles.supportRail}>
           <article>
             <span>01</span>
-            <div>
-              <strong>Open on the right surface</strong>
-              <p>The first screen is already the operating surface, not a dashboard of unrelated widgets.</p>
-            </div>
+            <strong>Book state</strong>
+            <p>Open on the real portfolio instead of a generic dashboard.</p>
           </article>
           <article>
             <span>02</span>
-            <div>
-              <strong>Absorb the current call</strong>
-              <p>The decision panel tells you the next move, the current size logic, and the invalidation path without extra hunting.</p>
-            </div>
+            <strong>Decision state</strong>
+            <p>See the current call, the size logic, and the invalidation path immediately.</p>
           </article>
           <article>
             <span>03</span>
-            <div>
-              <strong>Keep the portfolio honest</strong>
-              <p>Update the book naturally, see the effect on the workspace, and keep the history coherent over time.</p>
-            </div>
+            <strong>Freshness state</strong>
+            <p>Know whether the read is live, aging, stale, or already refreshed.</p>
           </article>
         </div>
       </section>
 
-      <section className={styles.ctaSection}>
-        <div>
-          <p className={styles.sectionKicker}>Ready</p>
-          <h2>Stay inside one surface that knows what matters today.</h2>
+      <section className={styles.detail}>
+        <div className={styles.detailImage} aria-hidden="true" />
+        <div className={styles.detailCopy}>
+          <p className={styles.sectionKicker}>Operator flow</p>
+          <h2>Read. stage. return.</h2>
+          <div className={styles.flowList}>
+            <div>
+              <strong>Open on the right context</strong>
+              <p>The first screen already knows the holdings, the structure, and the current pressure.</p>
+            </div>
+            <div>
+              <strong>Absorb the call in seconds</strong>
+              <p>One primary action, a few supporting reads, and a visible reason not to overtrade.</p>
+            </div>
+            <div>
+              <strong>Keep the memory honest</strong>
+              <p>Staged moves, decision history, and counterfactuals make the surface sharper over time.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.closer}>
+        <div className={styles.closerCopy}>
+          <p className={styles.sectionKicker}>Daily surface</p>
+          <h2>Make this the first tab you trust.</h2>
           <p>
-            {config.appName} is most useful when it becomes the page you return to first and the page you leave open longest.
+            {config.appName} works best when the book, the state, and the next decision all live in the same calm place.
           </p>
         </div>
-        <div className={styles.ctaRow}>
+        <div className={styles.closerActions}>
           <Link className={styles.primaryButton} href={primaryHref}>
             {session ? "Return to workspace" : "Enter workspace"}
           </Link>
-          {!session ? <Link className={styles.secondaryButton} href="/login">Use access code</Link> : null}
+          {!session ? <Link className={styles.ghostButton} href="/login">Sign in</Link> : null}
         </div>
       </section>
     </main>
