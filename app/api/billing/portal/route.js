@@ -9,7 +9,7 @@ export async function POST(request) {
   if (auth instanceof Response) return auth;
 
   try {
-    const url = await createBillingPortalLink({ userId: auth.user.id });
+    const url = await createBillingPortalLink({ userId: auth.user.id, request });
     return Response.json({ ok: true, url }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     return Response.json(

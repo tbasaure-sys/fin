@@ -14,6 +14,7 @@ export async function POST(request) {
     const url = await createCheckoutLink({
       user: auth.user,
       plan,
+      request,
     });
     return Response.json({ ok: true, url }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
