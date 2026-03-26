@@ -1,13 +1,20 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import styles from "@/app/login-page.module.css";
 import { getServerConfig } from "@/lib/server/config";
+import { getServerAuthSession } from "@/lib/server/auth/session";
 
 export const dynamic = "force-dynamic";
 
-export default function LoginPage({ searchParams }) {
+export default async function LoginPage({ searchParams }) {
   const config = getServerConfig();
   const next = typeof searchParams?.next === "string" ? searchParams.next : "/app";
   const error = typeof searchParams?.error === "string" ? searchParams.error : "";
+  const session = await getServerAuthSession();
+
+  if (session) {
+    redirect(next.startsWith("/") ? next : "/app");
+  }
 
   return (
     <main className={styles.page}>
