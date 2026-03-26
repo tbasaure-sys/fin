@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   clearSessionByToken,
   getSessionCookieName,
+  getSessionCookieOptions,
 } from "@/lib/server/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -14,10 +15,7 @@ export async function POST(request) {
 
   const response = NextResponse.redirect(new URL("/", request.url));
   response.cookies.set(getSessionCookieName(), "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
+    ...getSessionCookieOptions(new Date(0)),
     maxAge: 0,
   });
   return response;
