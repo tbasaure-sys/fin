@@ -507,6 +507,18 @@
   background: rgba(168, 184, 202, 0.56);
 }
 
+.legendSwatch[data-series="phantom-raw"] {
+  background: rgba(248, 200, 111, 0.95);
+}
+
+.legendSwatch[data-series="phantom-real"] {
+  background: rgba(122, 210, 194, 0.95);
+}
+
+.legendSwatch[data-series="phantom-gap"] {
+  background: rgba(255, 145, 104, 0.7);
+}
+
 .tableShell {
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -541,6 +553,288 @@
   margin-top: 1rem;
   display: grid;
   gap: 0.85rem;
+}
+
+.phantomSurface {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1.38fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.phantomDraftPane,
+.phantomResultsPane,
+.phantomChartShell,
+.phantomContributorShell {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.phantomDraftPane {
+  padding: 1rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(8, 15, 27, 0.88), rgba(8, 15, 27, 0.66)),
+    radial-gradient(circle at top left, rgba(248, 200, 111, 0.1), transparent 42%);
+}
+
+.phantomDraftHeader,
+.phantomActionBar,
+.phantomDraftActions,
+.phantomNarrative,
+.phantomInsightStrip,
+.phantomChartMeta {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.phantomDraftTable {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.phantomDraftTableHeader,
+.phantomDraftRow,
+.phantomContributorHeader,
+.phantomContributorRow {
+  display: grid;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.phantomDraftTableHeader {
+  grid-template-columns: minmax(0, 1fr) minmax(88px, 0.65fr) auto;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.phantomDraftRows {
+  display: grid;
+}
+
+.phantomDraftRow {
+  grid-template-columns: minmax(0, 1fr) minmax(88px, 0.65fr) auto;
+  padding: 0.8rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.phantomInput {
+  width: 100%;
+  min-height: 2.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(6, 12, 23, 0.84);
+  padding: 0.7rem 0.85rem;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.phantomInput:focus {
+  border-color: rgba(122, 210, 194, 0.35);
+}
+
+.phantomDraftActions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.phantomActionBar {
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(248, 200, 111, 0.14);
+  background: linear-gradient(90deg, rgba(248, 200, 111, 0.08), rgba(122, 210, 194, 0.05));
+}
+
+.phantomResultsPane {
+  gap: 1rem;
+}
+
+.phantomResultBand {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.phantomResultMetric {
+  padding: 1.05rem 1.1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  display: grid;
+  gap: 0.32rem;
+}
+
+.phantomResultMetric span,
+.phantomInsightStrip span,
+.phantomFocusBadge span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.phantomResultMetric strong {
+  font-size: clamp(1.15rem, 2vw, 1.8rem);
+  line-height: 1;
+}
+
+.phantomResultMetric small {
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.phantomResultMetric[data-tone="good"] strong {
+  color: var(--good);
+}
+
+.phantomResultMetric[data-tone="warn"] strong {
+  color: var(--warn);
+}
+
+.phantomResultMetric[data-tone="bad"] strong {
+  color: #ffaf94;
+}
+
+.phantomNarrative {
+  gap: 1rem;
+  padding: 1rem 1.05rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02)),
+    radial-gradient(circle at top right, rgba(122, 210, 194, 0.08), transparent 38%);
+}
+
+.phantomNarrativeCopy {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 34rem;
+}
+
+.phantomNarrativeCopy p,
+.phantomContributorFocus p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.phantomInsightStrip {
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+  flex-wrap: wrap;
+}
+
+.phantomInsightStrip > div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.phantomInsightStrip strong,
+.phantomFocusBadge strong {
+  font-size: 1.05rem;
+}
+
+.phantomChartShell,
+.phantomContributorShell {
+  padding: 1rem 1.05rem;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.phantomChartBlock {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.phantomChart {
+  width: 100%;
+  height: auto;
+}
+
+.phantomChartAxis {
+  stroke: rgba(255, 255, 255, 0.14);
+  stroke-width: 1.25;
+}
+
+.phantomGapArea {
+  fill: url(#phantomGapFill);
+}
+
+.phantomRawLine,
+.phantomRealLine {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.phantomRawLine {
+  stroke: rgba(248, 200, 111, 0.95);
+  stroke-width: 2.5;
+}
+
+.phantomRealLine {
+  stroke: rgba(122, 210, 194, 0.95);
+  stroke-width: 3;
+}
+
+.phantomChartMeta {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.phantomFocusBadge {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(248, 200, 111, 0.16);
+  background: rgba(248, 200, 111, 0.08);
+  text-align: right;
+}
+
+.phantomContributorFocus {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.95rem 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(122, 210, 194, 0.12);
+  background: rgba(122, 210, 194, 0.05);
+}
+
+.phantomContributorHeader {
+  grid-template-columns: minmax(84px, 0.7fr) minmax(78px, 0.7fr) minmax(84px, 0.8fr) minmax(100px, 0.9fr) minmax(120px, 1fr);
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+
+.phantomContributorRow {
+  grid-template-columns: minmax(84px, 0.7fr) minmax(78px, 0.7fr) minmax(84px, 0.8fr) minmax(100px, 0.9fr) minmax(120px, 1fr);
+  padding: 0.9rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  outline: none;
+}
+
+.phantomContributorRow:hover,
+.phantomContributorRow:focus,
+.phantomContributorRow[data-active="true"] {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .tradeCopy {
@@ -597,7 +891,9 @@
   .layout,
   .portfolioGrid,
   .decisionGrid,
-  .metricsGrid {
+  .metricsGrid,
+  .phantomSurface,
+  .phantomResultBand {
     grid-template-columns: 1fr;
   }
 
@@ -629,8 +925,20 @@
     border-radius: 24px;
   }
 
+  .phantomActionBar,
+  .phantomDraftHeader,
+  .phantomNarrative,
+  .phantomInsightStrip,
+  .phantomChartMeta {
+    display: grid;
+  }
+
   .tableHeader,
-  .tableRow {
+  .tableRow,
+  .phantomDraftTableHeader,
+  .phantomDraftRow,
+  .phantomContributorHeader,
+  .phantomContributorRow {
     grid-template-columns: minmax(96px, 1fr) minmax(0, 1fr) minmax(70px, 0.55fr);
   }
 
@@ -644,7 +952,8 @@
   .tradeForm,
   .holdingRow,
   .compactRow,
-  .alertRow {
+  .alertRow,
+  .phantomActionBar {
     grid-template-columns: 1fr;
   }
 

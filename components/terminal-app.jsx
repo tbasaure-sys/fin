@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import {
   PORTFOLIO_RANGES,
@@ -128,6 +128,476 @@ function PortfolioChart({ series, benchmarkSymbol }) {
         {hasBenchmark ? <span><i className={styles.legendSwatch} data-series="benchmark" />{benchmarkSymbol || "SPY"}</span> : null}
       </div>
     </div>
+  );
+}
+
+function formatBreadth(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "-";
+  return numeric.toFixed(numeric >= 10 ? 1 : 2);
+}
+
+function formatWeightEditorValue(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "";
+  return numeric.toFixed(numeric >= 10 ? 1 : 2).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+}
+
+function buildDraftHoldings(holdings) {
+  return safeList(holdings)
+    .map((holding, index) => {
+      const ticker = String(holding?.ticker || "").trim().toUpperCase();
+      const weight = parseDisplayPercent(holding?.weight);
+      if (!ticker) return null;
+      return {
+        id: `${ticker}-${index}`,
+        ticker,
+        weight: formatWeightEditorValue((Number(weight) || 0) * 100),
+      };
+    })
+    .filter(Boolean);
+}
+
+function draftHoldingsKey(rows) {
+  return JSON.stringify(
+    safeList(rows).map((row) => ({
+      ticker: String(row?.ticker || "").trim().toUpperCase(),
+      weight: String(row?.weight || "").trim(),
+    })),
+  );
+}
+
+function phantomTone(classification) {
+  if (classification === "real-dominant") return "good";
+  if (classification === "mixed") return "warn";
+  if (classification === "phantom-dominant") return "bad";
+  return "neutral";
+}
+
+function contributorTone(role) {
+  if (role === "real diversifier") return "good";
+  if (role === "phantom diversifier") return "warn";
+  if (role === "crowding source") return "bad";
+  return "neutral";
+}
+
+function PhantomBreadthChart({ series }) {
+  const rows = safeList(series);
+  const width = 760;
+  const height = 260;
+  const paddingX = 22;
+  const paddingY = 24;
+
+  if (rows.length < 2) {
+    return <p className={styles.emptyCopy}>Run the analysis to draw the raw vs real breadth gap over time.</p>;
+  }
+
+  const maxValue = Math.max(
+    ...rows.flatMap((row) => [Number(row.raw_breadth), Number(row.real_breadth)].filter(Number.isFinite)),
+    1,
+  );
+  const minValue = Math.min(
+    ...rows.flatMap((row) => [Number(row.raw_breadth), Number(row.real_breadth)].filter(Number.isFinite)),
+    0,
+  );
+  const valueRange = maxValue - minValue || 1;
+  const plotWidth = width - (paddingX * 2);
+  const plotHeight = height - (paddingY * 2);
+
+  const pointAt = (value, index) => {
+    const x = paddingX + (plotWidth * index) / Math.max(rows.length - 1, 1);
+    const y = height - paddingY - (((value - minValue) / valueRange) * plotHeight);
+    return [x, y];
+  };
+
+  const linePath = (field) => rows
+    .map((row, index) => {
+      const [x, y] = pointAt(Number(row[field]) || 0, index);
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  const rawPoints = rows.map((row, index) => pointAt(Number(row.raw_breadth) || 0, index));
+  const realPoints = rows.map((row, index) => pointAt(Number(row.real_breadth) || 0, index));
+  const areaPath = [
+    `M ${rawPoints[0][0].toFixed(1)} ${rawPoints[0][1].toFixed(1)}`,
+    ...rawPoints.slice(1).map(([x, y]) => `L ${x.toFixed(1)} ${y.toFixed(1)}`),
+    ...realPoints.slice().reverse().map(([x, y]) => `L ${x.toFixed(1)} ${y.toFixed(1)}`),
+    "Z",
+  ].join(" ");
+  const latest = rows[rows.length - 1];
+  const firstLabel = rows[0]?.date ? formatDate(rows[0].date) : "";
+  const lastLabel = latest?.date ? formatDate(latest.date) : "";
+
+  return (
+    <div className={styles.phantomChartBlock}>
+      <svg className={styles.phantomChart} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Raw and real breadth over time">
+        <defs>
+          <linearGradient id="phantomGapFill" x1="0%" x2="100%" y1="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(248, 200, 111, 0.22)" />
+            <stop offset="100%" stopColor="rgba(255, 134, 97, 0.08)" />
+          </linearGradient>
+        </defs>
+        <path className={styles.phantomChartAxis} d={`M ${paddingX} ${height - paddingY} L ${width - paddingX} ${height - paddingY}`} />
+        <path className={styles.phantomChartAxis} d={`M ${paddingX} ${paddingY} L ${paddingX} ${height - paddingY}`} />
+        <path className={styles.phantomGapArea} d={areaPath} />
+        <path className={styles.phantomRawLine} d={linePath("raw_breadth")} />
+        <path className={styles.phantomRealLine} d={linePath("real_breadth")} />
+      </svg>
+      <div className={styles.chartLegend}>
+        <span><i className={styles.legendSwatch} data-series="phantom-raw" />Raw breadth</span>
+        <span><i className={styles.legendSwatch} data-series="phantom-real" />Real breadth</span>
+        <span><i className={styles.legendSwatch} data-series="phantom-gap" />Phantom gap</span>
+      </div>
+      <div className={styles.phantomChartMeta}>
+        <span>{firstLabel}</span>
+        <span>{lastLabel}</span>
+      </div>
+    </div>
+  );
+}
+
+function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
+  const baseRows = useMemo(() => buildDraftHoldings(portfolioModule?.holdings), [portfolioModule?.holdings]);
+  const baseKey = useMemo(() => draftHoldingsKey(baseRows), [baseRows]);
+  const [draftRows, setDraftRows] = useState(baseRows);
+  const [analysis, setAnalysis] = useState(null);
+  const [analysisError, setAnalysisError] = useState("");
+  const [analysisPending, setAnalysisPending] = useState(false);
+  const [activeTicker, setActiveTicker] = useState("");
+
+  useEffect(() => {
+    setDraftRows(baseRows);
+    setAnalysis(null);
+    setAnalysisError("");
+    setActiveTicker("");
+  }, [baseKey]);
+
+  useEffect(() => {
+    if (!workspaceId || baseRows.length < 3) return undefined;
+
+    const controller = new AbortController();
+
+    async function runInitialAnalysis() {
+      setAnalysisPending(true);
+      setAnalysisError("");
+      try {
+        const response = await fetch(`/api/v1/workspaces/${workspaceId}/phantom-diversification`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            holdings: baseRows.map((row) => ({
+              ticker: row.ticker,
+              weight: Number.parseFloat(row.weight || "0"),
+            })),
+          }),
+          signal: controller.signal,
+        });
+        const payload = await parseResponse(response);
+        setAnalysis(payload);
+        setActiveTicker(payload?.contributors?.[0]?.ticker || "");
+      } catch (requestError) {
+        if (requestError?.name === "AbortError") return;
+        setAnalysis(null);
+        setAnalysisError(String(requestError?.message || requestError || "Analysis failed."));
+      } finally {
+        if (!controller.signal.aborted) {
+          setAnalysisPending(false);
+        }
+      }
+    }
+
+    void runInitialAnalysis();
+    return () => controller.abort();
+  }, [workspaceId, baseKey]);
+
+  const totalWeight = draftRows.reduce((sum, row) => sum + (Number.parseFloat(row.weight) || 0), 0);
+  const hasDraftRows = draftRows.length > 0;
+  const draftIsReady = draftRows.filter((row) => String(row.ticker || "").trim() && (Number.parseFloat(row.weight) || 0) > 0).length >= 3;
+  const activeContributor = safeList(analysis?.contributors).find((row) => row.ticker === activeTicker) || safeList(analysis?.contributors)[0] || null;
+
+  function updateRow(id, field, nextValue) {
+    setDraftRows((current) => current.map((row) => (
+      row.id === id
+        ? {
+            ...row,
+            [field]: field === "ticker"
+              ? String(nextValue || "").toUpperCase().replace(/[^A-Z0-9.\-]/g, "").slice(0, 16)
+              : String(nextValue || "").replace(/[^0-9.]/g, "").slice(0, 8),
+          }
+        : row
+    )));
+  }
+
+  function addRow() {
+    setDraftRows((current) => [
+      ...current,
+      {
+        id: `draft-${Date.now()}-${current.length}`,
+        ticker: "",
+        weight: "",
+      },
+    ]);
+  }
+
+  function removeRow(id) {
+    setDraftRows((current) => current.filter((row) => row.id !== id));
+  }
+
+  function resetRows() {
+    setDraftRows(baseRows);
+    setAnalysisError("");
+  }
+
+  async function runAnalysis() {
+    if (!workspaceId) return;
+    setAnalysisPending(true);
+    setAnalysisError("");
+    try {
+      const holdings = draftRows
+        .map((row) => ({
+          ticker: String(row.ticker || "").trim().toUpperCase(),
+          weight: Number.parseFloat(row.weight || "0"),
+        }))
+        .filter((row) => row.ticker && row.weight > 0);
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/phantom-diversification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holdings }),
+      });
+      const payload = await parseResponse(response);
+      setAnalysis(payload);
+      setActiveTicker(payload?.contributors?.[0]?.ticker || "");
+    } catch (requestError) {
+      setAnalysis(null);
+      setAnalysisError(String(requestError?.message || requestError || "Analysis failed."));
+    } finally {
+      setAnalysisPending(false);
+    }
+  }
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <p className={styles.kicker}>Phantom diversification</p>
+          <h2>Test whether breadth is real or only visible in calm conditions</h2>
+          <p className={styles.supportText}>
+            The paper&apos;s filter compares naive breadth, spectral raw breadth, and variance-tested breadth from your current mix.
+          </p>
+        </div>
+        <div className={styles.headerMeta}>
+          <ToneBadge tone={analysis ? phantomTone(analysis?.current?.classification) : "neutral"}>
+            {analysis?.current?.classification ? capitalize(analysis.current.classification) : "Awaiting run"}
+          </ToneBadge>
+          <ToneBadge tone="neutral">{hasDraftRows ? `${draftRows.length} rows` : "No holdings"}</ToneBadge>
+        </div>
+      </div>
+
+      <div className={styles.phantomSurface}>
+        <div className={styles.phantomDraftPane}>
+          <div className={styles.phantomDraftHeader}>
+            <div>
+              <p className={styles.kicker}>Draft mix</p>
+              <h3>Editable holdings</h3>
+            </div>
+            <ToneBadge tone={Math.abs(totalWeight - 100) <= 0.5 ? "good" : "warn"}>
+              {formatWeightEditorValue(totalWeight)}% entered
+            </ToneBadge>
+          </div>
+
+          <div className={styles.phantomDraftTable}>
+            <div className={styles.phantomDraftTableHeader}>
+              <span>Ticker</span>
+              <span>Weight %</span>
+              <span />
+            </div>
+            <div className={styles.phantomDraftRows}>
+              {draftRows.map((row) => (
+                <div className={styles.phantomDraftRow} key={row.id}>
+                  <input
+                    aria-label={`Ticker ${row.id}`}
+                    className={styles.phantomInput}
+                    onChange={(event) => updateRow(row.id, "ticker", event.target.value)}
+                    placeholder="AAPL"
+                    type="text"
+                    value={row.ticker}
+                  />
+                  <input
+                    aria-label={`Weight ${row.id}`}
+                    className={styles.phantomInput}
+                    inputMode="decimal"
+                    onChange={(event) => updateRow(row.id, "weight", event.target.value)}
+                    placeholder="12.5"
+                    type="text"
+                    value={row.weight}
+                  />
+                  <button
+                    aria-label={`Remove ${row.ticker || "row"}`}
+                    className={styles.textButton}
+                    onClick={() => removeRow(row.id)}
+                    type="button"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={styles.phantomDraftActions}>
+            <button className={styles.secondaryButton} onClick={addRow} type="button">Add holding</button>
+            <button className={styles.textButton} onClick={resetRows} type="button">Reset to connected holdings</button>
+          </div>
+
+          <div className={styles.phantomActionBar}>
+            <div>
+              <strong>{draftIsReady ? "Ready to test" : "Need at least 3 positive holdings"}</strong>
+              <p className={styles.supportText}>
+                We normalize weights on the server. Enter percentages as you think about the book; the model rescales them to 100%.
+              </p>
+            </div>
+            <button
+              className={styles.primaryButton}
+              disabled={!draftIsReady || analysisPending}
+              onClick={runAnalysis}
+              type="button"
+            >
+              {analysisPending ? "Analyzing..." : "Analyze diversification"}
+            </button>
+          </div>
+
+          {analysisError ? <p className={styles.errorText}>{analysisError}</p> : null}
+        </div>
+
+        <div className={styles.phantomResultsPane}>
+          <div className={styles.phantomResultBand}>
+            <article className={styles.phantomResultMetric} data-tone="neutral">
+              <span>Naive breadth</span>
+              <strong>{formatBreadth(analysis?.current?.holdings_hhi_breadth)}</strong>
+              <small>1 / HHI of the current weights</small>
+            </article>
+            <article className={styles.phantomResultMetric} data-tone="warn">
+              <span>Raw breadth</span>
+              <strong>{formatBreadth(analysis?.current?.raw_breadth)}</strong>
+              <small>Effective dimension before the paper&apos;s variance filter</small>
+            </article>
+            <article className={styles.phantomResultMetric} data-tone={phantomTone(analysis?.current?.classification)}>
+              <span>Real breadth</span>
+              <strong>{formatBreadth(analysis?.current?.real_breadth)}</strong>
+              <small>{formatPct(analysis?.current?.tested_ratio || 0, 0)} of raw breadth survives</small>
+            </article>
+            <article className={styles.phantomResultMetric} data-tone="bad">
+              <span>Phantom share</span>
+              <strong>{formatPct(analysis?.current?.phantom_share || 0, 0)}</strong>
+              <small>{formatBreadth(analysis?.current?.phantom_breadth)} breadth points disappear</small>
+            </article>
+          </div>
+
+          <div className={styles.phantomNarrative}>
+            <div>
+              <p className={styles.kicker}>Interpretation</p>
+              <h3>{analysis?.copy?.verdict || "Run the module to score the current mix."}</h3>
+            </div>
+            <div className={styles.phantomNarrativeCopy}>
+              <p>{analysis?.copy?.phantom || "The phantom gap appears once the raw spectral breadth is conditioned by realized variance."}</p>
+              <p>{analysis?.copy?.improve || "Use the leave-one-out table to see whether each holding adds real breadth or only optical breadth."}</p>
+            </div>
+          </div>
+
+          <div className={styles.phantomInsightStrip}>
+            <div>
+              <span>As of</span>
+              <strong>{analysis?.as_of ? formatDate(analysis.as_of) : "Not scored yet"}</strong>
+            </div>
+            <div>
+              <span>Window</span>
+              <strong>{analysis?.diagnostics?.window_days || 63} sessions</strong>
+            </div>
+            <div>
+              <span>Common history</span>
+              <strong>{analysis?.diagnostics?.common_history_days || "-"}</strong>
+            </div>
+            <div>
+              <span>Correction</span>
+              <strong>{formatPct(analysis?.current?.correction_factor || 0, 0)}</strong>
+            </div>
+            <div>
+              <span>Price source</span>
+              <strong>{safeList(analysis?.diagnostics?.source_labels).join(", ") || "Unavailable"}</strong>
+            </div>
+          </div>
+
+          <div className={styles.phantomChartShell}>
+            <div className={styles.panelHeader}>
+              <div>
+                <p className={styles.kicker}>Breadth trace</p>
+                <h3>Raw breadth vs real breadth</h3>
+              </div>
+              {activeContributor ? (
+                <div className={styles.phantomFocusBadge}>
+                  <span>{activeContributor.ticker}</span>
+                  <strong>{formatSignedPct(activeContributor.delta_real_breadth / Math.max(analysis?.current?.real_breadth || 1, 1), 0)}</strong>
+                </div>
+              ) : null}
+            </div>
+            <PhantomBreadthChart series={analysis?.series} />
+          </div>
+
+          <div className={styles.phantomContributorShell}>
+            <div className={styles.panelHeader}>
+              <div>
+                <p className={styles.kicker}>Leave-one-out</p>
+                <h3>Who is adding real breadth</h3>
+              </div>
+              {activeContributor ? <ToneBadge tone={contributorTone(activeContributor.role)}>{activeContributor.role}</ToneBadge> : null}
+            </div>
+
+            {activeContributor ? (
+              <div className={styles.phantomContributorFocus}>
+                <strong>{activeContributor.ticker}</strong>
+                <p>
+                  Removing this name changes raw breadth by {formatBreadth(activeContributor.delta_raw_breadth)}, real breadth by{" "}
+                  {formatBreadth(activeContributor.delta_real_breadth)}, and phantom breadth by {formatBreadth(activeContributor.delta_phantom_breadth)}.
+                </p>
+              </div>
+            ) : null}
+
+            {safeList(analysis?.contributors).length ? (
+              <div className={styles.tableShell}>
+                <div className={styles.phantomContributorHeader}>
+                  <span>Ticker</span>
+                  <span>Weight</span>
+                  <span>Real delta</span>
+                  <span>Phantom delta</span>
+                  <span>Role</span>
+                </div>
+                <div className={styles.tableBody}>
+                  {safeList(analysis?.contributors).map((row) => (
+                    <article
+                      className={styles.phantomContributorRow}
+                      data-active={row.ticker === activeTicker}
+                      key={`phantom-${row.ticker}`}
+                      onFocus={() => setActiveTicker(row.ticker)}
+                      onMouseEnter={() => setActiveTicker(row.ticker)}
+                      tabIndex={0}
+                    >
+                      <strong>{row.ticker}</strong>
+                      <span>{formatPct(row.weight || 0, 1)}</span>
+                      <strong>{formatBreadth(row.delta_real_breadth)}</strong>
+                      <span>{formatBreadth(row.delta_phantom_breadth)}</span>
+                      <ToneBadge tone={contributorTone(row.role)}>{row.role}</ToneBadge>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className={styles.emptyCopy}>Contributor diagnostics will appear after a successful analysis run.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -633,6 +1103,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             stateSummary={stateSummary}
           />
           <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
+          <PhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
           <HoldingsPanel
             onSubmitTrade={submitTradeInstruction}
             onTradeInstructionChange={setTradeInstruction}

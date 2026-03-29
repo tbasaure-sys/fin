@@ -7,6 +7,7 @@ import {
   parseEscrowPatchPayload,
   parseEscrowStagePayload,
   parseMandatePatchPayload,
+  parsePhantomDiversificationPayload,
   parsePortfolioUpdatePayload,
 } from "../lib/server/workspace-action-validation.js";
 
@@ -64,4 +65,27 @@ test("parseMandatePatchPayload accepts bounded thresholds", () => {
   assert.equal(payload.summary, "Keep risk selective");
   assert.equal(payload.thresholds.minRecoverability, 0.45);
   assert.equal(payload.thresholds.maxPhantomRebound, 0.3);
+});
+
+test("parsePhantomDiversificationPayload normalizes tickers and enforces at least three holdings", () => {
+  const payload = parsePhantomDiversificationPayload({
+    holdings: [
+      { ticker: "aapl", weight: 45 },
+      { ticker: " msft ", weight: 35 },
+      { ticker: "brk.b", weight: 20 },
+    ],
+  });
+
+  assert.deepEqual(payload, {
+    holdings: [
+      { ticker: "AAPL", weight: 45 },
+      { ticker: "MSFT", weight: 35 },
+      { ticker: "BRK.B", weight: 20 },
+    ],
+  });
+
+  assert.throws(
+    () => parsePhantomDiversificationPayload({ holdings: [{ ticker: "AAPL", weight: 60 }, { ticker: "MSFT", weight: 40 }] }),
+    (error) => error instanceof RequestValidationError && /At least 3 holdings/i.test(error.message),
+  );
 });

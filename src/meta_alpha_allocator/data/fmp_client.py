@@ -13,6 +13,7 @@ import requests
 
 
 FMP_BASE_URL = "https://financialmodelingprep.com/api/v3"
+FMP_STABLE_BASE_URL = "https://financialmodelingprep.com/stable"
 
 
 @dataclass
@@ -77,19 +78,30 @@ class FMPClient:
         if self._cache_is_fresh(cache_path, ttl_seconds):
             frame = pd.read_csv(cache_path)
         else:
-            payload = self._get_json(
-                f"historical-price-full/{symbol}",
-                {"from": start_date, "to": end_date, "serietype": "line"},
-                cache_group="prices_raw",
-                cache_name=cache_name,
-                ttl_seconds=ttl_seconds,
-            )
-            rows = payload.get("historical", []) if isinstance(payload, dict) else []
+            raw_cache = self._cache_path("prices_raw", cache_name, ".json")
+            if self._cache_is_fresh(raw_cache, ttl_seconds):
+                payload = json.loads(raw_cache.read_text(encoding="utf-8"))
+            else:
+                query = {
+                    "symbol": symbol,
+                    "from": start_date,
+                    "to": end_date,
+                    "apikey": self.api_key,
+                }
+                response = requests.get(f"{FMP_STABLE_BASE_URL}/historical-price-eod/full", params=query, timeout=30)
+                response.raise_for_status()
+                payload = response.json()
+                raw_cache.write_text(json.dumps(payload), encoding="utf-8")
+                time.sleep(self.pause_seconds)
+            rows = payload if isinstance(payload, list) else payload.get("historical", []) if isinstance(payload, dict) else []
             frame = pd.DataFrame(rows)
             if frame.empty:
                 return pd.DataFrame(columns=["date", "close", "volume"])
-            keep = [col for col in ["date", "close", "adjClose", "volume"] if col in frame.columns]
+            keep = [col for col in ["date", "close", "price", "adjClose", "volume"] if col in frame.columns]
             frame = frame.loc[:, keep]
+            if "price" in frame.columns and "close" not in frame.columns:
+                frame["close"] = frame["price"]
+                frame = frame.drop(columns=["price"])
             if "adjClose" in frame.columns:
                 frame["close"] = frame["adjClose"].combine_first(frame.get("close"))
                 frame = frame.drop(columns=["adjClose"])
