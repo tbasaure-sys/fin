@@ -70,5 +70,5 @@ test("selectBackendSnapshot ignores stale live snapshots instead of treating the
   const snapshot = selectBackendSnapshot({ liveSnapshot: staleLiveSnapshot, operationalConfig });
 
   assert.equal(snapshot.generated_at, null);
-  assert.match(snapshot.status.warnings[0], /Live snapshot is stale: generated_at/i);
+  assert.match(snapshot.status.warnings[0], /ignored because it is stale/i);
 });
