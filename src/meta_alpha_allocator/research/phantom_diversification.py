@@ -129,19 +129,11 @@ def _load_price_panel(tickers: list[str], paths: PathConfig) -> tuple[pd.DataFra
     panel = pd.DataFrame()
     source_labels: list[str] = []
 
-    fmp_panel = _download_fmp_panel(tickers, start_date, end_date, paths)
-    if not fmp_panel.empty:
-        panel = fmp_panel.reindex(columns=[ticker for ticker in tickers if ticker in fmp_panel.columns]).copy()
-        if not panel.empty:
-            source_labels.append("financial_modeling_prep")
-
-    missing = [ticker for ticker in tickers if ticker not in panel.columns]
-
     runtime = _sanitize_price_panel(load_runtime_frame("market:sp500_price_panel"))
-    if not runtime.empty and missing:
-        runtime = runtime.reindex(columns=[ticker for ticker in missing if ticker in runtime.columns]).copy()
+    if not runtime.empty:
+        runtime = runtime.reindex(columns=[ticker for ticker in tickers if ticker in runtime.columns]).copy()
         if not runtime.empty:
-            panel = panel.join(runtime, how="outer") if not panel.empty else runtime
+            panel = runtime
             source_labels.append("runtime_store")
 
     sp500_panel = _sanitize_price_panel(load_sp500_price_panel(paths, start_date, end_date))
@@ -151,6 +143,13 @@ def _load_price_panel(tickers: list[str], paths: PathConfig) -> tuple[pd.DataFra
         if not sp500_panel.empty:
             panel = panel.join(sp500_panel, how="outer") if not panel.empty else sp500_panel
             source_labels.append("sp500_local_panel")
+
+    missing = [ticker for ticker in tickers if ticker not in panel.columns]
+    if missing:
+        fmp_panel = _download_fmp_panel(missing, start_date, end_date, paths)
+        if not fmp_panel.empty:
+            panel = panel.join(fmp_panel, how="outer") if not panel.empty else fmp_panel
+            source_labels.append("financial_modeling_prep")
 
     missing = [ticker for ticker in tickers if ticker not in panel.columns]
     if missing:

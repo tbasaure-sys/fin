@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   RequestValidationError,
+  errorResponse,
   parseDecisionPayload,
   parseEscrowPatchPayload,
   parseEscrowStagePayload,
@@ -88,4 +89,24 @@ test("parsePhantomDiversificationPayload normalizes tickers and enforces at leas
     () => parsePhantomDiversificationPayload({ holdings: [{ ticker: "AAPL", weight: 60 }, { ticker: "MSFT", weight: 40 }] }),
     (error) => error instanceof RequestValidationError && /At least 3 holdings/i.test(error.message),
   );
+});
+
+test("parsePhantomDiversificationPayload rejects oversized holding lists with a user-facing message", () => {
+  const holdings = Array.from({ length: 25 }, (_, index) => ({
+    ticker: `T${index + 1}`,
+    weight: 4,
+  }));
+
+  assert.throws(
+    () => parsePhantomDiversificationPayload({ holdings }),
+    (error) => error instanceof RequestValidationError && /up to 24 positive holdings per run/i.test(error.message),
+  );
+});
+
+test("errorResponse exposes phantom analysis failures without collapsing them into a generic 500", async () => {
+  const response = errorResponse(new Error("Unexpected phantom diversification failure: Unsupported tickers for live history: FAKE."));
+  const payload = await response.json();
+
+  assert.equal(response.status, 400);
+  assert.match(payload.error, /Unsupported tickers/i);
 });

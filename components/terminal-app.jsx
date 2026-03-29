@@ -143,19 +143,45 @@ function formatWeightEditorValue(value) {
   return numeric.toFixed(numeric >= 10 ? 1 : 2).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
 }
 
-function buildDraftHoldings(holdings) {
-  return safeList(holdings)
+const PHANTOM_MAX_HOLDINGS = 24;
+const PHANTOM_CASHLIKE_TICKERS = new Set(["SGOV", "SHY", "BIL", "SHV", "VGSH", "JPST", "DWBDS"]);
+
+function isExcludedPhantomHolding(holding) {
+  const ticker = String(holding?.ticker || "").trim().toUpperCase();
+  const assetType = String(holding?.assetType || holding?.asset_type || "").trim().toLowerCase();
+  const sector = String(holding?.sector || "").trim().toLowerCase();
+  if (!ticker) return true;
+  if (assetType === "cash") return true;
+  if (sector === "cash") return true;
+  return PHANTOM_CASHLIKE_TICKERS.has(ticker);
+}
+
+function prepareDraftHoldings(holdings) {
+  const connectedRows = safeList(holdings)
     .map((holding, index) => {
       const ticker = String(holding?.ticker || "").trim().toUpperCase();
       const weight = parseDisplayPercent(holding?.weight);
-      if (!ticker) return null;
+      if (!ticker || !(Number(weight) > 0)) return null;
       return {
         id: `${ticker}-${index}`,
         ticker,
+        weightValue: Number(weight) || 0,
         weight: formatWeightEditorValue((Number(weight) || 0) * 100),
+        excluded: isExcludedPhantomHolding(holding),
       };
     })
-    .filter(Boolean);
+    .filter(Boolean)
+    .sort((left, right) => right.weightValue - left.weightValue);
+
+  const analyzable = connectedRows.filter((row) => !row.excluded);
+  const selected = analyzable.slice(0, PHANTOM_MAX_HOLDINGS).map(({ id, ticker, weight }) => ({ id, ticker, weight }));
+
+  return {
+    rows: selected,
+    connectedCount: connectedRows.length,
+    excludedCount: connectedRows.length - analyzable.length,
+    overflowCount: Math.max(analyzable.length - selected.length, 0),
+  };
 }
 
 function draftHoldingsKey(rows) {
@@ -258,7 +284,8 @@ function PhantomBreadthChart({ series }) {
 }
 
 function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
-  const baseRows = useMemo(() => buildDraftHoldings(portfolioModule?.holdings), [portfolioModule?.holdings]);
+  const draftDefaults = useMemo(() => prepareDraftHoldings(portfolioModule?.holdings), [portfolioModule?.holdings]);
+  const baseRows = draftDefaults.rows;
   const baseKey = useMemo(() => draftHoldingsKey(baseRows), [baseRows]);
   const [draftRows, setDraftRows] = useState(baseRows);
   const [analysis, setAnalysis] = useState(null);
@@ -313,7 +340,9 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
 
   const totalWeight = draftRows.reduce((sum, row) => sum + (Number.parseFloat(row.weight) || 0), 0);
   const hasDraftRows = draftRows.length > 0;
-  const draftIsReady = draftRows.filter((row) => String(row.ticker || "").trim() && (Number.parseFloat(row.weight) || 0) > 0).length >= 3;
+  const positiveDraftCount = draftRows.filter((row) => String(row.ticker || "").trim() && (Number.parseFloat(row.weight) || 0) > 0).length;
+  const draftIsReady = positiveDraftCount >= 3 && positiveDraftCount <= PHANTOM_MAX_HOLDINGS;
+  const overDraftLimit = positiveDraftCount > PHANTOM_MAX_HOLDINGS;
   const activeContributor = safeList(analysis?.contributors).find((row) => row.ticker === activeTicker) || safeList(analysis?.contributors)[0] || null;
 
   function updateRow(id, field, nextValue) {
@@ -385,6 +414,13 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
           <p className={styles.supportText}>
             The paper&apos;s filter compares naive breadth, spectral raw breadth, and variance-tested breadth from your current mix.
           </p>
+          <p className={styles.supportText}>
+            {draftDefaults.connectedCount > PHANTOM_MAX_HOLDINGS || draftDefaults.excludedCount
+              ? `Loaded ${baseRows.length} analyzable holdings from ${draftDefaults.connectedCount} connected rows.`
+              : `${baseRows.length} connected holdings are ready for analysis.`}
+            {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} cash-like row${draftDefaults.excludedCount === 1 ? "" : "s"} excluded automatically.` : ""}
+            {draftDefaults.overflowCount ? ` ${draftDefaults.overflowCount} smaller position${draftDefaults.overflowCount === 1 ? "" : "s"} left out until you add them manually.` : ""}
+          </p>
         </div>
         <div className={styles.headerMeta}>
           <ToneBadge tone={analysis ? phantomTone(analysis?.current?.classification) : "neutral"}>
@@ -452,9 +488,10 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
 
           <div className={styles.phantomActionBar}>
             <div>
-              <strong>{draftIsReady ? "Ready to test" : "Need at least 3 positive holdings"}</strong>
+              <strong>{overDraftLimit ? `Only ${PHANTOM_MAX_HOLDINGS} positive holdings can be tested per run` : draftIsReady ? "Ready to test" : "Need at least 3 positive holdings"}</strong>
               <p className={styles.supportText}>
                 We normalize weights on the server. Enter percentages as you think about the book; the model rescales them to 100%.
+                {overDraftLimit ? ` Remove ${positiveDraftCount - PHANTOM_MAX_HOLDINGS} holding${positiveDraftCount - PHANTOM_MAX_HOLDINGS === 1 ? "" : "s"} or reset to the connected top weights.` : ""}
               </p>
             </div>
             <button
