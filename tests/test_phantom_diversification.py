@@ -40,10 +40,12 @@ def test_current_window_metrics_respects_paper_formula() -> None:
 def test_analyze_portfolio_returns_expected_shape(monkeypatch: pytest.MonkeyPatch) -> None:
     panel = _synthetic_price_panel()
 
-    def fake_load_price_panel(tickers: list[str], paths: object) -> tuple[pd.DataFrame, list[str], list[str], list[str]]:
-        return panel.reindex(columns=tickers), tickers, [], ["synthetic"]
+    def fake_load_price_panel(holdings: list[pdx.PortfolioHolding], paths: object) -> tuple[pd.DataFrame, list[pdx.PortfolioHolding], list[pdx.PortfolioHolding], list[str]]:
+        tickers = [holding.ticker for holding in holdings]
+        return panel.reindex(columns=tickers), holdings, [], ["synthetic"]
 
     monkeypatch.setattr(pdx, "_load_price_panel", fake_load_price_panel)
+    monkeypatch.setattr(pdx, "_resolve_history_binding", lambda holding, settings: holding)
 
     payload = pdx.analyze_portfolio(
         [
@@ -58,17 +60,58 @@ def test_analyze_portfolio_returns_expected_shape(monkeypatch: pytest.MonkeyPatc
     assert payload["current"]["holdings_count"] == 3
     assert payload["current"]["raw_breadth"] >= payload["current"]["real_breadth"]
     assert payload["diagnostics"]["source_labels"] == ["synthetic"]
+    assert payload["diagnostics"]["proxied_holdings"] == []
     assert len(payload["series"]) >= 100
     assert len(payload["contributors"]) == 3
 
 
-def test_analyze_portfolio_rejects_unsupported_tickers(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fake_load_price_panel(tickers: list[str], paths: object) -> tuple[pd.DataFrame, list[str], list[str], list[str]]:
-        return pd.DataFrame(), [], ["FAKE"], ["synthetic"]
+def test_analyze_portfolio_uses_sector_proxy_for_unsupported_tickers(monkeypatch: pytest.MonkeyPatch) -> None:
+    panel = _synthetic_price_panel().rename(columns={"XOM": "XLK"})
+
+    def fake_load_price_panel(holdings: list[pdx.PortfolioHolding], paths: object) -> tuple[pd.DataFrame, list[pdx.PortfolioHolding], list[pdx.PortfolioHolding], list[str]]:
+        expanded = pd.DataFrame(
+            {
+                holding.ticker: panel[holding.history_symbol or holding.ticker]
+                for holding in holdings
+            }
+        )
+        return expanded, holdings, [], ["synthetic"]
 
     monkeypatch.setattr(pdx, "_load_price_panel", fake_load_price_panel)
+    monkeypatch.setattr(
+        pdx,
+        "_resolve_history_binding",
+        lambda holding, settings: pdx.PortfolioHolding(
+            ticker=holding.ticker,
+            weight=holding.weight,
+            sector=holding.sector,
+            history_symbol="XLK" if holding.ticker == "FUNDX" else holding.ticker,
+            history_source="sector_proxy" if holding.ticker == "FUNDX" else "ticker",
+            history_label="Technology" if holding.ticker == "FUNDX" else None,
+        ),
+    )
 
-    with pytest.raises(pdx.PhantomDiversificationError, match="Unsupported tickers"):
+    payload = pdx.analyze_portfolio(
+        [
+            {"ticker": "AAPL", "weight": 50},
+            {"ticker": "MSFT", "weight": 25},
+            {"ticker": "FUNDX", "weight": 25, "sector": "Technology"},
+        ]
+    )
+
+    proxied = {row["ticker"]: row for row in payload["diagnostics"]["proxied_holdings"]}
+    assert proxied["FUNDX"]["history_symbol"] == "XLK"
+    assert proxied["FUNDX"]["history_source"] == "sector_proxy"
+
+
+def test_analyze_portfolio_rejects_unsupported_tickers(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_load_price_panel(holdings: list[pdx.PortfolioHolding], paths: object) -> tuple[pd.DataFrame, list[pdx.PortfolioHolding], list[pdx.PortfolioHolding], list[str]]:
+        return pd.DataFrame(), [], holdings[-1:], ["synthetic"]
+
+    monkeypatch.setattr(pdx, "_load_price_panel", fake_load_price_panel)
+    monkeypatch.setattr(pdx, "_resolve_history_binding", lambda holding, settings: holding)
+
+    with pytest.raises(pdx.PhantomDiversificationError, match="sector, country, or ETF proxy"):
         pdx.analyze_portfolio(
             [
                 {"ticker": "AAPL", "weight": 50},

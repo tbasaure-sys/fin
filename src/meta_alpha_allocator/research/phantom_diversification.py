@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from sklearn.covariance import LedoitWolf
 
-from ..config import PathConfig
+from ..config import PathConfig, ResearchSettings
 from ..data.adapters import load_sp500_price_panel
 from ..data.fmp_client import FMPClient
 from ..storage.runtime_store import load_runtime_frame
@@ -27,28 +27,68 @@ class PhantomDiversificationError(RuntimeError):
 class PortfolioHolding:
     ticker: str
     weight: float
+    sector: str | None = None
+    country: str | None = None
+    proxy_hint: str | None = None
+    history_symbol: str | None = None
+    history_source: str = "ticker"
+    history_label: str | None = None
+
+
+def _clean_text(value: Any) -> str | None:
+    text = str(value or "").strip()
+    return text or None
+
+
+def _normalize_proxy_hint(value: str | None) -> str | None:
+    text = _clean_text(value)
+    if not text:
+        return None
+    if 1 <= len(text) <= 16 and all(char.isalnum() or char in {".", "-"} for char in text):
+        return text.upper()
+    return text
 
 
 def _normalize_holdings(rows: list[dict[str, Any]]) -> list[PortfolioHolding]:
-  aggregated: dict[str, float] = {}
-  for row in rows:
-    ticker = str(row.get("ticker") or "").strip().upper()
-    if not ticker:
-      continue
-    weight = float(row.get("weight") or 0.0)
-    if weight <= 0:
-      continue
-    aggregated[ticker] = aggregated.get(ticker, 0.0) + weight
-  total = sum(aggregated.values())
-  if total <= 0:
-    raise PhantomDiversificationError("Holdings weights must sum to more than zero.")
-  normalized = [
-    PortfolioHolding(ticker=ticker, weight=value / total)
-    for ticker, value in aggregated.items()
-  ]
-  if len(normalized) < 3:
-    raise PhantomDiversificationError("At least 3 supported holdings are required for analysis.")
-  return sorted(normalized, key=lambda row: row.weight, reverse=True)
+    aggregated: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        ticker = str(row.get("ticker") or "").strip().upper()
+        if not ticker:
+            continue
+        weight = float(row.get("weight") or 0.0)
+        if weight <= 0:
+            continue
+        current = aggregated.setdefault(
+            ticker,
+            {
+                "weight": 0.0,
+                "sector": None,
+                "country": None,
+                "proxy_hint": None,
+            },
+        )
+        current["weight"] += weight
+        current["sector"] = current["sector"] or _clean_text(row.get("sector"))
+        current["country"] = current["country"] or _clean_text(row.get("country"))
+        current["proxy_hint"] = current["proxy_hint"] or _normalize_proxy_hint(row.get("proxy"))
+
+    total = sum(item["weight"] for item in aggregated.values())
+    if total <= 0:
+        raise PhantomDiversificationError("Holdings weights must sum to more than zero.")
+
+    normalized = [
+        PortfolioHolding(
+            ticker=ticker,
+            weight=item["weight"] / total,
+            sector=item["sector"],
+            country=item["country"],
+            proxy_hint=item["proxy_hint"],
+        )
+        for ticker, item in aggregated.items()
+    ]
+    if len(normalized) < 3:
+        raise PhantomDiversificationError("At least 3 supported holdings are required for analysis.")
+    return sorted(normalized, key=lambda row: row.weight, reverse=True)
 
 
 def _business_start(days: int = 900) -> tuple[str, str]:
@@ -124,44 +164,127 @@ def _download_fmp_panel(tickers: list[str], start_date: str, end_date: str, path
     return _sanitize_price_panel(pd.DataFrame(series)) if series else pd.DataFrame()
 
 
-def _load_price_panel(tickers: list[str], paths: PathConfig) -> tuple[pd.DataFrame, list[str], list[str], list[str]]:
+def _sector_proxy_lookup(settings: ResearchSettings) -> dict[str, str]:
+    return {str(label).strip().lower(): str(ticker).strip().upper() for label, ticker in settings.sector_proxy_map}
+
+
+def _country_proxy_lookup(settings: ResearchSettings) -> dict[str, str]:
+    return {str(label).strip().lower(): str(ticker).strip().upper() for label, ticker in settings.international_proxy_map}
+
+
+def _resolve_history_binding(holding: PortfolioHolding, settings: ResearchSettings) -> PortfolioHolding:
+    market_proxy_tickers = {str(ticker).strip().upper() for ticker in settings.market_proxy_tickers}
+    sector_lookup = _sector_proxy_lookup(settings)
+    country_lookup = _country_proxy_lookup(settings)
+
+    def bind(symbol: str, source: str, label: str | None = None) -> PortfolioHolding:
+        return PortfolioHolding(
+            ticker=holding.ticker,
+            weight=holding.weight,
+            sector=holding.sector,
+            country=holding.country,
+            proxy_hint=holding.proxy_hint,
+            history_symbol=symbol,
+            history_source=source,
+            history_label=label,
+        )
+
+    proxy_hint = _normalize_proxy_hint(holding.proxy_hint)
+    if proxy_hint:
+        if proxy_hint in market_proxy_tickers:
+            return bind(proxy_hint, "explicit_proxy_ticker", proxy_hint)
+        if proxy_hint.lower() in sector_lookup:
+            symbol = sector_lookup[proxy_hint.lower()]
+            return bind(symbol, "sector_proxy", holding.proxy_hint)
+        if proxy_hint.lower() in country_lookup:
+            symbol = country_lookup[proxy_hint.lower()]
+            return bind(symbol, "country_proxy", holding.proxy_hint)
+
+    if holding.country and holding.country.strip().lower() in country_lookup:
+        symbol = country_lookup[holding.country.strip().lower()]
+        return bind(symbol, "country_proxy", holding.country)
+
+    if holding.sector and holding.sector.strip().lower() in sector_lookup:
+        symbol = sector_lookup[holding.sector.strip().lower()]
+        return bind(symbol, "sector_proxy", holding.sector)
+
+    return bind(holding.ticker, "ticker", None)
+
+
+def _load_price_panel(
+    holdings: list[PortfolioHolding],
+    paths: PathConfig,
+) -> tuple[pd.DataFrame, list[PortfolioHolding], list[PortfolioHolding], list[str]]:
     start_date, end_date = _business_start()
-    panel = pd.DataFrame()
     source_labels: list[str] = []
+    symbol_panel = pd.DataFrame()
+    history_symbols = list(dict.fromkeys(holding.history_symbol or holding.ticker for holding in holdings))
 
     runtime = _sanitize_price_panel(load_runtime_frame("market:sp500_price_panel"))
     if not runtime.empty:
-        runtime = runtime.reindex(columns=[ticker for ticker in tickers if ticker in runtime.columns]).copy()
+        runtime = runtime.reindex(columns=[symbol for symbol in history_symbols if symbol in runtime.columns]).copy()
         if not runtime.empty:
-            panel = runtime
+            symbol_panel = runtime
             source_labels.append("runtime_store")
 
     sp500_panel = _sanitize_price_panel(load_sp500_price_panel(paths, start_date, end_date))
-    missing = [ticker for ticker in tickers if ticker not in panel.columns]
+    missing = [symbol for symbol in history_symbols if symbol not in symbol_panel.columns]
     if not sp500_panel.empty and missing:
-        sp500_panel = sp500_panel.reindex(columns=[ticker for ticker in missing if ticker in sp500_panel.columns]).copy()
+        sp500_panel = sp500_panel.reindex(columns=[symbol for symbol in missing if symbol in sp500_panel.columns]).copy()
         if not sp500_panel.empty:
-            panel = panel.join(sp500_panel, how="outer") if not panel.empty else sp500_panel
+            symbol_panel = symbol_panel.join(sp500_panel, how="outer") if not symbol_panel.empty else sp500_panel
             source_labels.append("sp500_local_panel")
 
-    missing = [ticker for ticker in tickers if ticker not in panel.columns]
+    missing = [symbol for symbol in history_symbols if symbol not in symbol_panel.columns]
     if missing:
         fmp_panel = _download_fmp_panel(missing, start_date, end_date, paths)
         if not fmp_panel.empty:
-            panel = panel.join(fmp_panel, how="outer") if not panel.empty else fmp_panel
+            symbol_panel = symbol_panel.join(fmp_panel, how="outer") if not symbol_panel.empty else fmp_panel
             source_labels.append("financial_modeling_prep")
 
-    missing = [ticker for ticker in tickers if ticker not in panel.columns]
+    missing = [symbol for symbol in history_symbols if symbol not in symbol_panel.columns]
     if missing:
         yf_panel = _download_yfinance_panel(missing, start_date, end_date)
         if not yf_panel.empty:
-            panel = panel.join(yf_panel, how="outer") if not panel.empty else yf_panel
+            symbol_panel = symbol_panel.join(yf_panel, how="outer") if not symbol_panel.empty else yf_panel
             source_labels.append("yfinance")
 
-    panel = _sanitize_price_panel(panel)
-    supported = [ticker for ticker in tickers if ticker in panel.columns]
-    unsupported = [ticker for ticker in tickers if ticker not in supported]
-    return panel.reindex(columns=supported), supported, unsupported, source_labels or ["none"]
+    symbol_panel = _sanitize_price_panel(symbol_panel)
+    missing = [symbol for symbol in history_symbols if symbol not in symbol_panel.columns]
+    if missing:
+        runtime_panel = to_datetime_index(load_runtime_frame("market:fmp_market_proxy_panel"))
+        used_runtime_proxy = False
+        for symbol in list(missing):
+            if symbol not in runtime_panel.columns:
+                continue
+            fetched = runtime_panel[symbol].dropna()
+            if fetched.empty:
+                continue
+            used_runtime_proxy = True
+            if symbol in symbol_panel:
+                symbol_panel[symbol] = fetched.combine_first(symbol_panel[symbol])
+            else:
+                symbol_panel[symbol] = fetched
+        symbol_panel = _sanitize_price_panel(symbol_panel)
+        if used_runtime_proxy:
+            source_labels.append("runtime_proxy_panel")
+
+    expanded: dict[str, pd.Series] = {}
+    supported: list[PortfolioHolding] = []
+    unsupported: list[PortfolioHolding] = []
+    for holding in holdings:
+        history_symbol = holding.history_symbol or holding.ticker
+        if history_symbol not in symbol_panel.columns:
+            unsupported.append(holding)
+            continue
+        series = symbol_panel[history_symbol].dropna()
+        if series.empty:
+            unsupported.append(holding)
+            continue
+        expanded[holding.ticker] = series.rename(holding.ticker)
+        supported.append(holding)
+
+    return _sanitize_price_panel(pd.DataFrame(expanded)), supported, unsupported, source_labels or ["none"]
 
 
 def _weighted_correlation(corr: np.ndarray, weights: np.ndarray) -> np.ndarray:
@@ -217,23 +340,31 @@ def _classification(tested_ratio: float) -> str:
     return "phantom-dominant"
 
 
+def _classification_label(classification: str) -> str:
+    return {
+        "real-dominant": "Diversification holding up well",
+        "mixed": "Some diversification is real, some is fragile",
+        "phantom-dominant": "Diversification looks weaker under stress",
+    }.get(classification, "Diversification read pending")
+
+
 def _verdict_copy(tested_ratio: float) -> tuple[str, str, str]:
     if tested_ratio >= 0.67:
         return (
-            "Most of the portfolio's visible breadth survives the paper's stress-conditioning filter.",
-            "Phantom diversification is present, but it is not dominating the structure.",
-            "Improvement now comes more from reducing concentration than from adding unrelated names at random.",
+            "Most of your diversification still holds up when positions start moving together.",
+            "That means the portfolio is not just wide on paper. A good share of the names are still acting like distinct bets.",
+            "The next improvement is usually concentration control: trim oversized names before adding more random positions.",
         )
     if tested_ratio >= 0.34:
         return (
-            "The portfolio has some real diversification, but a meaningful share disappears once variance stress is applied.",
-            "Phantom diversification is doing enough work that the headline breadth number overstates resilience.",
-            "The cleanest upgrade is adding holdings that raise tested breadth, not just raw breadth.",
+            "Part of your diversification is real, but a meaningful part disappears in tougher conditions.",
+            "The portfolio is more diversified than a concentrated book, but less diversified than the headline number suggests.",
+            "The cleanest upgrade is replacing overlapping names with holdings that truly behave differently from the rest of the book.",
         )
     return (
-        "The portfolio looks wider on paper than it remains once the paper's variance-conditioning filter is applied.",
-        "Most of the visible diversification is phantom and depends on a calm regime continuing.",
-        "Improvement should come from removing crowding and adding positions that lift tested breadth in leave-one-out analysis.",
+        "A large part of the diversification disappears once the portfolio is stress-tested.",
+        "This usually means many positions are giving you the feeling of diversification without enough real independence underneath.",
+        "Focus first on reducing overlap and adding exposures from different sectors, countries, or drivers of return.",
     )
 
 
@@ -258,6 +389,14 @@ def _series_metrics(price_panel: pd.DataFrame, holdings: list[PortfolioHolding])
     return records[-SERIES_POINTS:], records[-1]
 
 
+def _role_copy(delta_real: float, delta_raw: float) -> tuple[str, str]:
+    if delta_real > 0:
+        return "real diversifier", "This holding is adding diversification that still survives in tougher conditions."
+    if delta_raw > 0:
+        return "phantom diversifier", "This holding improves the headline breadth, but much of that benefit fades under stress."
+    return "crowding source", "This holding overlaps with the rest of the portfolio enough that removing it does not hurt diversification."
+
+
 def _contributor_rows(price_panel: pd.DataFrame, holdings: list[PortfolioHolding], current: dict[str, Any]) -> list[dict[str, Any]]:
     contributors: list[dict[str, Any]] = []
     for holding in holdings:
@@ -266,7 +405,16 @@ def _contributor_rows(price_panel: pd.DataFrame, holdings: list[PortfolioHolding
             continue
         reduced_total = sum(row.weight for row in reduced)
         reduced_weights = [
-            PortfolioHolding(ticker=row.ticker, weight=row.weight / reduced_total)
+            PortfolioHolding(
+                ticker=row.ticker,
+                weight=row.weight / reduced_total,
+                sector=row.sector,
+                country=row.country,
+                proxy_hint=row.proxy_hint,
+                history_symbol=row.history_symbol,
+                history_source=row.history_source,
+                history_label=row.history_label,
+            )
             for row in reduced
             if reduced_total > 0
         ]
@@ -274,12 +422,7 @@ def _contributor_rows(price_panel: pd.DataFrame, holdings: list[PortfolioHolding
         delta_raw = current["raw_breadth"] - reduced_current["raw_breadth"]
         delta_real = current["real_breadth"] - reduced_current["real_breadth"]
         delta_phantom = current["phantom_breadth"] - reduced_current["phantom_breadth"]
-        if delta_real > 0:
-            role = "real diversifier"
-        elif delta_raw > 0:
-            role = "phantom diversifier"
-        else:
-            role = "crowding source"
+        role, role_summary = _role_copy(delta_real, delta_raw)
         contributors.append({
             "ticker": holding.ticker,
             "weight": holding.weight,
@@ -287,38 +430,57 @@ def _contributor_rows(price_panel: pd.DataFrame, holdings: list[PortfolioHolding
             "delta_real_breadth": round(float(delta_real), 4),
             "delta_phantom_breadth": round(float(delta_phantom), 4),
             "role": role,
+            "role_summary": role_summary,
+            "history_source": holding.history_source,
+            "history_symbol": holding.history_symbol or holding.ticker,
+            "history_label": holding.history_label,
         })
     return sorted(contributors, key=lambda row: row["delta_real_breadth"], reverse=True)
 
 
 def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = None) -> dict[str, Any]:
+    settings = ResearchSettings()
     holdings = _normalize_holdings(rows)
-    tickers = [holding.ticker for holding in holdings]
+    resolved_holdings = [_resolve_history_binding(holding, settings) for holding in holdings]
     paths = PathConfig()
-    price_panel, supported, unsupported, source_labels = _load_price_panel(tickers, paths)
+    price_panel, supported_holdings, unsupported_holdings, source_labels = _load_price_panel(resolved_holdings, paths)
 
-    if unsupported:
+    if unsupported_holdings:
+        unresolved = ", ".join(sorted(holding.ticker for holding in unsupported_holdings))
         raise PhantomDiversificationError(
-            f"Unsupported tickers for live history: {', '.join(sorted(unsupported))}."
+            "Unsupported holdings for live history or proxy mapping: "
+            f"{unresolved}. Add a sector, country, or ETF proxy such as Technology, Canada, or XLK."
         )
 
-    common_panel = price_panel.reindex(columns=tickers).dropna(how="any")
+    common_panel = price_panel.reindex(columns=[holding.ticker for holding in resolved_holdings]).dropna(how="any")
     if len(common_panel.index) < WINDOW_DAYS + 1:
         raise PhantomDiversificationError("The selected holdings do not share enough overlapping history for a 63-day analysis.")
 
-    series, current = _series_metrics(common_panel, holdings)
-    contributors = _contributor_rows(common_panel, holdings, current)
+    series, current = _series_metrics(common_panel, resolved_holdings)
+    contributors = _contributor_rows(common_panel, resolved_holdings, current)
     verdict, phantom_text, improve_text = _verdict_copy(current["tested_ratio"])
     latest_date = series[-1]["date"]
+    classification = _classification(float(current["tested_ratio"]))
+    proxy_assignments = [
+        {
+            "ticker": holding.ticker,
+            "history_symbol": holding.history_symbol or holding.ticker,
+            "history_source": holding.history_source,
+            "history_label": holding.history_label,
+            "proxy_used": holding.history_source != "ticker",
+        }
+        for holding in supported_holdings
+    ]
+    proxied_holdings = [row for row in proxy_assignments if row["proxy_used"]]
 
     return {
         "workspace_id": workspace_id,
         "as_of": latest_date,
         "input": {
-            "holdings": [{"ticker": row.ticker, "weight": row.weight} for row in holdings],
+            "holdings": [{"ticker": row.ticker, "weight": row.weight} for row in resolved_holdings],
         },
         "current": {
-            "holdings_count": len(holdings),
+            "holdings_count": len(resolved_holdings),
             "holdings_hhi_breadth": round(float(current["naive_breadth"]), 3),
             "raw_breadth": round(float(current["raw_breadth"]), 3),
             "real_breadth": round(float(current["real_breadth"]), 3),
@@ -326,7 +488,8 @@ def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = 
             "phantom_share": round(float(current["phantom_share"]), 4),
             "correction_factor": round(float(current["correction_factor"]), 4),
             "realized_variance": round(float(current["realized_variance"]), 6),
-            "classification": _classification(float(current["tested_ratio"])),
+            "classification": classification,
+            "classification_label": _classification_label(classification),
             "tested_ratio": round(float(current["tested_ratio"]), 4),
             "entropy_ratio": round(float(current["entropy_ratio"]), 4),
         },
@@ -353,14 +516,31 @@ def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = 
             "window_days": WINDOW_DAYS,
             "correction_k": CORRECTION_K,
             "covariance_method": "Ledoit-Wolf shrinkage",
-            "supported_tickers": supported,
+            "supported_tickers": [holding.ticker for holding in supported_holdings],
             "source_labels": source_labels,
             "paper_formula": "D_tested = D_raw * (1 - exp(-100 * V))",
             "portfolio_adaptation": "Weighted correlation spectrum using current portfolio weights.",
+            "proxy_assignments": proxy_assignments,
+            "proxied_holdings": proxied_holdings,
+            "unsupported_tickers": [holding.ticker for holding in unsupported_holdings],
         },
         "copy": {
             "verdict": verdict,
             "phantom": phantom_text,
             "improve": improve_text,
+            "naive_breadth": "Visible breadth: how diversified the portfolio looks if you only inspect position sizes.",
+            "raw_breadth": "Market breadth: how many separate bets the price history suggests in calmer conditions.",
+            "real_breadth": "Stress-tested breadth: how many separate bets still remain after penalizing crowding and co-movement.",
+            "phantom_share": "Diversification at risk: the share that disappears when holdings start behaving too similarly.",
+            "leave_one_out": "Remove one holding at a time to see whether it is adding real diversification, mostly cosmetic diversification, or overlap.",
+            "proxy_note": "When a ticker has no usable history, the module can analyze it through a sector ETF, country ETF, or a proxy ticker you provide.",
         },
     }
+
+
+def to_datetime_index(frame: pd.DataFrame) -> pd.DataFrame:
+    if frame.empty:
+        return frame
+    result = frame.copy()
+    result.index = pd.to_datetime(result.index)
+    return result.sort_index()

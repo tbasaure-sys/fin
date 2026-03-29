@@ -608,7 +608,7 @@
 }
 
 .phantomDraftTableHeader {
-  grid-template-columns: minmax(0, 1fr) minmax(88px, 0.65fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(88px, 0.55fr) minmax(160px, 0.9fr) auto;
   padding: 0.85rem 1rem;
   background: rgba(255, 255, 255, 0.05);
   text-transform: uppercase;
@@ -622,7 +622,7 @@
 }
 
 .phantomDraftRow {
-  grid-template-columns: minmax(0, 1fr) minmax(88px, 0.65fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(88px, 0.55fr) minmax(160px, 0.9fr) auto;
   padding: 0.8rem 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -935,11 +935,14 @@
 
   .tableHeader,
   .tableRow,
-  .phantomDraftTableHeader,
-  .phantomDraftRow,
   .phantomContributorHeader,
   .phantomContributorRow {
     grid-template-columns: minmax(96px, 1fr) minmax(0, 1fr) minmax(70px, 0.55fr);
+  }
+
+  .phantomDraftTableHeader,
+  .phantomDraftRow {
+    grid-template-columns: minmax(96px, 1fr) minmax(88px, 0.75fr) minmax(120px, 1fr) auto;
   }
 
   .tableHeader > :nth-child(4),

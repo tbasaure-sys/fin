@@ -168,13 +168,20 @@ function prepareDraftHoldings(holdings) {
         weightValue: Number(weight) || 0,
         weight: formatWeightEditorValue((Number(weight) || 0) * 100),
         excluded: isExcludedPhantomHolding(holding),
+        sector: String(holding?.sector || "").trim(),
+        country: String(holding?.country || "").trim(),
+        proxy: String(holding?.sector || "").trim() && !["Unknown", "ETF", "Cash"].includes(String(holding?.sector || "").trim())
+          ? String(holding?.sector || "").trim()
+          : "",
       };
     })
     .filter(Boolean)
     .sort((left, right) => right.weightValue - left.weightValue);
 
   const analyzable = connectedRows.filter((row) => !row.excluded);
-  const selected = analyzable.slice(0, PHANTOM_MAX_HOLDINGS).map(({ id, ticker, weight }) => ({ id, ticker, weight }));
+  const selected = analyzable
+    .slice(0, PHANTOM_MAX_HOLDINGS)
+    .map(({ id, ticker, weight, sector, country, proxy }) => ({ id, ticker, weight, sector, country, proxy }));
 
   return {
     rows: selected,
@@ -189,6 +196,7 @@ function draftHoldingsKey(rows) {
     safeList(rows).map((row) => ({
       ticker: String(row?.ticker || "").trim().toUpperCase(),
       weight: String(row?.weight || "").trim(),
+      proxy: String(row?.proxy || "").trim(),
     })),
   );
 }
@@ -316,6 +324,9 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             holdings: baseRows.map((row) => ({
               ticker: row.ticker,
               weight: Number.parseFloat(row.weight || "0"),
+              sector: row.sector || "",
+              country: row.country || "",
+              proxy: row.proxy || "",
             })),
           }),
           signal: controller.signal,
@@ -350,9 +361,12 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
       row.id === id
         ? {
             ...row,
-            [field]: field === "ticker"
-              ? String(nextValue || "").toUpperCase().replace(/[^A-Z0-9.\-]/g, "").slice(0, 16)
-              : String(nextValue || "").replace(/[^0-9.]/g, "").slice(0, 8),
+            [field]:
+              field === "ticker"
+                ? String(nextValue || "").toUpperCase().replace(/[^A-Z0-9.\-]/g, "").slice(0, 16)
+                : field === "weight"
+                  ? String(nextValue || "").replace(/[^0-9.]/g, "").slice(0, 8)
+                  : String(nextValue || "").slice(0, 48),
           }
         : row
     )));
@@ -365,6 +379,9 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
         id: `draft-${Date.now()}-${current.length}`,
         ticker: "",
         weight: "",
+        sector: "",
+        country: "",
+        proxy: "",
       },
     ]);
   }
@@ -387,6 +404,9 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
         .map((row) => ({
           ticker: String(row.ticker || "").trim().toUpperCase(),
           weight: Number.parseFloat(row.weight || "0"),
+          sector: row.sector || "",
+          country: row.country || "",
+          proxy: row.proxy || "",
         }))
         .filter((row) => row.ticker && row.weight > 0);
       const response = await fetch(`/api/v1/workspaces/${workspaceId}/phantom-diversification`, {
@@ -410,9 +430,9 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Phantom diversification</p>
-          <h2>Test whether breadth is real or only visible in calm conditions</h2>
+          <h2>Check whether your diversification is real or only looks real</h2>
           <p className={styles.supportText}>
-            The paper&apos;s filter compares naive breadth, spectral raw breadth, and variance-tested breadth from your current mix.
+            This module asks a simple question: if markets get harder, do your holdings still behave like different bets, or do they start moving together?
           </p>
           <p className={styles.supportText}>
             {draftDefaults.connectedCount > PHANTOM_MAX_HOLDINGS || draftDefaults.excludedCount
@@ -424,7 +444,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
         </div>
         <div className={styles.headerMeta}>
           <ToneBadge tone={analysis ? phantomTone(analysis?.current?.classification) : "neutral"}>
-            {analysis?.current?.classification ? capitalize(analysis.current.classification) : "Awaiting run"}
+            {analysis?.current?.classification_label || "Awaiting run"}
           </ToneBadge>
           <ToneBadge tone="neutral">{hasDraftRows ? `${draftRows.length} rows` : "No holdings"}</ToneBadge>
         </div>
@@ -435,7 +455,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
           <div className={styles.phantomDraftHeader}>
             <div>
               <p className={styles.kicker}>Draft mix</p>
-              <h3>Editable holdings</h3>
+              <h3>Editable holdings and fallback proxies</h3>
             </div>
             <ToneBadge tone={Math.abs(totalWeight - 100) <= 0.5 ? "good" : "warn"}>
               {formatWeightEditorValue(totalWeight)}% entered
@@ -446,6 +466,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <div className={styles.phantomDraftTableHeader}>
               <span>Ticker</span>
               <span>Weight %</span>
+              <span>Fallback proxy</span>
               <span />
             </div>
             <div className={styles.phantomDraftRows}>
@@ -467,6 +488,14 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                     placeholder="12.5"
                     type="text"
                     value={row.weight}
+                  />
+                  <input
+                    aria-label={`Fallback proxy ${row.id}`}
+                    className={styles.phantomInput}
+                    onChange={(event) => updateRow(row.id, "proxy", event.target.value)}
+                    placeholder="Technology / Canada / XLK"
+                    type="text"
+                    value={row.proxy || ""}
                   />
                   <button
                     aria-label={`Remove ${row.ticker || "row"}`}
@@ -491,6 +520,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
               <strong>{overDraftLimit ? `Only ${PHANTOM_MAX_HOLDINGS} positive holdings can be tested per run` : draftIsReady ? "Ready to test" : "Need at least 3 positive holdings"}</strong>
               <p className={styles.supportText}>
                 We normalize weights on the server. Enter percentages as you think about the book; the model rescales them to 100%.
+                {" "}If a fund or local stock has no usable live history, enter a sector, a country, or a liquid ETF in the fallback proxy column.
                 {overDraftLimit ? ` Remove ${positiveDraftCount - PHANTOM_MAX_HOLDINGS} holding${positiveDraftCount - PHANTOM_MAX_HOLDINGS === 1 ? "" : "s"} or reset to the connected top weights.` : ""}
               </p>
             </div>
@@ -510,37 +540,55 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
         <div className={styles.phantomResultsPane}>
           <div className={styles.phantomResultBand}>
             <article className={styles.phantomResultMetric} data-tone="neutral">
-              <span>Naive breadth</span>
+              <span>Visible breadth</span>
               <strong>{formatBreadth(analysis?.current?.holdings_hhi_breadth)}</strong>
-              <small>1 / HHI of the current weights</small>
+              <small>{analysis?.copy?.naive_breadth || "What the portfolio looks like if you only inspect position sizes."}</small>
             </article>
             <article className={styles.phantomResultMetric} data-tone="warn">
-              <span>Raw breadth</span>
+              <span>Market breadth</span>
               <strong>{formatBreadth(analysis?.current?.raw_breadth)}</strong>
-              <small>Effective dimension before the paper&apos;s variance filter</small>
+              <small>{analysis?.copy?.raw_breadth || "How many separate bets the return pattern suggests in normal periods."}</small>
             </article>
             <article className={styles.phantomResultMetric} data-tone={phantomTone(analysis?.current?.classification)}>
-              <span>Real breadth</span>
+              <span>Stress-tested breadth</span>
               <strong>{formatBreadth(analysis?.current?.real_breadth)}</strong>
-              <small>{formatPct(analysis?.current?.tested_ratio || 0, 0)} of raw breadth survives</small>
+              <small>{analysis?.copy?.real_breadth || `${formatPct(analysis?.current?.tested_ratio || 0, 0)} of market breadth survives under stress.`}</small>
             </article>
             <article className={styles.phantomResultMetric} data-tone="bad">
-              <span>Phantom share</span>
+              <span>Diversification at risk</span>
               <strong>{formatPct(analysis?.current?.phantom_share || 0, 0)}</strong>
-              <small>{formatBreadth(analysis?.current?.phantom_breadth)} breadth points disappear</small>
+              <small>{analysis?.copy?.phantom_share || `${formatBreadth(analysis?.current?.phantom_breadth)} breadth points disappear when holdings move together.`}</small>
             </article>
           </div>
 
           <div className={styles.phantomNarrative}>
             <div>
               <p className={styles.kicker}>Interpretation</p>
-              <h3>{analysis?.copy?.verdict || "Run the module to score the current mix."}</h3>
+              <h3>{analysis?.current?.classification_label || analysis?.copy?.verdict || "Run the module to score the current mix."}</h3>
             </div>
             <div className={styles.phantomNarrativeCopy}>
+              <p>{analysis?.copy?.verdict || "Run the module to score the current mix."}</p>
               <p>{analysis?.copy?.phantom || "The phantom gap appears once the raw spectral breadth is conditioned by realized variance."}</p>
               <p>{analysis?.copy?.improve || "Use the leave-one-out table to see whether each holding adds real breadth or only optical breadth."}</p>
             </div>
           </div>
+
+          {safeList(analysis?.diagnostics?.proxied_holdings).length ? (
+            <div className={styles.phantomNarrative}>
+              <div>
+                <p className={styles.kicker}>Proxy coverage</p>
+                <h3>Some holdings were analyzed through sector or country proxies</h3>
+              </div>
+              <div className={styles.phantomNarrativeCopy}>
+                <p>{analysis?.copy?.proxy_note || "When a ticker has no usable history, the module can analyze it through a sector ETF, country ETF, or a proxy ticker you provide."}</p>
+                <p>
+                  {safeList(analysis?.diagnostics?.proxied_holdings)
+                    .map((row) => `${row.ticker} via ${row.history_label || row.history_symbol}`)
+                    .join(" · ")}
+                </p>
+              </div>
+            </div>
+          ) : null}
 
           <div className={styles.phantomInsightStrip}>
             <div>
@@ -569,7 +617,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.kicker}>Breadth trace</p>
-                <h3>Raw breadth vs real breadth</h3>
+                <h3>Visible diversification vs stress-tested diversification</h3>
               </div>
               {activeContributor ? (
                 <div className={styles.phantomFocusBadge}>
@@ -585,7 +633,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.kicker}>Leave-one-out</p>
-                <h3>Who is adding real breadth</h3>
+                <h3>Which holdings really help diversification</h3>
               </div>
               {activeContributor ? <ToneBadge tone={contributorTone(activeContributor.role)}>{activeContributor.role}</ToneBadge> : null}
             </div>
@@ -593,10 +641,8 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             {activeContributor ? (
               <div className={styles.phantomContributorFocus}>
                 <strong>{activeContributor.ticker}</strong>
-                <p>
-                  Removing this name changes raw breadth by {formatBreadth(activeContributor.delta_raw_breadth)}, real breadth by{" "}
-                  {formatBreadth(activeContributor.delta_real_breadth)}, and phantom breadth by {formatBreadth(activeContributor.delta_phantom_breadth)}.
-                </p>
+                <p>{activeContributor.role_summary || analysis?.copy?.leave_one_out || "Remove one holding at a time to see whether it is contributing real diversification or just overlap."}</p>
+                <p>Removing this name changes visible breadth by {formatBreadth(activeContributor.delta_raw_breadth)}, stress-tested breadth by {formatBreadth(activeContributor.delta_real_breadth)}, and fragile breadth by {formatBreadth(activeContributor.delta_phantom_breadth)}.</p>
               </div>
             ) : null}
 
@@ -605,8 +651,8 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                 <div className={styles.phantomContributorHeader}>
                   <span>Ticker</span>
                   <span>Weight</span>
-                  <span>Real delta</span>
-                  <span>Phantom delta</span>
+                  <span>Stress-tested delta</span>
+                  <span>Fragile delta</span>
                   <span>Role</span>
                 </div>
                 <div className={styles.tableBody}>

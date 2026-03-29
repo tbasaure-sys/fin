@@ -31,7 +31,7 @@ export default async function HomePage() {
                 <button className={styles.ghostButton} type="submit">Sign out</button>
               </form>
             ) : (
-              <Link className={styles.ghostButton} href="/login">Member sign in</Link>
+              <Link className={styles.ghostButton} href="/login">Create account / sign in</Link>
             )}
           </div>
         </header>
@@ -46,7 +46,7 @@ export default async function HomePage() {
             </p>
             <div className={styles.heroActions}>
               <Link className={styles.primaryButton} href={primaryHref}>
-                {session ? "Return to workspace" : "Open workspace"}
+                {session ? "Return to workspace" : "Create account / sign in"}
               </Link>
               <Link className={styles.secondaryButton} href={secondaryHref}>
                 {session ? "Stay on home" : "Back"}
@@ -87,9 +87,9 @@ export default async function HomePage() {
         </div>
         <div className={styles.closerActions}>
           <Link className={styles.primaryButton} href={primaryHref}>
-            {session ? "Return to workspace" : "Enter workspace"}
+            {session ? "Return to workspace" : "Create account / sign in"}
           </Link>
-          {!session ? <Link className={styles.ghostButton} href="/login">Sign in</Link> : null}
+          {!session ? <Link className={styles.ghostButton} href="/login">New or returning users</Link> : null}
         </div>
       </section>
     </main>
