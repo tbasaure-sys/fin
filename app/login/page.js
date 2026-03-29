@@ -22,7 +22,7 @@ export default async function LoginPage({ searchParams }) {
         <section className={styles.copy}>
           <p className={styles.kicker}>Private workspace access</p>
           <p className={styles.wordmark}>{config.appName}</p>
-          <h1>Enter your private decision workspace.</h1>
+          <h1>Create your account or sign in.</h1>
           <p className={styles.support}>
             Your holdings, staged actions, counterfactual ledger, and mandate stay scoped to your signed-in workspace.
           </p>
@@ -37,17 +37,17 @@ export default async function LoginPage({ searchParams }) {
               <p>Railway remains the analysis source of truth and the app shows freshness state directly.</p>
             </article>
             <article>
-              <span>Daily ritual</span>
-              <p>Sign in once, return to the same calm surface, and keep the book, decision history, and freshness state aligned.</p>
+              <span>First visit or return</span>
+              <p>New users can create an account with their name, email, and the private access code. Returning users use the same form.</p>
             </article>
           </div>
         </section>
 
         <form className={styles.panel} method="post" action="/api/auth/login">
           <input type="hidden" name="next" value={next} />
-          <p className={styles.panelKicker}>Member sign in</p>
-          <h2>Open {config.appName}.</h2>
-          <p className={styles.panelSupport}>Use the private access code configured for this deployment.</p>
+          <p className={styles.panelKicker}>Create account or sign in</p>
+          <h2>Open your workspace in {config.appName}.</h2>
+          <p className={styles.panelSupport}>If your email is new, this form creates your account. If it already exists, it signs you in.</p>
           {error ? <p className={styles.error}>{error}</p> : null}
           <div className={styles.form}>
             <label className={styles.field}>
@@ -64,11 +64,11 @@ export default async function LoginPage({ searchParams }) {
             </label>
           </div>
           <div className={styles.panelFootnote}>
-            <span>Private routing</span>
-            <p>Your session opens the workspace directly and keeps holdings, staging, and refresh state scoped to your account context.</p>
+            <span>How it works</span>
+            <p>Your email becomes your account identity. On first access we create a private workspace for you, then reuse it on later sign-ins.</p>
           </div>
           <div className={styles.actions}>
-            <button className={styles.primaryButton} type="submit">Enter workspace</button>
+            <button className={styles.primaryButton} type="submit">Create account / sign in</button>
             <Link className={styles.secondaryButton} href="/">Back</Link>
           </div>
         </form>

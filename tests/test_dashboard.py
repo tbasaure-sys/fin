@@ -239,6 +239,51 @@ def test_dashboard_service_boot_without_cache_does_not_build_snapshot_inline(tmp
     assert snapshot["status"]["auto_refresh_seconds"] == 300
 
 
+def test_dashboard_service_refresh_updates_market_data_in_artifact_only_mode(tmp_path: Path, monkeypatch) -> None:
+    paths = _paths(tmp_path)
+    base_snapshot = {
+        "generated_at": "2026-03-18T23:50:14.910193+00:00",
+        "overview": {},
+        "portfolio": {
+            "holdings": [{"ticker": "PAGS", "current_price_usd": 10.14, "market_value_usd": 202.8}],
+            "top_holdings": [{"ticker": "PAGS", "current_price_usd": 10.14, "market_value_usd": 202.8}],
+            "quotes": [{"ticker": "PAGS", "price": 10.14}],
+            "quotes_as_of": "2026-03-18",
+            "quotes_stale_days": 11,
+        },
+        "status": {"warnings": []},
+    }
+
+    monkeypatch.setenv("META_ALLOCATOR_ARTIFACT_ONLY", "1")
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.server.load_cached_snapshot", lambda *args, **kwargs: json.loads(json.dumps(base_snapshot)))
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.server.remote_snapshot_url", lambda: "")
+
+    def _refresh_market_data(cached, *args, **kwargs):
+        refreshed = json.loads(json.dumps(cached))
+        refreshed["generated_at"] = "2026-03-29T12:00:00+00:00"
+        refreshed["portfolio"]["holdings"][0]["current_price_usd"] = 15.5
+        refreshed["portfolio"]["top_holdings"][0]["current_price_usd"] = 15.5
+        refreshed["portfolio"]["quotes"][0]["price"] = 15.5
+        refreshed["portfolio"]["quotes_as_of"] = "2026-03-29"
+        refreshed["portfolio"]["quotes_stale_days"] = 0
+        return refreshed
+
+    monkeypatch.setattr("meta_alpha_allocator.dashboard.server._refresh_cached_snapshot_market_data", _refresh_market_data)
+
+    service = DashboardService(
+        paths,
+        ResearchSettings(),
+        AllocatorSettings(),
+        DashboardSettings(output_dir=paths.output_root / "dashboard" / "latest"),
+        boot_refresh_delay=-1,
+    )
+
+    refreshed = service.refresh()
+    assert refreshed["portfolio"]["holdings"][0]["current_price_usd"] == 15.5
+    assert refreshed["portfolio"]["quotes"][0]["price"] == 15.5
+    assert refreshed["portfolio"]["quotes_as_of"] == "2026-03-29"
+
+
 def test_apply_screener_query_filters_and_sorts() -> None:
     snapshot = {
         "screener": {

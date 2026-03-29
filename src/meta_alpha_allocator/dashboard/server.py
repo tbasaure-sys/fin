@@ -23,7 +23,13 @@ from ..decision_runtime.packet import build_decision_packet
 from ..research.chrono_fragility import latest_chrono_alert
 from ..research.decision_audit import DecisionAudit, AuditSummary
 from ..storage.runtime_store import mark_refresh_run
-from .snapshot import apply_screener_query, build_dashboard_snapshot, load_cached_snapshot, remote_snapshot_url
+from .snapshot import (
+    _refresh_cached_snapshot_market_data,
+    apply_screener_query,
+    build_dashboard_snapshot,
+    load_cached_snapshot,
+    remote_snapshot_url,
+)
 
 
 STATIC_ROOT = Path(__file__).resolve().parent / "static"
@@ -158,11 +164,27 @@ class DashboardService:
         snapshot["decision_event"] = snapshot["decision_event_log"].get("latest_refresh")
         return snapshot
 
+    def _load_artifact_snapshot(self, *, refresh_market_data: bool) -> dict | None:
+        cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+        if cached is None:
+            return None
+        if refresh_market_data:
+            try:
+                cached = _refresh_cached_snapshot_market_data(
+                    cached,
+                    self.paths,
+                    self.research_settings,
+                    self.dashboard_settings,
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(f"[dashboard] artifact snapshot market refresh failed: {exc}")
+        return cached
+
     def _background_refresh(self, delay: int) -> None:
         if delay > 0:
             time.sleep(delay)
         if self._artifact_only:
-            cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+            cached = self._load_artifact_snapshot(refresh_market_data=True)
             if cached is not None:
                 with self._lock:
                     self._snapshot = self._ensure_decision_packet(cached)
@@ -172,7 +194,7 @@ class DashboardService:
     def snapshot(self) -> dict:
         with self._lock:
             if self._artifact_only and remote_snapshot_url():
-                cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+                cached = self._load_artifact_snapshot(refresh_market_data=False)
                 if cached is not None:
                     self._snapshot = self._ensure_decision_packet(cached)
             if self._snapshot is not None:
@@ -214,7 +236,7 @@ class DashboardService:
     def refresh(self) -> dict:
         """Trigger a background refresh and return the latest snapshot immediately."""
         if self._artifact_only:
-            cached = load_cached_snapshot(self.paths, self.dashboard_settings)
+            cached = self._load_artifact_snapshot(refresh_market_data=True)
             if cached is not None:
                 with self._lock:
                     self._snapshot = self._ensure_decision_packet(cached)
