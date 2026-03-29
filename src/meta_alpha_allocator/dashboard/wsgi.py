@@ -124,6 +124,23 @@ def create_app(
                 "status": snapshot.get("status", {}),
             })
 
+        # ── POST /api/phantom-diversification ─────────────────────────────
+        if path_info == "/api/phantom-diversification" and method == "POST":
+            from ..research.phantom_diversification import PhantomDiversificationError, analyze_portfolio
+            try:
+                content_length = int(environ.get("CONTENT_LENGTH") or 0)
+                body = environ["wsgi.input"].read(content_length) if content_length > 0 else b"{}"
+                payload = json.loads(body)
+                result = analyze_portfolio(
+                    payload.get("holdings") or [],
+                    workspace_id=payload.get("workspace_id"),
+                )
+                return _json_response(start_response, result)
+            except PhantomDiversificationError as error:
+                return _json_response(start_response, {"error": str(error)}, status=400)
+            except Exception as error:
+                return _json_response(start_response, {"error": f"Unexpected phantom diversification failure: {error}"}, status=500)
+
         # ── GET API routes ────────────────────────────────────────────────
         if method != "GET":
             return _json_response(start_response, {"error": "Method not allowed"}, status=405)
