@@ -1047,7 +1047,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         body: JSON.stringify({ instruction: trimmed }),
       });
       const payload = await parseResponse(response);
-      await applyWorkspacePayload(payload, "Holdings updated from your trade note.");
+      await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Holdings saved.");
       setTradeInstruction("");
     } catch (requestError) {
       setTradeError(String(requestError?.message || requestError || "Trade update failed."));
@@ -1151,7 +1151,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
       <section className={styles.statusGrid}>
         <MetricTile
-          detail={dataControl.notes?.[0] || "Refresh asks Railway to rebuild the analysis snapshot."}
+          detail={dataControl.notes?.[0] || "Refresh rebuilds the analysis behind this workspace."}
           label="Analysis source"
           tone={statusTone(dashboard?.workspace_summary?.backend_status)}
           value={dataControl.analysisSource || "Status unavailable"}

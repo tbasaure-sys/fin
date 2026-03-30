@@ -287,9 +287,18 @@ def _load_price_panel(
     return _sanitize_price_panel(pd.DataFrame(expanded)), supported, unsupported, source_labels or ["none"]
 
 
-def _weighted_correlation(corr: np.ndarray, weights: np.ndarray) -> np.ndarray:
+def _weighted_matrix(matrix: np.ndarray, weights: np.ndarray) -> np.ndarray:
     sqrt_weights = np.sqrt(np.clip(weights, 0.0, None))
-    return np.diag(sqrt_weights) @ corr @ np.diag(sqrt_weights)
+    return np.diag(sqrt_weights) @ matrix @ np.diag(sqrt_weights)
+
+
+def _effective_rank(matrix: np.ndarray, dimensions: int) -> tuple[float, float]:
+    eigvals = np.linalg.eigvalsh(np.asarray(matrix, dtype=float))
+    eigvals = np.clip(np.real(eigvals), 1e-12, None)
+    probs = eigvals / eigvals.sum()
+    entropy = float(-(probs * np.log(probs)).sum())
+    normalized_entropy = float(entropy / np.log(max(dimensions, 2)))
+    return float(np.exp(entropy)), normalized_entropy
 
 
 def _current_window_metrics(window_returns: pd.DataFrame, weights: np.ndarray) -> dict[str, float]:
@@ -303,18 +312,14 @@ def _current_window_metrics(window_returns: pd.DataFrame, weights: np.ndarray) -
     corr = np.nan_to_num(corr, nan=0.0, posinf=0.0, neginf=0.0)
     np.fill_diagonal(corr, 1.0)
 
-    weighted_corr = _weighted_correlation(corr, weights)
-    eigvals = np.linalg.eigvalsh(weighted_corr)
-    eigvals = np.clip(np.sort(eigvals), 1e-12, None)
-    probs = eigvals / eigvals.sum()
-    entropy = float(-(probs * np.log(probs)).sum())
-    raw_breadth = float(np.exp(entropy))
-    normalized_entropy = float(entropy / np.log(max(len(weights), 2)))
-    portfolio_variance = float(weights @ cov @ weights)
-    correction_factor = float(np.clip(1.0 - np.exp(-(CORRECTION_K * portfolio_variance)), 0.0, 1.0))
+    weighted_cov = _weighted_matrix(cov, weights)
+    raw_breadth, raw_entropy_ratio = _effective_rank(weighted_cov, len(weights))
+    stress_intensity = float(np.trace(weighted_cov))
+    correction_factor = float(np.clip(1.0 - np.exp(-(CORRECTION_K * stress_intensity)), 0.0, 1.0))
     real_breadth = float(raw_breadth * correction_factor)
     phantom_breadth = float(max(raw_breadth - real_breadth, 0.0))
     tested_ratio = float(real_breadth / raw_breadth) if raw_breadth > 0 else 0.0
+    portfolio_variance = float(weights @ cov @ weights)
     hhi = float(np.square(weights).sum())
     naive_breadth = float(1.0 / hhi) if hhi > 0 else 0.0
 
@@ -325,9 +330,11 @@ def _current_window_metrics(window_returns: pd.DataFrame, weights: np.ndarray) -
         "phantom_share": float(np.clip(1.0 - correction_factor, 0.0, 1.0)),
         "correction_factor": correction_factor,
         "realized_variance": portfolio_variance,
+        "stress_intensity": stress_intensity,
         "tested_ratio": tested_ratio,
         "naive_breadth": naive_breadth,
-        "entropy_ratio": normalized_entropy,
+        "entropy_ratio": raw_entropy_ratio,
+        "raw_entropy_ratio": raw_entropy_ratio,
         "hhi": hhi,
     }
 
@@ -358,7 +365,7 @@ def _verdict_copy(tested_ratio: float) -> tuple[str, str, str]:
     if tested_ratio >= 0.34:
         return (
             "Part of your diversification is real, but a meaningful part disappears in tougher conditions.",
-            "The portfolio is more diversified than a concentrated book, but less diversified than the headline number suggests.",
+            "The portfolio is more diversified than a concentrated book, but less diversified than the simple headline count suggests.",
             "The cleanest upgrade is replacing overlapping names with holdings that truly behave differently from the rest of the book.",
         )
     return (
@@ -488,10 +495,12 @@ def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = 
             "phantom_share": round(float(current["phantom_share"]), 4),
             "correction_factor": round(float(current["correction_factor"]), 4),
             "realized_variance": round(float(current["realized_variance"]), 6),
+            "stress_intensity": round(float(current["stress_intensity"]), 6),
             "classification": classification,
             "classification_label": _classification_label(classification),
             "tested_ratio": round(float(current["tested_ratio"]), 4),
             "entropy_ratio": round(float(current["entropy_ratio"]), 4),
+            "raw_entropy_ratio": round(float(current["raw_entropy_ratio"]), 4),
         },
         "series": [
             {
@@ -500,6 +509,7 @@ def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = 
                 "real_breadth": round(float(row["real_breadth"]), 3),
                 "phantom_breadth": round(float(row["phantom_breadth"]), 3),
                 "realized_variance": round(float(row["realized_variance"]), 6),
+                "stress_intensity": round(float(row["stress_intensity"]), 6),
                 "correction_factor": round(float(row["correction_factor"]), 4),
             }
             for row in series
@@ -518,8 +528,8 @@ def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = 
             "covariance_method": "Ledoit-Wolf shrinkage",
             "supported_tickers": [holding.ticker for holding in supported_holdings],
             "source_labels": source_labels,
-            "paper_formula": "D_tested = D_raw * (1 - exp(-100 * V))",
-            "portfolio_adaptation": "Weighted correlation spectrum using current portfolio weights.",
+            "paper_formula": "B_raw = effective_rank(W^1/2 Cov W^1/2); B_tested = B_raw (1 - exp(-kV)); B_phantom = B_raw exp(-kV)",
+            "portfolio_adaptation": "The paper uses the shrinkage covariance spectrum and stress intensity V. This module adapts that decomposition to the user's weighted portfolio covariance.",
             "proxy_assignments": proxy_assignments,
             "proxied_holdings": proxied_holdings,
             "unsupported_tickers": [holding.ticker for holding in unsupported_holdings],
@@ -530,7 +540,7 @@ def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = 
             "improve": improve_text,
             "naive_breadth": "Visible breadth: how diversified the portfolio looks if you only inspect position sizes.",
             "raw_breadth": "Market breadth: how many separate bets the price history suggests in calmer conditions.",
-            "real_breadth": "Stress-tested breadth: how many separate bets still remain after penalizing crowding and co-movement.",
+            "real_breadth": "Stress-tested breadth: how many separate bets still remain after accounting for overlap and risk concentration.",
             "phantom_share": "Diversification at risk: the share that disappears when holdings start behaving too similarly.",
             "leave_one_out": "Remove one holding at a time to see whether it is adding real diversification, mostly cosmetic diversification, or overlap.",
             "proxy_note": "When a ticker has no usable history, the module can analyze it through a sector ETF, country ETF, or a proxy ticker you provide.",
