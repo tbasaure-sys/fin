@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import styles from "@/app/login-page.module.css";
 import { getServerConfig } from "@/lib/server/config";
@@ -68,8 +67,8 @@ export default async function LoginPage({ searchParams }) {
             <p>Your email becomes your account identity. On first access we create a private workspace for you, then reuse it on later sign-ins.</p>
           </div>
           <div className={styles.actions}>
-            <button className={styles.primaryButton} type="submit">Create account / sign in</button>
-            <Link className={styles.secondaryButton} href="/">Back</Link>
+            <button className={styles.primaryButton} name="intent" type="submit" value="signup">Create account</button>
+            <button className={styles.secondaryButton} name="intent" type="submit" value="signin">Sign in</button>
           </div>
         </form>
       </div>
