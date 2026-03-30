@@ -552,12 +552,12 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <article className={styles.phantomResultMetric} data-tone={phantomTone(analysis?.current?.classification)}>
               <span>Stress-tested breadth</span>
               <strong>{formatBreadth(analysis?.current?.real_breadth)}</strong>
-              <small>{analysis?.copy?.real_breadth || `${formatPct(analysis?.current?.tested_ratio || 0, 0)} of market breadth survives under stress.`}</small>
+              <small>{analysis?.copy?.real_breadth || `${formatPct(analysis?.current?.tested_ratio || 0, 0)} of your diversification still holds up when holdings start moving together.`}</small>
             </article>
             <article className={styles.phantomResultMetric} data-tone="bad">
               <span>Diversification at risk</span>
               <strong>{formatPct(analysis?.current?.phantom_share || 0, 0)}</strong>
-              <small>{analysis?.copy?.phantom_share || `${formatBreadth(analysis?.current?.phantom_breadth)} breadth points disappear when holdings move together.`}</small>
+              <small>{analysis?.copy?.phantom_share || `${formatBreadth(analysis?.current?.phantom_breadth)} diversification points disappear when holdings start behaving too much alike.`}</small>
             </article>
           </div>
 
@@ -568,8 +568,8 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             </div>
             <div className={styles.phantomNarrativeCopy}>
               <p>{analysis?.copy?.verdict || "Run the module to score the current mix."}</p>
-              <p>{analysis?.copy?.phantom || "The phantom gap appears once the raw spectral breadth is conditioned by realized variance."}</p>
-              <p>{analysis?.copy?.improve || "Use the leave-one-out table to see whether each holding adds real breadth or only optical breadth."}</p>
+              <p>{analysis?.copy?.phantom || "If the score drops a lot from market breadth to stress-tested breadth, several holdings are giving you the same underlying bet."}</p>
+              <p>{analysis?.copy?.improve || "Use the table below to see which holdings add something genuinely different and which mostly repeat exposure you already have."}</p>
             </div>
           </div>
 
@@ -580,7 +580,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                 <h3>Some holdings were analyzed through sector or country proxies</h3>
               </div>
               <div className={styles.phantomNarrativeCopy}>
-                <p>{analysis?.copy?.proxy_note || "When a ticker has no usable history, the module can analyze it through a sector ETF, country ETF, or a proxy ticker you provide."}</p>
+                <p>{analysis?.copy?.proxy_note || "When a fund or stock has no usable market history here, the module can still estimate diversification using a sector ETF, country ETF, or a proxy ticker you provide."}</p>
                 <p>
                   {safeList(analysis?.diagnostics?.proxied_holdings)
                     .map((row) => `${row.ticker} via ${row.history_label || row.history_symbol}`)
@@ -604,8 +604,8 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
               <strong>{analysis?.diagnostics?.common_history_days || "-"}</strong>
             </div>
             <div>
-              <span>Correction</span>
-              <strong>{formatPct(analysis?.current?.correction_factor || 0, 0)}</strong>
+              <span>Diversification that holds up</span>
+              <strong>{formatPct(analysis?.current?.tested_ratio || 0, 0)}</strong>
             </div>
             <div>
               <span>Price source</span>
@@ -617,7 +617,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.kicker}>Breadth trace</p>
-                <h3>Visible diversification vs stress-tested diversification</h3>
+                <h3>How much diversification remains when holdings move together</h3>
               </div>
               {activeContributor ? (
                 <div className={styles.phantomFocusBadge}>
@@ -633,7 +633,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.kicker}>Leave-one-out</p>
-                <h3>Which holdings really help diversification</h3>
+                <h3>Which holdings truly add something different</h3>
               </div>
               {activeContributor ? <ToneBadge tone={contributorTone(activeContributor.role)}>{activeContributor.role}</ToneBadge> : null}
             </div>
@@ -641,8 +641,8 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             {activeContributor ? (
               <div className={styles.phantomContributorFocus}>
                 <strong>{activeContributor.ticker}</strong>
-                <p>{activeContributor.role_summary || analysis?.copy?.leave_one_out || "Remove one holding at a time to see whether it is contributing real diversification or just overlap."}</p>
-                <p>Removing this name changes visible breadth by {formatBreadth(activeContributor.delta_raw_breadth)}, stress-tested breadth by {formatBreadth(activeContributor.delta_real_breadth)}, and fragile breadth by {formatBreadth(activeContributor.delta_phantom_breadth)}.</p>
+                <p>{activeContributor.role_summary || analysis?.copy?.leave_one_out || "Remove one holding at a time to see whether it adds real diversification or mostly overlaps with the rest of the portfolio."}</p>
+                <p>Removing this name changes visible breadth by {formatBreadth(activeContributor.delta_raw_breadth)}, diversification that still holds up by {formatBreadth(activeContributor.delta_real_breadth)}, and overlap risk by {formatBreadth(activeContributor.delta_phantom_breadth)}.</p>
               </div>
             ) : null}
 
@@ -721,8 +721,9 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Today&apos;s call</p>
+          <p className={styles.kicker}>Recommended move</p>
           <h2>{title}</h2>
+          <p className={styles.supportText}>The clearest action the current market read supports right now.</p>
         </div>
         <ToneBadge tone={statusTone(isBlocked ? "briefing" : (primaryAction?.status || "ready"))}>
           {isBlocked ? "Wait" : "Actionable"}
@@ -736,22 +737,22 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
       <div className={styles.decisionGrid}>
         <MetricTile
           detail={primaryAction?.whyNow || stateSummary?.decisionSummary || "Wait for a cleaner setup before widening risk."}
-          label="What to do"
+          label="Action"
           value={primaryAction?.title || "Protect capital"}
         />
         <MetricTile
           detail={primaryAction?.watchFor || blockedAction?.watchFor || "A stronger recoverability read and cleaner breadth confirmation."}
-          label="What changes it"
+          label="What would change it"
           value={activeAction ? formatSize(activeAction) : "No size change"}
         />
         <MetricTile
           detail={activeAction?.funding || "Preserve current sizing until the setup improves."}
-          label="Funding"
+          label="How to fund it"
           value={activeAction?.funding || "No funding change"}
         />
         <MetricTile
           detail={blockedAction?.summary || "The current structure still does not justify broader risk."}
-          label="Why now"
+          label="Current stance"
           value={stateSummary?.stance || "Selective posture"}
         />
       </div>
@@ -787,6 +788,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
         <div>
           <p className={styles.kicker}>Portfolio</p>
           <h2>{analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "Portfolio connected"}</h2>
+          <p className={styles.supportText}>Total value, tracked performance, and the positions currently driving the portfolio.</p>
         </div>
         <div className={styles.headerMeta}>
           <ToneBadge tone={holdings.length ? "good" : "warn"}>{analytics.holdingsCount || holdings.length} holdings</ToneBadge>
@@ -828,7 +830,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
           <div className={styles.sidePanelHeader}>
             <div>
               <p className={styles.kicker}>Largest positions</p>
-              <h3>What is carrying the book</h3>
+              <h3>Top positions by weight</h3>
             </div>
             <ToneBadge tone="neutral">{topHoldings.length} shown</ToneBadge>
           </div>
@@ -866,7 +868,8 @@ function HoldingsPanel({ portfolioModule, tradeInstruction, onTradeInstructionCh
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Holdings</p>
-          <h2>{holdings.length ? "Everything currently in the book" : "Your full book will appear here"}</h2>
+          <h2>{holdings.length ? "All connected positions" : "Your positions will appear here"}</h2>
+          <p className={styles.supportText}>Scan ticker, role, weight, value, and price in one place.</p>
         </div>
         <ToneBadge tone="neutral">{holdings.length} positions</ToneBadge>
       </div>
@@ -909,7 +912,7 @@ function HoldingsPanel({ portfolioModule, tradeInstruction, onTradeInstructionCh
         <div className={styles.tradeCopy}>
           <p className={styles.kicker}>Quick update</p>
           <h3>Write the trade naturally</h3>
-          <p>For example: “compre 100 usd de NVDA” or “sold 2 shares of AAPL”.</p>
+          <p>For example: “compre 100 usd de NVDA” or “sold 2 shares of AAPL”. The app will translate it into a holdings update.</p>
         </div>
         <div className={styles.tradeForm}>
           <input
@@ -1116,7 +1119,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <div>
           <p className={styles.eyebrow}>Private workspace</p>
           <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME}</h1>
-          <p className={styles.subtitle}>One operating surface for portfolio state, decisions, and fresh analysis.</p>
+          <p className={styles.subtitle}>One workspace to read the market, understand the portfolio, and act without switching tools.</p>
         </div>
 
         <div className={styles.headerActions}>
@@ -1149,25 +1152,25 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       <section className={styles.statusGrid}>
         <MetricTile
           detail={dataControl.notes?.[0] || "Refresh asks Railway to rebuild the analysis snapshot."}
-          label="Analysis"
+          label="Analysis source"
           tone={statusTone(dashboard?.workspace_summary?.backend_status)}
           value={dataControl.analysisSource || "Status unavailable"}
         />
         <MetricTile
           detail={dataControl.notes?.[3] || "Private holdings overlay is not connected."}
-          label="Holdings"
+          label="Holdings source"
           tone={portfolioModule?.analytics?.holdingsCount ? "good" : "warn"}
           value={dataControl.holdingsSource?.label || "No private holdings source"}
         />
         <MetricTile
           detail={dataControl.notes?.[1] || "Price tiles use the latest market date in the snapshot."}
-          label="Market data"
+          label="Market date"
           tone="neutral"
           value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
         />
         <MetricTile
           detail={connection.detail}
-          label="Live link"
+          label="Connection"
           tone={connection.status === "live" ? "good" : connection.status === "polling" ? "warn" : "neutral"}
           value={connection.label}
         />
@@ -1229,7 +1232,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 </div>
               </article>
             )}
-            title={escrowItems.length ? `${escrowItems.length} staged actions` : "Nothing staged"}
+            title={escrowItems.length ? `${escrowItems.length} staged actions` : "No staged actions"}
           />
 
           <CompactActionPanel
@@ -1249,7 +1252,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 <ToneBadge tone={actionTone(action)}>{action.sizeLabel || formatSize(action)}</ToneBadge>
               </article>
             )}
-            title={secondaryActions.length ? "Ideas to keep warm" : "No fresh ideas today"}
+            title={secondaryActions.length ? "Ideas to watch" : "No fresh ideas today"}
           />
 
           <CompactActionPanel
@@ -1268,7 +1271,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 </ToneBadge>
               </article>
             )}
-            title={ledgerItems.length ? "What happened next" : "No settled outcomes yet"}
+            title={ledgerItems.length ? "Recent outcomes" : "No settled outcomes yet"}
           />
 
           <section className={styles.panel}>
@@ -1276,6 +1279,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               <div>
                 <p className={styles.kicker}>Current brief</p>
                 <h2>{stateSummary?.stance || "Stay patient"}</h2>
+                <p className={styles.supportText}>The short read behind the current posture and the evidence supporting it.</p>
               </div>
             </div>
             <p className={styles.lead}>{stateSummary?.decisionSummary || "The workspace will keep surfacing the clearest next action as live analysis refreshes."}</p>

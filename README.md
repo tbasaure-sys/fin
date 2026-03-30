@@ -80,6 +80,13 @@ For a working preview deployment, set at least these environment variables in Ve
 - `BLS_PRIME_ALPHA_MODE`
 - `BLS_PRIME_INVITE_CONTACT`
 
+If you expect holdings quotes or private portfolio overlays to refresh inside the Next.js app, also set one of:
+
+- `FMP_API_KEY`
+- `FINANCIAL_MODELING_PREP_API_KEY`
+
+This is required in Vercel because the app has a server-side holdings quote path in `lib/server/private-portfolio.js` that calls FMP directly. Having the key only in Railway refreshes the Python backend, but it does not cover the Next.js overlay path.
+
 Optional if you are using invite-link access:
 
 - `BLS_PRIME_SHARED_ACCESS_TOKEN`
@@ -117,6 +124,16 @@ Set these environment variables:
 - `BLS_PRIME_SESSION_DAYS`
 
 The current auth flow is access-code based and stores sessions in Neon. It is designed as the bridge between the old shared alpha model and a fuller production auth setup.
+
+### FMP split by runtime
+
+If FMP "does nothing", check both runtimes separately:
+
+- `Railway` needs `FMP_API_KEY` or `FINANCIAL_MODELING_PREP_API_KEY` for backend snapshot and market-data refreshes.
+- `Vercel` needs the same key if you use private holdings, local portfolio overlays, or any server-rendered quote enrichment in the app.
+- `Vercel` also needs `BLS_PRIME_BACKEND_URL` pointing to the live Railway backend.
+
+If the frontend can load but holdings still look stale, the common failure mode is: key exists in Railway, but not in Vercel.
 
 ## Status
 
