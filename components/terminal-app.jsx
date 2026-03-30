@@ -911,14 +911,14 @@ function HoldingsPanel({ portfolioModule, tradeInstruction, onTradeInstructionCh
       >
         <div className={styles.tradeCopy}>
           <p className={styles.kicker}>Quick update</p>
-          <h3>Write the trade naturally</h3>
-          <p>For example: “compre 100 usd de NVDA” or “sold 2 shares of AAPL”. The app will translate it into a holdings update.</p>
+          <h3>Update holdings in plain English</h3>
+          <p>For example: <em>bought 100 USD of NVDA</em> or <em>sold 2 shares of AAPL</em>. The app will translate it into a holdings update.</p>
         </div>
         <div className={styles.tradeForm}>
           <input
             className={styles.textInput}
             onChange={(event) => onTradeInstructionChange(event.target.value)}
-            placeholder="compre 100 usd de NVDA"
+            placeholder="bought 100 USD of NVDA"
             type="text"
             value={tradeInstruction}
           />

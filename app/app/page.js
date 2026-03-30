@@ -78,7 +78,7 @@ function buildWorkspacePageFallback(authSession, error) {
   };
 }
 
-export default async function PrivateWorkspacePage({ searchParams }) {
+export default async function PrivateWorkspacePage() {
   const authSession = await requireServerAuthSession("/app");
   const session = await buildAuthenticatedSessionPayload(authSession);
   let dashboard;

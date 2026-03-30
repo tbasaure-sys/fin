@@ -167,13 +167,10 @@
 .headerActions,
 .headerMeta,
 .buttonRow,
-.headerMeta,
 .compactActions,
-.headerMeta,
 .chartLegend,
 .panelHeader,
-.sidePanelHeader,
-.tradeForm {
+.sidePanelHeader {
   display: flex;
   gap: 0.7rem;
 }
@@ -1003,7 +1000,11 @@
   .tableHeader > :nth-child(4),
   .tableHeader > :nth-child(5),
   .tableRow > :nth-child(4),
-  .tableRow > :nth-child(5) {
+  .tableRow > :nth-child(5),
+  .phantomContributorHeader > :nth-child(4),
+  .phantomContributorHeader > :nth-child(5),
+  .phantomContributorRow > :nth-child(4),
+  .phantomContributorRow > :nth-child(5) {
     display: none;
   }
 
