@@ -1,0 +1,68 @@
+{
+  "as_of": "2026-03-17",
+  "portfolio_id": "demo",
+  "horizon_days": 20,
+  "measured_state": {
+    "market_effective_dimension": 6.4,
+    "market_dominance_share": 0.34,
+    "market_compression": 0.71,
+    "breadth": 0.42,
+    "median_pairwise_corr": 0.58,
+    "portfolio_hhi": 0.11,
+    "portfolio_factor_dimension": 3.2,
+    "portfolio_fragility_exposure": 0.63,
+    "portfolio_liquidity_buffer": 0.18,
+    "portfolio_drawdown": -0.12,
+    "benchmark_drawdown": -0.09
+  },
+  "probabilistic_state": {
+    "p_structural_dominance": 0.78,
+    "p_regime_shock_dominance": 0.31,
+    "cluster_type": "G-dominated",
+    "p_visible_correction": 0.57,
+    "p_structural_restoration": 0.29,
+    "p_phantom_rebound": 0.40,
+    "p_portfolio_recoverability": 0.46,
+    "p_extreme_drawdown": 0.18,
+    "authority_score": 52
+  },
+  "policy_state": {
+    "mode": "observe",
+    "max_gross_add": 0.04,
+    "max_single_name_add": 0.01,
+    "hedge_floor": 0.06,
+    "allowed_sleeves": ["defensive_compounders", "index_hedge"],
+    "forbidden_sleeves": ["crowded_optional_high_beta"],
+    "review_cadence": "48h",
+    "rebalance_delay": "1d",
+    "required_confirmation": "breadth_up_and_dom_down",
+    "invalidation_rules": [
+      "p_portfolio_recoverability_below_0_42",
+      "p_phantom_rebound_above_0_48"
+    ]
+  },
+  "repair_candidates": [
+    {
+      "id": "repair_01",
+      "trade_set": [
+        "trim NAME_A 1.5%",
+        "add NAME_B 1.0%",
+        "add hedge 0.5%"
+      ],
+      "delta_recoverability": 0.07,
+      "delta_phantom": -0.05,
+      "delta_extreme_drawdown": -0.03,
+      "repair_efficiency": 1.42,
+      "classification": "real_repair",
+      "binding_constraints": ["single_name_cap"]
+    }
+  ],
+  "uncertainty": {
+    "calibration_component": 0.63,
+    "coverage_component": 0.52,
+    "stability_component": 0.68,
+    "data_component": 0.91,
+    "evidence_tier": "beta",
+    "model_version": "state_contract_v1"
+  }
+}
