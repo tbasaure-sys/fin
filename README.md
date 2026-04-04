@@ -119,11 +119,31 @@ The app now supports a public homepage plus a private `/app` workspace.
 Set these environment variables:
 
 - `BLS_PRIME_AUTH_SECRET`
-- `BLS_PRIME_SIGNIN_CODE`
 - `BLS_PRIME_SESSION_COOKIE_NAME`
 - `BLS_PRIME_SESSION_DAYS`
 
-The current auth flow is access-code based and stores sessions in Neon. It is designed as the bridge between the old shared alpha model and a fuller production auth setup.
+The current auth flow uses email plus password and stores sessions in Neon.
+New users create their account from `/login`, while legacy users created under
+the older shared-access flow can use `Create account` once to define their
+password on the existing email.
+
+### Password reset
+
+The app now includes `/forgot-password` and `/reset-password`.
+
+Recommended environment variables:
+
+- `BLS_PRIME_PASSWORD_RESET_EXPIRY_MINUTES`
+- `BLS_PRIME_EMAIL_FROM`
+- `RESEND_API_KEY`
+
+For local development, you can also enable:
+
+- `BLS_PRIME_PASSWORD_RESET_DEV_FALLBACK=1`
+
+That fallback exposes the reset link back to the browser only in development or
+when you explicitly enable it, so you can test the full recovery flow before
+email delivery is configured.
 
 ### FMP split by runtime
 

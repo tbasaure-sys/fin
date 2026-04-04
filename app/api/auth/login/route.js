@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import {
   getSessionCookieName,
   getSessionCookieOptions,
-  signInWithAccessCode,
+  signInWithPassword,
 } from "@/lib/server/auth/session";
 
 export const dynamic = "force-dynamic";
@@ -13,11 +13,12 @@ export async function POST(request) {
   const formData = await request.formData();
   const email = String(formData.get("email") || "");
   const name = String(formData.get("name") || "");
-  const accessCode = String(formData.get("accessCode") || "");
+  const password = String(formData.get("password") || "");
+  const intent = String(formData.get("intent") || "signin");
   const next = String(formData.get("next") || "/app");
 
   try {
-    const session = await signInWithAccessCode({ email, name, accessCode });
+    const session = await signInWithPassword({ email, name, password, intent });
     const response = NextResponse.redirect(new URL(next.startsWith("/") ? next : "/app", request.url), 303);
     response.cookies.set(
       getSessionCookieName(),

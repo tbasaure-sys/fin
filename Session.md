@@ -90,7 +90,6 @@ Verified:
 - Browser state was flaky for login form submission in isolated steps, so I used authenticated local HTTP plus Playwright snapshots to verify the real workspace state.
 
 ### Local authenticated verification used
-- Access code from `.env.local`: `bls-prime-2026`
 - Session payload confirmed the correct workspace:
   - `/api/v1/session` returned `workspace-4bcbf1d5e5d14842`
 
