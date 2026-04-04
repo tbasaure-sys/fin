@@ -120,14 +120,31 @@ function parseSeriesDate(value) {
 }
 
 export function filterPortfolioSeries(series, range) {
-  const rows = safeList(series);
+  const rows = safeList(series)
+    .map((row) => ({
+      ...row,
+      __parsedDate: parseSeriesDate(row.date),
+    }))
+    .sort((left, right) => {
+      const leftTime = left.__parsedDate?.getTime() ?? 0;
+      const rightTime = right.__parsedDate?.getTime() ?? 0;
+      return leftTime - rightTime;
+    });
   if (!rows.length) return [];
-  if (range === "1D") return rows.slice(-2);
-  if (range === "1W") return rows.slice(-5);
-  if (range === "1M") return rows.slice(-22);
+  const latestDate = rows[rows.length - 1].__parsedDate;
+  const filterByWindow = (days, fallbackCount) => {
+    if (!latestDate) return rows.slice(-fallbackCount);
+    const cutoff = latestDate.getTime() - (days * 24 * 60 * 60 * 1000);
+    const filtered = rows.filter((row) => (row.__parsedDate?.getTime() ?? 0) >= cutoff);
+    return filtered.length >= 2 ? filtered : rows.slice(-fallbackCount);
+  };
+
+  if (range === "1D") return filterByWindow(1, 8);
+  if (range === "1W") return filterByWindow(7, 20);
+  if (range === "1M") return filterByWindow(31, 45);
   if (range === "YTD") {
     const currentYear = new Date().getFullYear();
-    const filtered = rows.filter((row) => parseSeriesDate(row.date)?.getFullYear() === currentYear);
+    const filtered = rows.filter((row) => row.__parsedDate?.getFullYear() === currentYear);
     return filtered.length ? filtered : rows.slice(-60);
   }
   return rows;

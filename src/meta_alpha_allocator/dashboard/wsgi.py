@@ -21,7 +21,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
-from .server import DashboardService, CORS_ORIGIN, _bls_contract_routes, _contract_headers
+from .server import DashboardService, CORS_ORIGIN, _bls_contract_routes, _contract_headers_for_path
 from .snapshot import apply_screener_query
 # chrono_alert is exposed via service.chrono_alert() — no extra import needed here
 
@@ -184,9 +184,8 @@ def create_app(
         route_map.update(_bls_contract_routes(snapshot))
 
         if path_info in route_map:
-            extra_headers = None
-            if path_info.startswith("/api/state") or path_info.startswith("/api/policy") or path_info.startswith("/api/repairs") or path_info.startswith("/api/analogs"):
-                extra_headers = list(_contract_headers(snapshot.get("bls_state_v1") or {}).items())
+            extra_headers = _contract_headers_for_path(snapshot, path_info)
+            extra_headers = list(extra_headers.items()) if extra_headers else None
             return _json_response(start_response, route_map[path_info], extra_headers=extra_headers)
 
         return _json_response(start_response, {"error": "Not found"}, status=404)

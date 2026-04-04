@@ -86,26 +86,8 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
   text-decoration: none;
   color: var(--ink);
-}
-
-.brandMark {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--gold) 0%, rgba(232, 184, 75, 0.5) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.brandMark svg {
-  width: 16px;
-  height: 16px;
-  fill: #060b13;
 }
 
 .brandName {
@@ -200,6 +182,22 @@
   justify-content: center;
   animation: fadeUp 700ms ease both;
   animation-delay: 240ms;
+}
+
+.heroProof {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1.75rem;
+  color: var(--ink-muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  animation: fadeUp 700ms ease both;
+  animation-delay: 320ms;
+}
+
+.heroProof span {
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border-faint);
 }
 
 /* ─── Hero scroll hint ─── */
@@ -462,28 +460,11 @@
 .mockRow {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
   padding: 0.65rem 0.75rem;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255,255,255,0.05);
 }
-
-.mockRowIcon {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  flex-shrink: 0;
-}
-
-.mockRowIcon[data-tone="gold"] { background: rgba(232, 184, 75, 0.15); color: var(--gold); }
-.mockRowIcon[data-tone="green"] { background: rgba(82, 208, 163, 0.15); color: #52d0a3; }
-.mockRowIcon[data-tone="teal"] { background: rgba(108, 200, 187, 0.15); color: var(--teal); }
-.mockRowIcon[data-tone="red"] { background: rgba(255, 124, 114, 0.15); color: #ff7c72; }
 
 .mockRowBody {
   flex: 1;
@@ -521,14 +502,6 @@
   border-radius: 12px;
   background: linear-gradient(135deg, rgba(232, 184, 75, 0.1), rgba(232, 184, 75, 0.04));
   border: 1px solid var(--border-gold);
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.mockDecisionIcon {
-  font-size: 1.1rem;
-  flex-shrink: 0;
 }
 
 .mockDecisionText {
@@ -562,6 +535,56 @@
   gap: 4rem;
   align-items: end;
   margin-bottom: 3.5rem;
+}
+
+.offeringList {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--border-faint);
+}
+
+.offeringRow {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 2rem;
+  padding: 1.35rem 0;
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.offeringTitle,
+.glossaryTerm {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0;
+}
+
+.offeringDesc,
+.glossaryDesc {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--ink-muted);
+}
+
+.explainerSection {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 3rem;
+  align-items: start;
+  margin-top: 4rem;
+}
+
+.glossary {
+  border-top: 1px solid var(--border-faint);
+}
+
+.glossaryRow {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.75fr) minmax(0, 1.25fr);
+  gap: 1.5rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-faint);
 }
 
 .featuresGrid {
@@ -600,22 +623,6 @@
   opacity: 1;
 }
 
-.featureIcon {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
-}
-
-.featureIcon[data-tone="gold"] { background: rgba(232, 184, 75, 0.14); }
-.featureIcon[data-tone="teal"] { background: rgba(108, 200, 187, 0.14); }
-.featureIcon[data-tone="green"] { background: rgba(82, 208, 163, 0.14); }
-.featureIcon[data-tone="blue"] { background: rgba(100, 150, 255, 0.14); }
-
 .featureTitle {
   font-size: 0.95rem;
   font-weight: 600;
@@ -645,18 +652,8 @@
 }
 
 .trustItem {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
   font-size: 0.82rem;
   color: var(--ink-muted);
-}
-
-.trustItem svg {
-  width: 16px;
-  height: 16px;
-  color: var(--gold);
-  flex-shrink: 0;
 }
 
 /* ─── CLOSER ─── */
@@ -722,6 +719,13 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .offeringRow,
+  .explainerSection,
+  .glossaryRow {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
   .nav {
     padding: 1rem 1.25rem;
   }
@@ -738,6 +742,11 @@
 
   .heroBody {
     padding: 3rem 1.25rem 4rem;
+  }
+
+  .heroProof {
+    width: 100%;
+    max-width: 32rem;
   }
 
   .headline {

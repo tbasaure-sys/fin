@@ -42,7 +42,7 @@ from ..storage.runtime_store import (
     save_runtime_document,
     save_runtime_snapshot,
 )
-from ..state_contract import build_bls_state_contract_v1
+from ..state_contract import build_bls_state_contract_v1, build_bls_state_contract_v2
 from ..runtime import run_production
 from ..utils import ensure_directory, time_safe_join
 
@@ -1087,6 +1087,7 @@ def _empty_snapshot(*, generated_at: str, warnings: list[str]) -> dict[str, Any]
 
 def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
     bls_state = snapshot.get("bls_state_v1") or {}
+    bls_state_v2 = snapshot.get("bls_state_v2") or {}
     files = {
         "dashboard_snapshot.json": snapshot,
         "decision_packet.json": snapshot.get("decision_packet", {}),
@@ -1109,7 +1110,9 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
             "kernel_research_utility": snapshot.get("statement_intelligence", {}).get("kernel_research_utility", {}),
         },
         "bls_state_v1.json": bls_state,
+        "bls_state_v2.json": bls_state_v2,
         "state-contract.json": bls_state,
+        "balance_sheet.json": bls_state_v2.get("balance_sheet", bls_state.get("balance_sheet", {})),
         "state.json": {
             "as_of": bls_state.get("as_of"),
             "portfolio_id": bls_state.get("portfolio_id"),
@@ -1148,6 +1151,26 @@ def _write_snapshot_files(snapshot: dict[str, Any], output_dir: Path) -> None:
             "model_version": bls_state.get("model_version"),
             "analogs": bls_state.get("analogs", []),
             "uncertainty": bls_state.get("uncertainty", {}),
+        },
+        "state-v2.json": {
+            "as_of": bls_state_v2.get("as_of"),
+            "portfolio_id": bls_state_v2.get("portfolio_id"),
+            "horizon_days": bls_state_v2.get("horizon_days"),
+            "contract_version": bls_state_v2.get("contract_version"),
+            "model_version": bls_state_v2.get("model_version"),
+            "measured_state": bls_state_v2.get("measured_state", {}),
+            "probabilistic_state": bls_state_v2.get("probabilistic_state", {}),
+            "policy_state": bls_state_v2.get("policy_state", {}),
+            "recoverability_budget": bls_state_v2.get("recoverability_budget", {}),
+            "healing_dynamics": bls_state_v2.get("healing_dynamics", {}),
+            "rebound_sponsorship": bls_state_v2.get("rebound_sponsorship", {}),
+            "legitimacy_surface": bls_state_v2.get("legitimacy_surface", {}),
+            "failure_modes": bls_state_v2.get("failure_modes", {}),
+            "transition_memory": bls_state_v2.get("transition_memory", {}),
+            "repair_candidates": bls_state_v2.get("repair_candidates", []),
+            "analogs": bls_state_v2.get("analogs", []),
+            "balance_sheet": bls_state_v2.get("balance_sheet", {}),
+            "uncertainty": bls_state_v2.get("uncertainty", {}),
         },
         "status.json": snapshot.get("status", {}),
     }
@@ -1254,6 +1277,13 @@ def build_dashboard_snapshot(
                 except Exception as exc:  # noqa: BLE001
                     cached["status"]["warnings"].append(f"bls state contract build failed on cached snapshot: {exc}")
                     cached["bls_state_v1"] = None
+            if not cached.get("bls_state_v2"):
+                try:
+                    cached["_output_root"] = str(paths.output_root)
+                    cached["bls_state_v2"] = build_bls_state_contract_v2(cached)
+                except Exception as exc:  # noqa: BLE001
+                    cached["status"]["warnings"].append(f"bls state v2 contract build failed on cached snapshot: {exc}")
+                    cached["bls_state_v2"] = None
             cached["_output_root"] = str(paths.output_root)
             cached["decision_packet"] = build_decision_packet(cached)
             cached["decision_event_log"] = record_decision_events(cached, paths.output_root)
@@ -1435,6 +1465,11 @@ def build_dashboard_snapshot(
     except Exception as exc:  # noqa: BLE001
         warnings.append(f"bls state contract build failed: {exc}")
         snapshot_dict["bls_state_v1"] = None
+    try:
+        snapshot_dict["bls_state_v2"] = build_bls_state_contract_v2(snapshot_dict)
+    except Exception as exc:  # noqa: BLE001
+        warnings.append(f"bls state v2 contract build failed: {exc}")
+        snapshot_dict["bls_state_v2"] = None
     snapshot_dict["decision_packet"] = build_decision_packet(snapshot_dict)
     snapshot_dict["decision_event_log"] = record_decision_events(snapshot_dict, paths.output_root)
     snapshot_dict["decision_events"] = snapshot_dict["decision_event_log"].get("events", [])

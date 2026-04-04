@@ -12,6 +12,18 @@ const nextConfig = {
           { key: "Cache-Control", value: "no-store" },
         ],
       },
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-store, no-cache, max-age=0, must-revalidate" },
+        ],
+      },
+      {
+        source: "/service-worker.js",
+        headers: [
+          { key: "Cache-Control", value: "no-store, no-cache, max-age=0, must-revalidate" },
+        ],
+      },
     ];
   },
 };

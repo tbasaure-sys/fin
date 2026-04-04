@@ -5,6 +5,7 @@ import json
 from typing import TYPE_CHECKING
 
 from .analogs import build_analogs
+from .balance_sheet import build_recoverability_balance_sheet
 from .measured import build_measured_state
 from .policy import build_policy_state
 from .probabilistic import build_probabilistic_state
@@ -33,6 +34,14 @@ def build_bls_state_contract_v1(snapshot: dict, *, horizon_days: int = 20, paths
     policy_state = build_policy_state(snapshot, measured_state, probabilistic_state, uncertainty)
     analogs = build_analogs(snapshot, probabilistic_state, measured_state=measured_state, research_artifacts=research_artifacts)
     repair_candidates = build_repair_candidates(snapshot, measured_state, probabilistic_state, policy_state)
+    balance_sheet = build_recoverability_balance_sheet(
+        snapshot,
+        measured_state,
+        probabilistic_state,
+        policy_state,
+        uncertainty,
+        repair_candidates=repair_candidates,
+    )
     contract = {
         'contract_version': CONTRACT_VERSION,
         'model_version': MODEL_VERSION,
@@ -44,6 +53,7 @@ def build_bls_state_contract_v1(snapshot: dict, *, horizon_days: int = 20, paths
         'policy_state': policy_state,
         'repair_candidates': repair_candidates,
         'analogs': analogs,
+        'balance_sheet': balance_sheet,
         'research_provenance': build_research_provenance(research_artifacts),
         'uncertainty': {
             key: value

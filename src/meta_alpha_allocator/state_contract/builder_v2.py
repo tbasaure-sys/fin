@@ -5,6 +5,7 @@ import re
 from typing import Any
 
 from .analogs import build_analogs
+from .balance_sheet import build_recoverability_balance_sheet
 from .failure_modes import build_failure_modes
 from .healing import build_healing_dynamics
 from .legitimacy import build_legitimacy_surface
@@ -382,6 +383,20 @@ def build_bls_state_contract_v2(snapshot: dict, *, horizon_days: int = 20) -> di
         transition_memory,
         legitimacy_surface,
     )
+    balance_sheet = build_recoverability_balance_sheet(
+        snapshot,
+        measured_state,
+        probabilistic_state,
+        policy_state,
+        uncertainty,
+        recoverability_budget=recoverability_budget,
+        healing_dynamics=healing_dynamics,
+        rebound_sponsorship=rebound_sponsorship,
+        legitimacy_surface=legitimacy_surface,
+        failure_modes=failure_modes,
+        transition_memory=transition_memory,
+        repair_candidates=repair_candidates,
+    )
     return {
         "contract_version": CONTRACT_VERSION_V2,
         "model_version": MODEL_VERSION_V2,
@@ -399,6 +414,7 @@ def build_bls_state_contract_v2(snapshot: dict, *, horizon_days: int = 20) -> di
         "transition_memory": transition_memory,
         "repair_candidates": repair_candidates,
         "analogs": analogs,
+        "balance_sheet": balance_sheet,
         "uncertainty": {
             key: value
             for key, value in uncertainty.items()

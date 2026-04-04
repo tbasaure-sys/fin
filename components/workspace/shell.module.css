@@ -416,6 +416,86 @@
   gap: 0.8rem;
 }
 
+.balanceGrid,
+.balanceReserveGrid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.balanceGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1rem;
+}
+
+.balanceReserveGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.9rem;
+}
+
+.balanceCard {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.balanceCardHeader {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.balanceCardHeader span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.balanceStack {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.balanceRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: start;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.balanceRow:first-child {
+  padding-top: 0;
+  border-top: none;
+}
+
+.balanceRow strong {
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.balanceRow p,
+.balanceSummary p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.balanceSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.balanceSummary > div {
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.02);
+}
+
 .holdingRow,
 .compactRow,
 .alertRow {
@@ -473,6 +553,7 @@
 }
 
 .rangeButton:focus-visible,
+.segmentButton:focus-visible,
 .primaryButton:focus-visible,
 .secondaryButton:focus-visible,
 .secondaryLink:focus-visible,
@@ -492,6 +573,12 @@
 .chartGrid {
   stroke: rgba(255, 255, 255, 0.16);
   stroke-width: 1.5;
+}
+
+.chartReference {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1;
+  stroke-dasharray: 5 6;
 }
 
 .chartLine {
@@ -516,6 +603,20 @@
 .chartLegend {
   flex-wrap: wrap;
   align-items: center;
+}
+
+.chartSummary,
+.chartMeta {
+  display: flex;
+  gap: 0.8rem;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.chartSummary span:first-child {
+  color: var(--text);
 }
 
 .chartLegend span {
@@ -878,6 +979,67 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  gap: 0.75rem;
+}
+
+.holdingQuickGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.fieldStack {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.fieldStack span,
+.supportHint {
+  color: var(--muted);
+}
+
+.fieldStack span {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.segmentedControl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.segmentButton {
+  min-height: 3rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.segmentButton:hover {
+  transform: translateY(-1px);
+}
+
+.segmentButton[data-active="true"] {
+  border-color: rgba(122, 210, 194, 0.25);
+  background: rgba(122, 210, 194, 0.12);
+}
+
+.holdingQuickActions {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.supportHint {
+  margin: 0;
+  line-height: 1.5;
 }
 
 .textInput {
@@ -945,7 +1107,10 @@
   .decisionGrid,
   .metricsGrid,
   .phantomSurface,
-  .phantomResultBand {
+  .phantomResultBand,
+  .balanceGrid,
+  .balanceReserveGrid,
+  .balanceSummary {
     grid-template-columns: 1fr;
   }
 
@@ -1009,11 +1174,18 @@
   }
 
   .tradeForm,
+  .holdingQuickGrid,
   .holdingRow,
   .compactRow,
   .alertRow,
   .phantomActionBar {
     grid-template-columns: 1fr;
+  }
+
+  .holdingQuickActions,
+  .chartSummary,
+  .chartMeta {
+    display: grid;
   }
 
   .buttonRow,

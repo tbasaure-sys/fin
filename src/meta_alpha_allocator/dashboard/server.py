@@ -269,6 +269,36 @@ def _contract_headers(bls_state: dict) -> dict[str, str]:
     }
 
 
+def _contract_headers_for_path(snapshot: dict, path: str) -> dict[str, str] | None:
+    needs_contract_headers = (
+        path.startswith("/api/state")
+        or path.startswith("/api/policy")
+        or path.startswith("/api/repairs")
+        or path.startswith("/api/analogs")
+        or path.startswith("/api/balance-sheet")
+        or path.startswith("/api/legitimacy")
+        or path.startswith("/api/healing")
+        or path.startswith("/api/sponsorship")
+        or path.startswith("/api/failure-modes")
+        or path.startswith("/api/transitions")
+    )
+    if not needs_contract_headers:
+        return None
+
+    use_v2_contract = (
+        path.startswith("/api/balance-sheet")
+        or path.endswith("-v2")
+        or path.startswith("/api/legitimacy")
+        or path.startswith("/api/healing")
+        or path.startswith("/api/sponsorship")
+        or path.startswith("/api/failure-modes")
+        or path.startswith("/api/transitions")
+    )
+    if use_v2_contract:
+        return _contract_headers(snapshot.get("bls_state_v2") or snapshot.get("bls_state_v1") or {})
+    return _contract_headers(snapshot.get("bls_state_v1") or snapshot.get("bls_state_v2") or {})
+
+
 def _bls_contract_routes(snapshot: dict) -> dict[str, dict]:
     bls_state = snapshot.get("bls_state_v1") or {}
     bls_state_v2 = snapshot.get("bls_state_v2") or {}
@@ -313,6 +343,14 @@ def _bls_contract_routes(snapshot: dict) -> dict[str, dict]:
             "analogs": bls_state.get("analogs", []),
             "uncertainty": bls_state.get("uncertainty", {}),
         },
+        "/api/balance-sheet": {
+            "as_of": bls_state_v2.get("as_of") or bls_state.get("as_of"),
+            "portfolio_id": bls_state_v2.get("portfolio_id") or bls_state.get("portfolio_id"),
+            "contract_version": bls_state_v2.get("contract_version") or bls_state.get("contract_version"),
+            "model_version": bls_state_v2.get("model_version") or bls_state.get("model_version"),
+            "balance_sheet": bls_state_v2.get("balance_sheet", bls_state.get("balance_sheet", {})),
+            "uncertainty": bls_state_v2.get("uncertainty", bls_state.get("uncertainty", {})),
+        },
         "/api/state-v2": {
             "as_of": bls_state_v2.get("as_of"),
             "portfolio_id": bls_state_v2.get("portfolio_id"),
@@ -330,6 +368,7 @@ def _bls_contract_routes(snapshot: dict) -> dict[str, dict]:
             "transition_memory": bls_state_v2.get("transition_memory", {}),
             "repair_candidates": bls_state_v2.get("repair_candidates", []),
             "analogs": bls_state_v2.get("analogs", []),
+            "balance_sheet": bls_state_v2.get("balance_sheet", {}),
             "uncertainty": bls_state_v2.get("uncertainty", {}),
         },
         "/api/legitimacy": {
@@ -464,7 +503,7 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                 self._send_json(apply_screener_query(snapshot, parsed.query))
                 return
             if parsed.path in route_map:
-                extra_headers = _contract_headers(snapshot.get("bls_state_v1") or {}) if parsed.path.startswith("/api/state") or parsed.path.startswith("/api/policy") or parsed.path.startswith("/api/repairs") or parsed.path.startswith("/api/analogs") else None
+                extra_headers = _contract_headers_for_path(snapshot, parsed.path)
                 self._send_json(route_map[parsed.path], extra_headers=extra_headers)
                 return
             self.send_error(HTTPStatus.NOT_FOUND)

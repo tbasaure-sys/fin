@@ -77,36 +77,68 @@ function RangeTabs({ value, onChange }) {
 function PortfolioChart({ series, benchmarkSymbol }) {
   const width = 640;
   const height = 220;
-  const padding = 18;
-  const rows = safeList(series);
-  const portfolioPoints = rows
-    .map((row) => ({ date: row.date, value: Number(row.portfolio) }))
-    .filter((row) => Number.isFinite(row.value));
-  const benchmarkPoints = rows
-    .map((row) => ({ date: row.date, value: Number(row.benchmark) }))
-    .filter((row) => Number.isFinite(row.value));
+  const paddingX = 20;
+  const paddingY = 20;
+  const rows = safeList(series)
+    .map((row, index) => {
+      const parsedDate = row?.date ? new Date(row.date) : null;
+      return {
+        id: `${row?.date || "point"}-${index}`,
+        date: row.date,
+        timestamp: parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.getTime() : null,
+        portfolio: Number(row.portfolio),
+        benchmark: Number(row.benchmark),
+      };
+    })
+    .filter((row) => Number.isFinite(row.portfolio) || Number.isFinite(row.benchmark));
 
-  if (portfolioPoints.length < 2) {
+  const portfolioPoints = rows.filter((row) => Number.isFinite(row.portfolio));
+  const benchmarkPoints = rows.filter((row) => Number.isFinite(row.benchmark));
+
+  if (portfolioPoints.length < 2 && benchmarkPoints.length < 2) {
     return <p className={styles.emptyCopy}>Portfolio history is still limited. Stored snapshots will populate this chart.</p>;
   }
 
-  const values = portfolioPoints.map((point) => point.value);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const values = rows.flatMap((point) => [point.portfolio, point.benchmark]).filter(Number.isFinite);
+  const rawMin = Math.min(...values);
+  const rawMax = Math.max(...values);
+  const valuePadding = Math.max((rawMax - rawMin) * 0.08, 0.02);
+  const min = rawMin - valuePadding;
+  const max = rawMax + valuePadding;
   const safeRange = max - min || 1;
+  const chartTimestamps = rows.map((row, index) => row.timestamp ?? index);
+  const minTimestamp = Math.min(...chartTimestamps);
+  const maxTimestamp = Math.max(...chartTimestamps);
+  const safeTimeRange = maxTimestamp - minTimestamp || 1;
+  const baseLineValue = min <= 1 && max >= 1 ? 1 : null;
 
-  const buildPath = (points) => points
+  const pointX = (point, fallbackIndex) => {
+    const timestamp = point.timestamp ?? fallbackIndex;
+    return paddingX + (((timestamp - minTimestamp) / safeTimeRange) * (width - (paddingX * 2)));
+  };
+
+  const pointY = (value) => height - paddingY - (((value - min) / safeRange) * (height - (paddingY * 2)));
+
+  const buildPath = (points, valueKey) => points
     .map((point, index) => {
-      const x = padding + ((width - (padding * 2)) * index) / Math.max(points.length - 1, 1);
-      const y = height - padding - (((point.value - min) / safeRange) * (height - (padding * 2)));
+      const x = pointX(point, index);
+      const y = pointY(point[valueKey]);
       return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
     })
     .join(" ");
 
   const latest = portfolioPoints[portfolioPoints.length - 1];
-  const latestX = padding + ((width - (padding * 2)) * (portfolioPoints.length - 1)) / Math.max(portfolioPoints.length - 1, 1);
-  const latestY = height - padding - (((latest.value - min) / safeRange) * (height - (padding * 2)));
-  const hasBenchmark = benchmarkPoints.length >= 3;
+  const firstPortfolio = portfolioPoints[0];
+  const latestX = latest ? pointX(latest, portfolioPoints.length - 1) : null;
+  const latestY = latest ? pointY(latest.portfolio) : null;
+  const hasBenchmark = benchmarkPoints.length >= 2;
+  const firstBenchmark = benchmarkPoints[0] || null;
+  const latestBenchmark = benchmarkPoints[benchmarkPoints.length - 1] || null;
+  const portfolioChange = latest && firstPortfolio ? latest.portfolio - firstPortfolio.portfolio : null;
+  const benchmarkChange = latestBenchmark && firstBenchmark ? latestBenchmark.benchmark - firstBenchmark.benchmark : null;
+  const startLabel = rows[0]?.date ? formatDate(rows[0].date) : "";
+  const endLabel = rows[rows.length - 1]?.date ? formatDate(rows[rows.length - 1].date) : "";
+  const baseLineY = baseLineValue === null ? null : pointY(baseLineValue);
 
   return (
     <div className={styles.chartBlock}>
@@ -117,15 +149,24 @@ function PortfolioChart({ series, benchmarkSymbol }) {
             <stop offset="100%" stopColor="rgba(122, 210, 194, 0.95)" />
           </linearGradient>
         </defs>
-        <path className={styles.chartGrid} d={`M ${padding} ${height - padding} L ${width - padding} ${height - padding}`} />
-        {hasBenchmark ? <path className={styles.chartBenchmark} d={buildPath(benchmarkPoints)} /> : null}
-        <path className={styles.chartLine} d={buildPath(portfolioPoints)} />
-        <circle className={styles.chartPoint} cx={latestX} cy={latestY} r="4" />
+        <path className={styles.chartGrid} d={`M ${paddingX} ${height - paddingY} L ${width - paddingX} ${height - paddingY}`} />
+        {baseLineY !== null ? <path className={styles.chartReference} d={`M ${paddingX} ${baseLineY.toFixed(1)} L ${width - paddingX} ${baseLineY.toFixed(1)}`} /> : null}
+        {hasBenchmark ? <path className={styles.chartBenchmark} d={buildPath(benchmarkPoints, "benchmark")} /> : null}
+        <path className={styles.chartLine} d={buildPath(portfolioPoints, "portfolio")} />
+        {latestX !== null && latestY !== null ? <circle className={styles.chartPoint} cx={latestX} cy={latestY} r="4" /> : null}
       </svg>
 
+      <div className={styles.chartSummary}>
+        <span>{portfolioChange === null ? "Portfolio building history" : `Portfolio ${formatSignedPct(portfolioChange, 1)}`}</span>
+        {hasBenchmark ? <span>{benchmarkSymbol || "SPY"} {benchmarkChange === null ? "tracking" : formatSignedPct(benchmarkChange, 1)}</span> : null}
+      </div>
       <div className={styles.chartLegend}>
         <span><i className={styles.legendSwatch} data-series="portfolio" />Portfolio</span>
         {hasBenchmark ? <span><i className={styles.legendSwatch} data-series="benchmark" />{benchmarkSymbol || "SPY"}</span> : null}
+      </div>
+      <div className={styles.chartMeta}>
+        <span>{startLabel}</span>
+        <span>{endLabel}</span>
       </div>
     </div>
   );
@@ -141,6 +182,14 @@ function formatWeightEditorValue(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "";
   return numeric.toFixed(numeric >= 10 ? 1 : 2).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+}
+
+function sanitizeTickerInput(value) {
+  return String(value || "").toUpperCase().replace(/[^A-Z0-9.\-]/g, "").slice(0, 16);
+}
+
+function sanitizeDecimalInput(value) {
+  return String(value || "").replace(/[^0-9.]/g, "").slice(0, 16);
 }
 
 const PHANTOM_MAX_HOLDINGS = 24;
@@ -774,6 +823,153 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
   );
 }
 
+function balanceStateTone(value) {
+  const normalized = String(value || "").toLowerCase();
+  if (normalized === "accretive" || normalized === "balanced") return "good";
+  if (normalized === "stressed") return "bad";
+  return "warn";
+}
+
+function positiveBalanceTone(value) {
+  const normalized = parseDisplayPercent(value);
+  if (normalized === null) return "neutral";
+  if (normalized >= 0.6) return "good";
+  if (normalized >= 0.35) return "warn";
+  return "bad";
+}
+
+function negativeBalanceTone(value) {
+  const normalized = parseDisplayPercent(value);
+  if (normalized === null) return "neutral";
+  if (normalized >= 0.6) return "bad";
+  if (normalized >= 0.35) return "warn";
+  return "good";
+}
+
+function RecoverabilityBalanceSheetPanel({ balanceSheet }) {
+  if (!balanceSheet) return null;
+
+  const assets = safeList(balanceSheet.assets).slice(0, 5);
+  const liabilities = safeList(balanceSheet.liabilities).slice(0, 6);
+  const reserves = safeList(balanceSheet.reserves).slice(0, 4);
+  const notes = safeList(balanceSheet.notes).slice(0, 4);
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <p className={styles.kicker}>Recoverability balance sheet</p>
+          <h2>{balanceSheet.accountingState || "Balance sheet"}</h2>
+          <p className={styles.supportText}>
+            {balanceSheet.headlineState || balanceSheet.subhead || "Future freedom is treated as an accounting object here."}
+          </p>
+        </div>
+        <ToneBadge tone={balanceStateTone(balanceSheet.accountingState)}>
+          {balanceSheet.budgetState || balanceSheet.source || "Live"}
+        </ToneBadge>
+      </div>
+
+      <p className={styles.lead}>{balanceSheet.headline || balanceSheet.subhead || "Read the book by what creates future freedom and what consumes it."}</p>
+
+      <div className={styles.decisionGrid}>
+        <MetricTile
+          detail="Assets minus liabilities after the current state and portfolio shape are netted together."
+          label="Net freedom"
+          tone={balanceStateTone(balanceSheet.accountingState)}
+          value={balanceSheet.netFreedom || "-"}
+        />
+        <MetricTile
+          detail="The reserve left after a plausible wrong move. This is the core accounting buffer."
+          label="Optionality reserve"
+          tone={positiveBalanceTone(balanceSheet.optionalityReserve)}
+          value={balanceSheet.optionalityReserve || "-"}
+        />
+        <MetricTile
+          detail="How much of the current rebound still looks visible rather than structurally earned."
+          label="Phantom tax"
+          tone={negativeBalanceTone(balanceSheet.phantomTax)}
+          value={balanceSheet.phantomTax || "-"}
+        />
+        <MetricTile
+          detail="How much action room still remains for funded rotations and selective adds."
+          label="Legitimacy slack"
+          tone={positiveBalanceTone(balanceSheet.legitimacySlack)}
+          value={balanceSheet.legitimacySlack || "-"}
+        />
+      </div>
+
+      <div className={styles.balanceGrid}>
+        <article className={styles.balanceCard}>
+          <div className={styles.balanceCardHeader}>
+            <strong>Assets</strong>
+            <span>What creates future freedom</span>
+          </div>
+          <div className={styles.balanceStack}>
+            {assets.map((item) => (
+              <div className={styles.balanceRow} key={item.id || item.label}>
+                <div>
+                  <strong>{item.label}</strong>
+                  <p>{item.detail}</p>
+                </div>
+                <ToneBadge tone={positiveBalanceTone(item.valueLabel || item.value)}>
+                  {item.valueLabel || item.value || "-"}
+                </ToneBadge>
+              </div>
+            ))}
+          </div>
+        </article>
+
+        <article className={styles.balanceCard}>
+          <div className={styles.balanceCardHeader}>
+            <strong>Liabilities</strong>
+            <span>What consumes future freedom</span>
+          </div>
+          <div className={styles.balanceStack}>
+            {liabilities.map((item) => (
+              <div className={styles.balanceRow} key={item.id || item.label}>
+                <div>
+                  <strong>{item.label}</strong>
+                  <p>{item.detail}</p>
+                </div>
+                <ToneBadge tone={negativeBalanceTone(item.valueLabel || item.value)}>
+                  {item.valueLabel || item.value || "-"}
+                </ToneBadge>
+              </div>
+            ))}
+          </div>
+        </article>
+      </div>
+
+      {reserves.length ? (
+        <div className={styles.balanceReserveGrid}>
+          {reserves.map((item) => (
+            <MetricTile
+              key={item.id || item.label}
+              detail={item.detail}
+              label={item.label}
+              tone={positiveBalanceTone(item.valueLabel || item.value)}
+              value={item.valueLabel || item.value || "-"}
+            />
+          ))}
+        </div>
+      ) : null}
+
+      <div className={styles.balanceSummary}>
+        <div>
+          <strong>Spend rule</strong>
+          <p>{balanceSheet.spendRule || "Only spend optionality on moves that widen future freedom."}</p>
+        </div>
+        <div>
+          <strong>Repair note</strong>
+          <p>{balanceSheet.repairNote || "No repair note is available yet."}</p>
+        </div>
+      </div>
+
+      {notes.length ? <InlineList emptyLabel="No accounting notes yet." items={notes} /> : null}
+    </section>
+  );
+}
+
 function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
   const portfolio = portfolioModule || {};
   const analytics = portfolio.analytics || {};
@@ -859,9 +1055,28 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
   );
 }
 
-function HoldingsPanel({ portfolioModule, tradeInstruction, onTradeInstructionChange, onSubmitTrade, pendingTrade, tradeError }) {
+function HoldingsPanel({
+  portfolioModule,
+  holdingDraft,
+  onHoldingDraftChange,
+  onSubmitHoldingDraft,
+  tradeInstruction,
+  onTradeInstructionChange,
+  onSubmitTrade,
+  pendingTrade,
+  tradeError,
+}) {
   const portfolio = portfolioModule || {};
   const holdings = safeList(portfolio.holdings);
+  const sizingMode = holdingDraft?.sizing || "shares";
+  const quantityValue = String(holdingDraft?.quantity || "");
+  const targetValueInput = String(holdingDraft?.targetValueUsd || "");
+  const priceValue = String(holdingDraft?.price || "");
+  const tickerValue = String(holdingDraft?.ticker || "");
+  const draftReady = Boolean(
+    tickerValue &&
+    ((sizingMode === "shares" && quantityValue !== "") || (sizingMode === "value" && targetValueInput !== "")),
+  );
 
   return (
     <section className={styles.panel}>
@@ -906,13 +1121,89 @@ function HoldingsPanel({ portfolioModule, tradeInstruction, onTradeInstructionCh
         className={styles.tradeComposer}
         onSubmit={(event) => {
           event.preventDefault();
+          onSubmitHoldingDraft();
+        }}
+      >
+        <div className={styles.tradeCopy}>
+          <p className={styles.kicker}>Direct edit</p>
+          <h3>Set a position directly</h3>
+          <p>Enter a ticker and either target shares or target USD. Use 0 if you want to remove a holding cleanly.</p>
+        </div>
+        <div className={styles.holdingQuickGrid}>
+          <label className={styles.fieldStack}>
+            <span>Ticker</span>
+            <input
+              className={styles.textInput}
+              onChange={(event) => onHoldingDraftChange("ticker", event.target.value)}
+              placeholder="AAPL"
+              type="text"
+              value={tickerValue}
+            />
+          </label>
+          <div className={styles.fieldStack}>
+            <span>Input mode</span>
+            <div className={styles.segmentedControl} role="tablist" aria-label="Holding input mode">
+              <button
+                className={styles.segmentButton}
+                data-active={sizingMode === "shares"}
+                onClick={() => onHoldingDraftChange("sizing", "shares")}
+                type="button"
+              >
+                Shares
+              </button>
+              <button
+                className={styles.segmentButton}
+                data-active={sizingMode === "value"}
+                onClick={() => onHoldingDraftChange("sizing", "value")}
+                type="button"
+              >
+                Target USD
+              </button>
+            </div>
+          </div>
+          <label className={styles.fieldStack}>
+            <span>{sizingMode === "shares" ? "Target shares" : "Target value"}</span>
+            <input
+              className={styles.textInput}
+              inputMode="decimal"
+              onChange={(event) => onHoldingDraftChange(sizingMode === "shares" ? "quantity" : "targetValueUsd", event.target.value)}
+              placeholder={sizingMode === "shares" ? "12" : "5000"}
+              type="text"
+              value={sizingMode === "shares" ? quantityValue : targetValueInput}
+            />
+          </label>
+          <label className={styles.fieldStack}>
+            <span>Price override</span>
+            <input
+              className={styles.textInput}
+              inputMode="decimal"
+              onChange={(event) => onHoldingDraftChange("price", event.target.value)}
+              placeholder="Optional"
+              type="text"
+              value={priceValue}
+            />
+          </label>
+        </div>
+        <div className={styles.holdingQuickActions}>
+          <button className={styles.primaryButton} disabled={pendingTrade || !draftReady} type="submit">
+            {pendingTrade ? "Saving..." : "Save holding"}
+          </button>
+          <p className={styles.supportHint}>This path updates the final position directly instead of trying to infer a trade note.</p>
+        </div>
+        {tradeError ? <p className={styles.errorText}>{tradeError}</p> : null}
+      </form>
+
+      <form
+        className={styles.tradeComposer}
+        onSubmit={(event) => {
+          event.preventDefault();
           onSubmitTrade();
         }}
       >
         <div className={styles.tradeCopy}>
-          <p className={styles.kicker}>Quick update</p>
-          <h3>Update holdings in plain English</h3>
-          <p>For example: <em>bought 100 USD of NVDA</em> or <em>sold 2 shares of AAPL</em>. The app will translate it into a holdings update.</p>
+          <p className={styles.kicker}>Advanced update</p>
+          <h3>Use plain English for buy and sell notes</h3>
+          <p>Examples: <em>bought 100 USD of NVDA</em> or <em>sold 2 shares of AAPL</em>.</p>
         </div>
         <div className={styles.tradeForm}>
           <input
@@ -922,8 +1213,8 @@ function HoldingsPanel({ portfolioModule, tradeInstruction, onTradeInstructionCh
             type="text"
             value={tradeInstruction}
           />
-          <button className={styles.primaryButton} disabled={pendingTrade || !String(tradeInstruction || "").trim()} type="submit">
-            {pendingTrade ? "Updating..." : "Update holdings"}
+          <button className={styles.secondaryButton} disabled={pendingTrade || !String(tradeInstruction || "").trim()} type="submit">
+            {pendingTrade ? "Updating..." : "Run text update"}
           </button>
         </div>
         {tradeError ? <p className={styles.errorText}>{tradeError}</p> : null}
@@ -965,6 +1256,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [error, setError] = useState("");
   const [pendingKey, setPendingKey] = useState(null);
   const [portfolioRange, setPortfolioRange] = useState("1M");
+  const [holdingDraft, setHoldingDraft] = useState({
+    ticker: "",
+    sizing: "shares",
+    quantity: "",
+    targetValueUsd: "",
+    price: "",
+  });
   const [tradeInstruction, setTradeInstruction] = useState("");
   const [tradeError, setTradeError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -976,6 +1274,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const blockedAction = dashboard?.blocked_action || null;
   const escrowItems = safeList(dashboard?.escrow?.items).slice(0, 4);
   const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).slice(0, 4);
+  const balanceSheet = dashboard?.recoverability_balance_sheet || null;
   const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 3);
   const dataControl = dashboard?.data_control || {};
 
@@ -1030,6 +1329,77 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       },
       "Live refresh requested.",
     );
+  }
+
+  function updateHoldingDraft(field, value) {
+    setHoldingDraft((current) => {
+      if (field === "sizing") {
+        return {
+          ...current,
+          sizing: value === "value" ? "value" : "shares",
+        };
+      }
+
+      if (field === "ticker") {
+        return {
+          ...current,
+          ticker: sanitizeTickerInput(value),
+        };
+      }
+
+      if (field === "quantity" || field === "targetValueUsd" || field === "price") {
+        return {
+          ...current,
+          [field]: sanitizeDecimalInput(value),
+        };
+      }
+
+      return current;
+    });
+  }
+
+  function resetHoldingDraft() {
+    setHoldingDraft({
+      ticker: "",
+      sizing: "shares",
+      quantity: "",
+      targetValueUsd: "",
+      price: "",
+    });
+  }
+
+  async function submitHoldingDraft() {
+    const ticker = sanitizeTickerInput(holdingDraft.ticker);
+    const quantityText = String(holdingDraft.quantity || "").trim();
+    const targetValueText = String(holdingDraft.targetValueUsd || "").trim();
+    const priceText = String(holdingDraft.price || "").trim();
+    const useQuantity = holdingDraft.sizing !== "value";
+    const hasSizedValue = useQuantity ? quantityText !== "" : targetValueText !== "";
+
+    if (!workspaceId || !ticker || !hasSizedValue) return;
+
+    setPendingKey(`trade:${ticker}`);
+    setTradeError("");
+    setError("");
+
+    try {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ticker,
+          ...(useQuantity ? { quantity: Number(quantityText) } : { targetValueUsd: Number(targetValueText) }),
+          ...(priceText ? { price: Number(priceText) } : {}),
+        }),
+      });
+      const payload = await parseResponse(response);
+      await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Holdings saved.");
+      resetHoldingDraft();
+    } catch (requestError) {
+      setTradeError(String(requestError?.message || requestError || "Holding update failed."));
+    } finally {
+      setPendingKey(null);
+    }
   }
 
   async function submitTradeInstruction() {
@@ -1188,9 +1558,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             primaryAction={primaryAction}
             stateSummary={stateSummary}
           />
+          <RecoverabilityBalanceSheetPanel balanceSheet={balanceSheet} />
           <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
           <PhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
           <HoldingsPanel
+            holdingDraft={holdingDraft}
+            onHoldingDraftChange={updateHoldingDraft}
+            onSubmitHoldingDraft={submitHoldingDraft}
             onSubmitTrade={submitTradeInstruction}
             onTradeInstructionChange={setTradeInstruction}
             pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
