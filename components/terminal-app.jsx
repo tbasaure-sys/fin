@@ -22,6 +22,7 @@ import {
 } from "@/components/workspace/formatters";
 import { parseResponse, useWorkspaceLiveData } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
+import PortfolioChat from "@/components/portfolio-chat";
 
 const DEFAULT_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
 
@@ -1257,6 +1258,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [pendingKey, setPendingKey] = useState(null);
   const [showWelcomeGuide, setShowWelcomeGuide] = useState(true);
   const [showGlossary, setShowGlossary] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [portfolioRange, setPortfolioRange] = useState("1M");
   const [holdingDraft, setHoldingDraft] = useState({
     ticker: "",
@@ -1509,6 +1511,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <div className={styles.buttonRow}>
             <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
               {pendingKey === "refresh" ? "Refreshing..." : "Refresh"}
+            </button>
+            <button
+              className={styles.chatTrigger}
+              data-active={showChat}
+              onClick={() => setShowChat((v) => !v)}
+              title="Ask your portfolio a question"
+              type="button"
+            >
+              Ask your portfolio
             </button>
             <button
               className={styles.glossaryTrigger}
@@ -1782,6 +1793,14 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       </div>
 
       {isPending ? <div className={styles.pendingNote}>Applying update...</div> : null}
+
+      {showChat && (
+        <PortfolioChat
+          dashboard={dashboard}
+          onClose={() => setShowChat(false)}
+          workspaceId={workspaceId}
+        />
+      )}
     </main>
   );
 }

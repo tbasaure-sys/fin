@@ -1196,6 +1196,36 @@
   }
 }
 
+/* ─── Chat trigger (primary CTA in header) ─── */
+.chatTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.48rem 1rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(248, 200, 111, 0.45);
+  background: linear-gradient(135deg, rgba(248, 200, 111, 0.15), rgba(248, 200, 111, 0.07));
+  color: rgba(248, 200, 111, 0.95);
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 12px rgba(248, 200, 111, 0.1);
+}
+
+.chatTrigger:hover {
+  border-color: rgba(248, 200, 111, 0.7);
+  background: linear-gradient(135deg, rgba(248, 200, 111, 0.22), rgba(248, 200, 111, 0.12));
+  box-shadow: 0 4px 20px rgba(248, 200, 111, 0.2);
+}
+
+.chatTrigger[data-active="true"] {
+  border-color: rgba(248, 200, 111, 0.7);
+  background: rgba(248, 200, 111, 0.18);
+  box-shadow: 0 0 0 3px rgba(248, 200, 111, 0.1);
+}
+
 /* ─── Glossary trigger & Welcome trigger (header buttons) ─── */
 .glossaryTrigger,
 .welcomeTrigger {
