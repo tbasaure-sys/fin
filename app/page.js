@@ -66,6 +66,36 @@ export default async function HomePage() {
     },
   ];
 
+  const faqs = [
+    {
+      q: "Do I need to connect my broker?",
+      a: "No. You can enter your holdings manually at any time. Broker connections are optional and never required to use the workspace.",
+    },
+    {
+      q: "Is my portfolio data private?",
+      a: "Yes. Your workspace is protected by your own password and is not shared with anyone. Only you can see your holdings and decisions.",
+    },
+    {
+      q: "What if I don't understand the financial terms?",
+      a: "The workspace explains every concept in plain language. You'll never see a number without an explanation of what it means for your situation.",
+    },
+    {
+      q: "Do I need investing experience to use this?",
+      a: "No. The workspace is built to guide you through each step — from entering your first holding to understanding whether a move is worth making.",
+    },
+    {
+      q: "Can I use this if I only own a few stocks or ETFs?",
+      a: "Yes. Even with two or three positions the workspace can show concentration, risk overlap, and whether your current mix is doing what you think it is.",
+    },
+  ];
+
+  const stats = [
+    { value: "1 screen", label: "for your entire portfolio picture" },
+    { value: "Plain English", label: "explanations for every metric" },
+    { value: "No broker", label: "connection ever required" },
+    { value: "Private", label: "workspace protected by your password" },
+  ];
+
   return (
     <main className={styles.page}>
       <section className={styles.hero}>
@@ -309,6 +339,40 @@ export default async function HomePage() {
           <div className={styles.trustItem}>
             Designed so a serious investor can understand it in one sitting
           </div>
+        </div>
+      </div>
+
+      <div className={styles.sectionDivider} aria-hidden="true" />
+
+      {/* Stats strip */}
+      <div className={styles.statsStrip}>
+        {stats.map((s) => (
+          <div className={styles.statItem} key={s.value}>
+            <strong className={styles.statValue}>{s.value}</strong>
+            <span className={styles.statLabel}>{s.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className={styles.sectionDivider} aria-hidden="true" />
+
+      {/* FAQ */}
+      <div className={`${styles.section} ${styles.faqSection}`}>
+        <div className={styles.faqIntro}>
+          <p className={styles.tag}>Common questions</p>
+          <h2 className={styles.sectionTitle}>
+            Things people ask
+            <br />
+            <em>before they start</em>
+          </h2>
+        </div>
+        <div className={styles.faqList}>
+          {faqs.map((item) => (
+            <details className={styles.faqItem} key={item.q}>
+              <summary className={styles.faqQuestion}>{item.q}</summary>
+              <p className={styles.faqAnswer}>{item.a}</p>
+            </details>
+          ))}
         </div>
       </div>
 

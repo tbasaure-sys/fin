@@ -656,6 +656,136 @@
   color: var(--ink-muted);
 }
 
+/* ─── STATS STRIP ─── */
+.statsStrip {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+}
+
+.statItem {
+  flex: 1;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.5rem 2rem;
+  border-right: 1px solid var(--border-faint);
+}
+
+.statItem:last-child {
+  border-right: none;
+}
+
+.statValue {
+  font-family: var(--serif);
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  font-weight: 400;
+  color: var(--gold);
+  line-height: 1;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.statLabel {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  line-height: 1.4;
+}
+
+/* ─── FAQ ─── */
+.faqSection {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.faqIntro {
+  margin-bottom: 2.5rem;
+}
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid var(--border-faint);
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--border-faint);
+  overflow: hidden;
+}
+
+.faqItem[open] .faqQuestion {
+  color: var(--ink);
+}
+
+.faqItem[open] .faqQuestion::after {
+  transform: rotate(45deg);
+  color: var(--gold);
+}
+
+.faqQuestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.2rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ink-muted);
+  cursor: pointer;
+  list-style: none;
+  gap: 1rem;
+  transition: color 180ms ease;
+}
+
+.faqQuestion::-webkit-details-marker { display: none; }
+
+.faqQuestion::after {
+  content: "+";
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: var(--gold);
+  flex-shrink: 0;
+  transition: transform 240ms ease, color 180ms ease;
+}
+
+.faqQuestion:hover {
+  color: var(--ink);
+}
+
+.faqAnswer {
+  margin: 0;
+  padding: 0 0 1.2rem;
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: var(--ink-muted);
+  max-width: 64ch;
+}
+
+@media (max-width: 640px) {
+  .statsStrip {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem 1.25rem;
+  }
+
+  .statItem {
+    border-right: none;
+    border-bottom: 1px solid var(--border-faint);
+    padding: 1rem;
+  }
+
+  .statItem:last-child {
+    border-bottom: none;
+  }
+}
+
 /* ─── CLOSER ─── */
 .closerSection {
   text-align: center;

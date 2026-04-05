@@ -1255,6 +1255,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [banner, setBanner] = useState("");
   const [error, setError] = useState("");
   const [pendingKey, setPendingKey] = useState(null);
+  const [showWelcomeGuide, setShowWelcomeGuide] = useState(true);
+  const [showGlossary, setShowGlossary] = useState(false);
   const [portfolioRange, setPortfolioRange] = useState("1M");
   const [holdingDraft, setHoldingDraft] = useState({
     ticker: "",
@@ -1508,6 +1510,22 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
               {pendingKey === "refresh" ? "Refreshing..." : "Refresh"}
             </button>
+            <button
+              className={styles.glossaryTrigger}
+              onClick={() => setShowGlossary((v) => !v)}
+              title="Open plain-English glossary"
+              type="button"
+            >
+              Glossary
+            </button>
+            <button
+              className={styles.welcomeTrigger}
+              onClick={() => setShowWelcomeGuide((v) => !v)}
+              title="Show getting started guide"
+              type="button"
+            >
+              Getting started
+            </button>
             <Link className={styles.secondaryLink} href="/">Home</Link>
             <form action="/api/auth/logout" method="post">
               <button className={styles.textButton} type="submit">Sign out</button>
@@ -1518,6 +1536,104 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
       {banner ? <div className={styles.banner}>{banner}</div> : null}
       {error ? <div className={styles.banner} data-tone="error">{error}</div> : null}
+
+      {showWelcomeGuide && (
+        <div className={styles.welcomeGuide}>
+          <div className={styles.welcomeGuideInner}>
+            <div className={styles.welcomeGuideHead}>
+              <span className={styles.welcomeGuideBadge}>Getting started</span>
+              <button
+                aria-label="Dismiss welcome guide"
+                className={styles.welcomeGuideClose}
+                onClick={() => setShowWelcomeGuide(false)}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+            <h2 className={styles.welcomeGuideTitle}>Welcome to your workspace</h2>
+            <p className={styles.welcomeGuideSubtitle}>
+              Three steps to get the most out of this tool — no technical knowledge needed.
+            </p>
+            <ol className={styles.welcomeSteps}>
+              <li className={styles.welcomeStep}>
+                <span className={styles.welcomeStepNum}>1</span>
+                <div>
+                  <strong>Add your holdings</strong>
+                  <p>Scroll down to the "Portfolio" section. Enter the stocks, ETFs, or funds you own with how much of each. Even two or three positions is enough to start.</p>
+                </div>
+              </li>
+              <li className={styles.welcomeStep}>
+                <span className={styles.welcomeStepNum}>2</span>
+                <div>
+                  <strong>Read the market brief</strong>
+                  <p>The sidebar on the right shows what the market is doing right now and what it means for your specific portfolio — in plain English, not jargon.</p>
+                </div>
+              </li>
+              <li className={styles.welcomeStep}>
+                <span className={styles.welcomeStepNum}>3</span>
+                <div>
+                  <strong>Check suggested actions</strong>
+                  <p>Look at "Next move" and "Watch next" cards. Each one tells you exactly what to consider and why — so you decide with more confidence, not less.</p>
+                </div>
+              </li>
+            </ol>
+            <div className={styles.welcomeGuideFoot}>
+              <button
+                className={styles.welcomeGuideBtn}
+                onClick={() => setShowGlossary(true)}
+                type="button"
+              >
+                Open term glossary
+              </button>
+              <button
+                className={styles.welcomeGuideDismiss}
+                onClick={() => setShowWelcomeGuide(false)}
+                type="button"
+              >
+                I'm ready — hide this
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showGlossary && (
+        <div className={styles.glossaryOverlay} role="dialog" aria-label="Term glossary">
+          <div className={styles.glossaryPanel}>
+            <div className={styles.glossaryPanelHead}>
+              <h2>Plain-English glossary</h2>
+              <button
+                aria-label="Close glossary"
+                className={styles.welcomeGuideClose}
+                onClick={() => setShowGlossary(false)}
+                type="button"
+              >
+                Close
+              </button>
+            </div>
+            <p className={styles.glossaryPanelSub}>Every unusual term this workspace uses, explained in plain language.</p>
+            <dl className={styles.glossaryList}>
+              {[
+                { term: "Recoverability", def: "How well your portfolio can absorb a bad stretch and still come back. High recoverability means you have room to be wrong without being trapped." },
+                { term: "Optionality reserve", def: "The flexibility you still have after a plausible mistake. Think of it as breathing room — the higher it is, the more moves you can still make." },
+                { term: "Phantom tax", def: "A situation where a recovery looks real on the surface but the underlying structure hasn't actually improved. Like a wound that looks healed but isn't." },
+                { term: "Legitimacy slack", def: "How much room you have to act without forcing a low-quality trade. Low slack means waiting is smarter than moving." },
+                { term: "Phantom diversification", def: "When your holdings look spread out but actually move together in a crisis. This tool measures how much of your diversification is real vs. only visible on paper." },
+                { term: "Net freedom", def: "A single number showing how much room your portfolio still has — for new positions, for mistakes, and for repairs. Like headroom on a budget." },
+                { term: "Stance", def: "The current recommended posture for your portfolio: cautious, neutral, or opportunistic. It changes as market conditions shift." },
+                { term: "Concentration", def: "How much of your portfolio depends on one position or sector. High concentration means one bad outcome has outsized impact." },
+                { term: "Escrow (staged actions)", def: "Moves you've saved for later. They sit here until the market setup makes them worth executing — so you don't miss opportunities but also don't rush." },
+              ].map(({ term, def }) => (
+                <div className={styles.glossaryEntry} key={term}>
+                  <dt className={styles.glossaryTerm}>{term}</dt>
+                  <dd className={styles.glossaryDef}>{def}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      )}
 
       <section className={styles.statusGrid}>
         <MetricTile

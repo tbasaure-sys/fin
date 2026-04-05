@@ -74,18 +74,25 @@ export default async function LoginPage({ searchParams }) {
         <form className={styles.card} method="post" action="/api/auth/login">
           <input type="hidden" name="next" value={next} />
 
-          <p className={styles.cardEyebrow}>Create account or sign in</p>
-          <h2 className={styles.cardTitle}>Open your workspace in {config.appName}</h2>
-          <p className={styles.cardSub}>
-            New here? Choose a password and create your account.
-            Already have one? Use the same email and password to sign in.
-          </p>
+          <p className={styles.cardEyebrow}>Your private workspace</p>
+          <h2 className={styles.cardTitle}>Welcome to {config.appName}</h2>
+
+          <div className={styles.pathPicker}>
+            <div className={styles.pathCard} data-path="new">
+              <strong>First time here?</strong>
+              <p>Create your account below — it only takes a minute.</p>
+            </div>
+            <div className={styles.pathCard} data-path="returning">
+              <strong>Already have an account?</strong>
+              <p>Sign in with your email and password.</p>
+            </div>
+          </div>
 
           {error ? <p className={styles.error}>{error}</p> : null}
 
           <div className={styles.form}>
             <label className={styles.field}>
-              <span className={styles.fieldLabel}>Your name</span>
+              <span className={styles.fieldLabel}>Your name <span className={styles.fieldOptional}>(only needed for new accounts)</span></span>
               <input
                 className={styles.fieldInput}
                 name="name"
@@ -93,7 +100,6 @@ export default async function LoginPage({ searchParams }) {
                 placeholder={config.loginNamePlaceholder || "Jane Smith"}
                 autoComplete="name"
               />
-              <small className={styles.fieldHint}>Needed when creating a new account. Optional for normal sign in.</small>
             </label>
 
             <label className={styles.field}>
@@ -109,34 +115,35 @@ export default async function LoginPage({ searchParams }) {
             </label>
 
             <label className={styles.field}>
-              <span className={styles.fieldLabel}>Password</span>
+              <span className={styles.fieldLabel}>Password <span className={styles.fieldOptional}>(8 characters minimum)</span></span>
               <input
                 className={styles.fieldInput}
                 name="password"
                 type="password"
-                placeholder="At least 8 characters"
+                placeholder="Choose a secure password"
                 autoComplete="current-password"
                 minLength={8}
                 required
               />
-              <small className={styles.fieldHint}>Use Create account the first time. Use Sign in after that.</small>
             </label>
           </div>
 
-          <div className={styles.footnote}>
-            <strong>How this works</strong>
-            Create account makes a new user and workspace, or lets a legacy
-            email define its password for the first time. Sign in is for users
-            who already set their password earlier.
-          </div>
-
-          <div className={styles.actions}>
-            <button className={styles.btnPrimary} name="intent" type="submit" value="signup">
-              Create account
-            </button>
-            <button className={styles.btnSecondary} name="intent" type="submit" value="signin">
-              Sign in
-            </button>
+          <div className={styles.actionGuide}>
+            <div className={styles.actionOption}>
+              <div className={styles.actionOptionLabel}>First time here?</div>
+              <button className={styles.btnPrimary} name="intent" type="submit" value="signup">
+                Create my account
+              </button>
+              <p className={styles.actionHint}>Creates your private workspace in one step.</p>
+            </div>
+            <div className={styles.actionDivider}>or</div>
+            <div className={styles.actionOption}>
+              <div className={styles.actionOptionLabel}>Already have an account?</div>
+              <button className={styles.btnSecondary} name="intent" type="submit" value="signin">
+                Sign in
+              </button>
+              <p className={styles.actionHint}>Use the email and password you set before.</p>
+            </div>
           </div>
 
           <div className={styles.metaRow}>
