@@ -7,6 +7,17 @@ import { parseResponse } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
 
 const RESEARCH_TABS = ["Memo", "Valuation", "Delta", "Evidence", "Audit"];
+const AGENT_STAGES = [
+  { key: "intake", label: "Intake", detail: "FMP / SEC", threshold: 0 },
+  { key: "normalize", label: "Normalize", detail: "Statements", threshold: 18 },
+  { key: "valuation", label: "Value", detail: "DCF / reverse", threshold: 40 },
+  { key: "red_team", label: "Red-team", detail: "Risks", threshold: 62 },
+  { key: "audit", label: "Audit", detail: "Ledger", threshold: 82 },
+];
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function cleanTicker(value) {
   return String(value || "")
@@ -23,12 +34,37 @@ function compactCurrency(value) {
   return formatCurrency(number);
 }
 
+function formatCoverageScore(score) {
+  const number = Number(score);
+  if (!Number.isFinite(number)) return "-";
+  return `${Math.round(number)}%`;
+}
+
+function coverageTone(coverage) {
+  const status = String(coverage?.status || "").toLowerCase();
+  const score = Number(coverage?.score);
+  if (status === "pass" || score >= 85) return "good";
+  if (status === "needs_attention" || score < 60) return "bad";
+  if (status === "partial" || score < 85) return "warn";
+  return "neutral";
+}
+
 function ResearchMetric({ label, value, detail, tone = "neutral" }) {
   return (
     <div className={styles.researchMetric} data-tone={tone}>
       <span>{label}</span>
       <strong>{value || "-"}</strong>
       {detail ? <small>{detail}</small> : null}
+    </div>
+  );
+}
+
+function ResearchStage({ stage, state }) {
+  return (
+    <div className={styles.researchStage} data-state={state}>
+      <span aria-hidden="true" />
+      <strong>{stage.label}</strong>
+      <small>{stage.detail}</small>
     </div>
   );
 }
@@ -138,6 +174,8 @@ function renderValuation(research) {
 function renderEvidence(research) {
   const records = safeList(research?.sources?.records);
   const points = safeList(research?.sources?.data_points);
+  const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
+  const missingMetrics = safeList(coverage.missing_expected_metrics);
 
   if (!research) {
     return <p className={styles.emptyCopy}>Every number will appear here with source id, provider, endpoint, and claim tag.</p>;
@@ -145,6 +183,26 @@ function renderEvidence(research) {
 
   return (
     <div className={styles.researchStack}>
+      <div className={styles.researchCoverageSummary}>
+        <div>
+          <span>Coverage</span>
+          <strong>{formatCoverageScore(coverage.score)}</strong>
+          <small>
+            {coverage.covered_expected_metrics ?? 0}/{coverage.expected_metrics ?? 0} required metrics covered
+          </small>
+        </div>
+        <div>
+          <span>Statement authority</span>
+          <strong>{coverage.statement_source_provider || "-"}</strong>
+          <small>{coverage.statement_authority || "No source authority assessment returned."}</small>
+        </div>
+        <div>
+          <span>Gaps</span>
+          <strong>{missingMetrics.length}</strong>
+          <small>{missingMetrics.slice(0, 3).join(", ") || "No required evidence gaps."}</small>
+        </div>
+      </div>
+
       <div className={styles.researchTable}>
         <div className={styles.researchTableHeader}>
           <span>Source</span>
@@ -249,6 +307,9 @@ function renderDelta(research) {
 function renderAudit(research) {
   const findings = safeList(research?.audit?.findings);
   const flags = safeList(research?.financials?.quality_flags);
+  const coverage = research?.audit?.coverage || research?.sources?.coverage || {};
+  const sourceGaps = safeList(coverage.sourced_points_missing_ok_source);
+  const formulaGaps = safeList(coverage.calculated_points_missing_formula);
 
   if (!research) {
     return <p className={styles.emptyCopy}>The audit will flag missing sources, provider errors, weak valuation inputs, and accounting quality issues.</p>;
@@ -256,6 +317,25 @@ function renderAudit(research) {
 
   return (
     <div className={styles.researchStack}>
+      <div className={styles.researchAuditBar}>
+        <div>
+          <span>Coverage score</span>
+          <strong>{formatCoverageScore(coverage.score)}</strong>
+        </div>
+        <div>
+          <span>Source-backed</span>
+          <strong>{coverage.source_backed_points ?? 0}</strong>
+        </div>
+        <div>
+          <span>Formula gaps</span>
+          <strong>{formulaGaps.length}</strong>
+        </div>
+        <div>
+          <span>Source gaps</span>
+          <strong>{sourceGaps.length}</strong>
+        </div>
+      </div>
+
       <div className={styles.researchFindingList}>
         {(findings.length ? findings : [{ severity: "info", message: "No audit findings." }]).map((finding, index) => (
           <article className={styles.researchFinding} data-tone={statusTone(finding.severity)} key={`${finding.code || "finding"}-${index}`}>
@@ -285,6 +365,9 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
   const [research, setResearch] = useState(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [runProgress, setRunProgress] = useState(0);
+  const [runSummary, setRunSummary] = useState("");
 
   async function runResearch(nextTicker = ticker) {
     const symbol = cleanTicker(nextTicker);
@@ -292,18 +375,62 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
     setTicker(symbol);
     setPending(true);
     setError("");
+    setRunSummary("");
+    setRunProgress(6);
+    setStatusMessage("Starting research job...");
+    const startedAt = performance.now();
     try {
-      const response = await fetch(`/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?mode=${mode}`, {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
         cache: "no-store",
+        body: JSON.stringify({ mode }),
       });
-      const payload = await parseResponse(response);
-      setResearch(payload);
-      setActiveTab("Memo");
+      const startPayload = await parseResponse(response);
+      if (!startPayload.run_id) {
+        if (startPayload.status === "failed" || startPayload.ok === false) {
+          throw new Error(startPayload.error || "Research job failed to start.");
+        }
+        setResearch(startPayload);
+        setActiveTab("Memo");
+        setRunProgress(100);
+        setRunSummary("Completed from synchronous backend response.");
+        setStatusMessage("");
+        return;
+      }
+
+      setRunProgress(18);
+      for (let attempt = 0; attempt < 90; attempt += 1) {
+        setRunProgress(Math.min(92, 18 + (attempt + 1) * 3));
+        setStatusMessage(`Research job ${startPayload.status || "running"}...`);
+        await sleep(2000);
+        const pollResponse = await fetch(
+          `/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?runId=${encodeURIComponent(startPayload.run_id)}`,
+          { cache: "no-store" },
+        );
+        const pollPayload = await parseResponse(pollResponse);
+        if (pollPayload.status === "running" || pollPayload.status === "queued") {
+          continue;
+        }
+        if (pollPayload.status === "failed" || pollPayload.ok === false) {
+          throw new Error(pollPayload.error || "Research job failed.");
+        }
+        setResearch(pollPayload);
+        setActiveTab("Memo");
+        setRunProgress(100);
+        setRunSummary(`Completed in ${Math.max(1, Math.round((performance.now() - startedAt) / 1000))}s.`);
+        setStatusMessage("");
+        return;
+      }
+      throw new Error("Research job is still running. Try again in a moment.");
     } catch (requestError) {
       setResearch(null);
       setError(String(requestError?.message || requestError || "Research run failed."));
+      setRunProgress(100);
+      setRunSummary("Run stopped before a verified bundle was returned.");
     } finally {
       setPending(false);
+      setStatusMessage("");
     }
   }
 
@@ -312,17 +439,46 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
   const auditFindings = safeList(research?.audit?.findings);
   const baseScenario = safeList(research?.valuation?.scenarios).find((scenario) => scenario.name === "base");
   const downloads = safeList(research?.downloads);
+  const sourceRecords = safeList(research?.sources?.records);
+  const deltaChanges = safeList(research?.history?.delta?.changes);
+  const storedRunCount = Number(research?.history?.run_count || 0);
+  const hasXlsx = downloads.some((artifact) => String(artifact.filename || "").endsWith(".xlsx"));
+  const progressWidth = `${Math.max(0, Math.min(100, runProgress))}%`;
+  const activeSource = sourceRecords.find((source) => source.status === "ok") || sourceRecords[0];
+  const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
+  const coverageWidth = `${Math.max(0, Math.min(100, Number(coverage.score) || 0))}%`;
+  const missingRequiredMetrics = safeList(coverage.missing_expected_metrics);
+  const coverageDetail =
+    coverage.expected_metrics
+      ? `${coverage.covered_expected_metrics}/${coverage.expected_metrics} required metrics`
+      : `${evidenceCount} ledger points`;
+
+  function stageState(stage, index) {
+    const next = AGENT_STAGES[index + 1];
+    if (error) return runProgress >= stage.threshold ? "bad" : "idle";
+    if (research && !pending) return "done";
+    if (!pending) return index === 0 ? "ready" : "idle";
+    if (runProgress >= stage.threshold && (!next || runProgress < next.threshold)) return "running";
+    if (runProgress > stage.threshold) return "done";
+    return "idle";
+  }
 
   return (
-    <section className={styles.panel}>
-      <div className={styles.panelHeader}>
-        <div>
+    <section className={`${styles.panel} ${styles.researchPanel}`}>
+      <div className={styles.researchCommandSurface}>
+        <div className={styles.researchIdentity}>
           <p className={styles.kicker}>Equity research OS</p>
-          <h2>Run a company through the deterministic ledger</h2>
+          <h2>{research?.ticker || ticker || "Ticker"} research workstation</h2>
           <p className={styles.supportText}>
-            Ticker in, source-backed memo out: statements, valuation, reverse DCF, red-team prompts, sources, and audit.
+            Deterministic finance engine, evidence ledger, reverse DCF, delta memory, and audit trail in one run.
           </p>
+          <div className={styles.researchStatusLine}>
+            <span data-tone={pending ? "warn" : research ? "good" : "neutral"}>{pending ? "Running" : research ? "Ready" : "Idle"}</span>
+            <span>{mode === "full" ? "Full report" : "Quick memo"}</span>
+            <span>{storedRunCount ? `${storedRunCount} stored runs` : "No stored run yet"}</span>
+          </div>
         </div>
+
         <div className={styles.researchRunBox}>
           <div className={styles.researchTickerRow}>
             <input
@@ -344,6 +500,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
                 key={option}
                 onClick={() => setMode(option)}
                 type="button"
+                title={option === "full" ? "Run the complete analyst bundle" : "Run a fast memo and valuation pass"}
               >
                 {option}
               </button>
@@ -351,6 +508,21 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
           </div>
         </div>
       </div>
+
+      <div className={styles.researchStageRail} aria-label="Research run pipeline">
+        {AGENT_STAGES.map((stage, index) => (
+          <ResearchStage key={stage.key} stage={stage} state={stageState(stage, index)} />
+        ))}
+      </div>
+
+      {(pending || research || error || runSummary) ? (
+        <div className={styles.researchProgressShell}>
+          <div className={styles.researchProgressTrack} aria-hidden="true">
+            <span style={{ width: progressWidth }} />
+          </div>
+          <p>{statusMessage || runSummary || (research ? `Generated ${formatDateTime(research.generated_at)}` : "Waiting for a run.")}</p>
+        </div>
+      ) : null}
 
       {suggestions.length ? (
         <div className={styles.researchSuggestions}>
@@ -383,14 +555,44 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
           value={compactCurrency(baseScenario?.intrinsic_value_per_share)}
         />
         <ResearchMetric
-          detail={`${evidenceCount} evidence points, ${auditFindings.length} audit finding${auditFindings.length === 1 ? "" : "s"}.`}
+          detail={`${coverageDetail}, ${auditFindings.length} audit finding${auditFindings.length === 1 ? "" : "s"}.`}
           label="Audit"
           tone={statusTone(research?.audit?.status)}
           value={research?.audit?.status || "Waiting"}
         />
       </div>
 
-      {research?.generated_at ? <p className={styles.supportHint}>Generated {formatDateTime(research.generated_at)}</p> : null}
+      {research ? (
+        <div className={styles.researchCoverageRail} data-tone={coverageTone(coverage)}>
+          <div>
+            <span>Evidence coverage</span>
+            <strong>{formatCoverageScore(coverage.score)}</strong>
+          </div>
+          <div className={styles.researchCoverageTrack} aria-hidden="true">
+            <span style={{ width: coverageWidth }} />
+          </div>
+          <p>{missingRequiredMetrics.length ? `Open gaps: ${missingRequiredMetrics.slice(0, 4).join(", ")}` : coverage.statement_authority || "Ledger coverage is complete for required metrics."}</p>
+        </div>
+      ) : null}
+
+      <div className={styles.researchSignalGrid}>
+        <div>
+          <span>Ledger coverage</span>
+          <strong>{research ? formatCoverageScore(coverage.score) : "Waiting"}</strong>
+        </div>
+        <div>
+          <span>Source spine</span>
+          <strong>{activeSource?.provider || "No source yet"}</strong>
+        </div>
+        <div>
+          <span>Delta memory</span>
+          <strong>{deltaChanges.length ? `${deltaChanges.length} changes` : "No prior change"}</strong>
+        </div>
+        <div>
+          <span>Workbook</span>
+          <strong>{hasXlsx ? "Model ready" : "Not emitted"}</strong>
+        </div>
+      </div>
 
       {downloads.length ? (
         <div className={styles.researchDownloadBar} aria-label="Research artifact downloads">
@@ -416,17 +618,41 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
             onClick={() => setActiveTab(tab)}
             type="button"
           >
-            {tab}
+            <span>{tab}</span>
+            {tab === "Evidence" && evidenceCount ? <small>{evidenceCount}</small> : null}
+            {tab === "Audit" && auditFindings.length ? <small>{auditFindings.length}</small> : null}
+            {tab === "Delta" && deltaChanges.length ? <small>{deltaChanges.length}</small> : null}
           </button>
         ))}
       </div>
 
-      <div className={styles.researchOutput}>
-        {activeTab === "Memo" ? renderMemo(research) : null}
-        {activeTab === "Valuation" ? renderValuation(research) : null}
-        {activeTab === "Delta" ? renderDelta(research) : null}
-        {activeTab === "Evidence" ? renderEvidence(research) : null}
-        {activeTab === "Audit" ? renderAudit(research) : null}
+      <div className={styles.researchOutputShell}>
+        <aside className={styles.researchEvidenceSpine}>
+          <span>Current bundle</span>
+          <strong>{research?.ticker || cleanTicker(ticker) || "No ticker"}</strong>
+          <p>{research ? `${sourceRecords.length} sources, ${evidenceCount} data points, ${coverageDetail}.` : "Run a ticker to assemble a ledger-backed bundle."}</p>
+          <dl>
+            <div>
+              <dt>Statements</dt>
+              <dd>{coverage.statement_source_provider || (sourceRecords.some((source) => source.source_id === "fmp:income:annual") ? "FMP" : "-")}</dd>
+            </div>
+            <div>
+              <dt>Filings</dt>
+              <dd>{coverage.sec_metadata_available ? "SEC metadata" : "-"}</dd>
+            </div>
+            <div>
+              <dt>Export</dt>
+              <dd>{hasXlsx ? "xlsx + ledgers" : downloads.length ? "text ledgers" : "-"}</dd>
+            </div>
+          </dl>
+        </aside>
+        <div className={styles.researchOutput}>
+          {activeTab === "Memo" ? renderMemo(research) : null}
+          {activeTab === "Valuation" ? renderValuation(research) : null}
+          {activeTab === "Delta" ? renderDelta(research) : null}
+          {activeTab === "Evidence" ? renderEvidence(research) : null}
+          {activeTab === "Audit" ? renderAudit(research) : null}
+        </div>
       </div>
     </section>
   );

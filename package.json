@@ -21,6 +21,6 @@
     "db:holdings:bootstrap": "node scripts/bootstrap-neon-holdings.mjs",
     "db:runtime:seed": "node scripts/runtime-store-seed.mjs",
     "db:runtime:seed:full": "python3 scripts/runtime_store_seed.py",
-    "test:web": "node --test tests-node/*.test.mjs"
+    "test:web": "node --conditions=react-server --test tests-node/*.test.mjs"
   }
 }

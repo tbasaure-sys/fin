@@ -14,6 +14,7 @@
     "policy_state",
     "repair_candidates",
     "analogs",
+    "balance_sheet",
     "research_provenance",
     "uncertainty"
   ],
@@ -140,6 +141,22 @@
         ],
         "additionalProperties": true
       }
+    },
+    "balance_sheet": {
+      "type": "object",
+      "required": [
+        "version",
+        "accounting_state",
+        "headline",
+        "summary",
+        "asset_total",
+        "liability_total",
+        "net_freedom",
+        "reserves",
+        "assets",
+        "liabilities"
+      ],
+      "additionalProperties": true
     },
     "research_provenance": {
       "type": "object",

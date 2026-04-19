@@ -90,6 +90,12 @@ def _first_existing(row: pd.Series, names: list[str]) -> Any:
     return None
 
 
+def _sum_existing(row: pd.Series, names: list[str]) -> float | None:
+    values = [_safe_float(_first_existing(row, [name])) for name in names if name in row]
+    values = [value for value in values if value is not None]
+    return sum(values) if values else None
+
+
 def calculate_revenue_cagr(start_revenue: float, end_revenue: float, years: int) -> float | None:
     if years <= 0 or start_revenue <= 0 or end_revenue <= 0:
         return None
@@ -255,6 +261,201 @@ def _data_point(metric: str, value: Any, tag: str, source_id: str | None = None,
     }
 
 
+EXPECTED_EVIDENCE_METRICS = [
+    "company_profile",
+    "latest_revenue",
+    "latest_diluted_shares",
+    "latest_free_cash_flow",
+    "revenue_cagr_5y",
+    "gross_margin",
+    "operating_margin",
+    "fcf_margin",
+    "roic",
+    "net_debt",
+    "base_fcf_margin",
+    "wacc",
+    "terminal_growth",
+    "current_price",
+    "base_intrinsic_value_per_share",
+    "reverse_dcf_implied_revenue_cagr",
+    "ev_to_sales",
+    "price_to_fcf",
+    "latest_sec_filing",
+]
+
+
+def _has_value(value: Any) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, float) and math.isnan(value):
+        return False
+    if isinstance(value, str) and not value.strip():
+        return False
+    return True
+
+
+def _financial_source_for_field(field: str) -> str | None:
+    income_fields = {
+        "revenue",
+        "gross_profit",
+        "cost_of_revenue",
+        "operating_income",
+        "pretax_income",
+        "tax_expense",
+        "net_income",
+        "ebitda",
+        "diluted_shares",
+    }
+    cash_flow_fields = {
+        "cash_from_operations",
+        "capital_expenditures",
+        "depreciation_amortization",
+        "stock_based_compensation",
+        "common_stock_repurchased",
+    }
+    balance_fields = {
+        "cash",
+        "total_debt",
+        "short_term_debt",
+        "long_term_debt",
+        "total_equity",
+        "total_assets",
+        "net_receivables",
+        "inventory",
+        "goodwill_and_intangibles",
+    }
+    if field in income_fields:
+        return "fmp:income:annual"
+    if field in cash_flow_fields:
+        return "fmp:cash-flow:annual"
+    if field in balance_fields:
+        return "fmp:balance:annual"
+    return None
+
+
+def _financial_formula_for_field(field: str) -> str | None:
+    formulas = {
+        "free_cash_flow": "cash_from_operations - abs(capital_expenditures)",
+        "nopat": "operating_income * (1 - normalized_tax_rate)",
+        "invested_capital": "total_debt + total_equity - cash",
+        "gross_margin": "gross_profit / revenue",
+        "operating_margin": "operating_income / revenue",
+        "net_margin": "net_income / revenue",
+        "fcf_margin": "free_cash_flow / revenue",
+        "cash_conversion": "cash_from_operations / net_income",
+        "sbc_as_pct_revenue": "stock_based_compensation / revenue",
+        "sbc_as_pct_fcf": "stock_based_compensation / free_cash_flow",
+        "roic": "NOPAT / average_invested_capital",
+    }
+    return formulas.get(field)
+
+
+def _financial_data_points(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    ledger: list[dict[str, Any]] = []
+    for row in rows:
+        period = row.get("fiscal_year") or row.get("date") or "unknown"
+        for field, value in row.items():
+            if field in {"date", "fiscal_year"} or not _has_value(value):
+                continue
+            source_id = _financial_source_for_field(field)
+            formula = _financial_formula_for_field(field)
+            if source_id:
+                ledger.append(_data_point(f"financials.annual.{period}.{field}", value, "sourced_fact", source_id))
+            elif formula:
+                ledger.append(_data_point(f"financials.annual.{period}.{field}", value, "calculated_metric", formula=formula))
+    return ledger
+
+
+def _valuation_data_points(valuation: dict[str, Any]) -> list[dict[str, Any]]:
+    if not valuation.get("available"):
+        return []
+    points: list[dict[str, Any]] = []
+    for scenario in valuation.get("scenarios", []):
+        name = scenario.get("name") or "scenario"
+        for key in ["intrinsic_value_per_share", "equity_value", "terminal_value", "pv_terminal_value"]:
+            value = scenario.get(key)
+            if _has_value(value):
+                points.append(_data_point(f"valuation.scenario.{name}.{key}", value, "calculated_metric", formula="deterministic DCF scenario model"))
+        for key, value in (scenario.get("assumptions") or {}).items():
+            if _has_value(value):
+                points.append(_data_point(f"valuation.scenario.{name}.assumption.{key}", value, "assumption", formula="scenario assumption"))
+    reverse = valuation.get("reverse_dcf") or {}
+    for key in ["implied_revenue_cagr", "current_price", "value_at_floor", "value_at_ceiling"]:
+        value = reverse.get(key)
+        if _has_value(value):
+            tag = "sourced_fact" if key == "current_price" else "calculated_metric"
+            points.append(
+                _data_point(
+                    f"valuation.reverse_dcf.{key}",
+                    value,
+                    tag,
+                    "fmp:profile" if key == "current_price" else None,
+                    None if key == "current_price" else "binary search for growth where DCF value equals current price",
+                )
+            )
+    for key, value in (valuation.get("multiples") or {}).items():
+        if _has_value(value):
+            points.append(_data_point(f"valuation.multiples.{key}", value, "calculated_metric", formula=f"{key} deterministic multiple calculation"))
+    return points
+
+
+def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[dict[str, Any]]) -> dict[str, Any]:
+    source_status = {str(source.get("source_id")): source.get("status") for source in sources if source.get("source_id")}
+    source_backed = [
+        point
+        for point in data_points
+        if point.get("claim_tag") == "sourced_fact" and point.get("source_id") and source_status.get(str(point.get("source_id"))) == "ok"
+    ]
+    sourced_missing = [
+        point.get("metric")
+        for point in data_points
+        if point.get("claim_tag") == "sourced_fact"
+        and (not point.get("source_id") or source_status.get(str(point.get("source_id"))) != "ok")
+    ]
+    formula_missing = [
+        point.get("metric")
+        for point in data_points
+        if point.get("claim_tag") == "calculated_metric" and not point.get("formula")
+    ]
+    expected_present = {point.get("metric") for point in data_points if _has_value(point.get("normalized_value"))}
+    missing_expected = [metric for metric in EXPECTED_EVIDENCE_METRICS if metric not in expected_present]
+    covered_expected = len(EXPECTED_EVIDENCE_METRICS) - len(missing_expected)
+    score = round((covered_expected / len(EXPECTED_EVIDENCE_METRICS)) * 100) if EXPECTED_EVIDENCE_METRICS else 0
+    sec_metadata_ok = source_status.get("sec:submissions") == "ok"
+    fmp_ok_sources = [source for source in sources if source.get("provider") == "fmp" and source.get("status") == "ok"]
+    if not fmp_ok_sources:
+        statement_authority = "No source-backed normalized statements"
+    elif sec_metadata_ok:
+        statement_authority = "FMP normalized statements; SEC metadata only"
+    else:
+        statement_authority = "FMP normalized statements without SEC metadata cross-check"
+    status = "pass" if score >= 85 and not sourced_missing and not formula_missing else "partial"
+    if score < 60 or sourced_missing:
+        status = "needs_attention"
+    return {
+        "status": status,
+        "score": score,
+        "expected_metrics": len(EXPECTED_EVIDENCE_METRICS),
+        "covered_expected_metrics": covered_expected,
+        "missing_expected_metrics": missing_expected,
+        "total_data_points": len(data_points),
+        "source_backed_points": len(source_backed),
+        "calculated_points": len([point for point in data_points if point.get("claim_tag") == "calculated_metric"]),
+        "assumption_points": len([point for point in data_points if point.get("claim_tag") == "assumption"]),
+        "interpretation_points": len([point for point in data_points if point.get("claim_tag") == "interpretation"]),
+        "uncertainty_points": len([point for point in data_points if point.get("claim_tag") == "uncertainty"]),
+        "sourced_points_missing_ok_source": sourced_missing,
+        "calculated_points_missing_formula": formula_missing,
+        "ok_source_records": len([source for source in sources if source.get("status") == "ok"]),
+        "error_source_records": len([source for source in sources if source.get("status") == "error"]),
+        "unavailable_source_records": len([source for source in sources if source.get("status") == "unavailable"]),
+        "sec_metadata_available": sec_metadata_ok,
+        "statement_source_provider": "fmp" if fmp_ok_sources else None,
+        "statement_authority": statement_authority,
+        "xbrl_statement_facts_available": False,
+    }
+
+
 def _load_fmp_payloads(ticker: str, paths: PathConfigLike, fmp_client: FMPClient | None) -> tuple[dict[str, Any], dict[str, pd.DataFrame], list[dict[str, Any]]]:
     sources: list[dict[str, Any]] = []
     frames = {
@@ -381,7 +582,9 @@ def _normalize_financials(frames: dict[str, pd.DataFrame], tax_rate: float) -> l
         balance,
         {
             "cash": ["cashAndCashEquivalents", "cashAndShortTermInvestments", "cash"],
-            "total_debt": ["totalDebt", "shortTermDebt", "longTermDebt"],
+            "total_debt": ["totalDebt"],
+            "short_term_debt": ["shortTermDebt", "short_term_debt"],
+            "long_term_debt": ["longTermDebt", "long_term_debt"],
             "total_equity": ["totalStockholdersEquity", "total_equity"],
             "total_assets": ["totalAssets", "total_assets"],
             "net_receivables": ["netReceivables", "net_receivables"],
@@ -407,7 +610,10 @@ def _normalize_financials(frames: dict[str, pd.DataFrame], tax_rate: float) -> l
         row_tax_rate = _ratio(tax_expense, pretax)
         if row_tax_rate is None or row_tax_rate < 0 or row_tax_rate > 0.45:
             row_tax_rate = tax_rate
-        debt = _safe_float(row.get("total_debt")) or 0.0
+        debt = _safe_float(row.get("total_debt"))
+        if debt is None:
+            debt = _sum_existing(row, ["short_term_debt", "long_term_debt"])
+        debt = debt or 0.0
         equity = _safe_float(row.get("total_equity")) or 0.0
         cash = _safe_float(row.get("cash")) or 0.0
         invested_capital = debt + equity - cash
@@ -430,6 +636,8 @@ def _normalize_financials(frames: dict[str, pd.DataFrame], tax_rate: float) -> l
                 "common_stock_repurchased": _safe_float(row.get("common_stock_repurchased")),
                 "cash": cash,
                 "total_debt": debt,
+                "short_term_debt": _safe_float(row.get("short_term_debt")),
+                "long_term_debt": _safe_float(row.get("long_term_debt")),
                 "total_equity": equity,
                 "total_assets": _safe_float(row.get("total_assets")),
                 "net_receivables": _safe_float(row.get("net_receivables")),
@@ -667,6 +875,7 @@ def _audit_bundle(
     data_points: list[dict[str, Any]],
 ) -> dict[str, Any]:
     findings: list[dict[str, Any]] = []
+    coverage = _build_evidence_coverage(sources, data_points)
     if not rows:
         findings.append({"severity": "high", "code": "missing_financials", "message": f"No normalized financial statements are available for {ticker}."})
     if any(source.get("status") == "error" for source in sources):
@@ -675,19 +884,47 @@ def _audit_bundle(
         findings.append({"severity": "high", "code": "provider_unavailable", "message": "FMP is unavailable in this runtime, so no source-backed report can be completed."})
     if any(source.get("status") == "unavailable" and source.get("provider") == "sec-edgar" for source in sources):
         findings.append({"severity": "medium", "code": "sec_edgar_unavailable", "message": "SEC EDGAR metadata is unavailable because SEC_USER_AGENT is not configured."})
+    if rows and not any(source.get("provider") == "sec-edgar" and source.get("status") == "ok" for source in sources):
+        findings.append({"severity": "medium", "code": "filing_crosscheck_missing", "message": "Financial statements were not cross-checked against SEC/XBRL facts in this run."})
     if not valuation.get("available"):
         findings.append({"severity": "medium", "code": "valuation_unavailable", "message": valuation.get("reason", "Valuation could not be completed.")})
     for point in data_points:
         if point["claim_tag"] == "sourced_fact" and not point.get("source_id"):
             findings.append({"severity": "high", "code": "missing_source", "message": f"{point['metric']} lacks a source id."})
+    if coverage["score"] < 85:
+        severity = "high" if coverage["score"] < 60 else "medium"
+        findings.append(
+            {
+                "severity": severity,
+                "code": "evidence_coverage_gap",
+                "message": f"Evidence ledger covers {coverage['covered_expected_metrics']}/{coverage['expected_metrics']} required research metrics.",
+            }
+        )
+    if coverage["sourced_points_missing_ok_source"]:
+        findings.append(
+            {
+                "severity": "high",
+                "code": "sourced_point_without_ok_source",
+                "message": f"{len(coverage['sourced_points_missing_ok_source'])} sourced facts do not map to an ok source record.",
+            }
+        )
+    if coverage["calculated_points_missing_formula"]:
+        findings.append(
+            {
+                "severity": "medium",
+                "code": "formula_missing",
+                "message": f"{len(coverage['calculated_points_missing_formula'])} calculated metrics are missing formulas.",
+            }
+        )
     return {
         "generated_at": _now_iso(),
         "status": "pass" if not [item for item in findings if item["severity"] == "high"] else "needs_attention",
         "findings": findings,
+        "coverage": coverage,
     }
 
 
-def _checklist_scores(ratios: dict[str, Any], quality_flags: list[dict[str, Any]], valuation: dict[str, Any]) -> dict[str, Any]:
+def _checklist_scores(ratios: dict[str, Any], quality_flags: list[dict[str, Any]], valuation: dict[str, Any], audit: dict[str, Any] | None = None) -> dict[str, Any]:
     roic = ratios.get("roic") or 0
     fcf_margin = ratios.get("fcf_margin") or 0
     cash_conversion = ratios.get("cash_conversion") or 0
@@ -701,7 +938,7 @@ def _checklist_scores(ratios: dict[str, Any], quality_flags: list[dict[str, Any]
         "quality": round(max(0, min(100, 35 + roic * 180 + fcf_margin * 80 + cash_conversion * 15))),
         "accounting_risk": round(max(0, 100 - len(quality_flags) * 18)),
         "valuation": round(max(0, min(100, 50 + (valuation_margin or 0) * 100))),
-        "evidence": 85 if valuation.get("available") else 40,
+        "evidence": round(max(0, min(100, (audit or {}).get("coverage", {}).get("score", 40)))),
     }
 
 
@@ -935,6 +1172,25 @@ def _build_model_xlsx(
         audit_sheet.append([finding.get("severity"), finding.get("code"), finding.get("message")])
     _style_sheet(audit_sheet)
 
+    evidence_sheet = workbook.create_sheet("Evidence Points")
+    evidence_sheet.append(["metric", "claim_tag", "source_id", "formula", "normalized_value"])
+    for point in sources.get("data_points", []):
+        evidence_sheet.append([
+            point.get("metric"),
+            point.get("claim_tag"),
+            point.get("source_id"),
+            point.get("formula"),
+            point.get("normalized_value"),
+        ])
+    _style_sheet(evidence_sheet)
+
+    coverage_sheet = workbook.create_sheet("Coverage")
+    coverage = sources.get("coverage") or audit.get("coverage") or {}
+    coverage_sheet.append(["field", "value"])
+    for key, value in coverage.items():
+        coverage_sheet.append([key, _json_text(value) if isinstance(value, (list, dict)) else value])
+    _style_sheet(coverage_sheet)
+
     output = BytesIO()
     workbook.save(output)
     return output.getvalue()
@@ -986,6 +1242,8 @@ def _report_markdown(
     base_value = base.get("intrinsic_value_per_share") if base else None
     flags = quality_flags or [{"severity": "info", "title": "No accounting quality flags were triggered by the available data."}]
     findings = audit.get("findings") or [{"severity": "info", "message": "No high-severity audit findings."}]
+    coverage = audit.get("coverage") or {}
+    coverage_line = f"{coverage.get('score', 0)}% ({coverage.get('covered_expected_metrics', 0)}/{coverage.get('expected_metrics', 0)} required metrics)"
     filing_lines = [
         f"- {item.get('form')} filed {item.get('filing_date')} for period {item.get('report_date') or 'n/a'} ({item.get('accession_number')})"
         for item in filings[:5]
@@ -999,6 +1257,7 @@ def _report_markdown(
             f"- Company: {name}",
             f"- Sector / industry: {sector} / {industry}",
             f"- Evidence state: {audit.get('status')}",
+            f"- Evidence coverage: {coverage_line}",
             f"- Latest revenue: {_fmt_currency(ratios.get('latest_revenue'))}",
             f"- Revenue CAGR, 5y: {_fmt_pct(ratios.get('revenue_cagr_5y'))}",
             f"- FCF margin: {_fmt_pct(ratios.get('fcf_margin'))}",
@@ -1008,6 +1267,7 @@ def _report_markdown(
             "",
             "## Valuation suite",
             "The deterministic engine calculates bear, base, and bull DCF cases from sourced statements and explicit assumptions. The LLM layer should only interpret these outputs after the audit passes.",
+            "Financial statement rows in this version are normalized from FMP. SEC EDGAR is used for filing metadata unless XBRL fact ingestion is explicitly present in sources.json.",
             "",
             "## Red-team memo",
             "The bear case starts with the audit: stale or missing data, low cash conversion, dilution, margin fragility, and valuation that requires aggressive implied growth.",
@@ -1022,7 +1282,7 @@ def _report_markdown(
             *[f"- [{item.get('severity')}] {item.get('message')}" for item in findings],
             "",
             "## Source appendix",
-            "See sources.json for provider endpoints, timestamps, row counts, and errors.",
+            f"See sources.json for provider endpoints, timestamps, row counts, errors, and coverage gaps. Statement authority: {coverage.get('statement_authority', 'not assessed')}.",
             "",
         ]
     )
@@ -1066,14 +1326,36 @@ def build_equity_research_bundle(
     data_points = [
         _data_point("company_profile", profile.get("companyName") or symbol, "sourced_fact", "fmp:profile"),
         _data_point("latest_revenue", ratios.get("latest_revenue"), "sourced_fact", "fmp:income:annual"),
+        _data_point("latest_diluted_shares", ratios.get("latest_diluted_shares"), "sourced_fact", "fmp:income:annual"),
         _data_point("latest_free_cash_flow", ratios.get("latest_fcf"), "calculated_metric", formula="cash_from_operations - abs(capital_expenditures)"),
         _data_point("revenue_cagr_5y", ratios.get("revenue_cagr_5y"), "calculated_metric", formula="(Revenue_t / Revenue_0) ** (1 / years) - 1"),
+        _data_point("gross_margin", ratios.get("gross_margin"), "calculated_metric", formula="gross_profit / revenue"),
+        _data_point("operating_margin", ratios.get("operating_margin"), "calculated_metric", formula="operating_income / revenue"),
+        _data_point("fcf_margin", ratios.get("fcf_margin"), "calculated_metric", formula="free_cash_flow / revenue"),
+        _data_point("roic", ratios.get("roic"), "calculated_metric", formula="NOPAT / average_invested_capital"),
+        _data_point("net_debt", ratios.get("net_debt"), "calculated_metric", formula="total_debt - cash_and_equivalents"),
         _data_point("base_fcf_margin", assumptions.get("base_fcf_margin"), "assumption", formula="latest positive FCF margin or historical median fallback"),
+        _data_point("wacc", assumptions.get("wacc"), "assumption", formula="user-default assumption"),
+        _data_point("terminal_growth", assumptions.get("terminal_growth"), "assumption", formula="user-default assumption"),
     ]
+    data_points.extend(_financial_data_points(rows))
+    if valuation.get("available"):
+        base_case = next((item for item in valuation.get("scenarios", []) if item.get("name") == "base"), None)
+        data_points.extend(
+            [
+                _data_point("current_price", valuation.get("current_price"), "sourced_fact", "fmp:profile" if profile.get("price") is not None else "fmp:prices"),
+                _data_point("base_intrinsic_value_per_share", (base_case or {}).get("intrinsic_value_per_share"), "calculated_metric", formula="PV_FCFF + cash - debt divided by diluted shares"),
+                _data_point("reverse_dcf_implied_revenue_cagr", valuation.get("reverse_dcf", {}).get("implied_revenue_cagr"), "calculated_metric", formula="binary search for growth where DCF value equals current price"),
+                _data_point("ev_to_sales", valuation.get("multiples", {}).get("ev_to_sales"), "calculated_metric", formula="enterprise_value / latest_revenue"),
+                _data_point("price_to_fcf", valuation.get("multiples", {}).get("price_to_fcf"), "calculated_metric", formula="market_cap / latest_free_cash_flow"),
+            ]
+        )
+        data_points.extend(_valuation_data_points(valuation))
     if filings:
         data_points.append(_data_point("latest_sec_filing", filings[0].get("accession_number"), "sourced_fact", "sec:submissions"))
     audit = _audit_bundle(symbol, rows, sources, valuation, data_points)
-    checklist = _checklist_scores(ratios, quality_flags, valuation)
+    coverage = audit.get("coverage", {})
+    checklist = _checklist_scores(ratios, quality_flags, valuation, audit)
 
     company_profile = {
         "name": profile.get("companyName") or symbol,
@@ -1106,6 +1388,7 @@ def build_equity_research_bundle(
         "sources": {
             "records": sources,
             "data_points": data_points,
+            "coverage": coverage,
         },
         "audit": audit,
         "assumptions": assumptions,

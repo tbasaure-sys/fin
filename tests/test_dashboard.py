@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from io import BytesIO
 from pathlib import Path
 
 import pandas as pd
@@ -157,6 +158,68 @@ def _seed_outputs(paths: PathConfig) -> None:
         paths.portfolio_manager_root / "output" / "latest" / "daily_screener_hits.csv",
         "ticker;sector;composite_score\nPAGS;Technology;0.94\n",
     )
+
+
+def test_wsgi_exposes_equity_research_endpoint(tmp_path: Path, monkeypatch) -> None:
+    paths = _paths(tmp_path)
+
+    def fake_equity_research(self, ticker: str, mode: str = "quick") -> dict:
+        return {
+            "ok": True,
+            "ticker": ticker,
+            "mode": mode,
+            "sources": {"records": [], "data_points": []},
+            "audit": {"status": "pass", "findings": []},
+        }
+
+    monkeypatch.setattr(DashboardService, "equity_research", fake_equity_research)
+    app = create_app(paths, ResearchSettings(), AllocatorSettings(), DashboardSettings())
+    response = {}
+
+    def start_response(status, headers):
+        response["status"] = status
+        response["headers"] = headers
+
+    body = b"".join(
+        app(
+            {
+                "REQUEST_METHOD": "GET",
+                "PATH_INFO": "/api/equity-research/AAPL",
+                "QUERY_STRING": "mode=full",
+            },
+            start_response,
+        )
+    )
+
+    payload = json.loads(body.decode("utf-8"))
+    assert response["status"] == "200 OK"
+    assert payload["ticker"] == "AAPL"
+    assert payload["mode"] == "full"
+
+    job_response = {}
+
+    def job_start_response(status, headers):
+        job_response["status"] = status
+        job_response["headers"] = headers
+
+    job_body = json.dumps({"ticker": "MSFT", "mode": "quick"}).encode("utf-8")
+    job_payload = json.loads(
+        b"".join(
+            app(
+                {
+                    "REQUEST_METHOD": "POST",
+                    "PATH_INFO": "/api/equity-research/jobs",
+                    "QUERY_STRING": "",
+                    "CONTENT_LENGTH": str(len(job_body)),
+                    "wsgi.input": BytesIO(job_body),
+                },
+                job_start_response,
+            )
+        ).decode("utf-8")
+    )
+
+    assert job_response["status"] == "202 Accepted"
+    assert job_payload["run_id"]
 
 
 def _fake_market_panel(*args, **kwargs) -> pd.DataFrame:

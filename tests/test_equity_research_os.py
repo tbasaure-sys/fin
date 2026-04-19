@@ -123,6 +123,46 @@ class MockSECClient:
         ]
 
 
+class SplitDebtFMPClient(MockFMPClient):
+    def get_balance_sheet_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
+        return pd.DataFrame(
+            [
+                {
+                    "date": "2021-12-31",
+                    "cashAndCashEquivalents": 120.0,
+                    "shortTermDebt": 30.0,
+                    "longTermDebt": 150.0,
+                    "totalStockholdersEquity": 900.0,
+                    "totalAssets": 1250.0,
+                },
+                {
+                    "date": "2022-12-31",
+                    "cashAndCashEquivalents": 140.0,
+                    "shortTermDebt": 35.0,
+                    "longTermDebt": 150.0,
+                    "totalStockholdersEquity": 980.0,
+                    "totalAssets": 1360.0,
+                },
+                {
+                    "date": "2023-12-31",
+                    "cashAndCashEquivalents": 170.0,
+                    "shortTermDebt": 40.0,
+                    "longTermDebt": 150.0,
+                    "totalStockholdersEquity": 1070.0,
+                    "totalAssets": 1480.0,
+                },
+                {
+                    "date": "2024-12-31",
+                    "cashAndCashEquivalents": 220.0,
+                    "shortTermDebt": 45.0,
+                    "longTermDebt": 155.0,
+                    "totalStockholdersEquity": 1180.0,
+                    "totalAssets": 1600.0,
+                },
+            ]
+        )
+
+
 def test_revenue_cagr_formula() -> None:
     result = calculate_revenue_cagr(100.0, 121.0, 2)
     assert result is not None
@@ -170,10 +210,18 @@ def test_equity_research_bundle_uses_sources_and_formulas() -> None:
     assert bundle["financials"]["ratios"]["latest_revenue"] == 1500.0
     assert bundle["audit"]["status"] == "pass"
     assert len(bundle["sources"]["records"]) == 6
+    assert bundle["sources"]["coverage"]["status"] == "pass"
+    assert bundle["sources"]["coverage"]["score"] == 100
+    assert bundle["sources"]["coverage"]["covered_expected_metrics"] == bundle["sources"]["coverage"]["expected_metrics"]
+    assert bundle["sources"]["coverage"]["statement_authority"] == "FMP normalized statements; SEC metadata only"
+    assert bundle["audit"]["coverage"]["score"] == bundle["sources"]["coverage"]["score"]
+    assert bundle["checklist_score"]["evidence"] == 100
     assert bundle["filings"]["recent"][0]["form"] == "10-K"
     assert any(point["source_id"] == "sec:submissions" for point in bundle["sources"]["data_points"])
     assert any(point["claim_tag"] == "calculated_metric" for point in bundle["sources"]["data_points"])
+    assert any(point["metric"].startswith("financials.annual.2024-12-31.") for point in bundle["sources"]["data_points"])
     assert "authoritative filings" in bundle["report_markdown"].lower()
+    assert "evidence coverage: 100%" in bundle["report_markdown"].lower()
     assert "reverse dcf" in bundle["report_markdown"].lower()
     assert bundle["artifacts"]["model_xlsx"] is True
     download_names = {artifact["filename"] for artifact in bundle["downloads"]}
@@ -197,8 +245,20 @@ def test_equity_research_bundle_uses_sources_and_formulas() -> None:
         "Sensitivities",
         "Sources",
         "Audit",
+        "Evidence Points",
+        "Coverage",
     }.issubset(set(workbook.sheetnames))
     assert str(workbook["DCF"]["B11"].value).startswith("=")
+
+
+def test_equity_research_bundle_sums_short_and_long_debt_when_total_debt_missing() -> None:
+    bundle = build_equity_research_bundle("EXM", mode="full", fmp_client=SplitDebtFMPClient(), sec_client=MockSECClient())
+
+    latest = bundle["financials"]["annual"][-1]
+    assert latest["short_term_debt"] == 45.0
+    assert latest["long_term_debt"] == 155.0
+    assert latest["total_debt"] == 200.0
+    assert bundle["financials"]["ratios"]["net_debt"] == -20.0
 
 
 def test_equity_research_bundle_refuses_to_invent_without_provider() -> None:
@@ -207,6 +267,11 @@ def test_equity_research_bundle_refuses_to_invent_without_provider() -> None:
     assert bundle["ok"] is True
     assert bundle["valuation"]["available"] is False
     assert bundle["audit"]["status"] == "needs_attention"
+    assert bundle["sources"]["coverage"]["status"] == "needs_attention"
+    assert bundle["sources"]["coverage"]["score"] < 60
+    assert "latest_revenue" in bundle["sources"]["coverage"]["missing_expected_metrics"]
+    assert bundle["sources"]["coverage"]["statement_authority"] == "No source-backed normalized statements"
+    assert bundle["checklist_score"]["evidence"] == bundle["sources"]["coverage"]["score"]
     assert bundle["sources"]["records"][0]["status"] == "unavailable"
     assert any(source["provider"] == "sec-edgar" and source["status"] == "unavailable" for source in bundle["sources"]["records"])
     assert bundle["artifacts"]["model_xlsx"] is False

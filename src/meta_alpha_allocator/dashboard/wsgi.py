@@ -18,7 +18,7 @@ import json
 import os
 import time
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
 from .server import DashboardService, CORS_ORIGIN, _bls_contract_routes, _contract_headers_for_path
@@ -45,7 +45,13 @@ def _json_response(start_response, payload: dict, status: int = 200, extra_heade
         *(extra_headers or []),
         *_cors_headers(),
     ]
-    status_map = {200: "200 OK", 404: "404 Not Found", 405: "405 Method Not Allowed"}
+    status_map = {
+        200: "200 OK",
+        202: "202 Accepted",
+        400: "400 Bad Request",
+        404: "404 Not Found",
+        405: "405 Method Not Allowed",
+    }
     start_response(status_map.get(status, f"{status} Unknown"), headers)
     return [body]
 
@@ -115,6 +121,19 @@ def create_app(
             return _static_response(start_response, static_map[path_info])
 
         # ── POST /api/refresh ─────────────────────────────────────────────
+        if path_info == "/api/equity-research/jobs" and method == "POST":
+            try:
+                content_length = int(environ.get("CONTENT_LENGTH") or 0)
+                body = environ["wsgi.input"].read(content_length) if content_length > 0 else b"{}"
+                payload = json.loads(body.decode("utf-8") or "{}")
+            except (json.JSONDecodeError, ValueError):
+                return _json_response(start_response, {"ok": False, "error": "Invalid JSON body."}, status=400)
+            result = service.start_equity_research_job(
+                str(payload.get("ticker") or "").strip(),
+                mode=str(payload.get("mode") or "quick").strip(),
+            )
+            return _json_response(start_response, result, status=202)
+
         if path_info == "/api/refresh" and method == "POST":
             snapshot = service.refresh()
             return _json_response(start_response, {
@@ -144,6 +163,20 @@ def create_app(
         # ── GET API routes ────────────────────────────────────────────────
         if method != "GET":
             return _json_response(start_response, {"error": "Method not allowed"}, status=405)
+
+        if path_info.startswith("/api/equity-research/jobs/"):
+            job_id = unquote(path_info.rsplit("/", 1)[-1])
+            job = service.equity_research_job(job_id)
+            return _json_response(start_response, job, status=404 if job.get("status") == "not_found" else 200)
+
+        if path_info == "/api/equity-research" or path_info.startswith("/api/equity-research/"):
+            params = parse_qs(query_string)
+            path_ticker = ""
+            if path_info.startswith("/api/equity-research/"):
+                path_ticker = unquote(path_info.rsplit("/", 1)[-1])
+            ticker = (params.get("ticker") or [path_ticker])[0]
+            mode = (params.get("mode") or ["quick"])[0]
+            return _json_response(start_response, service.equity_research(ticker, mode=mode))
 
         snapshot = service.snapshot()
 

@@ -132,10 +132,34 @@ def _ensure_probability_package(snapshot: dict[str, Any], research_artifacts: di
     else:
         invalidation_reason = 'artifact_fingerprint_mismatch'
     if not fingerprint.get('complete'):
+        fallback_package = {
+            'package_version': PACKAGE_VERSION,
+            'source': 'heuristic_fallback_v1',
+            'feature_columns': [],
+            'targets': {},
+            'metrics': [],
+            '_package_meta': {
+                'package_invalidation_reason': 'research_artifacts_incomplete',
+                'artifact_fingerprint_hash': fingerprint.get('fingerprint_hash'),
+            },
+        }
+        save_probability_package(snapshot, fallback_package, artifact_fingerprint=fingerprint)
         return None
     frame = build_training_probability_frame(build_episode_frame(research_artifacts))
     package = build_probability_packages(frame, embargo_days=20)
     if not package.get('targets'):
+        fallback_package = {
+            'package_version': PACKAGE_VERSION,
+            'source': 'heuristic_fallback_v1',
+            'feature_columns': [],
+            'targets': {},
+            'metrics': [],
+            '_package_meta': {
+                'package_invalidation_reason': 'no_trainable_probability_targets',
+                'artifact_fingerprint_hash': fingerprint.get('fingerprint_hash'),
+            },
+        }
+        save_probability_package(snapshot, fallback_package, artifact_fingerprint=fingerprint)
         return None
     package['package_version'] = PACKAGE_VERSION
     package['_package_meta'] = {

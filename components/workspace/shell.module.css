@@ -1086,6 +1086,63 @@
   gap: 0.75rem;
 }
 
+.researchPanel {
+  isolation: isolate;
+}
+
+.researchPanel h2 {
+  letter-spacing: 0;
+}
+
+.researchCommandSurface {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.researchIdentity {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 58rem;
+}
+
+.researchStatusLine,
+.researchSignalGrid,
+.researchStageRail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.researchStatusLine {
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.researchStatusLine span {
+  min-height: 1.8rem;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.32rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.researchStatusLine span[data-tone="good"] {
+  color: var(--good);
+  border-color: rgba(82, 208, 163, 0.2);
+}
+
+.researchStatusLine span[data-tone="warn"] {
+  color: var(--warn);
+  border-color: rgba(255, 180, 84, 0.2);
+}
+
 .researchRunBox {
   min-width: min(100%, 24rem);
 }
@@ -1116,9 +1173,104 @@
 
 .researchDownloadBar {
   padding: 0.8rem;
-  border-radius: 18px;
+  border-radius: 8px;
   border: 1px solid rgba(122, 210, 194, 0.12);
   background: rgba(122, 210, 194, 0.04);
+}
+
+.researchStageRail {
+  position: relative;
+  gap: 0;
+  margin: 0.7rem 0 1rem;
+  padding: 0.8rem 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchStageRail::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  top: 1.35rem;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: -1;
+}
+
+.researchStage {
+  position: relative;
+  flex: 1 1 8.5rem;
+  min-width: 8rem;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0 0.5rem;
+}
+
+.researchStage > span {
+  width: 0.72rem;
+  height: 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: #09121f;
+  box-shadow: 0 0 0 5px rgba(9, 18, 31, 0.9);
+}
+
+.researchStage strong {
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.researchStage small {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.researchStage[data-state="done"] > span {
+  border-color: rgba(82, 208, 163, 0.7);
+  background: var(--good);
+}
+
+.researchStage[data-state="running"] > span {
+  border-color: rgba(255, 180, 84, 0.85);
+  background: var(--warn);
+  animation: researchPulse 1.3s ease-in-out infinite;
+}
+
+.researchStage[data-state="bad"] > span {
+  border-color: rgba(255, 124, 114, 0.8);
+  background: var(--bad);
+}
+
+.researchStage[data-state="ready"] > span {
+  border-color: rgba(122, 210, 194, 0.65);
+  background: rgba(122, 210, 194, 0.35);
+}
+
+.researchProgressShell {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 1rem;
+}
+
+.researchProgressShell p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.researchProgressTrack {
+  height: 0.34rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.researchProgressTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(122, 210, 194, 0.85), rgba(248, 200, 111, 0.9));
+  transition: width 420ms ease;
 }
 
 .researchMetricGrid,
@@ -1133,12 +1285,158 @@
   margin: 1rem 0;
 }
 
+.researchSignalGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 0 0 1rem;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchCoverageRail {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.18fr) minmax(10rem, 1fr);
+  gap: 0.8rem 1rem;
+  align-items: center;
+  margin: 0 0 1rem;
+  padding: 0.95rem 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchCoverageRail > div:first-child {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.researchCoverageRail span,
+.researchCoverageSummary span,
+.researchAuditBar span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.researchCoverageRail strong {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.researchCoverageRail p {
+  grid-column: 2;
+  margin: -0.42rem 0 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.researchCoverageTrack {
+  height: 0.42rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.researchCoverageTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(255, 180, 84, 0.9);
+  transition: width 420ms ease;
+}
+
+.researchCoverageRail[data-tone="good"] .researchCoverageTrack span,
+.researchCoverageRail[data-tone="good"] strong {
+  color: var(--good);
+}
+
+.researchCoverageRail[data-tone="good"] .researchCoverageTrack span {
+  background: rgba(82, 208, 163, 0.9);
+}
+
+.researchCoverageRail[data-tone="warn"] strong {
+  color: var(--warn);
+}
+
+.researchCoverageRail[data-tone="bad"] .researchCoverageTrack span,
+.researchCoverageRail[data-tone="bad"] strong {
+  color: var(--bad);
+}
+
+.researchCoverageRail[data-tone="bad"] .researchCoverageTrack span {
+  background: rgba(255, 124, 114, 0.9);
+}
+
+.researchSignalGrid div {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.85rem 0.9rem;
+}
+
+.researchSignalGrid div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchSignalGrid span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.researchSignalGrid strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.98rem;
+}
+
 .researchScenarioGrid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .researchDetailGrid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.researchCoverageSummary,
+.researchAuditBar {
+  display: grid;
+  gap: 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchCoverageSummary {
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.2fr) minmax(0, 0.7fr);
+}
+
+.researchAuditBar {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.researchCoverageSummary div,
+.researchAuditBar div {
+  min-width: 0;
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.9rem;
+}
+
+.researchCoverageSummary div + div,
+.researchAuditBar div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchCoverageSummary strong,
+.researchAuditBar strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.12rem;
+  line-height: 1.05;
+}
+
+.researchCoverageSummary small {
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .researchMetric,
@@ -1148,7 +1446,7 @@
   gap: 0.35rem;
   min-width: 0;
   padding: 1rem;
-  border-radius: 20px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -1157,7 +1455,7 @@
 .researchScenario span {
   color: var(--muted);
   font-size: 0.76rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -1165,7 +1463,7 @@
 .researchScenario strong {
   min-width: 0;
   overflow-wrap: anywhere;
-  font-size: clamp(1.05rem, 2vw, 1.55rem);
+  font-size: 1.24rem;
   line-height: 1.05;
 }
 
@@ -1193,6 +1491,65 @@
 
 .researchOutput {
   min-height: 12rem;
+  min-width: 0;
+}
+
+.researchOutputShell {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.28fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.researchEvidenceSpine {
+  position: sticky;
+  top: 1rem;
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.9rem 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.researchEvidenceSpine > span,
+.researchEvidenceSpine dt {
+  color: var(--muted);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.researchEvidenceSpine strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.35rem;
+  line-height: 1.05;
+}
+
+.researchEvidenceSpine p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.researchEvidenceSpine dl {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.35rem 0 0;
+}
+
+.researchEvidenceSpine div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.55rem;
+}
+
+.researchEvidenceSpine dd {
+  margin: 0;
+  text-align: right;
+  color: var(--text);
 }
 
 .researchMemo {
@@ -1201,7 +1558,7 @@
   overflow: auto;
   margin: 0;
   padding: 1rem;
-  border-radius: 20px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(3, 8, 16, 0.62);
   color: rgba(247, 242, 232, 0.84);
@@ -1211,7 +1568,7 @@
 }
 
 .researchTable {
-  border-radius: 20px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
   background: rgba(255, 255, 255, 0.025);
@@ -1265,6 +1622,33 @@
   border-color: rgba(255, 124, 114, 0.2);
 }
 
+.researchTabs .rangeButton {
+  gap: 0.45rem;
+}
+
+.researchTabs .rangeButton small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  padding: 0 0.3rem;
+  background: rgba(122, 210, 194, 0.12);
+  color: var(--text);
+  font-size: 0.72rem;
+}
+
+@keyframes researchPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 5px rgba(9, 18, 31, 0.9), 0 0 0 0 rgba(255, 180, 84, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(9, 18, 31, 0.9), 0 0 0 10px rgba(255, 180, 84, 0);
+  }
+}
+
 @keyframes workspaceFade {
   from {
     opacity: 0;
@@ -1293,13 +1677,39 @@
   .metricsGrid,
   .phantomSurface,
   .phantomResultBand,
+  .researchCommandSurface,
   .researchMetricGrid,
   .researchScenarioGrid,
   .researchDetailGrid,
+  .researchSignalGrid,
+  .researchCoverageRail,
+  .researchCoverageSummary,
+  .researchAuditBar,
+  .researchOutputShell,
   .balanceGrid,
   .balanceReserveGrid,
   .balanceSummary {
     grid-template-columns: 1fr;
+  }
+
+  .researchEvidenceSpine {
+    position: static;
+  }
+
+  .researchSignalGrid div + div {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .researchCoverageRail p {
+    grid-column: 1;
+    margin: -0.2rem 0 0;
+  }
+
+  .researchCoverageSummary div + div,
+  .researchAuditBar div + div {
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
   }
 
   .header {

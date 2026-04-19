@@ -4,6 +4,7 @@ import json
 import os
 import threading
 import time
+import uuid
 import webbrowser
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -77,6 +78,8 @@ class DashboardService:
         self.dashboard_settings = dashboard_settings
         self._lock = threading.Lock()
         self._refreshing = False
+        self._research_jobs: dict[str, dict] = {}
+        self._research_jobs_lock = threading.Lock()
         self._started_at = time.monotonic()
         self._artifact_only = artifact_only_mode()
 
@@ -246,6 +249,55 @@ class DashboardService:
             sec_client=SECEdgarClient.from_env(self.paths.cache_root),
         )
 
+    def start_equity_research_job(self, ticker: str, mode: str = "quick") -> dict:
+        """Start a background research run and return a pollable job record."""
+        job_id = f"research-{uuid.uuid4()}"
+        report_mode = "full" if mode == "full" else "quick"
+        job = {
+            "ok": True,
+            "run_id": job_id,
+            "ticker": ticker,
+            "mode": report_mode,
+            "status": "running",
+            "started_at": datetime.now(tz=UTC).isoformat(),
+            "completed_at": None,
+            "error": None,
+        }
+        with self._research_jobs_lock:
+            self._research_jobs[job_id] = dict(job)
+
+        def _run() -> None:
+            try:
+                payload = self.equity_research(ticker, mode=report_mode)
+                with self._research_jobs_lock:
+                    self._research_jobs[job_id].update(
+                        {
+                            "status": "succeeded",
+                            "completed_at": datetime.now(tz=UTC).isoformat(),
+                            "payload": payload,
+                        }
+                    )
+            except Exception as exc:  # noqa: BLE001
+                with self._research_jobs_lock:
+                    self._research_jobs[job_id].update(
+                        {
+                            "status": "failed",
+                            "completed_at": datetime.now(tz=UTC).isoformat(),
+                            "error": str(exc),
+                        }
+                    )
+
+        threading.Thread(target=_run, name=f"equity-research-{job_id}", daemon=True).start()
+        return job
+
+    def equity_research_job(self, job_id: str) -> dict:
+        """Return the current state of a background research run."""
+        with self._research_jobs_lock:
+            job = self._research_jobs.get(str(job_id or ""))
+            if not job:
+                return {"ok": False, "status": "not_found", "error": "Research job not found."}
+            return dict(job)
+
     def refresh(self) -> dict:
         """Trigger a background refresh and return the latest snapshot immediately."""
         if self._artifact_only:
@@ -270,15 +322,18 @@ def _contract_headers(bls_state: dict) -> dict[str, str]:
     uncertainty = bls_state.get("uncertainty", {}) if bls_state else {}
     metrics = uncertainty.get("probability_package_metrics") or []
     recoverability_metric = next((row for row in metrics if row.get("target") == "portfolio_recoverability"), metrics[0] if metrics else {})
+    fold_count = recoverability_metric.get("fold_count")
+    brier_oof = recoverability_metric.get("brier_oof_calibrated")
+    sample_count = recoverability_metric.get("sample_count")
     return {
         "X-BLS-Contract-Version": str(bls_state.get("contract_version") or ""),
         "X-BLS-Model-Version": str(bls_state.get("model_version") or ""),
         "X-BLS-Contract-Status": str(bls_state.get("status", {}).get("contract_status") or ""),
         "X-BLS-Probability-Source": str(probabilistic.get("source") or ""),
-        "X-BLS-Model-Package": str(probabilistic.get("model_package_version") or ""),
-        "X-BLS-Fold-Count": str(recoverability_metric.get("fold_count") or ""),
-        "X-BLS-Brier-OOF": str(recoverability_metric.get("brier_oof_calibrated") or ""),
-        "X-BLS-Sample-Count": str(recoverability_metric.get("sample_count") or ""),
+        "X-BLS-Model-Package": str(probabilistic.get("model_package_version") or "unavailable"),
+        "X-BLS-Fold-Count": str(fold_count if fold_count is not None else 0),
+        "X-BLS-Brier-OOF": str(brier_oof if brier_oof is not None else "unavailable"),
+        "X-BLS-Sample-Count": str(sample_count if sample_count is not None else 0),
     }
 
 
@@ -483,6 +538,11 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
             if parsed.path == "/api/snapshot":
                 self._send_json(service.snapshot())
                 return
+            if parsed.path.startswith("/api/equity-research/jobs/"):
+                job_id = unquote(parsed.path.rsplit("/", 1)[-1])
+                job = service.equity_research_job(job_id)
+                self._send_json(job, status=404 if job.get("status") == "not_found" else 200)
+                return
             if parsed.path == "/api/equity-research" or parsed.path.startswith("/api/equity-research/"):
                 params = parse_qs(parsed.query)
                 path_ticker = ""
@@ -532,6 +592,18 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
 
         def do_POST(self) -> None:  # noqa: N802
             parsed = urlparse(self.path)
+            if parsed.path == "/api/equity-research/jobs":
+                content_length = int(self.headers.get("Content-Length") or 0)
+                raw_body = self.rfile.read(content_length) if content_length > 0 else b"{}"
+                try:
+                    payload = json.loads(raw_body.decode("utf-8") or "{}")
+                except json.JSONDecodeError:
+                    self._send_json({"ok": False, "error": "Invalid JSON body."}, status=400)
+                    return
+                ticker = str(payload.get("ticker") or "").strip()
+                mode = str(payload.get("mode") or "quick").strip()
+                self._send_json(service.start_equity_research_job(ticker, mode=mode), status=202)
+                return
             if parsed.path != "/api/refresh":
                 self.send_error(HTTPStatus.NOT_FOUND)
                 return
