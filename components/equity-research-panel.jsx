@@ -27,6 +27,7 @@ function cleanTicker(value) {
 }
 
 function compactCurrency(value) {
+  if (value === null || value === undefined || value === "") return "-";
   const number = Number(value);
   if (!Number.isFinite(number)) return "-";
   if (Math.abs(number) >= 1_000_000_000) return `${formatCurrency(number / 1_000_000_000)}B`;
@@ -47,6 +48,46 @@ function coverageTone(coverage) {
   if (status === "needs_attention" || score < 60) return "bad";
   if (status === "partial" || score < 85) return "warn";
   return "neutral";
+}
+
+function humanizeToken(value) {
+  const text = String(value || "")
+    .replace(/[_\-]+/g, " ")
+    .trim();
+  if (!text) return "-";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function humanizeMetric(value) {
+  const labels = {
+    latest_revenue: "revenue",
+    latest_diluted_shares: "diluted shares",
+    latest_free_cash_flow: "free cash flow",
+    revenue_cagr_5y: "5y revenue CAGR",
+    gross_margin: "gross margin",
+    operating_margin: "operating margin",
+    fcf_margin: "FCF margin",
+    base_intrinsic_value_per_share: "base value/share",
+    reverse_dcf_implied_revenue_cagr: "reverse DCF growth",
+    latest_sec_filing: "latest SEC filing",
+  };
+  return labels[value] || String(value || "").replace(/[_\-]+/g, " ");
+}
+
+function summarizeGaps(metrics, limit = 4) {
+  const list = safeList(metrics).map(humanizeMetric);
+  if (!list.length) return "No required evidence gaps.";
+  const visible = list.slice(0, limit).join(", ");
+  const remaining = list.length - limit;
+  return remaining > 0 ? `${visible}, +${remaining} more` : visible;
+}
+
+function auditTone(status, coverage) {
+  const value = String(status || "").toLowerCase();
+  if (value === "pass") return "good";
+  if (value === "needs_attention") return "bad";
+  if (value === "partial") return "warn";
+  return coverageTone(coverage);
 }
 
 function ResearchMetric({ label, value, detail, tone = "neutral" }) {
@@ -115,11 +156,37 @@ function artifactLabel(filename) {
   return filename;
 }
 
+function renderMarkdownMemo(markdown) {
+  const lines = String(markdown || "No report text was returned.").split(/\r?\n/);
+  return lines.map((line, index) => {
+    const key = `${index}-${line.slice(0, 12)}`;
+    if (!line.trim()) return <div className={styles.researchMemoBreak} key={key} />;
+    if (line.startsWith("# ")) return <h3 key={key}>{line.replace(/^#\s+/, "")}</h3>;
+    if (line.startsWith("## ")) return <h4 key={key}>{line.replace(/^##\s+/, "")}</h4>;
+    if (line.startsWith("- ")) return <p className={styles.researchMemoBullet} key={key}>{line.replace(/^-\s+/, "")}</p>;
+    return <p key={key}>{line}</p>;
+  });
+}
+
 function renderMemo(research) {
   if (!research) {
     return <p className={styles.emptyCopy}>Run a ticker to generate a sourced memo, valuation, sources ledger, and audit file.</p>;
   }
-  return <pre className={styles.researchMemo}>{research.report_markdown || "No report text was returned."}</pre>;
+  const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
+  const findings = safeList(research?.audit?.findings);
+  const degraded = coverageTone(coverage) === "bad" || research?.audit?.status === "needs_attention";
+  return (
+    <div className={styles.researchMemoReader} data-state={degraded ? "degraded" : "ready"}>
+      {degraded ? (
+        <div className={styles.researchAttentionCallout}>
+          <span>Needs source-backed statements</span>
+          <strong>{summarizeGaps(coverage.missing_expected_metrics, 3)}</strong>
+          <p>{findings[0]?.message || coverage.statement_authority || "The run completed, but the evidence ledger is not strong enough for a valuation memo."}</p>
+        </div>
+      ) : null}
+      {renderMarkdownMemo(research.report_markdown)}
+    </div>
+  );
 }
 
 function renderValuation(research) {
@@ -199,7 +266,7 @@ function renderEvidence(research) {
         <div>
           <span>Gaps</span>
           <strong>{missingMetrics.length}</strong>
-          <small>{missingMetrics.slice(0, 3).join(", ") || "No required evidence gaps."}</small>
+          <small>{summarizeGaps(missingMetrics, 3)}</small>
         </div>
       </div>
 
@@ -440,12 +507,16 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
   const baseScenario = safeList(research?.valuation?.scenarios).find((scenario) => scenario.name === "base");
   const downloads = safeList(research?.downloads);
   const sourceRecords = safeList(research?.sources?.records);
+  const annualRows = safeList(research?.financials?.annual);
   const deltaChanges = safeList(research?.history?.delta?.changes);
   const storedRunCount = Number(research?.history?.run_count || 0);
   const hasXlsx = downloads.some((artifact) => String(artifact.filename || "").endsWith(".xlsx"));
   const progressWidth = `${Math.max(0, Math.min(100, runProgress))}%`;
   const activeSource = sourceRecords.find((source) => source.status === "ok") || sourceRecords[0];
   const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
+  const hasStatementRows = annualRows.length > 0 && Number.isFinite(Number(ratios.latest_revenue));
+  const statementProvider = hasStatementRows ? coverage.statement_source_provider || "fmp" : null;
+  const sourceSpineLabel = statementProvider || (activeSource?.provider ? `${activeSource.provider} profile only` : "No source yet");
   const coverageWidth = `${Math.max(0, Math.min(100, Number(coverage.score) || 0))}%`;
   const missingRequiredMetrics = safeList(coverage.missing_expected_metrics);
   const coverageDetail =
@@ -557,8 +628,8 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         <ResearchMetric
           detail={`${coverageDetail}, ${auditFindings.length} audit finding${auditFindings.length === 1 ? "" : "s"}.`}
           label="Audit"
-          tone={statusTone(research?.audit?.status)}
-          value={research?.audit?.status || "Waiting"}
+          tone={auditTone(research?.audit?.status, coverage)}
+          value={research ? humanizeToken(research?.audit?.status) : "Waiting"}
         />
       </div>
 
@@ -571,7 +642,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
           <div className={styles.researchCoverageTrack} aria-hidden="true">
             <span style={{ width: coverageWidth }} />
           </div>
-          <p>{missingRequiredMetrics.length ? `Open gaps: ${missingRequiredMetrics.slice(0, 4).join(", ")}` : coverage.statement_authority || "Ledger coverage is complete for required metrics."}</p>
+          <p>{missingRequiredMetrics.length ? `Open gaps: ${summarizeGaps(missingRequiredMetrics, 4)}` : coverage.statement_authority || "Ledger coverage is complete for required metrics."}</p>
         </div>
       ) : null}
 
@@ -582,7 +653,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         </div>
         <div>
           <span>Source spine</span>
-          <strong>{activeSource?.provider || "No source yet"}</strong>
+          <strong>{sourceSpineLabel}</strong>
         </div>
         <div>
           <span>Delta memory</span>
@@ -634,7 +705,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
           <dl>
             <div>
               <dt>Statements</dt>
-              <dd>{coverage.statement_source_provider || (sourceRecords.some((source) => source.source_id === "fmp:income:annual") ? "FMP" : "-")}</dd>
+              <dd>{statementProvider ? statementProvider.toUpperCase() : "-"}</dd>
             </div>
             <div>
               <dt>Filings</dt>

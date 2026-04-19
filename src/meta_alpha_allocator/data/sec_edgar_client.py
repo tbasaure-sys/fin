@@ -84,6 +84,12 @@ class SECEdgarClient:
             return {}
         return self._get_json(f"{SEC_DATA_BASE_URL}/submissions/CIK{cik}.json", "submissions", f"CIK{cik}")
 
+    def get_company_facts(self, ticker: str) -> dict[str, Any]:
+        cik = self.lookup_cik(ticker)
+        if not cik:
+            return {}
+        return self._get_json(f"{SEC_DATA_BASE_URL}/api/xbrl/companyfacts/CIK{cik}.json", "companyfacts", f"CIK{cik}")
+
     def get_recent_filings(self, ticker: str, *, forms: tuple[str, ...] = ("10-K", "10-Q", "20-F", "40-F"), limit: int = 8) -> list[dict[str, Any]]:
         submissions = self.get_submissions(ticker)
         recent = submissions.get("filings", {}).get("recent", {}) if isinstance(submissions, dict) else {}

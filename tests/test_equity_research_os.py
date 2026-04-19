@@ -123,6 +123,67 @@ class MockSECClient:
         ]
 
 
+class EmptyStatementFMPClient(MockFMPClient):
+    def get_income_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
+        return pd.DataFrame()
+
+    def get_cash_flow_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
+        return pd.DataFrame()
+
+    def get_balance_sheet_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
+        return pd.DataFrame()
+
+
+def _sec_annual_facts(values: dict[int, float], *, unit: str = "USD") -> dict:
+    return {
+        "units": {
+            unit: [
+                {
+                    "end": f"{year}-12-31",
+                    "fy": year,
+                    "fp": "FY",
+                    "form": "10-K",
+                    "filed": f"{year + 1}-02-15",
+                    "val": value,
+                }
+                for year, value in values.items()
+            ]
+        }
+    }
+
+
+class SECCompanyFactsFallbackClient(MockSECClient):
+    def get_company_facts(self, symbol: str) -> dict:
+        return {
+            "facts": {
+                "us-gaap": {
+                    "RevenueFromContractWithCustomerExcludingAssessedTax": _sec_annual_facts({2021: 1000.0, 2022: 1120.0, 2023: 1280.0, 2024: 1500.0}),
+                    "GrossProfit": _sec_annual_facts({2021: 500.0, 2022: 570.0, 2023: 660.0, 2024: 795.0}),
+                    "CostOfRevenue": _sec_annual_facts({2021: 500.0, 2022: 550.0, 2023: 620.0, 2024: 705.0}),
+                    "OperatingIncomeLoss": _sec_annual_facts({2021: 220.0, 2022: 250.0, 2023: 300.0, 2024: 375.0}),
+                    "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest": _sec_annual_facts(
+                        {2021: 210.0, 2022: 240.0, 2023: 290.0, 2024: 360.0}
+                    ),
+                    "IncomeTaxExpenseBenefit": _sec_annual_facts({2021: 42.0, 2022: 48.0, 2023: 58.0, 2024: 72.0}),
+                    "NetIncomeLoss": _sec_annual_facts({2021: 168.0, 2022: 192.0, 2023: 232.0, 2024: 288.0}),
+                    "WeightedAverageNumberOfDilutedSharesOutstanding": _sec_annual_facts(
+                        {2021: 10.0, 2022: 10.1, 2023: 10.2, 2024: 10.0},
+                        unit="shares",
+                    ),
+                    "NetCashProvidedByUsedInOperatingActivities": _sec_annual_facts({2021: 210.0, 2022: 250.0, 2023: 310.0, 2024: 390.0}),
+                    "PaymentsToAcquirePropertyPlantAndEquipment": _sec_annual_facts({2021: 60.0, 2022: 65.0, 2023: 70.0, 2024: 80.0}),
+                    "DepreciationDepletionAndAmortization": _sec_annual_facts({2021: 60.0, 2022: 65.0, 2023: 70.0, 2024: 80.0}),
+                    "ShareBasedCompensation": _sec_annual_facts({2021: 20.0, 2022: 22.0, 2023: 24.0, 2024: 26.0}),
+                    "CashAndCashEquivalentsAtCarryingValue": _sec_annual_facts({2021: 120.0, 2022: 140.0, 2023: 170.0, 2024: 220.0}),
+                    "LongTermDebtAndFinanceLeaseObligationsCurrent": _sec_annual_facts({2021: 30.0, 2022: 35.0, 2023: 40.0, 2024: 45.0}),
+                    "LongTermDebtAndFinanceLeaseObligationsNoncurrent": _sec_annual_facts({2021: 150.0, 2022: 150.0, 2023: 150.0, 2024: 155.0}),
+                    "StockholdersEquity": _sec_annual_facts({2021: 900.0, 2022: 980.0, 2023: 1070.0, 2024: 1180.0}),
+                    "Assets": _sec_annual_facts({2021: 1250.0, 2022: 1360.0, 2023: 1480.0, 2024: 1600.0}),
+                }
+            }
+        }
+
+
 class SplitDebtFMPClient(MockFMPClient):
     def get_balance_sheet_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
         return pd.DataFrame(
@@ -259,6 +320,32 @@ def test_equity_research_bundle_sums_short_and_long_debt_when_total_debt_missing
     assert latest["long_term_debt"] == 155.0
     assert latest["total_debt"] == 200.0
     assert bundle["financials"]["ratios"]["net_debt"] == -20.0
+
+
+def test_equity_research_bundle_uses_sec_companyfacts_when_fmp_statements_missing() -> None:
+    bundle = build_equity_research_bundle(
+        "EXM",
+        mode="full",
+        fmp_client=EmptyStatementFMPClient(),
+        sec_client=SECCompanyFactsFallbackClient(),
+    )
+
+    assert bundle["ok"] is True
+    assert len(bundle["financials"]["annual"]) == 4
+    latest = bundle["financials"]["annual"][-1]
+    assert latest["revenue"] == 1500.0
+    assert latest["short_term_debt"] == 45.0
+    assert latest["long_term_debt"] == 155.0
+    assert latest["total_debt"] == 200.0
+    assert latest["free_cash_flow"] == 310.0
+    assert bundle["valuation"]["available"] is True
+    assert bundle["artifacts"]["model_xlsx"] is True
+    assert bundle["sources"]["coverage"]["statement_source_provider"] == "sec-edgar"
+    assert bundle["sources"]["coverage"]["statement_authority"] == "SEC Company Facts/XBRL normalized statements"
+    assert bundle["sources"]["coverage"]["xbrl_statement_facts_available"] is True
+    assert any(source["source_id"] == "sec:companyfacts:income" and source["status"] == "ok" for source in bundle["sources"]["records"])
+    assert any(point["source_id"] == "sec:companyfacts:income" for point in bundle["sources"]["data_points"])
+    assert any(point["source_id"] == "sec:companyfacts:balance" and point["metric"].endswith(".total_debt") for point in bundle["sources"]["data_points"])
 
 
 def test_equity_research_bundle_refuses_to_invent_without_provider() -> None:

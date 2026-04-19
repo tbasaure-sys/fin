@@ -283,6 +283,59 @@ EXPECTED_EVIDENCE_METRICS = [
     "latest_sec_filing",
 ]
 
+DEFAULT_STATEMENT_SOURCE_IDS = {
+    "income": "fmp:income:annual",
+    "cash_flow": "fmp:cash-flow:annual",
+    "balance": "fmp:balance:annual",
+}
+
+SEC_STATEMENT_SOURCE_IDS = {
+    "income": "sec:companyfacts:income",
+    "cash_flow": "sec:companyfacts:cash-flow",
+    "balance": "sec:companyfacts:balance",
+}
+
+SEC_ANNUAL_FORMS = {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"}
+
+SEC_CONCEPTS = {
+    "income": {
+        "revenue": ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"],
+        "grossProfit": ["GrossProfit"],
+        "costOfRevenue": ["CostOfRevenue", "CostOfGoodsAndServicesSold"],
+        "operatingIncome": ["OperatingIncomeLoss"],
+        "incomeBeforeTax": [
+            "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
+            "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments",
+        ],
+        "incomeTaxExpense": ["IncomeTaxExpenseBenefit"],
+        "netIncome": ["NetIncomeLoss"],
+        "weightedAverageShsOutDil": ["WeightedAverageNumberOfDilutedSharesOutstanding"],
+    },
+    "cash_flow": {
+        "netCashProvidedByOperatingActivities": [
+            "NetCashProvidedByUsedInOperatingActivities",
+            "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+        ],
+        "capitalExpenditure": ["PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsToAcquireProductiveAssets"],
+        "depreciationAndAmortization": ["DepreciationDepletionAndAmortization", "DepreciationDepletionAndAmortizationExpense"],
+        "stockBasedCompensation": ["ShareBasedCompensation"],
+        "commonStockRepurchased": ["PaymentsForRepurchaseOfCommonStock", "PaymentsForRepurchaseOfEquity"],
+    },
+    "balance": {
+        "cashAndCashEquivalents": ["CashAndCashEquivalentsAtCarryingValue", "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"],
+        "totalDebt": ["LongTermDebtAndFinanceLeaseObligations", "LongTermDebt"],
+        "shortTermDebt": ["LongTermDebtAndFinanceLeaseObligationsCurrent", "LongTermDebtCurrent", "ShortTermBorrowings", "ShortTermDebt"],
+        "longTermDebt": ["LongTermDebtAndFinanceLeaseObligationsNoncurrent", "LongTermDebtNoncurrent"],
+        "totalStockholdersEquity": ["StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"],
+        "totalAssets": ["Assets"],
+        "netReceivables": ["AccountsReceivableNetCurrent", "ReceivablesNetCurrent"],
+        "inventory": ["InventoryNet"],
+        "goodwillAndIntangibleAssets": ["GoodwillAndIntangibleAssetsNet"],
+        "goodwill": ["Goodwill"],
+        "intangibleAssets": ["FiniteLivedIntangibleAssetsNet", "IntangibleAssetsNetExcludingGoodwill"],
+    },
+}
+
 
 def _has_value(value: Any) -> bool:
     if value is None:
@@ -294,7 +347,8 @@ def _has_value(value: Any) -> bool:
     return True
 
 
-def _financial_source_for_field(field: str) -> str | None:
+def _financial_source_for_field(field: str, source_ids: dict[str, str] | None = None) -> str | None:
+    source_ids = source_ids or DEFAULT_STATEMENT_SOURCE_IDS
     income_fields = {
         "revenue",
         "gross_profit",
@@ -325,11 +379,11 @@ def _financial_source_for_field(field: str) -> str | None:
         "goodwill_and_intangibles",
     }
     if field in income_fields:
-        return "fmp:income:annual"
+        return source_ids.get("income")
     if field in cash_flow_fields:
-        return "fmp:cash-flow:annual"
+        return source_ids.get("cash_flow")
     if field in balance_fields:
-        return "fmp:balance:annual"
+        return source_ids.get("balance")
     return None
 
 
@@ -350,14 +404,14 @@ def _financial_formula_for_field(field: str) -> str | None:
     return formulas.get(field)
 
 
-def _financial_data_points(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _financial_data_points(rows: list[dict[str, Any]], source_ids: dict[str, str] | None = None) -> list[dict[str, Any]]:
     ledger: list[dict[str, Any]] = []
     for row in rows:
         period = row.get("fiscal_year") or row.get("date") or "unknown"
         for field, value in row.items():
             if field in {"date", "fiscal_year"} or not _has_value(value):
                 continue
-            source_id = _financial_source_for_field(field)
+            source_id = _financial_source_for_field(field, source_ids)
             formula = _financial_formula_for_field(field)
             if source_id:
                 ledger.append(_data_point(f"financials.annual.{period}.{field}", value, "sourced_fact", source_id))
@@ -401,6 +455,7 @@ def _valuation_data_points(valuation: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[dict[str, Any]]) -> dict[str, Any]:
     source_status = {str(source.get("source_id")): source.get("status") for source in sources if source.get("source_id")}
+    statement_source_ids = set(DEFAULT_STATEMENT_SOURCE_IDS.values()) | set(SEC_STATEMENT_SOURCE_IDS.values())
     source_backed = [
         point
         for point in data_points
@@ -422,13 +477,30 @@ def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[di
     covered_expected = len(EXPECTED_EVIDENCE_METRICS) - len(missing_expected)
     score = round((covered_expected / len(EXPECTED_EVIDENCE_METRICS)) * 100) if EXPECTED_EVIDENCE_METRICS else 0
     sec_metadata_ok = source_status.get("sec:submissions") == "ok"
-    fmp_ok_sources = [source for source in sources if source.get("provider") == "fmp" and source.get("status") == "ok"]
-    if not fmp_ok_sources:
+    statement_sources = [
+        source
+        for source in sources
+        if source.get("source_id") in statement_source_ids
+        and source.get("status") == "ok"
+        and int(source.get("row_count") or 0) > 0
+    ]
+    statement_providers = {str(source.get("provider")) for source in statement_sources if source.get("provider")}
+    xbrl_statement_facts_available = "sec-edgar" in statement_providers
+    if not statement_sources:
         statement_authority = "No source-backed normalized statements"
+        statement_source_provider = None
+    elif statement_providers == {"sec-edgar"}:
+        statement_authority = "SEC Company Facts/XBRL normalized statements"
+        statement_source_provider = "sec-edgar"
+    elif "sec-edgar" in statement_providers:
+        statement_authority = "Mixed FMP and SEC Company Facts normalized statements"
+        statement_source_provider = "mixed"
     elif sec_metadata_ok:
         statement_authority = "FMP normalized statements; SEC metadata only"
+        statement_source_provider = "fmp"
     else:
         statement_authority = "FMP normalized statements without SEC metadata cross-check"
+        statement_source_provider = "fmp"
     status = "pass" if score >= 85 and not sourced_missing and not formula_missing else "partial"
     if score < 60 or sourced_missing:
         status = "needs_attention"
@@ -450,9 +522,10 @@ def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[di
         "error_source_records": len([source for source in sources if source.get("status") == "error"]),
         "unavailable_source_records": len([source for source in sources if source.get("status") == "unavailable"]),
         "sec_metadata_available": sec_metadata_ok,
-        "statement_source_provider": "fmp" if fmp_ok_sources else None,
+        "statement_source_provider": statement_source_provider,
         "statement_authority": statement_authority,
-        "xbrl_statement_facts_available": False,
+        "statement_source_ids": [str(source.get("source_id")) for source in statement_sources if source.get("source_id")],
+        "xbrl_statement_facts_available": xbrl_statement_facts_available,
     }
 
 
@@ -532,6 +605,140 @@ def _load_sec_filings(ticker: str, sec_client: SECEdgarClient | None) -> tuple[l
         return filings, [_source_record(source_id, "sec-edgar", endpoint, "ok", row_count=len(filings))]
     except Exception as exc:  # noqa: BLE001
         return [], [_source_record(source_id, "sec-edgar", endpoint, "error", error=str(exc))]
+
+
+def _sec_unit_priority(target: str) -> tuple[str, ...]:
+    return ("shares",) if target == "weightedAverageShsOutDil" else ("USD",)
+
+
+def _sec_us_gaap_facts(company_facts: dict[str, Any]) -> dict[str, Any]:
+    facts = company_facts.get("facts") if isinstance(company_facts, dict) else {}
+    us_gaap = facts.get("us-gaap") if isinstance(facts, dict) else {}
+    return us_gaap if isinstance(us_gaap, dict) else {}
+
+
+def _sec_concept_values_by_date(
+    company_facts: dict[str, Any],
+    concept_names: list[str],
+    *,
+    unit_priority: tuple[str, ...],
+) -> dict[str, dict[str, Any]]:
+    us_gaap = _sec_us_gaap_facts(company_facts)
+    values: dict[str, dict[str, Any]] = {}
+    for concept in concept_names:
+        concept_payload = us_gaap.get(concept) or {}
+        units = concept_payload.get("units") if isinstance(concept_payload, dict) else {}
+        if not isinstance(units, dict):
+            continue
+        unit = next((candidate for candidate in unit_priority if candidate in units), None)
+        if unit is None:
+            continue
+        for fact in units.get(unit) or []:
+            if not isinstance(fact, dict):
+                continue
+            form = str(fact.get("form") or "").upper()
+            if form not in SEC_ANNUAL_FORMS:
+                continue
+            fiscal_period = str(fact.get("fp") or "").upper()
+            if fiscal_period and fiscal_period != "FY":
+                continue
+            end_date = str(fact.get("end") or "").strip()
+            value = _safe_float(fact.get("val"))
+            if not end_date or value is None:
+                continue
+            filed = str(fact.get("filed") or "")
+            existing = values.get(end_date)
+            if existing is None or (existing.get("concept") == concept and filed >= str(existing.get("filed") or "")):
+                values[end_date] = {
+                    "value": value,
+                    "concept": concept,
+                    "unit": unit,
+                    "filed": filed,
+                    "form": form,
+                    "fy": fact.get("fy"),
+                }
+    return values
+
+
+def _sec_company_facts_frames(company_facts: dict[str, Any]) -> tuple[dict[str, pd.DataFrame], dict[str, list[str]]]:
+    frames: dict[str, pd.DataFrame] = {}
+    targets_covered: dict[str, list[str]] = {}
+    for statement_key, concept_map in SEC_CONCEPTS.items():
+        rows_by_date: dict[str, dict[str, Any]] = {}
+        covered: list[str] = []
+        for target, concepts in concept_map.items():
+            values_by_date = _sec_concept_values_by_date(
+                company_facts,
+                concepts,
+                unit_priority=_sec_unit_priority(target),
+            )
+            if values_by_date:
+                covered.append(target)
+            for end_date, fact in values_by_date.items():
+                rows_by_date.setdefault(end_date, {"date": end_date})
+                rows_by_date[end_date][target] = fact["value"]
+        if statement_key == "balance":
+            for row in rows_by_date.values():
+                if row.get("goodwillAndIntangibleAssets") is None:
+                    goodwill = _safe_float(row.get("goodwill"))
+                    intangible_assets = _safe_float(row.get("intangibleAssets"))
+                    if goodwill is not None or intangible_assets is not None:
+                        row["goodwillAndIntangibleAssets"] = (goodwill or 0.0) + (intangible_assets or 0.0)
+                row.pop("goodwill", None)
+                row.pop("intangibleAssets", None)
+        frame = pd.DataFrame([rows_by_date[date] for date in sorted(rows_by_date)])
+        frames[statement_key] = frame
+        targets_covered[statement_key] = sorted(set(covered))
+    return frames, targets_covered
+
+
+def _load_sec_company_facts(ticker: str, sec_client: SECEdgarClient | None) -> tuple[dict[str, pd.DataFrame], list[dict[str, Any]]]:
+    frames = {
+        "income": pd.DataFrame(),
+        "cash_flow": pd.DataFrame(),
+        "balance": pd.DataFrame(),
+    }
+    endpoint = f"api/xbrl/companyfacts/CIK{{resolved_from_{ticker}}}.json"
+    if sec_client is None:
+        return frames, [
+            _source_record(
+                source_id,
+                "sec-edgar",
+                "env:SEC_USER_AGENT",
+                "unavailable",
+                error="SEC_USER_AGENT is not configured; XBRL company facts were not requested.",
+            )
+            for source_id in SEC_STATEMENT_SOURCE_IDS.values()
+        ]
+    try:
+        company_facts = sec_client.get_company_facts(ticker)
+        if not company_facts:
+            return frames, [
+                _source_record(source_id, "sec-edgar", endpoint, "unavailable", row_count=0, error="No SEC company facts payload was returned.")
+                for source_id in SEC_STATEMENT_SOURCE_IDS.values()
+            ]
+        frames, targets_covered = _sec_company_facts_frames(company_facts)
+        sources: list[dict[str, Any]] = []
+        for statement_key, source_id in SEC_STATEMENT_SOURCE_IDS.items():
+            frame = frames.get(statement_key, pd.DataFrame())
+            status = "ok" if not frame.empty else "unavailable"
+            sources.append(
+                _source_record(
+                    source_id,
+                    "sec-edgar",
+                    endpoint,
+                    status,
+                    row_count=int(len(frame)),
+                    targets_covered=targets_covered.get(statement_key, []),
+                    error=None if status == "ok" else "No annual SEC facts mapped to this normalized statement.",
+                )
+            )
+        return frames, sources
+    except Exception as exc:  # noqa: BLE001
+        return frames, [
+            _source_record(source_id, "sec-edgar", endpoint, "error", error=str(exc))
+            for source_id in SEC_STATEMENT_SOURCE_IDS.values()
+        ]
 
 
 class PathConfigLike:
@@ -1244,6 +1451,12 @@ def _report_markdown(
     findings = audit.get("findings") or [{"severity": "info", "message": "No high-severity audit findings."}]
     coverage = audit.get("coverage") or {}
     coverage_line = f"{coverage.get('score', 0)}% ({coverage.get('covered_expected_metrics', 0)}/{coverage.get('expected_metrics', 0)} required metrics)"
+    valuation_intro = (
+        "The deterministic engine calculates bear, base, and bull DCF cases from sourced statements and explicit assumptions. The LLM layer should only interpret these outputs after the audit passes."
+        if valuation.get("available")
+        else "Valuation was not produced because required source-backed financial inputs are missing. No fair value, upside, or reverse DCF conclusion was inferred."
+    )
+    statement_authority = coverage.get("statement_authority", "not assessed")
     filing_lines = [
         f"- {item.get('form')} filed {item.get('filing_date')} for period {item.get('report_date') or 'n/a'} ({item.get('accession_number')})"
         for item in filings[:5]
@@ -1266,8 +1479,8 @@ def _report_markdown(
             f"- Reverse DCF implied revenue CAGR: {_fmt_pct(implied_growth)}",
             "",
             "## Valuation suite",
-            "The deterministic engine calculates bear, base, and bull DCF cases from sourced statements and explicit assumptions. The LLM layer should only interpret these outputs after the audit passes.",
-            "Financial statement rows in this version are normalized from FMP. SEC EDGAR is used for filing metadata unless XBRL fact ingestion is explicitly present in sources.json.",
+            valuation_intro,
+            f"Statement authority: {statement_authority}. SEC EDGAR is used for filing metadata unless XBRL fact ingestion is explicitly present in sources.json.",
             "",
             "## Red-team memo",
             "The bear case starts with the audit: stale or missing data, low cash conversion, dilution, margin fragility, and valuation that requires aggressive implied growth.",
@@ -1282,7 +1495,7 @@ def _report_markdown(
             *[f"- [{item.get('severity')}] {item.get('message')}" for item in findings],
             "",
             "## Source appendix",
-            f"See sources.json for provider endpoints, timestamps, row counts, errors, and coverage gaps. Statement authority: {coverage.get('statement_authority', 'not assessed')}.",
+            f"See sources.json for provider endpoints, timestamps, row counts, errors, and coverage gaps. Statement authority: {statement_authority}.",
             "",
         ]
     )
@@ -1312,9 +1525,17 @@ def build_equity_research_bundle(
     if sec_client is None and paths is not None:
         sec_client = SECEdgarClient.from_env(paths.cache_root)
 
+    statement_source_ids = dict(DEFAULT_STATEMENT_SOURCE_IDS)
     profile, frames, sources = _load_fmp_payloads(symbol, paths, fmp_client)
     filings, sec_sources = _load_sec_filings(symbol, sec_client)
     sources.extend(sec_sources)
+    if any(frames.get(key, pd.DataFrame()).empty for key in DEFAULT_STATEMENT_SOURCE_IDS):
+        sec_frames, sec_fact_sources = _load_sec_company_facts(symbol, sec_client)
+        sources.extend(sec_fact_sources)
+        for statement_key, source_id in SEC_STATEMENT_SOURCE_IDS.items():
+            if frames.get(statement_key, pd.DataFrame()).empty and not sec_frames.get(statement_key, pd.DataFrame()).empty:
+                frames[statement_key] = sec_frames[statement_key]
+                statement_source_ids[statement_key] = source_id
     preliminary_assumptions = {"normalized_tax_rate": DEFAULT_TAX_RATE}
     rows = _normalize_financials(frames, preliminary_assumptions["normalized_tax_rate"])
     assumptions = _derive_assumptions(rows)
@@ -1325,8 +1546,8 @@ def build_equity_research_bundle(
 
     data_points = [
         _data_point("company_profile", profile.get("companyName") or symbol, "sourced_fact", "fmp:profile"),
-        _data_point("latest_revenue", ratios.get("latest_revenue"), "sourced_fact", "fmp:income:annual"),
-        _data_point("latest_diluted_shares", ratios.get("latest_diluted_shares"), "sourced_fact", "fmp:income:annual"),
+        _data_point("latest_revenue", ratios.get("latest_revenue"), "sourced_fact", statement_source_ids.get("income")),
+        _data_point("latest_diluted_shares", ratios.get("latest_diluted_shares"), "sourced_fact", statement_source_ids.get("income")),
         _data_point("latest_free_cash_flow", ratios.get("latest_fcf"), "calculated_metric", formula="cash_from_operations - abs(capital_expenditures)"),
         _data_point("revenue_cagr_5y", ratios.get("revenue_cagr_5y"), "calculated_metric", formula="(Revenue_t / Revenue_0) ** (1 / years) - 1"),
         _data_point("gross_margin", ratios.get("gross_margin"), "calculated_metric", formula="gross_profit / revenue"),
@@ -1338,7 +1559,7 @@ def build_equity_research_bundle(
         _data_point("wacc", assumptions.get("wacc"), "assumption", formula="user-default assumption"),
         _data_point("terminal_growth", assumptions.get("terminal_growth"), "assumption", formula="user-default assumption"),
     ]
-    data_points.extend(_financial_data_points(rows))
+    data_points.extend(_financial_data_points(rows, statement_source_ids))
     if valuation.get("available"):
         base_case = next((item for item in valuation.get("scenarios", []) if item.get("name") == "base"), None)
         data_points.extend(
@@ -1389,6 +1610,7 @@ def build_equity_research_bundle(
             "records": sources,
             "data_points": data_points,
             "coverage": coverage,
+            "statement_source_ids": statement_source_ids,
         },
         "audit": audit,
         "assumptions": assumptions,

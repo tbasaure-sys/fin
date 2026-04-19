@@ -1552,6 +1552,94 @@
   color: var(--text);
 }
 
+.researchAttentionCallout {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 124, 114, 0.2);
+  background: rgba(255, 124, 114, 0.065);
+}
+
+.researchAttentionCallout span {
+  color: var(--bad);
+  font-size: 0.74rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.researchAttentionCallout strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.05rem;
+}
+
+.researchAttentionCallout p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.researchMemoReader {
+  max-height: 34rem;
+  overflow: auto;
+  padding: 1.1rem clamp(1rem, 2vw, 1.4rem);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(3, 8, 16, 0.46);
+}
+
+.researchMemoReader h3,
+.researchMemoReader h4,
+.researchMemoReader p {
+  max-width: 72ch;
+}
+
+.researchMemoReader h3 {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+  line-height: 1.12;
+  letter-spacing: 0;
+}
+
+.researchMemoReader h4 {
+  margin: 1.15rem 0 0.45rem;
+  color: var(--text);
+  font-size: 0.92rem;
+  letter-spacing: 0;
+}
+
+.researchMemoReader p {
+  margin: 0.38rem 0;
+  color: rgba(247, 242, 232, 0.82);
+  line-height: 1.58;
+}
+
+.researchMemoReader[data-state="degraded"] h3 {
+  color: rgba(247, 242, 232, 0.74);
+}
+
+.researchMemoBullet {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.researchMemoBullet::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.78em;
+  width: 0.32rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+.researchMemoBreak {
+  height: 0.55rem;
+}
+
 .researchMemo {
   width: 100%;
   max-height: 32rem;
