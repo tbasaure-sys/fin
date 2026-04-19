@@ -131,6 +131,7 @@ def create_app(
             result = service.start_equity_research_job(
                 str(payload.get("ticker") or "").strip(),
                 mode=str(payload.get("mode") or "quick").strip(),
+                client_run_id=str(payload.get("client_run_id") or payload.get("run_id") or "").strip(),
             )
             return _json_response(start_response, result, status=202)
 

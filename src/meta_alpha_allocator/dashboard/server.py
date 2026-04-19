@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import threading
 import time
 import uuid
@@ -42,6 +43,17 @@ CORS_ORIGIN = os.environ.get("META_ALLOCATOR_CORS_ORIGIN", "*")
 # How long to wait after startup before auto-refreshing in background (seconds).
 # Set to 0 to disable background refresh on boot.
 _BOOT_REFRESH_DELAY = int(os.environ.get("META_ALLOCATOR_BOOT_REFRESH_DELAY", "5"))
+_RESEARCH_JOB_THREAD_DELAY_SECONDS = float(os.environ.get("META_ALLOCATOR_RESEARCH_JOB_THREAD_DELAY_SECONDS", "0.05"))
+
+
+def _clean_research_job_id(value: str | None) -> str | None:
+    raw = str(value or "").strip()
+    if not raw:
+        return None
+    safe = re.sub(r"[^A-Za-z0-9_.:-]+", "-", raw)[:96].strip("-")
+    if not safe:
+        return None
+    return safe if safe.startswith("research-") else f"research-{safe}"
 
 
 def _redact_private_portfolio(payload: dict) -> dict:
@@ -249,9 +261,9 @@ class DashboardService:
             sec_client=SECEdgarClient.from_env(self.paths.cache_root),
         )
 
-    def start_equity_research_job(self, ticker: str, mode: str = "quick") -> dict:
+    def start_equity_research_job(self, ticker: str, mode: str = "quick", client_run_id: str | None = None) -> dict:
         """Start a background research run and return a pollable job record."""
-        job_id = f"research-{uuid.uuid4()}"
+        job_id = _clean_research_job_id(client_run_id) or f"research-{uuid.uuid4()}"
         report_mode = "full" if mode == "full" else "quick"
         job = {
             "ok": True,
@@ -264,6 +276,9 @@ class DashboardService:
             "error": None,
         }
         with self._research_jobs_lock:
+            existing = self._research_jobs.get(job_id)
+            if existing:
+                return dict(existing)
             self._research_jobs[job_id] = dict(job)
 
         def _run() -> None:
@@ -287,7 +302,13 @@ class DashboardService:
                         }
                     )
 
-        threading.Thread(target=_run, name=f"equity-research-{job_id}", daemon=True).start()
+        timer = threading.Timer(
+            max(0.0, _RESEARCH_JOB_THREAD_DELAY_SECONDS),
+            _run,
+        )
+        timer.name = f"equity-research-{job_id}"
+        timer.daemon = True
+        timer.start()
         return job
 
     def equity_research_job(self, job_id: str) -> dict:
@@ -599,11 +620,12 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                     payload = json.loads(raw_body.decode("utf-8") or "{}")
                 except json.JSONDecodeError:
                     self._send_json({"ok": False, "error": "Invalid JSON body."}, status=400)
-                    return
-                ticker = str(payload.get("ticker") or "").strip()
-                mode = str(payload.get("mode") or "quick").strip()
-                self._send_json(service.start_equity_research_job(ticker, mode=mode), status=202)
                 return
+            ticker = str(payload.get("ticker") or "").strip()
+            mode = str(payload.get("mode") or "quick").strip()
+            client_run_id = str(payload.get("client_run_id") or payload.get("run_id") or "").strip()
+            self._send_json(service.start_equity_research_job(ticker, mode=mode, client_run_id=client_run_id), status=202)
+            return
             if parsed.path != "/api/refresh":
                 self.send_error(HTTPStatus.NOT_FOUND)
                 return

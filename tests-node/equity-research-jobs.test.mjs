@@ -7,6 +7,10 @@ import {
   getEquityResearchJobByBackendRunId,
   updateEquityResearchJob,
 } from "../lib/server/data/equity-research-jobs.js";
+import {
+  getWorkspaceEquityResearchJob,
+  startWorkspaceEquityResearch,
+} from "../lib/server/equity-research.js";
 
 test("equity research jobs persist a durable local id and backend run mapping", async () => {
   const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
@@ -73,6 +77,62 @@ test("equity research jobs can persist completed artifact payloads", async () =>
       delete process.env.BLS_PRIME_STORAGE_BACKEND;
     } else {
       process.env.BLS_PRIME_STORAGE_BACKEND = previousBackend;
+    }
+  }
+});
+
+test("equity research job start timeout remains queued and retries with same client run id", async () => {
+  const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
+  const previousBackendUrl = process.env.BLS_PRIME_BACKEND_URL;
+  const previousFetch = globalThis.fetch;
+  process.env.BLS_PRIME_STORAGE_BACKEND = "memory";
+  process.env.BLS_PRIME_BACKEND_URL = "https://research-backend.example";
+
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    const body = JSON.parse(String(options.body || "{}"));
+    calls.push({ url: String(url), body });
+    if (calls.length === 1) {
+      throw new Error("simulated Railway cold-start timeout");
+    }
+    return new Response(
+      JSON.stringify({
+        ok: true,
+        run_id: `research-${body.client_run_id}`,
+        ticker: body.ticker,
+        mode: body.mode,
+        status: "running",
+        started_at: "2026-04-19T12:00:00.000Z",
+      }),
+      { status: 202, headers: { "content-type": "application/json" } },
+    );
+  };
+
+  try {
+    const started = await startWorkspaceEquityResearch("timeout-retry-ws", "unh", { mode: "full" });
+    assert.equal(started.ok, true);
+    assert.equal(started.status, "queued");
+    assert.ok(started.run_id);
+    assert.equal(calls[0].body.client_run_id, started.run_id);
+
+    const polled = await getWorkspaceEquityResearchJob("timeout-retry-ws", "UNH", started.run_id);
+    assert.equal(polled.ok, true);
+    assert.equal(polled.status, "running");
+    assert.equal(polled.run_id, started.run_id);
+    assert.equal(polled.backend_run_id, `research-${started.run_id}`);
+    assert.equal(calls.length, 2);
+    assert.equal(calls[1].body.client_run_id, started.run_id);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousBackend === undefined) {
+      delete process.env.BLS_PRIME_STORAGE_BACKEND;
+    } else {
+      process.env.BLS_PRIME_STORAGE_BACKEND = previousBackend;
+    }
+    if (previousBackendUrl === undefined) {
+      delete process.env.BLS_PRIME_BACKEND_URL;
+    } else {
+      process.env.BLS_PRIME_BACKEND_URL = previousBackendUrl;
     }
   }
 });

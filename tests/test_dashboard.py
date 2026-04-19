@@ -202,7 +202,7 @@ def test_wsgi_exposes_equity_research_endpoint(tmp_path: Path, monkeypatch) -> N
         job_response["status"] = status
         job_response["headers"] = headers
 
-    job_body = json.dumps({"ticker": "MSFT", "mode": "quick"}).encode("utf-8")
+    job_body = json.dumps({"ticker": "MSFT", "mode": "quick", "client_run_id": "client-job-1"}).encode("utf-8")
     job_payload = json.loads(
         b"".join(
             app(
@@ -219,7 +219,23 @@ def test_wsgi_exposes_equity_research_endpoint(tmp_path: Path, monkeypatch) -> N
     )
 
     assert job_response["status"] == "202 Accepted"
-    assert job_payload["run_id"]
+    assert job_payload["run_id"] == "research-client-job-1"
+
+    duplicate_payload = json.loads(
+        b"".join(
+            app(
+                {
+                    "REQUEST_METHOD": "POST",
+                    "PATH_INFO": "/api/equity-research/jobs",
+                    "QUERY_STRING": "",
+                    "CONTENT_LENGTH": str(len(job_body)),
+                    "wsgi.input": BytesIO(job_body),
+                },
+                job_start_response,
+            )
+        ).decode("utf-8")
+    )
+    assert duplicate_payload["run_id"] == job_payload["run_id"]
 
 
 def _fake_market_panel(*args, **kwargs) -> pd.DataFrame:
