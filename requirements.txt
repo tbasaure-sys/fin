@@ -17,6 +17,7 @@ psycopg[binary]>=3.2
 # ── Visualization / reporting ─────────────────────────────────────────────────
 matplotlib>=3.8
 python-docx>=1.1
+openpyxl>=3.1
 
 # ── Web server (production) ───────────────────────────────────────────────────
 # gunicorn: WSGI server used by Railway and any Linux cloud host.

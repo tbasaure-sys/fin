@@ -23,6 +23,7 @@ import {
 import { parseResponse, useWorkspaceLiveData } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
 import PortfolioChat from "@/components/portfolio-chat";
+import EquityResearchPanel from "@/components/equity-research-panel";
 
 const DEFAULT_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
 
@@ -1687,6 +1688,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           />
           <RecoverabilityBalanceSheetPanel balanceSheet={balanceSheet} />
           <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
+          <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
           <PhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
           <HoldingsPanel
             holdingDraft={holdingDraft}

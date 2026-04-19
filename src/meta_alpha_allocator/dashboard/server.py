@@ -10,7 +10,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import sys
 from datetime import datetime, timezone
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 if sys.version_info >= (3, 11):
     from datetime import UTC
@@ -18,10 +18,13 @@ else:
     UTC = timezone.utc
 
 from ..config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings, artifact_only_mode
+from ..data.fmp_client import FMPClient
+from ..data.sec_edgar_client import SECEdgarClient
 from ..decision_runtime.events import summarize_decision_events
 from ..decision_runtime.packet import build_decision_packet
 from ..research.chrono_fragility import latest_chrono_alert
 from ..research.decision_audit import DecisionAudit, AuditSummary
+from ..research.equity_research_os import build_equity_research_bundle
 from ..storage.runtime_store import mark_refresh_run
 from .snapshot import (
     _refresh_cached_snapshot_market_data,
@@ -232,6 +235,16 @@ class DashboardService:
             return latest_chrono_alert(self.paths)
         except Exception as exc:
             return {"available": False, "error": str(exc)}
+
+    def equity_research(self, ticker: str, mode: str = "quick") -> dict:
+        """Return a source-backed equity research bundle for one ticker."""
+        return build_equity_research_bundle(
+            ticker,
+            mode=mode,
+            paths=self.paths,
+            fmp_client=FMPClient.from_env(self.paths.cache_root),
+            sec_client=SECEdgarClient.from_env(self.paths.cache_root),
+        )
 
     def refresh(self) -> dict:
         """Trigger a background refresh and return the latest snapshot immediately."""
@@ -469,6 +482,15 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                 return
             if parsed.path == "/api/snapshot":
                 self._send_json(service.snapshot())
+                return
+            if parsed.path == "/api/equity-research" or parsed.path.startswith("/api/equity-research/"):
+                params = parse_qs(parsed.query)
+                path_ticker = ""
+                if parsed.path.startswith("/api/equity-research/"):
+                    path_ticker = unquote(parsed.path.rsplit("/", 1)[-1])
+                ticker = (params.get("ticker") or [path_ticker])[0]
+                mode = (params.get("mode") or ["quick"])[0]
+                self._send_json(service.equity_research(ticker, mode=mode))
                 return
 
             snapshot = service.snapshot()

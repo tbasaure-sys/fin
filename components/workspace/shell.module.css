@@ -1080,6 +1080,191 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.researchRunBox,
+.researchStack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.researchRunBox {
+  min-width: min(100%, 24rem);
+}
+
+.researchTickerRow,
+.researchSuggestions,
+.researchTabs,
+.researchDownloadBar {
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.researchTickerRow {
+  flex-wrap: nowrap;
+}
+
+.researchTickerRow .textInput {
+  min-width: 9rem;
+}
+
+.researchSuggestions,
+.researchTabs,
+.researchDownloadBar {
+  margin-bottom: 1rem;
+}
+
+.researchDownloadBar {
+  padding: 0.8rem;
+  border-radius: 18px;
+  border: 1px solid rgba(122, 210, 194, 0.12);
+  background: rgba(122, 210, 194, 0.04);
+}
+
+.researchMetricGrid,
+.researchScenarioGrid,
+.researchDetailGrid {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.researchMetricGrid {
+  grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 1fr));
+  margin: 1rem 0;
+}
+
+.researchScenarioGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.researchDetailGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.researchMetric,
+.researchScenario,
+.researchFinding {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.researchMetric span,
+.researchScenario span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.researchMetric strong,
+.researchScenario strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.05rem, 2vw, 1.55rem);
+  line-height: 1.05;
+}
+
+.researchMetric small,
+.researchScenario small,
+.researchFinding p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.researchMetric[data-tone="good"] strong,
+.researchScenario[data-tone="good"] strong {
+  color: var(--good);
+}
+
+.researchMetric[data-tone="warn"] strong,
+.researchScenario[data-tone="warn"] strong {
+  color: var(--warn);
+}
+
+.researchMetric[data-tone="bad"] strong,
+.researchScenario[data-tone="bad"] strong {
+  color: var(--bad);
+}
+
+.researchOutput {
+  min-height: 12rem;
+}
+
+.researchMemo {
+  width: 100%;
+  max-height: 32rem;
+  overflow: auto;
+  margin: 0;
+  padding: 1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(3, 8, 16, 0.62);
+  color: rgba(247, 242, 232, 0.84);
+  font: 0.86rem/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.researchTable {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.researchTableHeader,
+.researchTableRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.2fr) minmax(90px, 0.8fr) minmax(90px, 0.7fr) minmax(74px, 0.5fr);
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+}
+
+.researchTableHeader {
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.researchTableRow {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.researchTableRow strong,
+.researchTableRow span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.researchFindingList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.researchFinding p {
+  margin: 0;
+}
+
+.researchFinding[data-tone="good"] {
+  border-color: rgba(82, 208, 163, 0.18);
+}
+
+.researchFinding[data-tone="warn"] {
+  border-color: rgba(255, 180, 84, 0.2);
+}
+
+.researchFinding[data-tone="bad"] {
+  border-color: rgba(255, 124, 114, 0.2);
+}
+
 @keyframes workspaceFade {
   from {
     opacity: 0;
@@ -1108,6 +1293,9 @@
   .metricsGrid,
   .phantomSurface,
   .phantomResultBand,
+  .researchMetricGrid,
+  .researchScenarioGrid,
+  .researchDetailGrid,
   .balanceGrid,
   .balanceReserveGrid,
   .balanceSummary {
@@ -1178,6 +1366,7 @@
   .holdingRow,
   .compactRow,
   .alertRow,
+  .researchTickerRow,
   .phantomActionBar {
     grid-template-columns: 1fr;
   }
@@ -1186,6 +1375,20 @@
   .chartSummary,
   .chartMeta {
     display: grid;
+  }
+
+  .researchTickerRow {
+    display: grid;
+  }
+
+  .researchTableHeader,
+  .researchTableRow {
+    grid-template-columns: minmax(110px, 1fr) minmax(82px, 0.8fr) minmax(70px, 0.7fr);
+  }
+
+  .researchTableHeader > :nth-child(4),
+  .researchTableRow > :nth-child(4) {
+    display: none;
   }
 
   .buttonRow,
