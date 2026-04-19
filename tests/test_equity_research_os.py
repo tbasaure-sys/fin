@@ -184,6 +184,23 @@ class SECCompanyFactsFallbackClient(MockSECClient):
         }
 
 
+class FakeFinalLLMClient:
+    def __init__(self) -> None:
+        self.calls = 0
+        self.payloads: list[dict] = []
+
+    def complete(self, payload: dict, config: object) -> str:
+        self.calls += 1
+        self.payloads.append(payload)
+        return (
+            '{"executive_judgment":"Evidence-backed final synthesis completed.",'
+            '"strongest_points":["DCF and reverse DCF were already calculated."],'
+            '"red_team":["Do not underwrite claims beyond the audit."],'
+            '"open_questions":["Which filing fact should be checked next?"],'
+            '"memo_patch":"Keep conviction gated on evidence coverage."}'
+        )
+
+
 class SplitDebtFMPClient(MockFMPClient):
     def get_balance_sheet_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
         return pd.DataFrame(
@@ -281,7 +298,15 @@ def test_equity_research_bundle_uses_sources_and_formulas() -> None:
     assert any(point["source_id"] == "sec:submissions" for point in bundle["sources"]["data_points"])
     assert any(point["claim_tag"] == "calculated_metric" for point in bundle["sources"]["data_points"])
     assert any(point["metric"].startswith("financials.annual.2024-12-31.") for point in bundle["sources"]["data_points"])
+    assert bundle["agents"]["mode"] == "deterministic_interpretive_agents"
+    assert bundle["agents"]["final_orchestrator"]["status"] == "disabled"
+    assert {agent["id"] for agent in bundle["agents"]["agents"]}.issuperset(
+        {"orchestrator_agent", "valuation_agent", "risk_agent", "red_team_agent", "editor_auditor_agent"}
+    )
+    assert all(claim["claim_tag"] in {"sourced_fact", "calculated_metric", "assumption", "interpretation", "uncertainty"} for claim in bundle["agents"]["claims"])
+    assert any(claim["agent_id"] == "red_team_agent" for claim in bundle["sources"]["claims"])
     assert "authoritative filings" in bundle["report_markdown"].lower()
+    assert "agent research desk" in bundle["report_markdown"].lower()
     assert "evidence coverage: 100%" in bundle["report_markdown"].lower()
     assert "reverse dcf" in bundle["report_markdown"].lower()
     assert bundle["artifacts"]["model_xlsx"] is True
@@ -308,8 +333,30 @@ def test_equity_research_bundle_uses_sources_and_formulas() -> None:
         "Audit",
         "Evidence Points",
         "Coverage",
+        "Agent Claims",
     }.issubset(set(workbook.sheetnames))
     assert str(workbook["DCF"]["B11"].value).startswith("=")
+    assert workbook["Agent Claims"].max_row > 2
+
+
+def test_equity_research_bundle_allows_one_final_llm_orchestrator_call() -> None:
+    llm_client = FakeFinalLLMClient()
+    bundle = build_equity_research_bundle(
+        "EXM",
+        mode="full",
+        fmp_client=MockFMPClient(),
+        sec_client=MockSECClient(),
+        llm_client=llm_client,
+        enable_llm=True,
+    )
+
+    final = bundle["agents"]["final_orchestrator"]
+    assert llm_client.calls == 1
+    assert final["status"] == "ok"
+    assert final["call_budget"] == {"max_calls": 1, "actual_calls": 1}
+    assert final["analysis"]["executive_judgment"] == "Evidence-backed final synthesis completed."
+    assert llm_client.payloads[0]["valuation"]["available"] is True
+    assert "Final LLM orchestrator" in bundle["report_markdown"]
 
 
 def test_equity_research_bundle_sums_short_and_long_debt_when_total_debt_missing() -> None:
@@ -346,6 +393,7 @@ def test_equity_research_bundle_uses_sec_companyfacts_when_fmp_statements_missin
     assert any(source["source_id"] == "sec:companyfacts:income" and source["status"] == "ok" for source in bundle["sources"]["records"])
     assert any(point["source_id"] == "sec:companyfacts:income" for point in bundle["sources"]["data_points"])
     assert any(point["source_id"] == "sec:companyfacts:balance" and point["metric"].endswith(".total_debt") for point in bundle["sources"]["data_points"])
+    assert any("SEC Company Facts/XBRL" in claim["text"] for claim in bundle["agents"]["claims"])
 
 
 def test_equity_research_bundle_refuses_to_invent_without_provider() -> None:
@@ -361,5 +409,7 @@ def test_equity_research_bundle_refuses_to_invent_without_provider() -> None:
     assert bundle["checklist_score"]["evidence"] == bundle["sources"]["coverage"]["score"]
     assert bundle["sources"]["records"][0]["status"] == "unavailable"
     assert any(source["provider"] == "sec-edgar" and source["status"] == "unavailable" for source in bundle["sources"]["records"])
+    assert bundle["agents"]["agents"]
+    assert any(agent["status"] in {"blocked", "needs_attention"} for agent in bundle["agents"]["agents"])
     assert bundle["artifacts"]["model_xlsx"] is False
     assert not any(artifact["filename"].endswith(".xlsx") for artifact in bundle["downloads"])

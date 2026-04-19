@@ -399,7 +399,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.75fr);
   gap: 1rem;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .chartPanel,
@@ -460,7 +460,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.8rem;
-  align-items: start;
+  align-items: flex-start;
   padding-top: 0.65rem;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -511,7 +511,7 @@
 .compactRow,
 .alertRow {
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .holdingRow strong,
@@ -692,7 +692,7 @@
   display: grid;
   grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1.38fr);
   gap: 1rem;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .phantomDraftPane,
@@ -1439,9 +1439,54 @@
   line-height: 1.4;
 }
 
+.researchAgentHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(2, minmax(10rem, 0.36fr));
+  gap: 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchAgentHeader div {
+  min-width: 0;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.95rem;
+}
+
+.researchAgentHeader div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchAgentHeader span,
+.researchAgentCard span,
+.researchAgentQuestions summary {
+  color: var(--muted);
+  font-size: 0.74rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.researchAgentHeader strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.08rem;
+}
+
+.researchAgentHeader small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.researchAgentGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
 .researchMetric,
 .researchScenario,
-.researchFinding {
+.researchFinding,
+.researchAgentCard {
   display: grid;
   gap: 0.35rem;
   min-width: 0;
@@ -1469,9 +1514,68 @@
 
 .researchMetric small,
 .researchScenario small,
-.researchFinding p {
+.researchFinding p,
+.researchAgentCard p {
   color: var(--muted);
   line-height: 1.45;
+}
+
+.researchAgentCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.researchAgentCardTop div {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.researchAgentCardTop strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.02rem;
+}
+
+.researchAgentCardTop small {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 0.22rem 0.48rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-size: 0.72rem;
+}
+
+.researchAgentClaims {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+}
+
+.researchAgentClaims div {
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.researchAgentClaims p,
+.researchAgentQuestions p {
+  margin: 0;
+}
+
+.researchAgentQuestions {
+  margin-top: 0.35rem;
+}
+
+.researchAgentQuestions summary {
+  cursor: pointer;
+}
+
+.researchAgentQuestions p {
+  padding-top: 0.4rem;
 }
 
 .researchMetric[data-tone="good"] strong,
@@ -1498,7 +1602,7 @@
   display: grid;
   grid-template-columns: minmax(13rem, 0.28fr) minmax(0, 1fr);
   gap: 1rem;
-  align-items: start;
+  align-items: flex-start;
 }
 
 .researchEvidenceSpine {
@@ -1710,6 +1814,18 @@
   border-color: rgba(255, 124, 114, 0.2);
 }
 
+.researchAgentCard[data-tone="good"] {
+  border-color: rgba(82, 208, 163, 0.18);
+}
+
+.researchAgentCard[data-tone="warn"] {
+  border-color: rgba(255, 180, 84, 0.2);
+}
+
+.researchAgentCard[data-tone="bad"] {
+  border-color: rgba(255, 124, 114, 0.2);
+}
+
 .researchTabs .rangeButton {
   gap: 0.45rem;
 }
@@ -1772,6 +1888,8 @@
   .researchSignalGrid,
   .researchCoverageRail,
   .researchCoverageSummary,
+  .researchAgentHeader,
+  .researchAgentGrid,
   .researchAuditBar,
   .researchOutputShell,
   .balanceGrid,
@@ -1795,6 +1913,7 @@
   }
 
   .researchCoverageSummary div + div,
+  .researchAgentHeader div + div,
   .researchAuditBar div + div {
     border-left: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.07);

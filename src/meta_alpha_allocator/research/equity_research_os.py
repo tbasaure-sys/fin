@@ -17,6 +17,7 @@ import pandas as pd
 
 from ..data.fmp_client import FMPClient
 from ..data.sec_edgar_client import SECEdgarClient
+from .equity_research_agents import build_agent_outputs, run_final_orchestrator_llm
 
 
 DEFAULT_TAX_RATE = 0.21
@@ -1398,6 +1399,22 @@ def _build_model_xlsx(
         coverage_sheet.append([key, _json_text(value) if isinstance(value, (list, dict)) else value])
     _style_sheet(coverage_sheet)
 
+    agents_payload = sources.get("agent_outputs") or {}
+    agent_claims_sheet = workbook.create_sheet("Agent Claims")
+    agent_claims_sheet.append(["agent_id", "agent_name", "claim_tag", "claim", "evidence_refs", "metric_refs"])
+    for claim in agents_payload.get("claims", []):
+        agent_claims_sheet.append(
+            [
+                claim.get("agent_id"),
+                claim.get("agent_name"),
+                claim.get("claim_tag"),
+                claim.get("text"),
+                ", ".join(str(item) for item in claim.get("evidence_refs", [])),
+                ", ".join(str(item) for item in claim.get("metric_refs", [])),
+            ]
+        )
+    _style_sheet(agent_claims_sheet)
+
     output = BytesIO()
     workbook.save(output)
     return output.getvalue()
@@ -1439,6 +1456,7 @@ def _report_markdown(
     quality_flags: list[dict[str, Any]],
     audit: dict[str, Any],
     filings: list[dict[str, Any]],
+    agent_outputs: dict[str, Any],
 ) -> str:
     name = profile.get("companyName") or ticker
     sector = profile.get("sector") or "n/a"
@@ -1461,6 +1479,28 @@ def _report_markdown(
         f"- {item.get('form')} filed {item.get('filing_date')} for period {item.get('report_date') or 'n/a'} ({item.get('accession_number')})"
         for item in filings[:5]
     ] or ["- SEC filings metadata unavailable in this run."]
+    agents = agent_outputs.get("agents") or []
+    agent_lines = [
+        f"- {agent.get('name')} [{agent.get('status')}]: {agent.get('summary')}"
+        for agent in agents
+    ] or ["- Agent layer not emitted."]
+    final_orchestrator = agent_outputs.get("final_orchestrator") or {}
+    final_analysis = final_orchestrator.get("analysis") or {}
+    final_orchestrator_lines: list[str] = []
+    if final_orchestrator.get("status") == "ok":
+        final_orchestrator_lines.append(f"- Final LLM orchestrator: {final_analysis.get('executive_judgment') or final_analysis.get('memo_patch') or 'Completed.'}")
+        llm_open_questions = final_analysis.get("open_questions") if isinstance(final_analysis.get("open_questions"), list) else []
+        for item in llm_open_questions[:5]:
+            final_orchestrator_lines.append(f"- Open question: {item}")
+    elif final_orchestrator.get("enabled"):
+        final_orchestrator_lines.append(f"- Final LLM orchestrator: {final_orchestrator.get('status')} ({final_orchestrator.get('error', 'no synthesis returned')}).")
+    else:
+        final_orchestrator_lines.append("- Final LLM orchestrator: disabled; deterministic agent layer used.")
+    red_team_agent = next((agent for agent in agents if agent.get("id") == "red_team_agent"), {})
+    red_team_lines = [
+        f"- [{claim.get('claim_tag')}] {claim.get('text')}"
+        for claim in red_team_agent.get("claims", [])
+    ] or ["- Red-team agent did not emit claims."]
 
     return "\n".join(
         [
@@ -1482,8 +1522,13 @@ def _report_markdown(
             valuation_intro,
             f"Statement authority: {statement_authority}. SEC EDGAR is used for filing metadata unless XBRL fact ingestion is explicitly present in sources.json.",
             "",
+            "## Agent research desk",
+            f"Agent layer: {agent_outputs.get('version', 'n/a')} ({agent_outputs.get('mode', 'n/a')}). Agents interpret audited outputs; they do not calculate financial metrics.",
+            *agent_lines,
+            *final_orchestrator_lines,
+            "",
             "## Red-team memo",
-            "The bear case starts with the audit: stale or missing data, low cash conversion, dilution, margin fragility, and valuation that requires aggressive implied growth.",
+            *red_team_lines,
             "",
             "## Accounting quality flags",
             *[f"- [{item.get('severity')}] {item.get('title')}" for item in flags],
@@ -1508,6 +1553,8 @@ def build_equity_research_bundle(
     paths: PathConfigLike | None = None,
     fmp_client: FMPClient | None = None,
     sec_client: SECEdgarClient | None = None,
+    llm_client: Any | None = None,
+    enable_llm: bool | None = None,
 ) -> dict[str, Any]:
     symbol = clean_ticker(ticker)
     if not symbol:
@@ -1589,6 +1636,30 @@ def build_equity_research_bundle(
         "market_cap": _safe_float(profile.get("mktCap")),
         "description": profile.get("description") if mode == "full" else None,
     }
+    agent_outputs = build_agent_outputs(
+        ticker=symbol,
+        profile=profile,
+        rows=rows,
+        ratios=ratios,
+        valuation=valuation,
+        quality_flags=quality_flags,
+        audit=audit,
+        sources=sources,
+        filings=filings,
+    )
+    agent_outputs["final_orchestrator"] = run_final_orchestrator_llm(
+        ticker=symbol,
+        profile=profile,
+        rows=rows,
+        ratios=ratios,
+        valuation=valuation,
+        quality_flags=quality_flags,
+        audit=audit,
+        agent_outputs=agent_outputs,
+        filings=filings,
+        llm_client=llm_client,
+        enabled=enable_llm,
+    )
     bundle = {
         "ok": True,
         "ticker": symbol,
@@ -1605,12 +1676,15 @@ def build_equity_research_bundle(
         },
         "valuation": valuation,
         "checklist_score": checklist,
-        "report_markdown": _report_markdown(symbol, profile, ratios, valuation, quality_flags, audit, filings),
+        "agents": agent_outputs,
+        "report_markdown": _report_markdown(symbol, profile, ratios, valuation, quality_flags, audit, filings, agent_outputs),
         "sources": {
             "records": sources,
             "data_points": data_points,
             "coverage": coverage,
             "statement_source_ids": statement_source_ids,
+            "claims": agent_outputs.get("claims", []),
+            "agent_outputs": agent_outputs,
         },
         "audit": audit,
         "assumptions": assumptions,

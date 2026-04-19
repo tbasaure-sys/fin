@@ -6,7 +6,7 @@ import { formatCurrency, formatDateTime, formatPct, safeList, statusTone } from 
 import { parseResponse } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
 
-const RESEARCH_TABS = ["Memo", "Valuation", "Delta", "Evidence", "Audit"];
+const RESEARCH_TABS = ["Memo", "Valuation", "Agents", "Delta", "Evidence", "Audit"];
 const AGENT_STAGES = [
   { key: "intake", label: "Intake", detail: "FMP / SEC", threshold: 0 },
   { key: "normalize", label: "Normalize", detail: "Statements", threshold: 18 },
@@ -307,6 +307,81 @@ function renderEvidence(research) {
   );
 }
 
+function renderAgents(research) {
+  const agentPayload = research?.agents || research?.sources?.agent_outputs || {};
+  const agents = safeList(agentPayload.agents);
+  const finalOrchestrator = agentPayload.final_orchestrator || {};
+
+  if (!research) {
+    return <p className={styles.emptyCopy}>The agent desk will appear after a run, with each analyst constrained to sourced facts, deterministic calculations, assumptions, interpretations, or uncertainty.</p>;
+  }
+
+  if (!agents.length) {
+    return <p className={styles.emptyCopy}>No agent outputs were emitted for this bundle.</p>;
+  }
+
+  return (
+    <div className={styles.researchStack}>
+      <div className={styles.researchAgentHeader}>
+        <div>
+          <span>Agent layer</span>
+          <strong>{agentPayload.version || "v1"}</strong>
+          <small>{agentPayload.policy || "Agents interpret audited deterministic outputs."}</small>
+        </div>
+        <div>
+          <span>Mode</span>
+          <strong>{humanizeToken(agentPayload.mode)}</strong>
+          <small>Offline-first contracts now, model-backed interpretation later.</small>
+        </div>
+        <div>
+          <span>Final LLM call</span>
+          <strong>{humanizeToken(finalOrchestrator.status || "disabled")}</strong>
+          <small>
+            {finalOrchestrator.enabled
+              ? `${finalOrchestrator.call_budget?.actual_calls || 0}/${finalOrchestrator.call_budget?.max_calls || 1} call, ${finalOrchestrator.model || "model"}`
+              : "Disabled until the one-call orchestrator is enabled."}
+          </small>
+        </div>
+      </div>
+
+      <div className={styles.researchAgentGrid}>
+        {agents.map((agent) => {
+          const claims = safeList(agent.claims);
+          const questions = safeList(agent.open_questions);
+          return (
+            <article className={styles.researchAgentCard} data-tone={statusTone(agent.status)} key={agent.id}>
+              <div className={styles.researchAgentCardTop}>
+                <div>
+                  <span>{agent.role}</span>
+                  <strong>{agent.name}</strong>
+                </div>
+                <small>{humanizeToken(agent.status)}</small>
+              </div>
+              <p>{agent.summary}</p>
+              <div className={styles.researchAgentClaims}>
+                {claims.slice(0, 3).map((claim) => (
+                  <div key={claim.id}>
+                    <span>{claim.claim_tag}</span>
+                    <p>{claim.text}</p>
+                  </div>
+                ))}
+              </div>
+              {questions.length ? (
+                <details className={styles.researchAgentQuestions}>
+                  <summary>{questions.length} open question{questions.length === 1 ? "" : "s"}</summary>
+                  {questions.slice(0, 4).map((question, index) => (
+                    <p key={`${agent.id}-question-${index}`}>{question}</p>
+                  ))}
+                </details>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function formatDeltaValue(value, unit) {
   if (!Number.isFinite(Number(value))) return "-";
   if (unit === "percent") return formatPct(value);
@@ -504,6 +579,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
   const ratios = research?.financials?.ratios || {};
   const evidenceCount = safeList(research?.sources?.data_points).length;
   const auditFindings = safeList(research?.audit?.findings);
+  const agentCount = safeList(research?.agents?.agents || research?.sources?.agent_outputs?.agents).length;
   const baseScenario = safeList(research?.valuation?.scenarios).find((scenario) => scenario.name === "base");
   const downloads = safeList(research?.downloads);
   const sourceRecords = safeList(research?.sources?.records);
@@ -690,6 +766,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
             type="button"
           >
             <span>{tab}</span>
+            {tab === "Agents" && agentCount ? <small>{agentCount}</small> : null}
             {tab === "Evidence" && evidenceCount ? <small>{evidenceCount}</small> : null}
             {tab === "Audit" && auditFindings.length ? <small>{auditFindings.length}</small> : null}
             {tab === "Delta" && deltaChanges.length ? <small>{deltaChanges.length}</small> : null}
@@ -720,6 +797,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         <div className={styles.researchOutput}>
           {activeTab === "Memo" ? renderMemo(research) : null}
           {activeTab === "Valuation" ? renderValuation(research) : null}
+          {activeTab === "Agents" ? renderAgents(research) : null}
           {activeTab === "Delta" ? renderDelta(research) : null}
           {activeTab === "Evidence" ? renderEvidence(research) : null}
           {activeTab === "Audit" ? renderAudit(research) : null}

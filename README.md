@@ -155,6 +155,19 @@ If FMP "does nothing", check both runtimes separately:
 
 If the frontend can load but holdings still look stale, the common failure mode is: key exists in Railway, but not in Vercel.
 
+### Equity research OS agents
+
+The equity research workstation keeps calculations deterministic. Python pulls and normalizes provider data, builds DCF/reverse DCF/multiples, emits the evidence ledger, and runs the audit. The agent layer then interprets only those finished outputs.
+
+By default the agent desk is offline and deterministic. To enable a single final LLM orchestrator/editor call after all analysis is complete, set:
+
+- `EQUITY_RESEARCH_LLM_ENABLED=true`
+- `EQUITY_RESEARCH_LLM_API_KEY` or `OPENAI_API_KEY`
+- `EQUITY_RESEARCH_LLM_MODEL`
+- `EQUITY_RESEARCH_LLM_BASE_URL` for OpenAI-compatible gateways when using non-OpenAI models such as Mistral or Llama
+
+The final orchestrator has a hard budget of one call per research run. It receives a compact audited payload and is not allowed to calculate, invent data, or cite unavailable sources.
+
 ## Status
 
 This is an active research codebase. Some modules are experimental and are intentionally kept separate from production decision logic until they demonstrate value in backtests and out-of-sample evaluation.
