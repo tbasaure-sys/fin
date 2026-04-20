@@ -71,6 +71,11 @@ def _clean_research_job_id(value: str | None) -> str | None:
     return safe if safe.startswith("research-") else f"research-{safe}"
 
 
+def _sec_user_agent_from_headers(headers) -> str | None:
+    value = str(headers.get("X-SEC-User-Agent") or "").strip()
+    return value or None
+
+
 def _redact_private_portfolio(payload: dict) -> dict:
     snapshot = dict(payload or {})
     portfolio = dict(snapshot.get("portfolio", {}) or {})
@@ -266,18 +271,18 @@ class DashboardService:
         except Exception as exc:
             return {"available": False, "error": str(exc)}
 
-    def equity_research(self, ticker: str, mode: str = "quick") -> dict:
+    def equity_research(self, ticker: str, mode: str = "quick", sec_user_agent: str | None = None) -> dict:
         """Return a source-backed equity research bundle for one ticker."""
         return build_equity_research_bundle(
             ticker,
             mode=mode,
             paths=self.paths,
             fmp_client=FMPClient.from_env(self.paths.cache_root),
-            sec_client=SECEdgarClient.from_env(self.paths.cache_root),
+            sec_client=SECEdgarClient.from_env(self.paths.cache_root, user_agent=sec_user_agent),
             enable_llm=_equity_research_llm_enabled_from_env(),
         )
 
-    def start_equity_research_job(self, ticker: str, mode: str = "quick", client_run_id: str | None = None) -> dict:
+    def start_equity_research_job(self, ticker: str, mode: str = "quick", client_run_id: str | None = None, sec_user_agent: str | None = None) -> dict:
         """Start a background research run and return a pollable job record."""
         job_id = _clean_research_job_id(client_run_id) or f"research-{uuid.uuid4()}"
         report_mode = "full" if mode == "full" else "quick"
@@ -299,7 +304,7 @@ class DashboardService:
 
         def _run() -> None:
             try:
-                payload = self.equity_research(ticker, mode=report_mode)
+                payload = self.equity_research(ticker, mode=report_mode, sec_user_agent=sec_user_agent)
                 with self._research_jobs_lock:
                     self._research_jobs[job_id].update(
                         {
@@ -516,7 +521,7 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
         def _send_cors_headers(self) -> None:
             self.send_header("Access-Control-Allow-Origin", CORS_ORIGIN)
             self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-            self.send_header("Access-Control-Allow-Headers", "Content-Type")
+            self.send_header("Access-Control-Allow-Headers", "Content-Type, X-SEC-User-Agent")
 
         def _send_json(self, payload: dict, status: int = 200, extra_headers: dict[str, str] | None = None) -> None:
             body = _json_bytes(payload)
@@ -587,7 +592,7 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                     path_ticker = unquote(parsed.path.rsplit("/", 1)[-1])
                 ticker = (params.get("ticker") or [path_ticker])[0]
                 mode = (params.get("mode") or ["quick"])[0]
-                self._send_json(service.equity_research(ticker, mode=mode))
+                self._send_json(service.equity_research(ticker, mode=mode, sec_user_agent=_sec_user_agent_from_headers(self.headers)))
                 return
 
             snapshot = service.snapshot()
@@ -636,12 +641,13 @@ def _build_handler(service: DashboardService) -> type[BaseHTTPRequestHandler]:
                     payload = json.loads(raw_body.decode("utf-8") or "{}")
                 except json.JSONDecodeError:
                     self._send_json({"ok": False, "error": "Invalid JSON body."}, status=400)
+                    return
+                ticker = str(payload.get("ticker") or "").strip()
+                mode = str(payload.get("mode") or "quick").strip()
+                client_run_id = str(payload.get("client_run_id") or payload.get("run_id") or "").strip()
+                sec_user_agent = str(payload.get("sec_user_agent") or _sec_user_agent_from_headers(self.headers) or "").strip() or None
+                self._send_json(service.start_equity_research_job(ticker, mode=mode, client_run_id=client_run_id, sec_user_agent=sec_user_agent), status=202)
                 return
-            ticker = str(payload.get("ticker") or "").strip()
-            mode = str(payload.get("mode") or "quick").strip()
-            client_run_id = str(payload.get("client_run_id") or payload.get("run_id") or "").strip()
-            self._send_json(service.start_equity_research_job(ticker, mode=mode, client_run_id=client_run_id), status=202)
-            return
             if parsed.path != "/api/refresh":
                 self.send_error(HTTPStatus.NOT_FOUND)
                 return

@@ -87,6 +87,19 @@ If you expect holdings quotes or private portfolio overlays to refresh inside th
 
 This is required in Vercel because the app has a server-side holdings quote path in `lib/server/private-portfolio.js` that calls FMP directly. Having the key only in Railway refreshes the Python backend, but it does not cover the Next.js overlay path.
 
+For SEC EDGAR-backed equity research, set one of these in Railway and, if the
+research request is proxied through Vercel, in Vercel too:
+
+- `SEC_USER_AGENT`
+- `SEC_EDGAR_USER_AGENT`
+- `EDGAR_USER_AGENT`
+
+Use a real contact user agent such as `MetaAlphaAllocator research@example.com`.
+If those are absent, the app can derive the EDGAR user agent from
+`BLS_PRIME_INVITE_CONTACT` when it is an email address. Without this, reports
+fall back to FMP-only statements and the audit will flag missing SEC metadata
+or missing XBRL cross-checks.
+
 Optional if you are using invite-link access:
 
 - `BLS_PRIME_SHARED_ACCESS_TOKEN`
@@ -152,6 +165,8 @@ If FMP "does nothing", check both runtimes separately:
 - `Railway` needs `FMP_API_KEY` or `FINANCIAL_MODELING_PREP_API_KEY` for backend snapshot and market-data refreshes.
 - `Vercel` needs the same key if you use private holdings, local portfolio overlays, or any server-rendered quote enrichment in the app.
 - `Vercel` also needs `BLS_PRIME_BACKEND_URL` pointing to the live Railway backend.
+- `Railway` needs `SEC_USER_AGENT` or an email-like `BLS_PRIME_INVITE_CONTACT` for SEC filings and XBRL company facts.
+- `Vercel` should also have the same SEC user-agent/contact when it proxies research jobs to Railway.
 
 If the frontend can load but holdings still look stale, the common failure mode is: key exists in Railway, but not in Vercel.
 

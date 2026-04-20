@@ -32,8 +32,13 @@ def _cors_headers() -> list[tuple[str, str]]:
     return [
         ("Access-Control-Allow-Origin", CORS_ORIGIN),
         ("Access-Control-Allow-Methods", "GET, POST, OPTIONS"),
-        ("Access-Control-Allow-Headers", "Content-Type"),
+        ("Access-Control-Allow-Headers", "Content-Type, X-SEC-User-Agent"),
     ]
+
+
+def _sec_user_agent_from_environ(environ: dict) -> str | None:
+    value = str(environ.get("HTTP_X_SEC_USER_AGENT") or "").strip()
+    return value or None
 
 
 def _json_response(start_response, payload: dict, status: int = 200, extra_headers: list[tuple[str, str]] | None = None) -> list[bytes]:
@@ -132,6 +137,7 @@ def create_app(
                 str(payload.get("ticker") or "").strip(),
                 mode=str(payload.get("mode") or "quick").strip(),
                 client_run_id=str(payload.get("client_run_id") or payload.get("run_id") or "").strip(),
+                sec_user_agent=str(payload.get("sec_user_agent") or _sec_user_agent_from_environ(environ) or "").strip() or None,
             )
             return _json_response(start_response, result, status=202)
 
@@ -177,7 +183,7 @@ def create_app(
                 path_ticker = unquote(path_info.rsplit("/", 1)[-1])
             ticker = (params.get("ticker") or [path_ticker])[0]
             mode = (params.get("mode") or ["quick"])[0]
-            return _json_response(start_response, service.equity_research(ticker, mode=mode))
+            return _json_response(start_response, service.equity_research(ticker, mode=mode, sec_user_agent=_sec_user_agent_from_environ(environ)))
 
         snapshot = service.snapshot()
 

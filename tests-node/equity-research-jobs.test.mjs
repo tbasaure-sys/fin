@@ -85,14 +85,16 @@ test("equity research jobs can persist completed artifact payloads", async () =>
 test("equity research job start timeout remains queued and retries with same client run id", async () => {
   const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
   const previousBackendUrl = process.env.BLS_PRIME_BACKEND_URL;
+  const previousInviteContact = process.env.BLS_PRIME_INVITE_CONTACT;
   const previousFetch = globalThis.fetch;
   process.env.BLS_PRIME_STORAGE_BACKEND = "memory";
   process.env.BLS_PRIME_BACKEND_URL = "https://research-backend.example";
+  process.env.BLS_PRIME_INVITE_CONTACT = "research@example.com";
 
   const calls = [];
   globalThis.fetch = async (url, options = {}) => {
     const body = JSON.parse(String(options.body || "{}"));
-    calls.push({ url: String(url), body });
+    calls.push({ url: String(url), body, headers: options.headers || {} });
     if (calls.length === 1) {
       throw new Error("simulated Railway cold-start timeout");
     }
@@ -123,6 +125,7 @@ test("equity research job start timeout remains queued and retries with same cli
     assert.equal(polled.backend_run_id, `research-${started.run_id}`);
     assert.equal(calls.length, 2);
     assert.equal(calls[1].body.client_run_id, started.run_id);
+    assert.equal(calls[0].headers["x-sec-user-agent"], "MetaAlphaAllocator research@example.com");
   } finally {
     globalThis.fetch = previousFetch;
     if (previousBackend === undefined) {
@@ -134,6 +137,11 @@ test("equity research job start timeout remains queued and retries with same cli
       delete process.env.BLS_PRIME_BACKEND_URL;
     } else {
       process.env.BLS_PRIME_BACKEND_URL = previousBackendUrl;
+    }
+    if (previousInviteContact === undefined) {
+      delete process.env.BLS_PRIME_INVITE_CONTACT;
+    } else {
+      process.env.BLS_PRIME_INVITE_CONTACT = previousInviteContact;
     }
   }
 });

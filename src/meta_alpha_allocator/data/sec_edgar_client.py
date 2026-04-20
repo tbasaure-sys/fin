@@ -12,7 +12,28 @@ import requests
 
 SEC_FILES_BASE_URL = "https://www.sec.gov/files"
 SEC_DATA_BASE_URL = "https://data.sec.gov"
-PLACEHOLDER_USER_AGENTS = {"", "replace_me", "your_email@example.com", "metaalphaallocator your_email@example.com", "equityresearchos your_email@example.com"}
+PLACEHOLDER_USER_AGENTS = {
+    "",
+    "dummy",
+    "replace_me",
+    "your_key_here",
+    "your_email@example.com",
+    "metaalphaallocator your_email@example.com",
+    "equityresearchos your_email@example.com",
+}
+USER_AGENT_ENV_NAMES = (
+    "SEC_USER_AGENT",
+    "SEC_EDGAR_USER_AGENT",
+    "EDGAR_USER_AGENT",
+    "META_ALLOCATOR_SEC_USER_AGENT",
+    "BLS_PRIME_SEC_USER_AGENT",
+)
+CONTACT_ENV_NAMES = (
+    "SEC_CONTACT_EMAIL",
+    "EDGAR_CONTACT_EMAIL",
+    "BLS_PRIME_INVITE_CONTACT",
+    "META_ALLOCATOR_INVITE_CONTACT",
+)
 
 
 def _usable_user_agent(value: str | None) -> str | None:
@@ -20,6 +41,30 @@ def _usable_user_agent(value: str | None) -> str | None:
     if cleaned.lower() in PLACEHOLDER_USER_AGENTS:
         return None
     return cleaned or None
+
+
+def _usable_contact(value: str | None) -> str | None:
+    cleaned = str(value or "").strip()
+    if cleaned.lower() in PLACEHOLDER_USER_AGENTS:
+        return None
+    if "@" not in cleaned or any(ch.isspace() for ch in cleaned):
+        return None
+    return cleaned
+
+
+def _user_agent_from_env(explicit: str | None = None) -> str | None:
+    explicit_user_agent = _usable_user_agent(explicit)
+    if explicit_user_agent:
+        return explicit_user_agent
+    for name in USER_AGENT_ENV_NAMES:
+        user_agent = _usable_user_agent(os.environ.get(name))
+        if user_agent:
+            return user_agent
+    for name in CONTACT_ENV_NAMES:
+        contact = _usable_contact(os.environ.get(name))
+        if contact:
+            return f"MetaAlphaAllocator {contact}"
+    return None
 
 
 @dataclass
@@ -30,8 +75,8 @@ class SECEdgarClient:
     cache_ttl_seconds: int = 86_400
 
     @classmethod
-    def from_env(cls, cache_root: Path) -> "SECEdgarClient | None":
-        user_agent = _usable_user_agent(os.environ.get("SEC_USER_AGENT")) or _usable_user_agent(os.environ.get("EDGAR_USER_AGENT"))
+    def from_env(cls, cache_root: Path, user_agent: str | None = None) -> "SECEdgarClient | None":
+        user_agent = _user_agent_from_env(user_agent)
         if not user_agent:
             return None
         pause_seconds = float(os.environ.get("SEC_EDGAR_PAUSE_SECONDS", "0.12"))

@@ -50,6 +50,27 @@ def test_provider_clients_ignore_placeholder_env_values(monkeypatch) -> None:
     assert SECEdgarClient.from_env(Path("C:/tmp")) is None
 
 
+def test_sec_edgar_client_derives_user_agent_from_contact_env(monkeypatch, tmp_path) -> None:
+    monkeypatch.delenv("SEC_USER_AGENT", raising=False)
+    monkeypatch.delenv("SEC_EDGAR_USER_AGENT", raising=False)
+    monkeypatch.delenv("EDGAR_USER_AGENT", raising=False)
+    monkeypatch.setenv("BLS_PRIME_INVITE_CONTACT", "research@example.com")
+
+    client = SECEdgarClient.from_env(tmp_path)
+
+    assert client is not None
+    assert client.user_agent == "MetaAlphaAllocator research@example.com"
+
+
+def test_sec_edgar_client_accepts_forwarded_user_agent(monkeypatch, tmp_path) -> None:
+    monkeypatch.setenv("SEC_USER_AGENT", "MetaAlphaAllocator env@example.com")
+
+    client = SECEdgarClient.from_env(tmp_path, user_agent="MetaAlphaAllocator forwarded@example.com")
+
+    assert client is not None
+    assert client.user_agent == "MetaAlphaAllocator forwarded@example.com"
+
+
 def test_fmp_statement_calls_use_stable_symbol_query(monkeypatch, tmp_path) -> None:
     calls: list[tuple[str, dict[str, Any]]] = []
 

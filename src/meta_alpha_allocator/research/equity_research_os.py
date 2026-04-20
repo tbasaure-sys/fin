@@ -467,6 +467,7 @@ def _valuation_data_points(valuation: dict[str, Any]) -> list[dict[str, Any]]:
 def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[dict[str, Any]]) -> dict[str, Any]:
     source_status = {str(source.get("source_id")): source.get("status") for source in sources if source.get("source_id")}
     statement_source_ids = set(DEFAULT_STATEMENT_SOURCE_IDS.values()) | set(SEC_STATEMENT_SOURCE_IDS.values())
+    source_provider_by_id = {str(source.get("source_id")): str(source.get("provider")) for source in sources if source.get("source_id")}
     source_backed = [
         point
         for point in data_points
@@ -495,17 +496,35 @@ def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[di
         and source.get("status") == "ok"
         and int(source.get("row_count") or 0) > 0
     ]
-    statement_providers = {str(source.get("provider")) for source in statement_sources if source.get("provider")}
-    xbrl_statement_facts_available = "sec-edgar" in statement_providers
-    if not statement_sources:
+    used_statement_source_ids = {
+        str(point.get("source_id"))
+        for point in data_points
+        if str(point.get("source_id") or "") in statement_source_ids
+        and _has_value(point.get("normalized_value"))
+    }
+    used_statement_providers = {
+        source_provider_by_id.get(source_id)
+        for source_id in used_statement_source_ids
+        if source_provider_by_id.get(source_id)
+    }
+    xbrl_crosscheck_sources = [
+        source
+        for source in statement_sources
+        if source.get("source_id") in set(SEC_STATEMENT_SOURCE_IDS.values())
+    ]
+    xbrl_statement_facts_available = bool(xbrl_crosscheck_sources)
+    if not used_statement_source_ids and not statement_sources:
         statement_authority = "No source-backed normalized statements"
         statement_source_provider = None
-    elif statement_providers == {"sec-edgar"}:
+    elif used_statement_providers == {"sec-edgar"}:
         statement_authority = "SEC Company Facts/XBRL normalized statements"
         statement_source_provider = "sec-edgar"
-    elif "sec-edgar" in statement_providers:
+    elif "sec-edgar" in used_statement_providers and "fmp" in used_statement_providers:
         statement_authority = "Mixed FMP and SEC Company Facts normalized statements"
         statement_source_provider = "mixed"
+    elif used_statement_providers == {"fmp"} and xbrl_statement_facts_available:
+        statement_authority = "FMP normalized statements with SEC Company Facts/XBRL cross-check"
+        statement_source_provider = "fmp"
     elif sec_metadata_ok:
         statement_authority = "FMP normalized statements; SEC metadata only"
         statement_source_provider = "fmp"
@@ -535,7 +554,8 @@ def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[di
         "sec_metadata_available": sec_metadata_ok,
         "statement_source_provider": statement_source_provider,
         "statement_authority": statement_authority,
-        "statement_source_ids": [str(source.get("source_id")) for source in statement_sources if source.get("source_id")],
+        "statement_source_ids": sorted(used_statement_source_ids),
+        "statement_crosscheck_source_ids": [str(source.get("source_id")) for source in xbrl_crosscheck_sources if source.get("source_id")],
         "xbrl_statement_facts_available": xbrl_statement_facts_available,
     }
 
@@ -1100,9 +1120,15 @@ def _audit_bundle(
         findings.append({"severity": "medium", "code": "provider_error", "message": "At least one provider call failed. Inspect sources.json."})
     if any(source.get("status") == "unavailable" and source.get("provider") == "fmp" for source in sources):
         findings.append({"severity": "high", "code": "provider_unavailable", "message": "FMP is unavailable in this runtime, so no source-backed report can be completed."})
-    if any(source.get("status") == "unavailable" and source.get("provider") == "sec-edgar" for source in sources):
+    if any(
+        source.get("status") == "unavailable"
+        and source.get("provider") == "sec-edgar"
+        and str(source.get("endpoint_or_filing") or "").startswith("env:")
+        for source in sources
+    ):
         findings.append({"severity": "medium", "code": "sec_edgar_unavailable", "message": "SEC EDGAR metadata is unavailable because SEC_USER_AGENT is not configured."})
-    if rows and not any(source.get("provider") == "sec-edgar" and source.get("status") == "ok" for source in sources):
+    sec_xbrl_ok = any(source.get("source_id") in set(SEC_STATEMENT_SOURCE_IDS.values()) and source.get("status") == "ok" for source in sources)
+    if rows and not sec_xbrl_ok:
         findings.append({"severity": "medium", "code": "filing_crosscheck_missing", "message": "Financial statements were not cross-checked against SEC/XBRL facts in this run."})
     if not valuation.get("available"):
         findings.append({"severity": "medium", "code": "valuation_unavailable", "message": valuation.get("reason", "Valuation could not be completed.")})
@@ -1586,9 +1612,9 @@ def build_equity_research_bundle(
     profile, frames, sources = _load_fmp_payloads(symbol, paths, fmp_client)
     filings, sec_sources = _load_sec_filings(symbol, sec_client)
     sources.extend(sec_sources)
+    sec_frames, sec_fact_sources = _load_sec_company_facts(symbol, sec_client)
+    sources.extend(sec_fact_sources)
     if any(frames.get(key, pd.DataFrame()).empty for key in DEFAULT_STATEMENT_SOURCE_IDS):
-        sec_frames, sec_fact_sources = _load_sec_company_facts(symbol, sec_client)
-        sources.extend(sec_fact_sources)
         for statement_key, source_id in SEC_STATEMENT_SOURCE_IDS.items():
             if frames.get(statement_key, pd.DataFrame()).empty and not sec_frames.get(statement_key, pd.DataFrame()).empty:
                 frames[statement_key] = sec_frames[statement_key]

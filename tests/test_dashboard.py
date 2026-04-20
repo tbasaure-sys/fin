@@ -180,11 +180,12 @@ def test_equity_research_llm_policy_auto_enables_only_when_key_exists(monkeypatc
 def test_wsgi_exposes_equity_research_endpoint(tmp_path: Path, monkeypatch) -> None:
     paths = _paths(tmp_path)
 
-    def fake_equity_research(self, ticker: str, mode: str = "quick") -> dict:
+    def fake_equity_research(self, ticker: str, mode: str = "quick", sec_user_agent: str | None = None) -> dict:
         return {
             "ok": True,
             "ticker": ticker,
             "mode": mode,
+            "sec_user_agent": sec_user_agent,
             "sources": {"records": [], "data_points": []},
             "audit": {"status": "pass", "findings": []},
         }
@@ -203,6 +204,7 @@ def test_wsgi_exposes_equity_research_endpoint(tmp_path: Path, monkeypatch) -> N
                 "REQUEST_METHOD": "GET",
                 "PATH_INFO": "/api/equity-research/AAPL",
                 "QUERY_STRING": "mode=full",
+                "HTTP_X_SEC_USER_AGENT": "MetaAlphaAllocator forwarded@example.com",
             },
             start_response,
         )
@@ -212,6 +214,7 @@ def test_wsgi_exposes_equity_research_endpoint(tmp_path: Path, monkeypatch) -> N
     assert response["status"] == "200 OK"
     assert payload["ticker"] == "AAPL"
     assert payload["mode"] == "full"
+    assert payload["sec_user_agent"] == "MetaAlphaAllocator forwarded@example.com"
 
     job_response = {}
 
