@@ -39,8 +39,10 @@ def _raise_for_fmp_status(response: requests.Response, endpoint: str) -> None:
 class FMPClient:
     api_key: str
     cache_root: Path
-    pause_seconds: float = 0.15
+    pause_seconds: float = 0.35
     price_cache_ttl_seconds: int = 1800
+    max_retries: int = 4
+    retry_base_seconds: float = 1.0
 
     @classmethod
     def from_env(cls, cache_root: Path) -> "FMPClient | None":
@@ -48,7 +50,17 @@ class FMPClient:
         if not api_key:
             return None
         ttl = int(os.environ.get("FMP_PRICE_CACHE_TTL_SECONDS", "1800"))
-        return cls(api_key=api_key, cache_root=cache_root, price_cache_ttl_seconds=ttl)
+        pause_seconds = float(os.environ.get("FMP_REQUEST_PAUSE_SECONDS", "0.35"))
+        max_retries = int(os.environ.get("FMP_MAX_RETRIES", "4"))
+        retry_base_seconds = float(os.environ.get("FMP_RETRY_BASE_SECONDS", "1.0"))
+        return cls(
+            api_key=api_key,
+            cache_root=cache_root,
+            pause_seconds=max(0.0, pause_seconds),
+            price_cache_ttl_seconds=ttl,
+            max_retries=max(0, max_retries),
+            retry_base_seconds=max(0.1, retry_base_seconds),
+        )
 
     def _cache_path(self, group: str, name: str, suffix: str) -> Path:
         safe_name = name.replace("/", "_").replace("?", "_").replace("&", "_")
@@ -64,6 +76,32 @@ class FMPClient:
         age_seconds = time.time() - cache_path.stat().st_mtime
         return age_seconds <= ttl_seconds
 
+    def _retry_delay(self, response: requests.Response, attempt: int) -> float:
+        retry_after = response.headers.get("Retry-After")
+        if retry_after:
+            try:
+                return max(0.1, float(retry_after))
+            except ValueError:
+                pass
+        return self.retry_base_seconds * (2**attempt)
+
+    def _get_response_json(self, base_url: str, endpoint: str, params: dict[str, Any]) -> Any:
+        query = dict(params)
+        query["apikey"] = self.api_key
+        response: requests.Response | None = None
+        for attempt in range(self.max_retries + 1):
+            response = requests.get(f"{base_url}/{endpoint}", params=query, timeout=30)
+            if response.ok:
+                return response.json()
+            retryable = response.status_code == 429 or 500 <= response.status_code < 600
+            if retryable and attempt < self.max_retries:
+                time.sleep(self._retry_delay(response, attempt))
+                continue
+            _raise_for_fmp_status(response, endpoint)
+        if response is not None:
+            _raise_for_fmp_status(response, endpoint)
+        raise RuntimeError(f"FMP request failed for {endpoint}")
+
     def _get_json(
         self,
         endpoint: str,
@@ -77,11 +115,7 @@ class FMPClient:
         if self._cache_is_fresh(cache_path, ttl_seconds):
             return json.loads(cache_path.read_text(encoding="utf-8"))
 
-        query = dict(params)
-        query["apikey"] = self.api_key
-        response = requests.get(f"{FMP_BASE_URL}/{endpoint}", params=query, timeout=30)
-        _raise_for_fmp_status(response, endpoint)
-        payload = response.json()
+        payload = self._get_response_json(FMP_BASE_URL, endpoint, params)
         cache_path.write_text(json.dumps(payload), encoding="utf-8")
         time.sleep(self.pause_seconds)
         return payload
@@ -99,11 +133,7 @@ class FMPClient:
         if self._cache_is_fresh(cache_path, ttl_seconds):
             return json.loads(cache_path.read_text(encoding="utf-8"))
 
-        query = dict(params)
-        query["apikey"] = self.api_key
-        response = requests.get(f"{FMP_STABLE_BASE_URL}/{endpoint}", params=query, timeout=30)
-        _raise_for_fmp_status(response, endpoint)
-        payload = response.json()
+        payload = self._get_response_json(FMP_STABLE_BASE_URL, endpoint, params)
         cache_path.write_text(json.dumps(payload), encoding="utf-8")
         time.sleep(self.pause_seconds)
         return payload
@@ -123,15 +153,15 @@ class FMPClient:
             if self._cache_is_fresh(raw_cache, ttl_seconds):
                 payload = json.loads(raw_cache.read_text(encoding="utf-8"))
             else:
-                query = {
-                    "symbol": symbol,
-                    "from": start_date,
-                    "to": end_date,
-                    "apikey": self.api_key,
-                }
-                response = requests.get(f"{FMP_STABLE_BASE_URL}/historical-price-eod/full", params=query, timeout=30)
-                _raise_for_fmp_status(response, "historical-price-eod/full")
-                payload = response.json()
+                payload = self._get_response_json(
+                    FMP_STABLE_BASE_URL,
+                    "historical-price-eod/full",
+                    {
+                        "symbol": symbol,
+                        "from": start_date,
+                        "to": end_date,
+                    },
+                )
                 raw_cache.write_text(json.dumps(payload), encoding="utf-8")
                 time.sleep(self.pause_seconds)
             rows = payload if isinstance(payload, list) else payload.get("historical", []) if isinstance(payload, dict) else []

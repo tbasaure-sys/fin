@@ -11,12 +11,22 @@ from meta_alpha_allocator.data.sec_edgar_client import SECEdgarClient
 
 
 class _FakeResponse:
-    def __init__(self, payload: Any, *, ok: bool = True, status_code: int = 200, reason: str = "OK", url: str = "https://example.test") -> None:
+    def __init__(
+        self,
+        payload: Any,
+        *,
+        ok: bool = True,
+        status_code: int = 200,
+        reason: str = "OK",
+        url: str = "https://example.test",
+        headers: dict[str, str] | None = None,
+    ) -> None:
         self._payload = payload
         self.ok = ok
         self.status_code = status_code
         self.reason = reason
         self.url = url
+        self.headers = headers or {}
 
     def json(self) -> Any:
         return self._payload
@@ -77,3 +87,25 @@ def test_fmp_http_errors_do_not_leak_api_keys(monkeypatch, tmp_path) -> None:
     assert "stable/profile" in message
     assert "live_secret_key" not in message
     assert "apikey" not in message
+
+
+def test_fmp_retries_rate_limit_with_retry_after(monkeypatch, tmp_path) -> None:
+    calls = 0
+    sleeps: list[float] = []
+
+    def fake_get(url: str, *, params: dict[str, Any], timeout: int) -> _FakeResponse:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            return _FakeResponse({}, ok=False, status_code=429, reason="Too Many Requests", url=url, headers={"Retry-After": "0.25"})
+        return _FakeResponse([{"date": "2024-12-31", "revenue": 100.0}], url=url)
+
+    monkeypatch.setattr("meta_alpha_allocator.data.fmp_client.requests.get", fake_get)
+    monkeypatch.setattr("meta_alpha_allocator.data.fmp_client.time.sleep", lambda seconds: sleeps.append(seconds))
+
+    client = FMPClient(api_key="live_fmp_key", cache_root=tmp_path, pause_seconds=0, max_retries=2, retry_base_seconds=0.1)
+    frame = client.get_income_statements("BABA", period="annual", limit=10)
+
+    assert frame.loc[0, "revenue"] == 100.0
+    assert calls == 2
+    assert sleeps == [0.25, 0]
