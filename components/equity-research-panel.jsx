@@ -6,13 +6,13 @@ import { formatCurrency, formatDateTime, formatPct, safeList, statusTone } from 
 import { parseResponse } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
 
-const RESEARCH_TABS = ["Memo", "Valuation", "Agents", "Delta", "Evidence", "Audit"];
+const RESEARCH_TABS = ["Memo", "Valuation", "Process", "Delta", "Evidence", "Audit"];
 const AGENT_STAGES = [
-  { key: "intake", label: "Intake", detail: "FMP / SEC", threshold: 0 },
-  { key: "normalize", label: "Normalize", detail: "Statements", threshold: 18 },
+  { key: "intake", label: "Collect", detail: "Sources", threshold: 0 },
+  { key: "normalize", label: "Clean", detail: "Statements", threshold: 18 },
   { key: "valuation", label: "Value", detail: "DCF / reverse", threshold: 40 },
-  { key: "red_team", label: "Red-team", detail: "Risks", threshold: 62 },
-  { key: "audit", label: "Audit", detail: "Ledger", threshold: 82 },
+  { key: "red_team", label: "Challenge", detail: "Risks", threshold: 62 },
+  { key: "audit", label: "Verify", detail: "Ledger", threshold: 82 },
 ];
 
 function sleep(ms) {
@@ -72,6 +72,35 @@ function humanizeMetric(value) {
     latest_sec_filing: "latest SEC filing",
   };
   return labels[value] || String(value || "").replace(/[_\-]+/g, " ");
+}
+
+function parseJsonish(value) {
+  if (!value) return {};
+  if (typeof value === "object") return value;
+  const text = String(value || "").trim();
+  if (!text) return {};
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = (fenced ? fenced[1] : text).trim();
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    return { memo_patch: text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim() };
+  }
+}
+
+function finalAnalysisFrom(orchestrator) {
+  const analysis = parseJsonish(orchestrator?.analysis);
+  if (analysis.memo_patch && !analysis.executive_judgment) {
+    const nested = parseJsonish(analysis.memo_patch);
+    if (nested.executive_judgment || nested.strongest_points || nested.red_team || nested.open_questions) {
+      return nested;
+    }
+  }
+  return analysis;
+}
+
+function firstUsefulText(...values) {
+  return values.find((value) => typeof value === "string" && value.trim()) || "";
 }
 
 function summarizeGaps(metrics, limit = 4) {
@@ -311,10 +340,20 @@ function renderAgents(research) {
   const agentPayload = research?.agents || research?.sources?.agent_outputs || {};
   const agents = safeList(agentPayload.agents);
   const finalOrchestrator = agentPayload.final_orchestrator || {};
-  const finalAnalysis = finalOrchestrator.analysis || {};
+  const finalAnalysis = finalAnalysisFrom(finalOrchestrator);
   const strongestPoints = safeList(finalAnalysis.strongest_points);
   const redTeam = safeList(finalAnalysis.red_team);
   const openQuestions = safeList(finalAnalysis.open_questions);
+  const sourceRecords = safeList(research?.sources?.records);
+  const sourceErrors = sourceRecords.filter((source) => source.status === "error");
+  const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
+  const statementProvider = coverage.statement_source_provider || (safeList(research?.financials?.annual).length ? "fmp" : null);
+  const auditStatus = research?.audit?.status || "pending";
+  const valuationReady = Boolean(research?.valuation?.available);
+  const finalCallText = finalOrchestrator.enabled
+    ? `${finalOrchestrator.call_budget?.actual_calls || 0}/${finalOrchestrator.call_budget?.max_calls || 1} final editor call`
+    : "Final editor skipped";
+  const processTone = auditStatus === "pass" ? "good" : auditStatus === "needs_attention" ? "warn" : "neutral";
   const finalTone =
     finalOrchestrator.status === "ok"
       ? "good"
@@ -323,63 +362,110 @@ function renderAgents(research) {
         : "neutral";
 
   if (!research) {
-    return <p className={styles.emptyCopy}>The agent desk will appear after a run, with each analyst constrained to sourced facts, deterministic calculations, assumptions, interpretations, or uncertainty.</p>;
+    return <p className={styles.emptyCopy}>The research process will appear after a run, with every stage preserved for reproducibility.</p>;
   }
 
   if (!agents.length) {
-    return <p className={styles.emptyCopy}>No agent outputs were emitted for this bundle.</p>;
+    return <p className={styles.emptyCopy}>No process trace was emitted for this bundle.</p>;
   }
+
+  const processSteps = [
+    {
+      key: "sources",
+      label: "Sources gathered",
+      detail: sourceErrors.length ? `${sourceErrors.length} source issue${sourceErrors.length === 1 ? "" : "s"}` : `${sourceRecords.filter((source) => source.status === "ok").length} live sources`,
+      state: sourceErrors.length && !statementProvider ? "bad" : sourceErrors.length ? "warn" : "done",
+    },
+    {
+      key: "statements",
+      label: "Statements normalized",
+      detail: statementProvider ? `${statementProvider.toUpperCase()} statement spine` : "Waiting for source-backed statements",
+      state: statementProvider ? "done" : "bad",
+    },
+    {
+      key: "valuation",
+      label: "Valuation calculated",
+      detail: valuationReady ? "DCF, reverse DCF, multiples" : "Blocked by missing inputs",
+      state: valuationReady ? "done" : "bad",
+    },
+    {
+      key: "challenge",
+      label: "Thesis challenged",
+      detail: `${agents.length} deterministic analyst passes`,
+      state: "done",
+    },
+    {
+      key: "audit",
+      label: "Audit packaged",
+      detail: `${formatCoverageScore(coverage.score)} coverage`,
+      state: auditStatus === "pass" ? "done" : "warn",
+    },
+    {
+      key: "editor",
+      label: "Final synthesis",
+      detail: finalCallText,
+      state: finalOrchestrator.status === "ok" ? "done" : finalOrchestrator.enabled ? "warn" : "idle",
+    },
+  ];
+
+  const judgment = firstUsefulText(
+    finalAnalysis.executive_judgment,
+    finalAnalysis.memo_patch,
+    auditStatus === "pass"
+      ? "The report is ready for review. The deterministic engine produced source-backed statements, valuation, audit, and downloadable artifacts."
+      : "The report is reproducible, but the audit still has open issues that should be resolved before relying on the memo.",
+  );
 
   return (
     <div className={styles.researchStack}>
-      <div className={styles.researchAgentHeader}>
+      <div className={styles.researchProcessHero} data-tone={processTone}>
         <div>
-          <span>Agent layer</span>
-          <strong>{agentPayload.version || "v1"}</strong>
-          <small>{agentPayload.policy || "Agents interpret audited deterministic outputs."}</small>
+          <span>Research process</span>
+          <strong>{auditStatus === "pass" ? "Ready for analyst review" : "Needs analyst attention"}</strong>
+          <p>Data, calculations, red-team critique, and audit trail were produced as separate reproducible steps.</p>
         </div>
         <div>
-          <span>Mode</span>
-          <strong>{humanizeToken(agentPayload.mode)}</strong>
-          <small>{agentPayload.execution?.specialist_llm_calls ?? 0} specialist LLM calls; deterministic agents run before the final editor.</small>
+          <span>{formatCoverageScore(coverage.score)}</span>
+          <small>{finalCallText}</small>
         </div>
-        <div>
-          <span>Final LLM call</span>
-          <strong>{humanizeToken(finalOrchestrator.status || "disabled")}</strong>
-          <small>
-            {finalOrchestrator.enabled
-              ? `${finalOrchestrator.call_budget?.actual_calls || 0}/${finalOrchestrator.call_budget?.max_calls || 1} call, ${finalOrchestrator.model || "model"}`
-              : "Skipped because no final orchestrator key is enabled."}
-          </small>
-        </div>
+      </div>
+
+      <div className={styles.researchProcessRail}>
+        {processSteps.map((step, index) => (
+          <div className={styles.researchProcessStep} data-state={step.state} key={step.key}>
+            <span>{index + 1}</span>
+            <strong>{step.label}</strong>
+            <small>{step.detail}</small>
+          </div>
+        ))}
       </div>
 
       <article className={styles.researchOrchestratorCard} data-tone={finalTone}>
         <div className={styles.researchAgentCardTop}>
           <div>
-            <span>Final orchestrator</span>
-            <strong>{finalOrchestrator.model || "One-call editor"}</strong>
+            <span>Final synthesis</span>
+            <strong>{finalOrchestrator.status === "ok" ? "Editorial pass complete" : "Deterministic report complete"}</strong>
           </div>
-          <small>{humanizeToken(finalOrchestrator.status || "disabled")}</small>
+          <small>{humanizeToken(finalOrchestrator.status || "deterministic")}</small>
         </div>
         {finalOrchestrator.status === "ok" ? (
           <>
-            <p>{finalAnalysis.executive_judgment || finalAnalysis.memo_patch || "Final synthesis completed."}</p>
+            <p>{judgment}</p>
             <div className={styles.researchOrchestratorColumns}>
               <div>
-                <span>Strongest points</span>
+                <span>What matters</span>
                 {(strongestPoints.length ? strongestPoints : [finalAnalysis.strongest_points]).filter(Boolean).slice(0, 3).map((item, index) => (
                   <p key={`strong-${index}`}>{item}</p>
                 ))}
               </div>
               <div>
-                <span>Red team</span>
+                <span>Pushback</span>
                 {(redTeam.length ? redTeam : [finalAnalysis.red_team]).filter(Boolean).slice(0, 3).map((item, index) => (
                   <p key={`red-team-${index}`}>{item}</p>
                 ))}
               </div>
               <div>
-                <span>Open questions</span>
+                <span>Next checks</span>
                 {(openQuestions.length ? openQuestions : [finalAnalysis.open_questions]).filter(Boolean).slice(0, 3).map((item, index) => (
                   <p key={`open-${index}`}>{item}</p>
                 ))}
@@ -390,45 +476,46 @@ function renderAgents(research) {
           <p>
             {finalOrchestrator.enabled
               ? finalOrchestrator.error || "The one-call final orchestrator was enabled but did not return a synthesis."
-              : "Specialist agents still ran. Add an OpenAI-compatible key to enable exactly one final synthesis call after the deterministic analysis completes."}
+              : "The deterministic analyst desk still ran. Enable the final editor only when you want one LLM synthesis after calculations and audit are complete."}
           </p>
         )}
       </article>
 
-      <div className={styles.researchAgentGrid}>
-        {agents.map((agent) => {
-          const claims = safeList(agent.claims);
-          const questions = safeList(agent.open_questions);
-          return (
-            <article className={styles.researchAgentCard} data-tone={statusTone(agent.status)} key={agent.id}>
-              <div className={styles.researchAgentCardTop}>
+      <details className={styles.researchTechnicalTrace}>
+        <summary>Reproducibility trail</summary>
+        <div className={styles.researchTraceGrid}>
+          <div>
+            <span>Agent layer</span>
+            <strong>{agentPayload.version || "v1"}</strong>
+            <small>{humanizeToken(agentPayload.mode)}</small>
+          </div>
+          <div>
+            <span>Calculation rule</span>
+            <strong>Python only</strong>
+            <small>{agentPayload.execution?.specialist_llm_calls ?? 0} specialist LLM calls</small>
+          </div>
+          <div>
+            <span>Final editor</span>
+            <strong>{finalOrchestrator.model || "Disabled"}</strong>
+            <small>{finalCallText}</small>
+          </div>
+        </div>
+        <div className={styles.researchAgentList}>
+          {agents.map((agent) => {
+            const questions = safeList(agent.open_questions);
+            return (
+              <div className={styles.researchAgentRow} data-tone={statusTone(agent.status)} key={agent.id}>
+                <span>{humanizeToken(agent.status)}</span>
                 <div>
-                  <span>{agent.role}</span>
                   <strong>{agent.name}</strong>
+                  <p>{agent.summary}</p>
+                  {questions.length ? <small>{questions.slice(0, 2).join(" / ")}</small> : null}
                 </div>
-                <small>{humanizeToken(agent.status)}</small>
               </div>
-              <p>{agent.summary}</p>
-              <div className={styles.researchAgentClaims}>
-                {claims.slice(0, 3).map((claim) => (
-                  <div key={claim.id}>
-                    <span>{claim.claim_tag}</span>
-                    <p>{claim.text}</p>
-                  </div>
-                ))}
-              </div>
-              {questions.length ? (
-                <details className={styles.researchAgentQuestions}>
-                  <summary>{questions.length} open question{questions.length === 1 ? "" : "s"}</summary>
-                  {questions.slice(0, 4).map((question, index) => (
-                    <p key={`${agent.id}-question-${index}`}>{question}</p>
-                  ))}
-                </details>
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </details>
     </div>
   );
 }
@@ -817,7 +904,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
             type="button"
           >
             <span>{tab}</span>
-            {tab === "Agents" && agentCount ? <small>{agentCount}</small> : null}
+            {tab === "Process" && agentCount ? <small>{agentCount}</small> : null}
             {tab === "Evidence" && evidenceCount ? <small>{evidenceCount}</small> : null}
             {tab === "Audit" && auditFindings.length ? <small>{auditFindings.length}</small> : null}
             {tab === "Delta" && deltaChanges.length ? <small>{deltaChanges.length}</small> : null}
@@ -827,9 +914,9 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
 
       <div className={styles.researchOutputShell}>
         <aside className={styles.researchEvidenceSpine}>
-          <span>Current bundle</span>
+          <span>Run receipt</span>
           <strong>{research?.ticker || cleanTicker(ticker) || "No ticker"}</strong>
-          <p>{research ? `${sourceRecords.length} sources, ${evidenceCount} data points, ${coverageDetail}.` : "Run a ticker to assemble a ledger-backed bundle."}</p>
+          <p>{research ? `${coverageDetail}; ${evidenceCount} ledger entries are kept for reproducibility.` : "Run a ticker to assemble a reproducible research pack."}</p>
           <dl>
             <div>
               <dt>Statements</dt>
@@ -840,15 +927,15 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
               <dd>{coverage.sec_metadata_available ? "SEC metadata" : "-"}</dd>
             </div>
             <div>
-              <dt>Export</dt>
-              <dd>{hasXlsx ? "xlsx + ledgers" : downloads.length ? "text ledgers" : "-"}</dd>
+              <dt>Artifacts</dt>
+              <dd>{hasXlsx ? "model + ledgers" : downloads.length ? "ledgers" : "-"}</dd>
             </div>
           </dl>
         </aside>
         <div className={styles.researchOutput}>
           {activeTab === "Memo" ? renderMemo(research) : null}
           {activeTab === "Valuation" ? renderValuation(research) : null}
-          {activeTab === "Agents" ? renderAgents(research) : null}
+          {activeTab === "Process" ? renderAgents(research) : null}
           {activeTab === "Delta" ? renderDelta(research) : null}
           {activeTab === "Evidence" ? renderEvidence(research) : null}
           {activeTab === "Audit" ? renderAudit(research) : null}

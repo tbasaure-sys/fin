@@ -1359,6 +1359,211 @@
   line-height: 1.4;
 }
 
+.researchProcessHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+  padding: 0.15rem 0 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchProcessHero span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.researchProcessHero strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: clamp(1.25rem, 2vw, 1.85rem);
+  line-height: 1.08;
+}
+
+.researchProcessHero p,
+.researchProcessHero small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.researchProcessHero p {
+  max-width: 62ch;
+  margin: 0.4rem 0 0;
+}
+
+.researchProcessHero > div:last-child {
+  text-align: right;
+}
+
+.researchProcessHero > div:last-child span {
+  color: var(--good);
+  font-size: 1.65rem;
+  font-weight: 800;
+  text-transform: none;
+}
+
+.researchProcessHero[data-tone="warn"] > div:last-child span {
+  color: var(--warn);
+}
+
+.researchProcessHero[data-tone="bad"] > div:last-child span {
+  color: var(--bad);
+}
+
+.researchProcessRail {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchProcessStep {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.95rem 0.75rem;
+}
+
+.researchProcessStep + .researchProcessStep {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchProcessStep > span {
+  width: 1.55rem;
+  height: 1.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.researchProcessStep strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.92rem;
+}
+
+.researchProcessStep small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.researchProcessStep[data-state="done"] > span {
+  border-color: rgba(82, 208, 163, 0.55);
+  color: var(--good);
+}
+
+.researchProcessStep[data-state="warn"] > span {
+  border-color: rgba(255, 180, 84, 0.62);
+  color: var(--warn);
+}
+
+.researchProcessStep[data-state="bad"] > span {
+  border-color: rgba(255, 124, 114, 0.6);
+  color: var(--bad);
+}
+
+.researchProcessStep[data-state="idle"] {
+  opacity: 0.62;
+}
+
+.researchTechnicalTrace {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding-top: 0.85rem;
+}
+
+.researchTechnicalTrace summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.researchTraceGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin-top: 0.85rem;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchTraceGrid div {
+  min-width: 0;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem;
+}
+
+.researchTraceGrid div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.researchTraceGrid span,
+.researchAgentRow > span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.researchTraceGrid strong,
+.researchAgentRow strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.researchTraceGrid small,
+.researchAgentRow p,
+.researchAgentRow small {
+  color: var(--muted);
+  line-height: 1.42;
+}
+
+.researchAgentList {
+  display: grid;
+  gap: 0;
+  margin-top: 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.researchAgentRow {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.85rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.researchAgentRow p {
+  margin: 0.16rem 0 0;
+}
+
+.researchAgentRow small {
+  display: block;
+  margin-top: 0.3rem;
+}
+
+.researchAgentRow[data-tone="good"] > span {
+  color: var(--good);
+}
+
+.researchAgentRow[data-tone="warn"] > span {
+  color: var(--warn);
+}
+
+.researchAgentRow[data-tone="bad"] > span {
+  color: var(--bad);
+}
+
 .researchAgentHeader {
   display: grid;
   grid-template-columns: minmax(0, 1fr) repeat(2, minmax(10rem, 0.36fr));
@@ -1851,6 +2056,9 @@
   .researchSignalGrid,
   .researchCoverageRail,
   .researchCoverageSummary,
+  .researchProcessHero,
+  .researchProcessRail,
+  .researchTraceGrid,
   .researchAgentHeader,
   .researchAgentGrid,
   .researchOrchestratorColumns,
@@ -1874,10 +2082,20 @@
   }
 
   .researchCoverageSummary div + div,
+  .researchProcessStep + .researchProcessStep,
+  .researchTraceGrid div + div,
   .researchAgentHeader div + div,
   .researchAuditBar div + div {
     border-left: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .researchProcessHero > div:last-child {
+    text-align: left;
+  }
+
+  .researchAgentRow {
+    grid-template-columns: 1fr;
   }
 
   .header {
