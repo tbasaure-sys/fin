@@ -792,7 +792,7 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
           value={primaryAction?.title || "Protect capital"}
         />
         <MetricTile
-          detail={primaryAction?.watchFor || blockedAction?.watchFor || "A stronger recoverability read and cleaner breadth confirmation."}
+          detail={primaryAction?.watchFor || blockedAction?.watchFor || "Stronger risk confirmation and cleaner breadth confirmation."}
           label="What would change it"
           value={activeAction ? formatSize(activeAction) : "No size change"}
         />
@@ -821,153 +821,6 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
           </button>
         </div>
       ) : null}
-    </section>
-  );
-}
-
-function balanceStateTone(value) {
-  const normalized = String(value || "").toLowerCase();
-  if (normalized === "accretive" || normalized === "balanced") return "good";
-  if (normalized === "stressed") return "bad";
-  return "warn";
-}
-
-function positiveBalanceTone(value) {
-  const normalized = parseDisplayPercent(value);
-  if (normalized === null) return "neutral";
-  if (normalized >= 0.6) return "good";
-  if (normalized >= 0.35) return "warn";
-  return "bad";
-}
-
-function negativeBalanceTone(value) {
-  const normalized = parseDisplayPercent(value);
-  if (normalized === null) return "neutral";
-  if (normalized >= 0.6) return "bad";
-  if (normalized >= 0.35) return "warn";
-  return "good";
-}
-
-function RecoverabilityBalanceSheetPanel({ balanceSheet }) {
-  if (!balanceSheet) return null;
-
-  const assets = safeList(balanceSheet.assets).slice(0, 5);
-  const liabilities = safeList(balanceSheet.liabilities).slice(0, 6);
-  const reserves = safeList(balanceSheet.reserves).slice(0, 4);
-  const notes = safeList(balanceSheet.notes).slice(0, 4);
-
-  return (
-    <section className={styles.panel}>
-      <div className={styles.panelHeader}>
-        <div>
-          <p className={styles.kicker}>Recoverability balance sheet</p>
-          <h2>{balanceSheet.accountingState || "Balance sheet"}</h2>
-          <p className={styles.supportText}>
-            {balanceSheet.headlineState || balanceSheet.subhead || "Future freedom is treated as an accounting object here."}
-          </p>
-        </div>
-        <ToneBadge tone={balanceStateTone(balanceSheet.accountingState)}>
-          {balanceSheet.budgetState || balanceSheet.source || "Live"}
-        </ToneBadge>
-      </div>
-
-      <p className={styles.lead}>{balanceSheet.headline || balanceSheet.subhead || "Read the book by what creates future freedom and what consumes it."}</p>
-
-      <div className={styles.decisionGrid}>
-        <MetricTile
-          detail="Assets minus liabilities after the current state and portfolio shape are netted together."
-          label="Net freedom"
-          tone={balanceStateTone(balanceSheet.accountingState)}
-          value={balanceSheet.netFreedom || "-"}
-        />
-        <MetricTile
-          detail="The reserve left after a plausible wrong move. This is the core accounting buffer."
-          label="Optionality reserve"
-          tone={positiveBalanceTone(balanceSheet.optionalityReserve)}
-          value={balanceSheet.optionalityReserve || "-"}
-        />
-        <MetricTile
-          detail="How much of the current rebound still looks visible rather than structurally earned."
-          label="Phantom tax"
-          tone={negativeBalanceTone(balanceSheet.phantomTax)}
-          value={balanceSheet.phantomTax || "-"}
-        />
-        <MetricTile
-          detail="How much action room still remains for funded rotations and selective adds."
-          label="Legitimacy slack"
-          tone={positiveBalanceTone(balanceSheet.legitimacySlack)}
-          value={balanceSheet.legitimacySlack || "-"}
-        />
-      </div>
-
-      <div className={styles.balanceGrid}>
-        <article className={styles.balanceCard}>
-          <div className={styles.balanceCardHeader}>
-            <strong>Assets</strong>
-            <span>What creates future freedom</span>
-          </div>
-          <div className={styles.balanceStack}>
-            {assets.map((item) => (
-              <div className={styles.balanceRow} key={item.id || item.label}>
-                <div>
-                  <strong>{item.label}</strong>
-                  <p>{item.detail}</p>
-                </div>
-                <ToneBadge tone={positiveBalanceTone(item.valueLabel || item.value)}>
-                  {item.valueLabel || item.value || "-"}
-                </ToneBadge>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className={styles.balanceCard}>
-          <div className={styles.balanceCardHeader}>
-            <strong>Liabilities</strong>
-            <span>What consumes future freedom</span>
-          </div>
-          <div className={styles.balanceStack}>
-            {liabilities.map((item) => (
-              <div className={styles.balanceRow} key={item.id || item.label}>
-                <div>
-                  <strong>{item.label}</strong>
-                  <p>{item.detail}</p>
-                </div>
-                <ToneBadge tone={negativeBalanceTone(item.valueLabel || item.value)}>
-                  {item.valueLabel || item.value || "-"}
-                </ToneBadge>
-              </div>
-            ))}
-          </div>
-        </article>
-      </div>
-
-      {reserves.length ? (
-        <div className={styles.balanceReserveGrid}>
-          {reserves.map((item) => (
-            <MetricTile
-              key={item.id || item.label}
-              detail={item.detail}
-              label={item.label}
-              tone={positiveBalanceTone(item.valueLabel || item.value)}
-              value={item.valueLabel || item.value || "-"}
-            />
-          ))}
-        </div>
-      ) : null}
-
-      <div className={styles.balanceSummary}>
-        <div>
-          <strong>Spend rule</strong>
-          <p>{balanceSheet.spendRule || "Only spend optionality on moves that widen future freedom."}</p>
-        </div>
-        <div>
-          <strong>Repair note</strong>
-          <p>{balanceSheet.repairNote || "No repair note is available yet."}</p>
-        </div>
-      </div>
-
-      {notes.length ? <InlineList emptyLabel="No accounting notes yet." items={notes} /> : null}
     </section>
   );
 }
@@ -1279,7 +1132,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const blockedAction = dashboard?.blocked_action || null;
   const escrowItems = safeList(dashboard?.escrow?.items).slice(0, 4);
   const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).slice(0, 4);
-  const balanceSheet = dashboard?.recoverability_balance_sheet || null;
   const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 3);
   const dataControl = dashboard?.data_control || {};
 
@@ -1627,12 +1479,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <p className={styles.glossaryPanelSub}>Every unusual term this workspace uses, explained in plain language.</p>
             <dl className={styles.glossaryList}>
               {[
-                { term: "Recoverability", def: "How well your portfolio can absorb a bad stretch and still come back. High recoverability means you have room to be wrong without being trapped." },
-                { term: "Optionality reserve", def: "The flexibility you still have after a plausible mistake. Think of it as breathing room — the higher it is, the more moves you can still make." },
-                { term: "Phantom tax", def: "A situation where a recovery looks real on the surface but the underlying structure hasn't actually improved. Like a wound that looks healed but isn't." },
-                { term: "Legitimacy slack", def: "How much room you have to act without forcing a low-quality trade. Low slack means waiting is smarter than moving." },
                 { term: "Phantom diversification", def: "When your holdings look spread out but actually move together in a crisis. This tool measures how much of your diversification is real vs. only visible on paper." },
-                { term: "Net freedom", def: "A single number showing how much room your portfolio still has — for new positions, for mistakes, and for repairs. Like headroom on a budget." },
                 { term: "Stance", def: "The current recommended posture for your portfolio: cautious, neutral, or opportunistic. It changes as market conditions shift." },
                 { term: "Concentration", def: "How much of your portfolio depends on one position or sector. High concentration means one bad outcome has outsized impact." },
                 { term: "Escrow (staged actions)", def: "Moves you've saved for later. They sit here until the market setup makes them worth executing — so you don't miss opportunities but also don't rush." },
@@ -1686,7 +1533,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             primaryAction={primaryAction}
             stateSummary={stateSummary}
           />
-          <RecoverabilityBalanceSheetPanel balanceSheet={balanceSheet} />
           <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
           <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
           <PhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />

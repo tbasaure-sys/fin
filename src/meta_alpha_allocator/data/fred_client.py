@@ -5,12 +5,31 @@ import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pandas as pd
 import requests
 
 
 FRED_BASE_URL = "https://api.stlouisfed.org/fred/series/observations"
+PLACEHOLDER_API_KEYS = {"replace_me", "your_key_here", "changeme", "todo", "none", "null", "dummy"}
+
+
+def _usable_env_value(value: str | None) -> str | None:
+    cleaned = str(value or "").strip()
+    if not cleaned:
+        return None
+    if cleaned.lower() in PLACEHOLDER_API_KEYS:
+        return None
+    return cleaned
+
+
+def _raise_for_fred_status(response: requests.Response) -> None:
+    if response.ok:
+        return
+    parsed = urlparse(response.url)
+    safe_path = parsed.path or "/fred/series/observations"
+    raise requests.HTTPError(f"FRED request failed ({response.status_code} {response.reason}) for {safe_path}", response=response)
 
 
 @dataclass
@@ -21,7 +40,7 @@ class FREDClient:
 
     @classmethod
     def from_env(cls, cache_root: Path) -> "FREDClient | None":
-        api_key = os.environ.get("FRED_API_KEY")
+        api_key = _usable_env_value(os.environ.get("FRED_API_KEY"))
         if not api_key:
             return None
         return cls(api_key=api_key, cache_root=cache_root)
@@ -45,7 +64,7 @@ class FREDClient:
                 "observation_end": end_date,
             }
             response = requests.get(FRED_BASE_URL, params=params, timeout=30)
-            response.raise_for_status()
+            _raise_for_fred_status(response)
             payload = response.json()
             cache_path.write_text(json.dumps(payload), encoding="utf-8")
             time.sleep(self.pause_seconds)

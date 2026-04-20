@@ -28,9 +28,9 @@ export default async function HomePage() {
         "Get structured guidance on whether a position looks like a hold, trim, hedge, rotate, or wait instead of vague commentary.",
     },
     {
-      title: "Recoverability balance sheet",
+      title: "Risk overlap and concentration",
       description:
-        "See how much room your portfolio still has for mistakes, repairs, and new opportunities before you take more risk.",
+        "See which holdings are driving the same risk and where one position or theme is dominating the book.",
     },
     {
       title: "Decision journal and staged actions",
@@ -45,24 +45,24 @@ export default async function HomePage() {
   ];
   const plainEnglishGuide = [
     {
-      term: "Recoverability",
+      term: "Concentration",
       meaning:
-        "How likely your portfolio is to absorb stress and still recover instead of getting trapped.",
+        "How much of your portfolio depends on one position, sector, or theme.",
     },
     {
-      term: "Optionality reserve",
+      term: "Risk overlap",
       meaning:
-        "How much flexibility you still have after a plausible wrong move. Think of it as your portfolio's room to adapt.",
+        "When holdings look different but tend to move together when markets get stressed.",
     },
     {
-      term: "Phantom tax",
+      term: "Staged actions",
       meaning:
-        "A warning that a rebound may look healthy on the surface before the underlying structure really improves.",
+        "Ideas you save for later so you can act only if the setup becomes clearer.",
     },
     {
-      term: "Legitimacy slack",
+      term: "Watchlist alerts",
       meaning:
-        "How much room the current setup gives you to act without forcing low-quality trades.",
+        "Signals that a holding or idea deserves attention without requiring an immediate trade.",
     },
   ];
 
@@ -231,20 +231,20 @@ export default async function HomePage() {
               <div className={styles.mockRows}>
                 <div className={styles.mockRow}>
                   <div className={styles.mockRowBody}>
-                    <span className={styles.mockRowLabel}>Net freedom</span>
-                    <span className={styles.mockRowSub}>How much room the portfolio still has</span>
+                    <span className={styles.mockRowLabel}>Market stance</span>
+                    <span className={styles.mockRowSub}>Whether conditions favor patience or action</span>
                   </div>
                   <span className={styles.mockRowValue} data-tone="green">
-                    61%
+                    Selective
                   </span>
                 </div>
                 <div className={styles.mockRow}>
                   <div className={styles.mockRowBody}>
-                    <span className={styles.mockRowLabel}>Phantom tax</span>
-                    <span className={styles.mockRowSub}>Surface rebound still needs proof</span>
+                    <span className={styles.mockRowLabel}>Risk overlap</span>
+                    <span className={styles.mockRowSub}>Several holdings may react to the same shock</span>
                   </div>
                   <span className={styles.mockRowValue} data-tone="red">
-                    34%
+                    High
                   </span>
                 </div>
                 <div className={styles.mockRow}>
@@ -258,11 +258,11 @@ export default async function HomePage() {
                 </div>
                 <div className={styles.mockRow}>
                   <div className={styles.mockRowBody}>
-                    <span className={styles.mockRowLabel}>Optionality reserve</span>
-                    <span className={styles.mockRowSub}>Flexibility left after a wrong move</span>
+                    <span className={styles.mockRowLabel}>Staged action</span>
+                    <span className={styles.mockRowSub}>A prepared move waiting for better evidence</span>
                   </div>
                   <span className={styles.mockRowValue} data-tone="green">
-                    48%
+                    Ready
                   </span>
                 </div>
               </div>

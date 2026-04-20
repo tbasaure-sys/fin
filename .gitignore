@@ -38,3 +38,5 @@ WEB_GUIDE.local.md
 # editor and system
 .DS_Store
 Thumbs.db
+
+.vercel

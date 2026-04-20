@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import pandas as pd
 import requests
@@ -14,6 +15,24 @@ import requests
 
 FMP_BASE_URL = "https://financialmodelingprep.com/api/v3"
 FMP_STABLE_BASE_URL = "https://financialmodelingprep.com/stable"
+PLACEHOLDER_API_KEYS = {"replace_me", "your_key_here", "changeme", "todo", "none", "null", "dummy"}
+
+
+def _usable_env_value(value: str | None) -> str | None:
+    cleaned = str(value or "").strip()
+    if not cleaned:
+        return None
+    if cleaned.lower() in PLACEHOLDER_API_KEYS:
+        return None
+    return cleaned
+
+
+def _raise_for_fmp_status(response: requests.Response, endpoint: str) -> None:
+    if response.ok:
+        return
+    parsed = urlparse(response.url)
+    safe_path = parsed.path.lstrip("/") or endpoint
+    raise requests.HTTPError(f"FMP request failed ({response.status_code} {response.reason}) for {safe_path}", response=response)
 
 
 @dataclass
@@ -25,7 +44,7 @@ class FMPClient:
 
     @classmethod
     def from_env(cls, cache_root: Path) -> "FMPClient | None":
-        api_key = os.environ.get("FMP_API_KEY") or os.environ.get("FINANCIAL_MODELING_PREP_API_KEY")
+        api_key = _usable_env_value(os.environ.get("FMP_API_KEY")) or _usable_env_value(os.environ.get("FINANCIAL_MODELING_PREP_API_KEY"))
         if not api_key:
             return None
         ttl = int(os.environ.get("FMP_PRICE_CACHE_TTL_SECONDS", "1800"))
@@ -61,7 +80,29 @@ class FMPClient:
         query = dict(params)
         query["apikey"] = self.api_key
         response = requests.get(f"{FMP_BASE_URL}/{endpoint}", params=query, timeout=30)
-        response.raise_for_status()
+        _raise_for_fmp_status(response, endpoint)
+        payload = response.json()
+        cache_path.write_text(json.dumps(payload), encoding="utf-8")
+        time.sleep(self.pause_seconds)
+        return payload
+
+    def _get_stable_json(
+        self,
+        endpoint: str,
+        params: dict[str, Any],
+        cache_group: str,
+        cache_name: str,
+        *,
+        ttl_seconds: int | None = None,
+    ) -> Any:
+        cache_path = self._cache_path(cache_group, cache_name, ".json")
+        if self._cache_is_fresh(cache_path, ttl_seconds):
+            return json.loads(cache_path.read_text(encoding="utf-8"))
+
+        query = dict(params)
+        query["apikey"] = self.api_key
+        response = requests.get(f"{FMP_STABLE_BASE_URL}/{endpoint}", params=query, timeout=30)
+        _raise_for_fmp_status(response, endpoint)
         payload = response.json()
         cache_path.write_text(json.dumps(payload), encoding="utf-8")
         time.sleep(self.pause_seconds)
@@ -89,7 +130,7 @@ class FMPClient:
                     "apikey": self.api_key,
                 }
                 response = requests.get(f"{FMP_STABLE_BASE_URL}/historical-price-eod/full", params=query, timeout=30)
-                response.raise_for_status()
+                _raise_for_fmp_status(response, "historical-price-eod/full")
                 payload = response.json()
                 raw_cache.write_text(json.dumps(payload), encoding="utf-8")
                 time.sleep(self.pause_seconds)
@@ -118,19 +159,19 @@ class FMPClient:
         return frame.reset_index(drop=True)
 
     def get_profile(self, symbol: str) -> dict[str, Any]:
-        payload = self._get_json(f"profile/{symbol}", {}, cache_group="profile", cache_name=symbol)
+        payload = self._get_stable_json("profile", {"symbol": symbol}, cache_group="profile", cache_name=symbol)
         if isinstance(payload, list) and payload:
             return payload[0]
         return payload if isinstance(payload, dict) else {}
 
     def get_key_metrics_ttm(self, symbol: str) -> dict[str, Any]:
-        payload = self._get_json(f"key-metrics-ttm/{symbol}", {}, cache_group="key_metrics_ttm", cache_name=symbol)
+        payload = self._get_stable_json("key-metrics-ttm", {"symbol": symbol}, cache_group="key_metrics_ttm", cache_name=symbol)
         if isinstance(payload, list) and payload:
             return payload[0]
         return payload if isinstance(payload, dict) else {}
 
     def get_ratios_ttm(self, symbol: str) -> dict[str, Any]:
-        payload = self._get_json(f"ratios-ttm/{symbol}", {}, cache_group="ratios_ttm", cache_name=symbol)
+        payload = self._get_stable_json("ratios-ttm", {"symbol": symbol}, cache_group="ratios_ttm", cache_name=symbol)
         if isinstance(payload, list) and payload:
             return payload[0]
         return payload if isinstance(payload, dict) else {}
@@ -165,9 +206,9 @@ class FMPClient:
         limit: int = 40,
         cache_group: str,
     ) -> pd.DataFrame:
-        payload = self._get_json(
-            f"{endpoint}/{symbol}",
-            {"period": period, "limit": limit},
+        payload = self._get_stable_json(
+            endpoint,
+            {"symbol": symbol, "period": period, "limit": limit},
             cache_group=cache_group,
             cache_name=f"{symbol}_{period}_{limit}",
         )

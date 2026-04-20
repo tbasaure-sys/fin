@@ -12,6 +12,14 @@ import requests
 
 SEC_FILES_BASE_URL = "https://www.sec.gov/files"
 SEC_DATA_BASE_URL = "https://data.sec.gov"
+PLACEHOLDER_USER_AGENTS = {"", "replace_me", "your_email@example.com", "metaalphaallocator your_email@example.com", "equityresearchos your_email@example.com"}
+
+
+def _usable_user_agent(value: str | None) -> str | None:
+    cleaned = str(value or "").strip()
+    if cleaned.lower() in PLACEHOLDER_USER_AGENTS:
+        return None
+    return cleaned or None
 
 
 @dataclass
@@ -23,7 +31,7 @@ class SECEdgarClient:
 
     @classmethod
     def from_env(cls, cache_root: Path) -> "SECEdgarClient | None":
-        user_agent = os.environ.get("SEC_USER_AGENT") or os.environ.get("EDGAR_USER_AGENT")
+        user_agent = _usable_user_agent(os.environ.get("SEC_USER_AGENT")) or _usable_user_agent(os.environ.get("EDGAR_USER_AGENT"))
         if not user_agent:
             return None
         pause_seconds = float(os.environ.get("SEC_EDGAR_PAUSE_SECONDS", "0.12"))

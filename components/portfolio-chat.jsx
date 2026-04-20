@@ -9,7 +9,7 @@ const STARTER_QUESTIONS = [
   "Which of my positions adds the least real diversification?",
   "Should I be worried about what the alerts are flagging?",
   "What would I need to see before adding more risk to the portfolio?",
-  "Explain my recoverability score in plain English.",
+  "What is the clearest reason to wait before adding risk?",
 ];
 
 function AssistantMessage({ content, streaming }) {

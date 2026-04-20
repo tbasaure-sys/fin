@@ -395,12 +395,17 @@ def build_agent_outputs(
     ]
     return {
         "version": AGENT_LAYER_VERSION,
-        "mode": "deterministic_interpretive_agents",
-        "policy": "Agents interpret audited deterministic outputs; Python remains the only calculation layer. At most one optional final LLM orchestrator call may synthesize the finished bundle.",
+        "mode": "local_first_multi_agent_desk",
+        "policy": "Specialist agents run from audited deterministic outputs; Python remains the only calculation layer. At most one final OpenAI-compatible orchestrator call may synthesize the finished bundle.",
         "input_contract": {
             "financials": "normalized annual rows from provider or SEC Company Facts",
             "valuation": "deterministic DCF, reverse DCF, and multiples",
             "audit": "coverage and source-quality gate",
+        },
+        "execution": {
+            "specialist_agents": "deterministic",
+            "specialist_llm_calls": 0,
+            "final_orchestrator_max_calls": 1,
         },
         "latest_period": latest.get("date"),
         "agents": agents,

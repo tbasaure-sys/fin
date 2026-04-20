@@ -311,6 +311,16 @@ function renderAgents(research) {
   const agentPayload = research?.agents || research?.sources?.agent_outputs || {};
   const agents = safeList(agentPayload.agents);
   const finalOrchestrator = agentPayload.final_orchestrator || {};
+  const finalAnalysis = finalOrchestrator.analysis || {};
+  const strongestPoints = safeList(finalAnalysis.strongest_points);
+  const redTeam = safeList(finalAnalysis.red_team);
+  const openQuestions = safeList(finalAnalysis.open_questions);
+  const finalTone =
+    finalOrchestrator.status === "ok"
+      ? "good"
+      : finalOrchestrator.enabled
+        ? "warn"
+        : "neutral";
 
   if (!research) {
     return <p className={styles.emptyCopy}>The agent desk will appear after a run, with each analyst constrained to sourced facts, deterministic calculations, assumptions, interpretations, or uncertainty.</p>;
@@ -331,7 +341,7 @@ function renderAgents(research) {
         <div>
           <span>Mode</span>
           <strong>{humanizeToken(agentPayload.mode)}</strong>
-          <small>Offline-first contracts now, model-backed interpretation later.</small>
+          <small>{agentPayload.execution?.specialist_llm_calls ?? 0} specialist LLM calls; deterministic agents run before the final editor.</small>
         </div>
         <div>
           <span>Final LLM call</span>
@@ -339,10 +349,51 @@ function renderAgents(research) {
           <small>
             {finalOrchestrator.enabled
               ? `${finalOrchestrator.call_budget?.actual_calls || 0}/${finalOrchestrator.call_budget?.max_calls || 1} call, ${finalOrchestrator.model || "model"}`
-              : "Disabled until the one-call orchestrator is enabled."}
+              : "Skipped because no final orchestrator key is enabled."}
           </small>
         </div>
       </div>
+
+      <article className={styles.researchOrchestratorCard} data-tone={finalTone}>
+        <div className={styles.researchAgentCardTop}>
+          <div>
+            <span>Final orchestrator</span>
+            <strong>{finalOrchestrator.model || "One-call editor"}</strong>
+          </div>
+          <small>{humanizeToken(finalOrchestrator.status || "disabled")}</small>
+        </div>
+        {finalOrchestrator.status === "ok" ? (
+          <>
+            <p>{finalAnalysis.executive_judgment || finalAnalysis.memo_patch || "Final synthesis completed."}</p>
+            <div className={styles.researchOrchestratorColumns}>
+              <div>
+                <span>Strongest points</span>
+                {(strongestPoints.length ? strongestPoints : [finalAnalysis.strongest_points]).filter(Boolean).slice(0, 3).map((item, index) => (
+                  <p key={`strong-${index}`}>{item}</p>
+                ))}
+              </div>
+              <div>
+                <span>Red team</span>
+                {(redTeam.length ? redTeam : [finalAnalysis.red_team]).filter(Boolean).slice(0, 3).map((item, index) => (
+                  <p key={`red-team-${index}`}>{item}</p>
+                ))}
+              </div>
+              <div>
+                <span>Open questions</span>
+                {(openQuestions.length ? openQuestions : [finalAnalysis.open_questions]).filter(Boolean).slice(0, 3).map((item, index) => (
+                  <p key={`open-${index}`}>{item}</p>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : (
+          <p>
+            {finalOrchestrator.enabled
+              ? finalOrchestrator.error || "The one-call final orchestrator was enabled but did not return a synthesis."
+              : "Specialist agents still ran. Add an OpenAI-compatible key to enable exactly one final synthesis call after the deterministic analysis completes."}
+          </p>
+        )}
+      </article>
 
       <div className={styles.researchAgentGrid}>
         {agents.map((agent) => {

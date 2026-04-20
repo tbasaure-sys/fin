@@ -46,6 +46,21 @@ _BOOT_REFRESH_DELAY = int(os.environ.get("META_ALLOCATOR_BOOT_REFRESH_DELAY", "5
 _RESEARCH_JOB_THREAD_DELAY_SECONDS = float(os.environ.get("META_ALLOCATOR_RESEARCH_JOB_THREAD_DELAY_SECONDS", "0.05"))
 
 
+def _equity_research_llm_enabled_from_env() -> bool:
+    """Resolve the final equity-research LLM call policy.
+
+    The finance engine and deterministic analyst agents always run. This only
+    controls the single final OpenAI-compatible orchestrator/editor call.
+    """
+    raw = str(os.environ.get("EQUITY_RESEARCH_LLM_ENABLED", "auto")).strip().lower()
+    if raw in {"0", "false", "no", "off", "disabled"}:
+        return False
+    if raw in {"1", "true", "yes", "on", "enabled"}:
+        return True
+    has_key = bool((os.environ.get("EQUITY_RESEARCH_LLM_API_KEY") or os.environ.get("OPENAI_API_KEY") or "").strip())
+    return has_key
+
+
 def _clean_research_job_id(value: str | None) -> str | None:
     raw = str(value or "").strip()
     if not raw:
@@ -259,6 +274,7 @@ class DashboardService:
             paths=self.paths,
             fmp_client=FMPClient.from_env(self.paths.cache_root),
             sec_client=SECEdgarClient.from_env(self.paths.cache_root),
+            enable_llm=_equity_research_llm_enabled_from_env(),
         )
 
     def start_equity_research_job(self, ticker: str, mode: str = "quick", client_run_id: str | None = None) -> dict:

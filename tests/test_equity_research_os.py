@@ -241,6 +241,20 @@ class SplitDebtFMPClient(MockFMPClient):
         )
 
 
+class LeakyErrorFMPClient(MockFMPClient):
+    def get_profile(self, symbol: str) -> dict:
+        raise RuntimeError("403 Client Error for url: https://financialmodelingprep.com/stable/profile?symbol=AAPL&apikey=live_secret_key")
+
+    def get_income_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
+        return pd.DataFrame()
+
+    def get_cash_flow_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
+        return pd.DataFrame()
+
+    def get_balance_sheet_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
+        return pd.DataFrame()
+
+
 def test_revenue_cagr_formula() -> None:
     result = calculate_revenue_cagr(100.0, 121.0, 2)
     assert result is not None
@@ -298,7 +312,9 @@ def test_equity_research_bundle_uses_sources_and_formulas() -> None:
     assert any(point["source_id"] == "sec:submissions" for point in bundle["sources"]["data_points"])
     assert any(point["claim_tag"] == "calculated_metric" for point in bundle["sources"]["data_points"])
     assert any(point["metric"].startswith("financials.annual.2024-12-31.") for point in bundle["sources"]["data_points"])
-    assert bundle["agents"]["mode"] == "deterministic_interpretive_agents"
+    assert bundle["agents"]["mode"] == "local_first_multi_agent_desk"
+    assert bundle["agents"]["execution"]["specialist_llm_calls"] == 0
+    assert bundle["agents"]["execution"]["final_orchestrator_max_calls"] == 1
     assert bundle["agents"]["final_orchestrator"]["status"] == "disabled"
     assert {agent["id"] for agent in bundle["agents"]["agents"]}.issuperset(
         {"orchestrator_agent", "valuation_agent", "risk_agent", "red_team_agent", "editor_auditor_agent"}
@@ -411,5 +427,13 @@ def test_equity_research_bundle_refuses_to_invent_without_provider() -> None:
     assert any(source["provider"] == "sec-edgar" and source["status"] == "unavailable" for source in bundle["sources"]["records"])
     assert bundle["agents"]["agents"]
     assert any(agent["status"] in {"blocked", "needs_attention"} for agent in bundle["agents"]["agents"])
+
+
+def test_equity_research_source_errors_redact_provider_secrets() -> None:
+    bundle = build_equity_research_bundle("AAPL", fmp_client=LeakyErrorFMPClient())
+    errors = [str(source.get("error") or "") for source in bundle["sources"]["records"]]
+
+    assert any("apikey=[redacted]" in error for error in errors)
+    assert all("live_secret_key" not in error for error in errors)
     assert bundle["artifacts"]["model_xlsx"] is False
     assert not any(artifact["filename"].endswith(".xlsx") for artifact in bundle["downloads"])

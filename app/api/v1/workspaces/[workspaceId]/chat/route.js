@@ -10,7 +10,6 @@ function buildSystemPrompt(workspaceName, dashboard) {
   const state = dashboard?.state_summary || {};
   const portfolio = dashboard?.modules?.portfolio || null;
   const holdings = portfolio?.holdings || [];
-  const balanceSheet = dashboard?.recoverability_balance_sheet || {};
   const alerts = dashboard?.decision_workspace?.alerts || dashboard?.alerts || [];
   const primaryAction = dashboard?.primary_action || null;
   const escrow = dashboard?.escrow || {};
@@ -47,7 +46,7 @@ You have access to the user's live portfolio data below. Use it to ground every 
 Stance: ${state.stance || "Not set"}
 Decision summary: ${state.decisionSummary || "None"}
 Market mode: ${state.mode || "-"}
-Recovery outlook: ${state.recovery || "-"}
+Recovery chance: ${state.recovery || "-"}
 Evidence strength: ${state.evidenceStrength || "-"}
 Main risk: ${state.mainRisk || "-"}
 
@@ -55,13 +54,6 @@ Main risk: ${state.mainRisk || "-"}
 ${holdingsSummary}
 Total holdings tracked: ${portfolio?.analytics?.holdingsCount || holdings.length}
 Largest concentration: ${portfolio?.analytics?.topConcentration || "-"}
-
-== RECOVERABILITY BALANCE SHEET ==
-Net freedom: ${balanceSheet.netFreedom ?? "-"}
-Recoverability: ${balanceSheet.recoverability ?? "-"}
-Optionality reserve: ${balanceSheet.optionalityReserve ?? "-"}
-Legitimacy slack: ${balanceSheet.legitimacySlack ?? "-"}
-Phantom tax: ${balanceSheet.phantomTax ?? "-"}
 
 == ACTIVE ALERTS ==
 ${alertsSummary}

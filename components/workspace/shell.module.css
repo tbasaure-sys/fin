@@ -416,86 +416,6 @@
   gap: 0.8rem;
 }
 
-.balanceGrid,
-.balanceReserveGrid {
-  display: grid;
-  gap: 0.8rem;
-}
-
-.balanceGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 1rem;
-}
-
-.balanceReserveGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 0.9rem;
-}
-
-.balanceCard {
-  display: grid;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.balanceCardHeader {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.balanceCardHeader span {
-  color: var(--muted);
-  font-size: 0.82rem;
-}
-
-.balanceStack {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.balanceRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.8rem;
-  align-items: flex-start;
-  padding-top: 0.65rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.balanceRow:first-child {
-  padding-top: 0;
-  border-top: none;
-}
-
-.balanceRow strong {
-  display: block;
-  margin-bottom: 0.15rem;
-}
-
-.balanceRow p,
-.balanceSummary p {
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.5;
-}
-
-.balanceSummary {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
-  margin-top: 1rem;
-}
-
-.balanceSummary > div {
-  padding: 0.95rem 1rem;
-  border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(255, 255, 255, 0.02);
-}
-
 .holdingRow,
 .compactRow,
 .alertRow {
@@ -1566,6 +1486,49 @@
   margin: 0;
 }
 
+.researchOrchestratorCard {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.researchOrchestratorCard[data-tone="good"] {
+  border-color: rgba(82, 208, 163, 0.24);
+}
+
+.researchOrchestratorCard[data-tone="warn"] {
+  border-color: rgba(255, 180, 84, 0.22);
+}
+
+.researchOrchestratorCard p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.researchOrchestratorColumns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.researchOrchestratorColumns div {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.researchOrchestratorColumns span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .researchAgentQuestions {
   margin-top: 0.35rem;
 }
@@ -1890,11 +1853,9 @@
   .researchCoverageSummary,
   .researchAgentHeader,
   .researchAgentGrid,
+  .researchOrchestratorColumns,
   .researchAuditBar,
-  .researchOutputShell,
-  .balanceGrid,
-  .balanceReserveGrid,
-  .balanceSummary {
+  .researchOutputShell {
     grid-template-columns: 1fr;
   }
 

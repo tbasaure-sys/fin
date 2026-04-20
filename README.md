@@ -159,9 +159,9 @@ If the frontend can load but holdings still look stale, the common failure mode 
 
 The equity research workstation keeps calculations deterministic. Python pulls and normalizes provider data, builds DCF/reverse DCF/multiples, emits the evidence ledger, and runs the audit. The agent layer then interprets only those finished outputs.
 
-By default the agent desk is offline and deterministic. To enable a single final LLM orchestrator/editor call after all analysis is complete, set:
+The specialist agent desk runs every time from audited deterministic outputs and makes zero LLM calls. The only model-backed step is the final orchestrator/editor, which runs after the analysis is complete. It is `auto` by default in deployment: if an OpenAI-compatible key is present, exactly one final call is attempted; if no key is present, the deterministic agents still run and the final editor is skipped.
 
-- `EQUITY_RESEARCH_LLM_ENABLED=true`
+- `EQUITY_RESEARCH_LLM_ENABLED=auto` or `true`; use `false` to disable the final call
 - `EQUITY_RESEARCH_LLM_API_KEY` or `OPENAI_API_KEY`
 - `EQUITY_RESEARCH_LLM_MODEL`
 - `EQUITY_RESEARCH_LLM_BASE_URL` for OpenAI-compatible gateways when using non-OpenAI models such as Mistral or Llama

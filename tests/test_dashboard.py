@@ -7,7 +7,7 @@ from pathlib import Path
 import pandas as pd
 
 from meta_alpha_allocator.config import AllocatorSettings, DashboardSettings, PathConfig, ResearchSettings
-from meta_alpha_allocator.dashboard.server import DashboardService, _bls_contract_routes, _build_handler
+from meta_alpha_allocator.dashboard.server import DashboardService, _bls_contract_routes, _build_handler, _equity_research_llm_enabled_from_env
 from meta_alpha_allocator.state_contract.model_registry import load_probability_manifest, save_probability_package
 from meta_alpha_allocator.state_contract.probabilistic import _ensure_probability_package
 from meta_alpha_allocator.state_contract.probability_models import _temporal_folds
@@ -158,6 +158,23 @@ def _seed_outputs(paths: PathConfig) -> None:
         paths.portfolio_manager_root / "output" / "latest" / "daily_screener_hits.csv",
         "ticker;sector;composite_score\nPAGS;Technology;0.94\n",
     )
+
+
+def test_equity_research_llm_policy_auto_enables_only_when_key_exists(monkeypatch) -> None:
+    monkeypatch.delenv("EQUITY_RESEARCH_LLM_ENABLED", raising=False)
+    monkeypatch.delenv("EQUITY_RESEARCH_LLM_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    assert _equity_research_llm_enabled_from_env() is False
+
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    assert _equity_research_llm_enabled_from_env() is True
+
+    monkeypatch.setenv("EQUITY_RESEARCH_LLM_ENABLED", "false")
+    assert _equity_research_llm_enabled_from_env() is False
+
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("EQUITY_RESEARCH_LLM_ENABLED", "true")
+    assert _equity_research_llm_enabled_from_env() is True
 
 
 def test_wsgi_exposes_equity_research_endpoint(tmp_path: Path, monkeypatch) -> None:

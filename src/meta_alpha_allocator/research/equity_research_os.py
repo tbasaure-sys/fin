@@ -7,6 +7,7 @@ from io import BytesIO
 import json
 import math
 from pathlib import Path
+import re
 from typing import Any
 
 from openpyxl import Workbook
@@ -241,6 +242,8 @@ def reverse_dcf_implied_growth(
 
 
 def _source_record(source_id: str, provider: str, endpoint: str, status: str, **extra: Any) -> dict[str, Any]:
+    if extra.get("error") is not None:
+        extra["error"] = _redact_secret_text(str(extra["error"]))
     return {
         "source_id": source_id,
         "provider": provider,
@@ -249,6 +252,13 @@ def _source_record(source_id: str, provider: str, endpoint: str, status: str, **
         "status": status,
         **extra,
     }
+
+
+def _redact_secret_text(text: str) -> str:
+    redacted = re.sub(r"(?i)(apikey=)[^&\s]+", r"\1[redacted]", text)
+    redacted = re.sub(r"(?i)(api[_-]?key['\"]?\s*[:=]\s*['\"]?)[^,'\"\s}]+", r"\1[redacted]", redacted)
+    redacted = re.sub(r"(?i)(authorization:\s*bearer\s+)[^,\s}]+", r"\1[redacted]", redacted)
+    return redacted
 
 
 def _data_point(metric: str, value: Any, tag: str, source_id: str | None = None, formula: str | None = None) -> dict[str, Any]:
