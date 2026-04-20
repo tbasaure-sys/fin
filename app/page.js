@@ -87,6 +87,10 @@ export default async function HomePage() {
       q: "Can I use this if I only own a few stocks or ETFs?",
       a: "Yes. Even with two or three positions the workspace can show concentration, risk overlap, and whether your current mix is doing what you think it is.",
     },
+    {
+      q: "Is this financial advice?",
+      a: "No. The workspace is research software. It organizes data, models, and AI-assisted explanations, but it does not recommend that you buy, sell, hold, hedge, or rebalance any security.",
+    },
   ];
 
   const stats = [
@@ -403,8 +407,9 @@ export default async function HomePage() {
       <footer className={styles.footer}>
         <p>
           (c) {new Date().getFullYear()} {config.appName}. A private workspace
-          for investors who want clarity before action.
+          for investors who want clarity before action. Not financial advice.
         </p>
+        <Link href="/terms">Terms of Service</Link>
       </footer>
     </main>
   );

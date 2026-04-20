@@ -300,6 +300,34 @@
   border-color: rgba(255, 124, 114, 0.22);
 }
 
+.legalNotice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(248, 200, 111, 0.18);
+  background: rgba(248, 200, 111, 0.055);
+}
+
+.legalNotice div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.legalNotice strong {
+  font-size: 0.94rem;
+}
+
+.legalNotice p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+  font-size: 0.88rem;
+}
+
 .statusGrid {
   position: relative;
   z-index: 1;
@@ -765,6 +793,112 @@
   border-radius: 20px;
   border: 1px solid rgba(248, 200, 111, 0.14);
   background: linear-gradient(90deg, rgba(248, 200, 111, 0.08), rgba(122, 210, 194, 0.05));
+}
+
+.phantomSimpleGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  gap: 1rem;
+}
+
+.phantomSimpleMain,
+.phantomSimpleAside,
+.phantomSimpleVerdict,
+.phantomSimpleEmpty {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.phantomSimpleMain,
+.phantomSimpleAside {
+  padding: 1rem;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.phantomSimpleVerdict strong,
+.phantomSimpleAside strong,
+.phantomSimpleEmpty strong {
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  line-height: 1.15;
+}
+
+.phantomSimpleVerdict p,
+.phantomSimpleEmpty p,
+.phantomSimpleSource {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.phantomSimpleMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.phantomSimpleBar {
+  display: flex;
+  width: 100%;
+  height: 0.8rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.phantomSimpleBarTested {
+  background: linear-gradient(90deg, rgba(122, 210, 194, 0.95), rgba(166, 219, 164, 0.95));
+}
+
+.phantomSimpleBarRisk {
+  background: linear-gradient(90deg, rgba(248, 200, 111, 0.85), rgba(255, 137, 113, 0.85));
+}
+
+.phantomSimpleLegend {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.phantomSimpleEmpty {
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.phantomSimpleList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.phantomSimpleList article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.8rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.phantomSimpleList article > div {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.phantomSimpleList article > div span {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.phantomSimpleSource {
+  font-size: 0.86rem;
 }
 
 .phantomResultsPane {
@@ -2106,6 +2240,8 @@
   .portfolioGrid,
   .decisionGrid,
   .metricsGrid,
+  .phantomSimpleGrid,
+  .phantomSimpleMetrics,
   .phantomSurface,
   .phantomResultBand,
   .researchCommandSurface,
@@ -2187,6 +2323,7 @@
 
   .phantomActionBar,
   .phantomDraftHeader,
+  .legalNotice,
   .phantomNarrative,
   .phantomInsightStrip,
   .phantomChartMeta {
@@ -2221,6 +2358,7 @@
   .holdingRow,
   .compactRow,
   .alertRow,
+  .legalNotice,
   .researchTickerRow,
   .phantomActionBar {
     grid-template-columns: 1fr;

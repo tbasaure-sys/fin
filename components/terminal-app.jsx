@@ -762,6 +762,194 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
   );
 }
 
+function phantomSimpleGuidance(current) {
+  const phantomShare = Number(current?.phantom_share);
+  const testedRatio = Number(current?.tested_ratio);
+  if (Number.isFinite(phantomShare) && phantomShare >= 0.92) {
+    return {
+      tone: "bad",
+      title: "Reduce overlap before adding risk",
+      body: "The book may look broad, but most of that breadth has not been stress-tested yet.",
+    };
+  }
+  if (Number.isFinite(testedRatio) && testedRatio >= 0.67) {
+    return {
+      tone: "good",
+      title: "Diversification is holding up",
+      body: "The current mix still behaves like distinct bets when recent stress is included.",
+    };
+  }
+  if (Number.isFinite(testedRatio) && testedRatio >= 0.34) {
+    return {
+      tone: "warn",
+      title: "Some breadth is still cosmetic",
+      body: "Keep the positions, but avoid treating every ticker as a new independent bet.",
+    };
+  }
+  return {
+    tone: "warn",
+    title: "Run the check before sizing up",
+    body: "The test uses the current holdings and a 63-day rolling covariance window.",
+  };
+}
+
+function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
+  const draftDefaults = useMemo(() => prepareDraftHoldings(portfolioModule?.holdings), [portfolioModule?.holdings]);
+  const rows = draftDefaults.rows;
+  const baseKey = useMemo(() => draftHoldingsKey(rows), [rows]);
+  const [analysis, setAnalysis] = useState(null);
+  const [analysisPending, setAnalysisPending] = useState(false);
+  const [analysisError, setAnalysisError] = useState("");
+
+  useEffect(() => {
+    setAnalysis(null);
+    setAnalysisError("");
+  }, [baseKey]);
+
+  if (!workspaceId || rows.length < 3) return null;
+
+  const current = analysis?.current || null;
+  const diagnostics = analysis?.diagnostics || {};
+  const guidance = phantomSimpleGuidance(current);
+  const testedWidth = current ? Math.max(3, Math.min(100, Math.round((Number(current.tested_ratio) || 0) * 100))) : 0;
+  const phantomWidth = current ? Math.max(0, 100 - testedWidth) : 0;
+  const contributors = safeList(analysis?.contributors).slice(0, 3);
+  const sources = safeList(diagnostics.source_labels);
+  const supportedCount = safeList(diagnostics.supported_tickers).length;
+  const coverageLabel = supportedCount
+    ? `${supportedCount}/${rows.length} holdings with usable history`
+    : `${rows.length} holdings ready`;
+
+  async function runAnalysis() {
+    if (!workspaceId || analysisPending) return;
+    setAnalysisPending(true);
+    setAnalysisError("");
+    try {
+      const holdings = rows
+        .map((row) => ({
+          ticker: String(row.ticker || "").trim().toUpperCase(),
+          weight: Number.parseFloat(row.weight || "0"),
+          sector: row.sector || "",
+          country: row.country || "",
+          proxy: row.proxy || "",
+        }))
+        .filter((row) => row.ticker && row.weight > 0);
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/phantom-diversification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ holdings }),
+      });
+      const payload = await parseResponse(response);
+      setAnalysis(payload);
+    } catch (requestError) {
+      setAnalysis(null);
+      setAnalysisError(String(requestError?.message || requestError || "Analysis failed."));
+    } finally {
+      setAnalysisPending(false);
+    }
+  }
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <p className={styles.kicker}>Phantom diversification</p>
+          <h2>Is the breadth real?</h2>
+          <p className={styles.supportText}>
+            Tests whether the current portfolio still has independent bets after recent stress is included.
+          </p>
+        </div>
+        <button className={styles.primaryButton} disabled={analysisPending} onClick={runAnalysis} type="button">
+          {analysisPending ? "Checking..." : analysis ? "Refresh" : "Run check"}
+        </button>
+      </div>
+
+      <div className={styles.phantomSimpleGrid}>
+        <div className={styles.phantomSimpleMain}>
+          <div className={styles.phantomSimpleVerdict}>
+            <ToneBadge tone={analysis ? phantomTone(current?.classification) : "neutral"}>
+              {current?.classification_label || "Ready"}
+            </ToneBadge>
+            <strong>{analysis ? guidance.title : coverageLabel}</strong>
+            <p>{analysis ? guidance.body : "Cash-like holdings are excluded. The backend normalizes weights before calculating breadth."}</p>
+          </div>
+
+          {analysisError ? <p className={styles.errorText}>{analysisError}</p> : null}
+
+          {analysis ? (
+            <>
+              <div className={styles.phantomSimpleMetrics}>
+                <MetricTile
+                  detail="Independent bets suggested by price history."
+                  label="Visible bets"
+                  value={formatBreadth(current?.raw_breadth)}
+                />
+                <MetricTile
+                  detail="Breadth that survives the stress adjustment."
+                  label="Tested bets"
+                  tone={guidance.tone}
+                  value={formatBreadth(current?.real_breadth)}
+                />
+                <MetricTile
+                  detail="Visible breadth that has not been validated yet."
+                  label="At risk"
+                  tone={guidance.tone}
+                  value={formatPct(current?.phantom_share || 0, 0)}
+                />
+              </div>
+
+              <div className={styles.phantomSimpleBar} aria-label="Tested versus phantom breadth">
+                <span className={styles.phantomSimpleBarTested} style={{ width: `${testedWidth}%` }} />
+                {phantomWidth ? <span className={styles.phantomSimpleBarRisk} style={{ width: `${phantomWidth}%` }} /> : null}
+              </div>
+              <div className={styles.phantomSimpleLegend}>
+                <span>Tested: {formatBreadth(current?.real_breadth)}</span>
+                <span>Phantom: {formatBreadth(current?.phantom_breadth)}</span>
+              </div>
+            </>
+          ) : (
+            <div className={styles.phantomSimpleEmpty}>
+              <strong>One click, three numbers.</strong>
+              <p>Visible bets, tested bets, and the share of diversification still at risk.</p>
+            </div>
+          )}
+        </div>
+
+        <aside className={styles.phantomSimpleAside}>
+          <div>
+            <p className={styles.kicker}>Portfolio read</p>
+            <strong>{analysis ? guidance.title : "Waiting for test"}</strong>
+            <p className={styles.supportText}>
+              {analysis ? `Window: ${diagnostics.window_days || 63} trading days. As of ${formatDate(analysis?.as_of)}.` : coverageLabel}
+            </p>
+          </div>
+
+          {contributors.length ? (
+            <div className={styles.phantomSimpleList}>
+              {contributors.map((row) => (
+                <article key={`simple-phantom-${row.ticker}`}>
+                  <div>
+                    <strong>{row.ticker}</strong>
+                    <span>{row.role_summary || row.role}</span>
+                  </div>
+                  <ToneBadge tone={contributorTone(row.role)}>{row.role}</ToneBadge>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>Contributor notes appear after the check.</p>
+          )}
+
+          <p className={styles.phantomSimpleSource}>
+            {sources.length ? `Prices: ${sources.join(", ")}.` : "Price source will be shown after the run."}
+            {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} cash-like holding${draftDefaults.excludedCount === 1 ? "" : "s"} excluded.` : ""}
+          </p>
+        </aside>
+      </div>
+    </section>
+  );
+}
+
 function AlertsPanel({ alerts }) {
   const values = safeList(alerts);
   if (!values.length) return null;
@@ -793,7 +981,7 @@ function AlertsPanel({ alerts }) {
 function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendingKey, onStage, onDefer, onReject }) {
   const activeAction = primaryAction || blockedAction || null;
   const isBlocked = !primaryAction && Boolean(blockedAction);
-  const title = primaryAction?.title || blockedAction?.title || stateSummary?.stance || "Hold the line";
+  const title = cleanWorkspaceCopy(primaryAction?.title || blockedAction?.title || stateSummary?.stance || "Hold the line");
 
   return (
     <section className={styles.panel}>
@@ -809,29 +997,29 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
       </div>
 
       <p className={styles.lead}>
-        {primaryAction?.summary || blockedAction?.summary || stateSummary?.decisionSummary || "No new legitimate move is open right now."}
+        {cleanWorkspaceCopy(primaryAction?.summary || blockedAction?.summary || stateSummary?.decisionSummary || "No new legitimate move is open right now.")}
       </p>
 
       <div className={styles.decisionGrid}>
         <MetricTile
-          detail={primaryAction?.whyNow || stateSummary?.decisionSummary || "Wait for a cleaner setup before widening risk."}
+          detail={cleanWorkspaceCopy(primaryAction?.whyNow || stateSummary?.decisionSummary || "Wait for a cleaner setup before widening risk.")}
           label="Action"
-          value={primaryAction?.title || "Protect capital"}
+          value={cleanWorkspaceCopy(primaryAction?.title || "Protect capital")}
         />
         <MetricTile
-          detail={primaryAction?.watchFor || blockedAction?.watchFor || "Stronger risk confirmation and cleaner breadth confirmation."}
+          detail={cleanWorkspaceCopy(primaryAction?.watchFor || blockedAction?.watchFor || "Stronger risk confirmation and cleaner breadth confirmation.")}
           label="What would change it"
           value={activeAction ? formatSize(activeAction) : "No size change"}
         />
         <MetricTile
-          detail={activeAction?.funding || "Preserve current sizing until the setup improves."}
+          detail={cleanWorkspaceCopy(activeAction?.funding || "Preserve current sizing until the setup improves.")}
           label="How to fund it"
-          value={activeAction?.funding || "No funding change"}
+          value={cleanWorkspaceCopy(activeAction?.funding || "No funding change")}
         />
         <MetricTile
-          detail={blockedAction?.summary || "The current structure still does not justify broader risk."}
+          detail={cleanWorkspaceCopy(blockedAction?.summary || "The current structure still does not justify broader risk.")}
           label="Current stance"
-          value={stateSummary?.stance || "Selective posture"}
+          value={cleanWorkspaceCopy(stateSummary?.stance || "Selective posture")}
         />
       </div>
 
@@ -1150,6 +1338,67 @@ function CompactActionPanel({ title, kicker, emptyLabel, items, renderItem }) {
   );
 }
 
+function joinedActionText(item) {
+  return [
+    item?.title,
+    item?.summary,
+    item?.slot,
+    item?.status,
+    item?.sizeLabel,
+    item?.userResponse,
+    item?.response,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function cleanWorkspaceCopy(value) {
+  return String(value || "").replace(/\bballast\b/gi, "cash buffer");
+}
+
+function isExpiredTimestamp(value) {
+  if (!value) return false;
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) && parsed < Date.now();
+}
+
+function hasDecisionSignal(item) {
+  const text = joinedActionText(item);
+  if (!text.trim()) return false;
+  return !/ballast|no settled outcomes|outcome is still settling|temporarily unavailable/i.test(text);
+}
+
+function isActiveEscrowItem(item) {
+  return hasDecisionSignal(item) && !isExpiredTimestamp(item?.expiresAt);
+}
+
+function isActionableQueueItem(action) {
+  const text = joinedActionText(action);
+  if (!hasDecisionSignal(action)) return false;
+  if (/^blocked$/i.test(String(action?.status || ""))) return false;
+  if (/\b(wait|watch|not yet|hold)\b/i.test(text)) return false;
+  return Boolean(action?.ticker || action?.title);
+}
+
+function isSettledLedgerItem(item) {
+  return hasDecisionSignal(item) && Boolean(item?.occurredAt || item?.title || item?.summary);
+}
+
+function ComplianceNotice() {
+  return (
+    <section className={styles.legalNotice}>
+      <div>
+        <strong>Research tool, not financial advice.</strong>
+        <p>
+          The workspace organizes data, models, and AI-assisted analysis for your review. It does not provide personalized investment, tax, or legal advice.
+        </p>
+      </div>
+      <Link className={styles.secondaryLink} href="/terms">Terms</Link>
+    </section>
+  );
+}
+
 export default function TerminalApp({ initialSession, initialDashboard }) {
   const workspaceId = initialDashboard?.workspace_summary?.id || initialSession?.workspace?.id;
   const { connection, dashboard, refreshSnapshot, setDashboard } = useWorkspaceLiveData({
@@ -1159,7 +1408,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [banner, setBanner] = useState("");
   const [error, setError] = useState("");
   const [pendingKey, setPendingKey] = useState(null);
-  const [showWelcomeGuide, setShowWelcomeGuide] = useState(true);
+  const [showWelcomeGuide, setShowWelcomeGuide] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [portfolioRange, setPortfolioRange] = useState("1M");
@@ -1181,11 +1430,12 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const secondaryActions = hasPortfolioHoldings
     ? safeList(dashboard?.secondary_actions)
       .filter((action) => String(action?.sourceLabel || "").toLowerCase() !== "shared alpha")
+      .filter(isActionableQueueItem)
       .slice(0, 4)
     : [];
   const blockedAction = dashboard?.blocked_action || null;
-  const escrowItems = safeList(dashboard?.escrow?.items).slice(0, 4);
-  const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).slice(0, 4);
+  const escrowItems = safeList(dashboard?.escrow?.items).filter(isActiveEscrowItem).slice(0, 4);
+  const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).filter(isSettledLedgerItem).slice(0, 4);
   const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 3);
   const dataControl = dashboard?.data_control || {};
 
@@ -1444,6 +1694,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             >
               Getting started
             </button>
+            <Link className={styles.secondaryLink} href="/terms">Terms</Link>
             <Link className={styles.secondaryLink} href="/">Home</Link>
             <form action="/api/auth/logout" method="post">
               <button className={styles.textButton} type="submit">Sign out</button>
@@ -1576,6 +1827,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         />
       </section>
 
+      <ComplianceNotice />
+
       <div className={styles.layout}>
         <section className={styles.mainColumn}>
           <AlertsPanel alerts={alerts} />
@@ -1589,6 +1842,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             stateSummary={stateSummary}
           />
           <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
+          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
           <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
           <HoldingsPanel
             holdingDraft={holdingDraft}
@@ -1687,7 +1941,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 <p className={styles.supportText}>The short read behind the current posture and the evidence supporting it.</p>
               </div>
             </div>
-            <p className={styles.lead}>{stateSummary?.decisionSummary || "The workspace will keep surfacing the clearest next action as live analysis refreshes."}</p>
+            <p className={styles.lead}>{cleanWorkspaceCopy(stateSummary?.decisionSummary || "The workspace will keep surfacing the clearest next action as live analysis refreshes.")}</p>
             <InlineList
               emptyLabel="No evidence notes are available yet."
               items={safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3)}
