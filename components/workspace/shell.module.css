@@ -572,6 +572,65 @@
   background: rgba(255, 145, 104, 0.7);
 }
 
+.returnDistributionShell {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.returnDistributionShell h3 {
+  margin: 0;
+}
+
+.returnDistribution {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.7rem;
+  min-height: 8.5rem;
+}
+
+.returnBucket {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: minmax(4.5rem, 1fr) auto auto;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.returnBucketBar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 4.5rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  overflow: hidden;
+}
+
+.returnBucketBar span {
+  display: block;
+  width: 100%;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, rgba(122, 210, 194, 0.9), rgba(248, 200, 111, 0.82));
+}
+
+.returnBucket strong,
+.returnBucket small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.returnBucket strong {
+  font-size: 0.82rem;
+}
+
+.returnBucket small {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
 .tableShell {
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.07);
@@ -1018,7 +1077,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
   gap: 1rem;
-  align-items: end;
+  align-items: flex-end;
   margin-bottom: 1rem;
 }
 
@@ -1422,7 +1481,7 @@
 .researchProcessStep {
   position: relative;
   display: grid;
-  align-content: start;
+  align-content: flex-start;
   gap: 0.35rem;
   min-width: 0;
   padding: 0.95rem 0.75rem;

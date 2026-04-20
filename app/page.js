@@ -33,9 +33,9 @@ export default async function HomePage() {
         "See which holdings are driving the same risk and where one position or theme is dominating the book.",
     },
     {
-      title: "Decision journal and staged actions",
+      title: "Decision journal",
       description:
-        "Save ideas, record why they matter, and keep promising moves on deck until the setup is actually ready.",
+        "Record what you considered, why it mattered, and what evidence would make you revisit the decision.",
     },
     {
       title: "Watchlist and alerts",
@@ -55,9 +55,9 @@ export default async function HomePage() {
         "When holdings look different but tend to move together when markets get stressed.",
     },
     {
-      term: "Staged actions",
+      term: "Decision journal",
       meaning:
-        "Ideas you save for later so you can act only if the setup becomes clearer.",
+        "A short record of the decisions you made, passed on, or want to revisit when evidence changes.",
     },
     {
       term: "Watchlist alerts",
@@ -258,8 +258,8 @@ export default async function HomePage() {
                 </div>
                 <div className={styles.mockRow}>
                   <div className={styles.mockRowBody}>
-                    <span className={styles.mockRowLabel}>Staged action</span>
-                    <span className={styles.mockRowSub}>A prepared move waiting for better evidence</span>
+                    <span className={styles.mockRowLabel}>Action threshold</span>
+                    <span className={styles.mockRowSub}>The condition that would make a move worth reviewing</span>
                   </div>
                   <span className={styles.mockRowValue} data-tone="green">
                     Ready

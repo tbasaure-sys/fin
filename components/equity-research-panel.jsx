@@ -898,6 +898,10 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         {RESEARCH_TABS.map((tab) => (
           <button
             className={styles.rangeButton}
+            role="tab"
+            aria-selected={activeTab === tab}
+            aria-controls={`equity-research-tabpanel-${tab.toLowerCase()}`}
+            id={`equity-research-tab-${tab.toLowerCase()}`}
             data-active={activeTab === tab}
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -932,7 +936,12 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
             </div>
           </dl>
         </aside>
-        <div className={styles.researchOutput}>
+        <div
+          className={styles.researchOutput}
+          role="tabpanel"
+          aria-labelledby={`equity-research-tab-${activeTab.toLowerCase()}`}
+          id={`equity-research-tabpanel-${activeTab.toLowerCase()}`}
+        >
           {activeTab === "Memo" ? renderMemo(research) : null}
           {activeTab === "Valuation" ? renderValuation(research) : null}
           {activeTab === "Process" ? renderAgents(research) : null}

@@ -65,6 +65,8 @@ function RangeTabs({ value, onChange }) {
         <button
           key={option}
           className={styles.rangeButton}
+          role="tab"
+          aria-selected={value === option}
           data-active={value === option}
           onClick={() => onChange(option)}
           type="button"
@@ -170,6 +172,31 @@ function PortfolioChart({ series, benchmarkSymbol }) {
         <span>{startLabel}</span>
         <span>{endLabel}</span>
       </div>
+    </div>
+  );
+}
+
+function HoldingsReturnDistribution({ rows }) {
+  const buckets = safeList(rows).filter((row) => Number(row?.count) > 0);
+  if (!buckets.length) {
+    return (
+      <p className={styles.emptyCopy}>
+        Holding-level return buckets will appear after cost basis is available.
+      </p>
+    );
+  }
+
+  return (
+    <div className={styles.returnDistribution} aria-label="Holding return distribution">
+      {buckets.map((row) => (
+        <div className={styles.returnBucket} key={row.id || row.label}>
+          <div className={styles.returnBucketBar}>
+            <span style={{ height: `${Math.max(8, Math.round((Number(row.ratio) || 0) * 100))}%` }} />
+          </div>
+          <strong>{row.label}</strong>
+          <small>{row.valueLabel}</small>
+        </div>
+      ))}
     </div>
   );
 }
@@ -829,40 +856,47 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
   const portfolio = portfolioModule || {};
   const analytics = portfolio.analytics || {};
   const holdings = safeList(portfolio.holdings);
+  const hasHoldings = holdings.length > 0;
   const topHoldings = holdings.slice(0, 5);
-  const chartSeries = filterPortfolioSeries(portfolio?.charts?.growthComparison, range);
+  const chartSeries = hasHoldings ? filterPortfolioSeries(portfolio?.charts?.growthComparison, range) : [];
   const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis unavailable";
+  const hasCostBasisReturn = hasHoldings && Boolean(analytics.unrealizedReturnLabel);
+  const returnDistribution = hasHoldings ? safeList(portfolio?.charts?.valuationDistribution) : [];
 
   return (
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Portfolio</p>
-          <h2>{analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "Portfolio connected"}</h2>
-          <p className={styles.supportText}>Total value, tracked performance, and the positions currently driving the portfolio.</p>
+          <h2>{hasHoldings && analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "Add holdings to start"}</h2>
+          <p className={styles.supportText}>
+            {hasHoldings
+              ? "Total value, tracked performance, and the positions currently driving the portfolio."
+              : "Enter positions below before the workspace shows portfolio performance or benchmark comparisons."}
+          </p>
         </div>
         <div className={styles.headerMeta}>
-          <ToneBadge tone={holdings.length ? "good" : "warn"}>{analytics.holdingsCount || holdings.length} holdings</ToneBadge>
-          <ToneBadge tone="neutral">{portfolio.chartSource || "Portfolio data loading"}</ToneBadge>
+          <ToneBadge tone={hasHoldings ? "good" : "warn"}>{hasHoldings ? `${analytics.holdingsCount || holdings.length} holdings` : "No holdings yet"}</ToneBadge>
+          <ToneBadge tone="neutral">{hasHoldings ? (portfolio.chartSource || "Portfolio data loading") : "Waiting for positions"}</ToneBadge>
         </div>
       </div>
 
       <div className={styles.metricsGrid}>
         <MetricTile
-          detail={analytics.hasPerformanceHistory ? "Based on stored snapshots" : currentGainLabel}
-          label="Annualized return"
-          value={analytics.hasPerformanceHistory ? analytics.annualReturnLabel : "History limited"}
+          detail={hasHoldings ? (analytics.hasPerformanceHistory ? "Based on stored snapshots" : "Based on current value versus stored cost basis.") : "Add at least one position first."}
+          label={hasHoldings && analytics.hasPerformanceHistory ? "Annualized return" : "Return since cost basis"}
+          value={hasHoldings ? (analytics.hasPerformanceHistory ? analytics.annualReturnLabel : currentGainLabel) : "No holdings yet"}
         />
         <MetricTile
-          detail={analytics.historySessions ? `${analytics.historySessions} stored observations` : "Holdings are connected"}
+          detail={hasHoldings && analytics.historySessions ? `${analytics.historySessions} stored observations` : "Snapshot history starts after holdings are connected."}
           label="Since tracking started"
-          value={analytics.totalReturnLabel || "History limited"}
+          value={hasHoldings ? (analytics.totalReturnLabel || "History limited") : "Waiting"}
         />
         <MetricTile
-          detail={analytics.hasBenchmarkHistory ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "Benchmark comparison needs more stored history."}
+          detail={hasHoldings && analytics.hasBenchmarkHistory ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "Benchmark comparison starts after position history exists."}
           label={`vs ${analytics.benchmarkSymbol || "SPY"}`}
-          tone={analytics.hasBenchmarkHistory ? "good" : "neutral"}
-          value={analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Benchmark limited"}
+          tone={hasHoldings && analytics.hasBenchmarkHistory ? "good" : "neutral"}
+          value={hasHoldings && analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Benchmark limited"}
         />
       </div>
 
@@ -871,10 +905,21 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
           <RangeTabs onChange={onRangeChange} value={range} />
           <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
           <p className={styles.supportText}>
-            {analytics.hasPerformanceHistory
+            {!hasHoldings
+              ? "No personal performance chart is shown until positions are connected. This prevents shared benchmark data from masquerading as your portfolio return."
+              : analytics.hasPerformanceHistory
               ? `Live performance is based on ${analytics.historySessions} stored portfolio snapshots.`
-              : `Current gain is ${currentGainLabel}. The app needs more stored sessions before performance and benchmark comparisons are reliable.`}
+              : hasCostBasisReturn
+                ? `Current gain is ${currentGainLabel}. Snapshot history is still building, so benchmark performance remains limited.`
+                : "Cost basis is missing. The app needs stored cost basis or more snapshot history before returns are reliable."}
           </p>
+          <div className={styles.returnDistributionShell}>
+            <div>
+              <p className={styles.kicker}>Holding returns</p>
+              <h3>Return since cost basis</h3>
+            </div>
+            <HoldingsReturnDistribution rows={returnDistribution} />
+          </div>
         </div>
 
         <aside className={styles.sidePanel}>
@@ -1000,6 +1045,8 @@ function HoldingsPanel({
             <div className={styles.segmentedControl} role="tablist" aria-label="Holding input mode">
               <button
                 className={styles.segmentButton}
+                role="tab"
+                aria-selected={sizingMode === "shares"}
                 data-active={sizingMode === "shares"}
                 onClick={() => onHoldingDraftChange("sizing", "shares")}
                 type="button"
@@ -1008,6 +1055,8 @@ function HoldingsPanel({
               </button>
               <button
                 className={styles.segmentButton}
+                role="tab"
+                aria-selected={sizingMode === "value"}
                 data-active={sizingMode === "value"}
                 onClick={() => onHoldingDraftChange("sizing", "value")}
                 type="button"
@@ -1127,8 +1176,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
   const stateSummary = dashboard?.state_summary || {};
   const portfolioModule = dashboard?.modules?.portfolio || null;
+  const hasPortfolioHoldings = safeList(portfolioModule?.holdings).length > 0;
   const primaryAction = dashboard?.primary_action || null;
-  const secondaryActions = safeList(dashboard?.secondary_actions).slice(0, 4);
+  const secondaryActions = hasPortfolioHoldings
+    ? safeList(dashboard?.secondary_actions)
+      .filter((action) => String(action?.sourceLabel || "").toLowerCase() !== "shared alpha")
+      .slice(0, 4)
+    : [];
   const blockedAction = dashboard?.blocked_action || null;
   const escrowItems = safeList(dashboard?.escrow?.items).slice(0, 4);
   const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).slice(0, 4);
@@ -1430,15 +1484,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               <li className={styles.welcomeStep}>
                 <span className={styles.welcomeStepNum}>2</span>
                 <div>
-                  <strong>Read the market brief</strong>
-                  <p>The sidebar on the right shows what the market is doing right now and what it means for your specific portfolio — in plain English, not jargon.</p>
+                  <strong>Read the portfolio brief</strong>
+                  <p>The first panels show what the market view means for your current holdings, including performance, concentration, and what deserves attention.</p>
                 </div>
               </li>
               <li className={styles.welcomeStep}>
                 <span className={styles.welcomeStepNum}>3</span>
                 <div>
-                  <strong>Check suggested actions</strong>
-                  <p>Look at "Next move" and "Watch next" cards. Each one tells you exactly what to consider and why — so you decide with more confidence, not less.</p>
+                  <strong>Use research before action</strong>
+                  <p>Run an equity memo, ask the portfolio chat, or stage a move only when the recommendation gives you a concrete reason to wait or act.</p>
                 </div>
               </li>
             </ol>
@@ -1479,10 +1533,11 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <p className={styles.glossaryPanelSub}>Every unusual term this workspace uses, explained in plain language.</p>
             <dl className={styles.glossaryList}>
               {[
-                { term: "Phantom diversification", def: "When your holdings look spread out but actually move together in a crisis. This tool measures how much of your diversification is real vs. only visible on paper." },
+                { term: "Risk overlap", def: "When holdings look different but tend to react to the same market shock. High overlap means the book is less diversified than it appears." },
+                { term: "Return since cost basis", def: "How much the current holding value has changed versus the cost stored for those positions." },
+                { term: "Benchmark history", def: "A comparison against SPY or another reference. It becomes reliable only after the workspace has enough stored snapshots." },
                 { term: "Stance", def: "The current recommended posture for your portfolio: cautious, neutral, or opportunistic. It changes as market conditions shift." },
-                { term: "Concentration", def: "How much of your portfolio depends on one position or sector. High concentration means one bad outcome has outsized impact." },
-                { term: "Escrow (staged actions)", def: "Moves you've saved for later. They sit here until the market setup makes them worth executing — so you don't miss opportunities but also don't rush." },
+                { term: "Staged moves", def: "Actions you saved for later. They only reappear when there is an actual prepared move to review." },
               ].map(({ term, def }) => (
                 <div className={styles.glossaryEntry} key={term}>
                   <dt className={styles.glossaryTerm}>{term}</dt>
@@ -1535,7 +1590,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           />
           <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
           <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
-          <PhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
           <HoldingsPanel
             holdingDraft={holdingDraft}
             onHoldingDraftChange={updateHoldingDraft}
@@ -1550,78 +1604,80 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </section>
 
         <aside className={styles.sideColumn}>
-          <CompactActionPanel
-            emptyLabel="Nothing is staged yet. Save a move here when you want to prepare it before acting."
-            items={escrowItems}
-            kicker="Staged"
-            renderItem={(item) => (
-              <article className={styles.compactRow} key={item.id}>
-                <div>
-                  <strong>{item.title}</strong>
-                  <p>{item.summary || item.slot || "Ready when you are."}</p>
-                  <span>Expires {formatDate(item.expiresAt)}</span>
-                </div>
-                <div className={styles.compactActions}>
-                  <button
-                    className={styles.secondaryButton}
-                    disabled={pendingKey !== null}
-                    onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} executed.`)}
-                    type="button"
-                  >
-                    {pendingKey === `execute:${item.id}` ? "Executing..." : "Execute"}
-                  </button>
-                  <button
-                    className={styles.textButton}
-                    disabled={pendingKey !== null}
-                    onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelled.`)}
-                    type="button"
-                  >
-                    {pendingKey === `cancel:${item.id}` ? "Updating..." : "Cancel"}
-                  </button>
-                </div>
-              </article>
-            )}
-            title={escrowItems.length ? `${escrowItems.length} staged actions` : "No staged actions"}
-          />
+          {escrowItems.length ? (
+            <CompactActionPanel
+              emptyLabel=""
+              items={escrowItems}
+              kicker="Staged"
+              renderItem={(item) => (
+                <article className={styles.compactRow} key={item.id}>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.summary || item.slot || "Ready when you are."}</p>
+                    <span>Expires {formatDate(item.expiresAt)}</span>
+                  </div>
+                  <div className={styles.compactActions}>
+                    <button
+                      className={styles.secondaryButton}
+                      disabled={pendingKey !== null}
+                      onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} executed.`)}
+                      type="button"
+                    >
+                      {pendingKey === `execute:${item.id}` ? "Executing..." : "Execute"}
+                    </button>
+                    <button
+                      className={styles.textButton}
+                      disabled={pendingKey !== null}
+                      onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelled.`)}
+                      type="button"
+                    >
+                      {pendingKey === `cancel:${item.id}` ? "Updating..." : "Cancel"}
+                    </button>
+                  </div>
+                </article>
+              )}
+              title={`${escrowItems.length} staged action${escrowItems.length === 1 ? "" : "s"}`}
+            />
+          ) : null}
 
-          <CompactActionPanel
-            emptyLabel={
-              dashboard?.workspace_summary?.backend_status === "briefing" || dashboard?.workspace_summary?.backend_status === "stale"
-                ? `We are refreshing the market view${dashboard?.workspace_summary?.last_updated_label ? ` from ${dashboard.workspace_summary.last_updated_label}` : ""}. New ideas will appear here after the refresh finishes.`
-                : "Nothing new needs attention right now."
-            }
-            items={secondaryActions}
-            kicker="Watch next"
-            renderItem={(action) => (
-              <article className={styles.compactRow} key={action.id}>
-                <div>
-                  <strong>{action.ticker || action.title}</strong>
-                  <p>{action.summary || action.slot || "Watch"}</p>
-                </div>
-                <ToneBadge tone={actionTone(action)}>{action.sizeLabel || formatSize(action)}</ToneBadge>
-              </article>
-            )}
-            title={secondaryActions.length ? "Ideas to watch" : "No fresh ideas today"}
-          />
+          {secondaryActions.length ? (
+            <CompactActionPanel
+              emptyLabel=""
+              items={secondaryActions}
+              kicker="Research queue"
+              renderItem={(action) => (
+                <article className={styles.compactRow} key={action.id}>
+                  <div>
+                    <strong>{action.ticker || action.title}</strong>
+                    <p>{action.summary || action.slot || "Watch"}</p>
+                  </div>
+                  <ToneBadge tone={actionTone(action)}>{action.sizeLabel || formatSize(action)}</ToneBadge>
+                </article>
+              )}
+              title="Live opportunities"
+            />
+          ) : null}
 
-          <CompactActionPanel
-            emptyLabel="Your timeline starts after your first trade note, staged move, or decision."
-            items={ledgerItems}
-            kicker="Activity"
-            renderItem={(item) => (
-              <article className={styles.compactRow} key={item.id || item.title}>
-                <div>
-                  <strong>{item.title || "Decision event"}</strong>
-                  <p>{item.summary || item.note || "Outcome is still settling."}</p>
-                  <span>{formatDateTime(item.occurredAt)}</span>
-                </div>
-                <ToneBadge tone={responseTone(item.userResponse || item.response || "noted")}>
-                  {item.resultLabel || capitalize(item.userResponse || item.response, "Noted")}
-                </ToneBadge>
-              </article>
-            )}
-            title={ledgerItems.length ? "Recent outcomes" : "No settled outcomes yet"}
-          />
+          {ledgerItems.length ? (
+            <CompactActionPanel
+              emptyLabel=""
+              items={ledgerItems}
+              kicker="Activity"
+              renderItem={(item) => (
+                <article className={styles.compactRow} key={item.id || item.title}>
+                  <div>
+                    <strong>{item.title || "Decision event"}</strong>
+                    <p>{item.summary || item.note || "Outcome is still settling."}</p>
+                    <span>{formatDateTime(item.occurredAt)}</span>
+                  </div>
+                  <ToneBadge tone={responseTone(item.userResponse || item.response || "noted")}>
+                    {item.resultLabel || capitalize(item.userResponse || item.response, "Noted")}
+                  </ToneBadge>
+                </article>
+              )}
+              title="Recent outcomes"
+            />
+          ) : null}
 
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
