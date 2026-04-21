@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import os
+import re
 from typing import Any
 
 import requests
@@ -56,6 +57,26 @@ def _compact_json(payload: Any, *, limit: int = 12000) -> str:
     if len(text) <= limit:
         return text
     return text[:limit] + "...[truncated]"
+
+
+def _parse_jsonish_analysis(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        nested = value.get("memo_patch")
+        if isinstance(nested, str):
+            parsed_nested = _parse_jsonish_analysis(nested)
+            if parsed_nested:
+                return {**value, **parsed_nested}
+        return value
+    text = str(value or "").strip()
+    if not text:
+        return {}
+    fenced = re.search(r"```(?:json)?\s*([\s\S]*?)```", text, flags=re.IGNORECASE)
+    candidate = (fenced.group(1) if fenced else text).strip()
+    try:
+        parsed = json.loads(candidate)
+    except json.JSONDecodeError:
+        return {"memo_patch": text.replace("```json", "").replace("```", "").strip()}
+    return parsed if isinstance(parsed, dict) else {"memo_patch": text}
 
 
 def _fmt_pct(value: Any) -> str:
@@ -552,10 +573,7 @@ def run_final_orchestrator_llm(
     try:
         result["call_budget"]["actual_calls"] = 1
         raw_text = llm_client.complete(payload, config) if llm_client is not None else _call_openai_compatible_chat(config, payload)
-        try:
-            analysis = json.loads(raw_text)
-        except json.JSONDecodeError:
-            analysis = {"memo_patch": raw_text}
+        analysis = _parse_jsonish_analysis(raw_text)
         result.update({"status": "ok", "analysis": analysis})
         return result
     except Exception as exc:  # noqa: BLE001

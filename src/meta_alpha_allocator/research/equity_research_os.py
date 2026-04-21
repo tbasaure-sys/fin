@@ -1484,6 +1484,103 @@ def _build_downloads(bundle: dict[str, Any]) -> list[dict[str, Any]]:
     return downloads
 
 
+def _jsonish_dict(value: Any) -> dict[str, Any]:
+    if isinstance(value, dict):
+        nested = value.get("memo_patch")
+        if isinstance(nested, str):
+            parsed_nested = _jsonish_dict(nested)
+            if parsed_nested:
+                return {**value, **parsed_nested}
+        return value
+    text = str(value or "").strip()
+    if not text:
+        return {}
+    fenced = re.search(r"```(?:json)?\s*([\s\S]*?)```", text, flags=re.IGNORECASE)
+    candidate = (fenced.group(1) if fenced else text).strip()
+    try:
+        parsed = json.loads(candidate)
+    except json.JSONDecodeError:
+        return {"memo_patch": text.replace("```json", "").replace("```", "").strip()}
+    return parsed if isinstance(parsed, dict) else {"memo_patch": text}
+
+
+def _as_text_list(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value or "").strip()
+    return [text] if text else []
+
+
+def _agent_reader_name(agent: dict[str, Any]) -> str:
+    labels = {
+        "orchestrator_agent": "Run coordinator",
+        "company_profile_agent": "Business profile review",
+        "financial_quality_agent": "Financial quality review",
+        "valuation_agent": "Valuation review",
+        "risk_agent": "Risk review",
+        "catalyst_agent": "Filing and catalyst review",
+        "red_team_agent": "Red-team challenge",
+        "editor_auditor_agent": "Editor and audit gate",
+    }
+    return labels.get(str(agent.get("id") or ""), str(agent.get("name") or "Analyst review"))
+
+
+def _agent_status_label(status: Any) -> str:
+    value = str(status or "pending").replace("_", " ").strip()
+    return value or "pending"
+
+
+def _agent_reader_lines(agents: list[dict[str, Any]]) -> list[str]:
+    if not agents:
+        return ["- Analyst desk was not emitted for this run."]
+    keep = {
+        "orchestrator_agent",
+        "financial_quality_agent",
+        "valuation_agent",
+        "risk_agent",
+        "catalyst_agent",
+        "red_team_agent",
+        "editor_auditor_agent",
+    }
+    lines = []
+    for agent in agents:
+        if agent.get("id") not in keep:
+            continue
+        lines.append(f"- {_agent_reader_name(agent)} ({_agent_status_label(agent.get('status'))}): {agent.get('summary') or 'No summary returned.'}")
+    return lines or ["- Analyst desk was not emitted for this run."]
+
+
+def _final_editor_lines(final_orchestrator: dict[str, Any]) -> list[str]:
+    status = final_orchestrator.get("status")
+    if status == "ok":
+        analysis = _jsonish_dict(final_orchestrator.get("analysis"))
+        lines = [
+            "## Final editor synthesis",
+            "One final editor pass ran after the deterministic engine, source ledger, specialist reviews, and audit. Specialist review roles did not calculate numbers.",
+            f"Executive judgment: {analysis.get('executive_judgment') or analysis.get('memo_patch') or 'Completed.'}",
+        ]
+        strongest = _as_text_list(analysis.get("strongest_points"))
+        red_team = _as_text_list(analysis.get("red_team"))
+        questions = _as_text_list(analysis.get("open_questions"))
+        if strongest:
+            lines.extend(["", "What supports the case:", *[f"- {item}" for item in strongest[:4]]])
+        if red_team:
+            lines.extend(["", "What could break the case:", *[f"- {item}" for item in red_team[:4]]])
+        if questions:
+            lines.extend(["", "Open checks:", *[f'- {item}' for item in questions[:5]]])
+        return lines
+    if final_orchestrator.get("enabled"):
+        return [
+            "## Final editor synthesis",
+            f"The one-call final editor was enabled but returned {status or 'no result'}: {final_orchestrator.get('error', 'no synthesis returned')}.",
+            "The deterministic analyst desk, valuation, evidence ledger, and audit still remain reproducible.",
+        ]
+    return [
+        "## Final editor synthesis",
+        "No final editor synthesis was used in this run. The report below is the deterministic analyst desk output only.",
+    ]
+
+
 def _report_markdown(
     ticker: str,
     profile: dict[str, Any],
@@ -1506,7 +1603,7 @@ def _report_markdown(
     coverage = audit.get("coverage") or {}
     coverage_line = f"{coverage.get('score', 0)}% ({coverage.get('covered_expected_metrics', 0)}/{coverage.get('expected_metrics', 0)} required metrics)"
     valuation_intro = (
-        "The deterministic engine calculates bear, base, and bull DCF cases from sourced statements and explicit assumptions. The LLM layer should only interpret these outputs after the audit passes."
+        "The deterministic engine calculates bear, base, and bull DCF cases from sourced statements and explicit assumptions. Analyst review roles only interpret these audited outputs."
         if valuation.get("available")
         else "Valuation was not produced because required source-backed financial inputs are missing. No fair value, upside, or reverse DCF conclusion was inferred."
     )
@@ -1516,22 +1613,9 @@ def _report_markdown(
         for item in filings[:5]
     ] or ["- SEC filings metadata unavailable in this run."]
     agents = agent_outputs.get("agents") or []
-    agent_lines = [
-        f"- {agent.get('name')} [{agent.get('status')}]: {agent.get('summary')}"
-        for agent in agents
-    ] or ["- Agent layer not emitted."]
+    agent_lines = _agent_reader_lines(agents)
     final_orchestrator = agent_outputs.get("final_orchestrator") or {}
-    final_analysis = final_orchestrator.get("analysis") or {}
-    final_orchestrator_lines: list[str] = []
-    if final_orchestrator.get("status") == "ok":
-        final_orchestrator_lines.append(f"- Final LLM orchestrator: {final_analysis.get('executive_judgment') or final_analysis.get('memo_patch') or 'Completed.'}")
-        llm_open_questions = final_analysis.get("open_questions") if isinstance(final_analysis.get("open_questions"), list) else []
-        for item in llm_open_questions[:5]:
-            final_orchestrator_lines.append(f"- Open question: {item}")
-    elif final_orchestrator.get("enabled"):
-        final_orchestrator_lines.append(f"- Final LLM orchestrator: {final_orchestrator.get('status')} ({final_orchestrator.get('error', 'no synthesis returned')}).")
-    else:
-        final_orchestrator_lines.append("- Final LLM orchestrator: disabled; deterministic agent layer used.")
+    final_orchestrator_lines = _final_editor_lines(final_orchestrator)
     red_team_agent = next((agent for agent in agents if agent.get("id") == "red_team_agent"), {})
     red_team_lines = [
         f"- [{claim.get('claim_tag')}] {claim.get('text')}"
@@ -1558,9 +1642,10 @@ def _report_markdown(
             valuation_intro,
             f"Statement authority: {statement_authority}. SEC EDGAR is used for filing metadata unless XBRL fact ingestion is explicitly present in sources.json.",
             "",
-            "## Agent research desk",
-            f"Agent layer: {agent_outputs.get('version', 'n/a')} ({agent_outputs.get('mode', 'n/a')}). Agents interpret audited outputs; they do not calculate financial metrics.",
+            "## Analyst desk",
+            "How to read this: Python pulls the data and calculates the metrics. The analyst desk is a set of reproducible review roles that read those audited outputs, challenge the case, and point to open checks.",
             *agent_lines,
+            "",
             *final_orchestrator_lines,
             "",
             "## Red-team memo",

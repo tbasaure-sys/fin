@@ -3,36 +3,15 @@
   min-height: 100vh;
   padding: clamp(1rem, 2vw, 1.75rem);
   background:
-    radial-gradient(circle at top left, rgba(248, 200, 111, 0.16), transparent 24%),
-    radial-gradient(circle at top right, rgba(122, 210, 194, 0.12), transparent 26%),
-    linear-gradient(180deg, #050913 0%, #09121f 42%, #060b13 100%);
+    linear-gradient(135deg, rgba(248, 200, 111, 0.09), transparent 30%),
+    linear-gradient(225deg, rgba(122, 210, 194, 0.08), transparent 32%),
+    linear-gradient(180deg, #060a11 0%, #0a121d 46%, #060a10 100%);
   animation: workspaceFade 460ms ease both;
 }
 
 .shell::before,
 .shell::after {
-  content: "";
-  position: fixed;
-  pointer-events: none;
-  z-index: 0;
-  border-radius: 999px;
-  filter: blur(60px);
-}
-
-.shell::before {
-  top: 5rem;
-  right: 6%;
-  width: 18rem;
-  height: 18rem;
-  background: rgba(248, 200, 111, 0.08);
-}
-
-.shell::after {
-  bottom: 10rem;
-  left: 3%;
-  width: 20rem;
-  height: 20rem;
-  background: rgba(122, 210, 194, 0.08);
+  content: none;
 }
 
 .backdrop {
@@ -1215,6 +1194,129 @@
   margin-bottom: 1rem;
 }
 
+.commandMap {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(240px, 0.86fr) minmax(0, 1.45fr) minmax(300px, 0.74fr);
+  gap: 0.85rem;
+  align-items: stretch;
+  margin: 0 0 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(12, 22, 35, 0.92), rgba(8, 14, 24, 0.86)),
+    linear-gradient(90deg, rgba(248, 200, 111, 0.07), transparent 48%, rgba(122, 210, 194, 0.06));
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.24);
+  animation: workspaceRise 520ms ease both;
+}
+
+.commandMapIntro {
+  display: grid;
+  align-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.commandMapIntro h2 {
+  margin: 0;
+  max-width: 32rem;
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+}
+
+.commandRail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.commandRailLink {
+  display: grid;
+  align-content: center;
+  gap: 0.22rem;
+  min-height: 4.4rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.commandRailLink:hover,
+.commandRailLink:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(122, 210, 194, 0.28);
+  background: rgba(122, 210, 194, 0.07);
+  outline: none;
+}
+
+.commandRailLink span {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.commandRailLink small,
+.commandMapPulse small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.commandMapPulse {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+.commandMapPulse div,
+.commandMapAsk {
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.commandMapPulse div {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.2rem;
+  min-height: 4.4rem;
+}
+
+.commandMapPulse span {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.commandMapAsk {
+  grid-column: 1 / -1;
+  min-height: 2.55rem;
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.commandMapAsk:hover,
+.commandMapAsk[data-active="true"] {
+  transform: translateY(-1px);
+  border-color: rgba(248, 200, 111, 0.34);
+  background: rgba(248, 200, 111, 0.09);
+}
+
+.sectionAnchor {
+  display: grid;
+  gap: 1rem;
+  scroll-margin-top: 1rem;
+}
+
 .researchIdentity {
   display: grid;
   gap: 0.35rem;
@@ -2236,6 +2338,7 @@
 
 @media (max-width: 1180px) {
   .statusGrid,
+  .commandMap,
   .layout,
   .portfolioGrid,
   .decisionGrid,
@@ -2303,6 +2406,10 @@
 
   .headerMeta {
     justify-content: flex-start;
+  }
+
+  .commandRail {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .sideColumn {
@@ -2385,10 +2492,17 @@
   }
 
   .buttonRow,
-  .headerMeta {
+  .headerMeta,
+  .commandRail,
+  .commandMapPulse {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .commandRail,
+  .commandMapPulse {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2717,4 +2831,60 @@
   font-size: 0.82rem;
   line-height: 1.6;
   color: rgba(247, 242, 232, 0.62);
+}
+
+.header,
+.panel,
+.banner,
+.metricTile,
+.chartPanel,
+.sidePanel,
+.tradeComposer,
+.holdingRow,
+.compactRow,
+.alertRow,
+.tableShell,
+.researchCommandSurface,
+.researchOutputShell,
+.researchProcessHero,
+.researchOrchestratorCard,
+.researchAgentRow,
+.researchTechnicalTrace,
+.welcomeGuide,
+.welcomeStep,
+.glossaryPanel {
+  border-radius: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell,
+  .header,
+  .statusGrid,
+  .layout,
+  .commandMap,
+  .panel,
+  .welcomeGuide,
+  .glossaryOverlay,
+  .glossaryPanel,
+  .researchStage span {
+    animation: none;
+  }
+
+  .panel:hover,
+  .holdingRow:hover,
+  .compactRow:hover,
+  .alertRow:hover,
+  .metricTile:hover,
+  .chartPanel:hover,
+  .sidePanel:hover,
+  .tradeComposer:hover,
+  .commandRailLink:hover,
+  .commandMapAsk:hover,
+  .primaryButton:hover,
+  .secondaryButton:hover,
+  .secondaryLink:hover,
+  .textButton:hover,
+  .rangeButton:hover {
+    transform: none;
+  }
 }

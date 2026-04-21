@@ -167,10 +167,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className={styles.scrollHint} aria-hidden="true">
-          <span className={styles.scrollLine} />
-          <span>Scroll to explore</span>
-        </div>
       </section>
 
       <div className={styles.sectionDivider} aria-hidden="true" />

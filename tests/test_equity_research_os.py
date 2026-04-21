@@ -354,7 +354,7 @@ def test_equity_research_bundle_uses_sources_and_formulas() -> None:
     assert all(claim["claim_tag"] in {"sourced_fact", "calculated_metric", "assumption", "interpretation", "uncertainty"} for claim in bundle["agents"]["claims"])
     assert any(claim["agent_id"] == "red_team_agent" for claim in bundle["sources"]["claims"])
     assert "authoritative filings" in bundle["report_markdown"].lower()
-    assert "agent research desk" in bundle["report_markdown"].lower()
+    assert "analyst desk" in bundle["report_markdown"].lower()
     assert "evidence coverage: 100%" in bundle["report_markdown"].lower()
     assert "reverse dcf" in bundle["report_markdown"].lower()
     assert bundle["artifacts"]["model_xlsx"] is True
@@ -404,7 +404,8 @@ def test_equity_research_bundle_allows_one_final_llm_orchestrator_call() -> None
     assert final["call_budget"] == {"max_calls": 1, "actual_calls": 1}
     assert final["analysis"]["executive_judgment"] == "Evidence-backed final synthesis completed."
     assert llm_client.payloads[0]["valuation"]["available"] is True
-    assert "Final LLM orchestrator" in bundle["report_markdown"]
+    assert "Final editor synthesis" in bundle["report_markdown"]
+    assert "Final LLM orchestrator" not in bundle["report_markdown"]
 
 
 def test_equity_research_bundle_sums_short_and_long_debt_when_total_debt_missing() -> None:

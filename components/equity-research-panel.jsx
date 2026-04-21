@@ -6,7 +6,7 @@ import { formatCurrency, formatDateTime, formatPct, safeList, statusTone } from 
 import { parseResponse } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
 
-const RESEARCH_TABS = ["Memo", "Valuation", "Process", "Delta", "Evidence", "Audit"];
+const RESEARCH_TABS = ["Memo", "Valuation", "Analysts", "Delta", "Evidence", "Audit"];
 const AGENT_STAGES = [
   { key: "intake", label: "Collect", detail: "Sources", threshold: 0 },
   { key: "normalize", label: "Clean", detail: "Statements", threshold: 18 },
@@ -99,6 +99,84 @@ function finalAnalysisFrom(orchestrator) {
   return analysis;
 }
 
+const AGENT_DISPLAY_NAMES = {
+  orchestrator: "Run coordinator",
+  orchestrator_agent: "Run coordinator",
+  company_profile_agent: "Business profile review",
+  financial_quality_agent: "Financial quality review",
+  valuation_agent: "Valuation review",
+  risk_agent: "Risk review",
+  catalyst_agent: "Filing and catalyst review",
+  red_team_agent: "Red-team challenge",
+  editor_auditor_agent: "Editor and audit gate",
+};
+
+function agentDisplayName(agent) {
+  const fallback = firstUsefulText(agent?.name, "Analyst review").replace(/\s+Agent$/i, " review");
+  return AGENT_DISPLAY_NAMES[agent?.id] || fallback;
+}
+
+function agentFriendlyNameFromText(value) {
+  const normalized = String(value || "")
+    .trim()
+    .replace(/\s+Agent$/i, "_agent")
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+  return AGENT_DISPLAY_NAMES[normalized] || String(value || "").replace(/\s+Agent$/i, " review").trim();
+}
+
+function analysisItems(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item || "").trim()).filter(Boolean);
+  }
+  const text = String(value || "").trim();
+  return text ? [text] : [];
+}
+
+function finalEditorMarkdownFromAnalysis(value) {
+  const analysis = finalAnalysisFrom({ analysis: value });
+  const judgment = firstUsefulText(analysis.executive_judgment, analysis.memo_patch);
+  const sections = [
+    ["What supports the case:", analysisItems(analysis.strongest_points)],
+    ["What could break the case:", analysisItems(analysis.red_team)],
+    ["Open checks:", analysisItems(analysis.open_questions)],
+  ];
+  const lines = [
+    "## Final editor synthesis",
+    "One final editor call reads only the finished audit bundle. Specialist review roles challenge the case, but Python remains the calculation layer.",
+  ];
+  if (judgment) {
+    lines.push("", `Executive judgment: ${judgment}`);
+  }
+  sections.forEach(([label, items]) => {
+    if (!items.length) return;
+    lines.push("", label, ...items.slice(0, 4).map((item) => `- ${item}`));
+  });
+  return lines.join("\n");
+}
+
+function cleanReportMarkdown(markdown) {
+  let text = String(markdown || "No report text was returned.");
+  text = text.replace(
+    /(?:^|\n)-?\s*Final LLM orchestrator:\s*```(?:json)?\s*([\s\S]*?)```/gi,
+    (_match, body) => `\n${finalEditorMarkdownFromAnalysis(body)}`,
+  );
+  text = text.replace(
+    /(?:^|\n)-?\s*Final LLM orchestrator:\s*(\{[\s\S]*?\})(?=\n\n##|\n##|$)/gi,
+    (_match, body) => `\n${finalEditorMarkdownFromAnalysis(body)}`,
+  );
+  text = text.replace(/## Agent research desk/gi, "## Analyst desk");
+  text = text.replace(
+    /^Agent layer:.*$/gim,
+    "How to read this: Python pulls the data and calculates the metrics. The analyst desk is a set of reproducible review roles that read audited outputs, challenge the case, and point to open checks.",
+  );
+  text = text.replace(
+    /^-\s*([^:\n]+(?:Agent|Orchestrator))\s*\[([^\]]+)\]:\s*/gim,
+    (_match, name, status) => `- ${agentFriendlyNameFromText(name)} (${humanizeToken(status)}): `,
+  );
+  return text;
+}
+
 function firstUsefulText(...values) {
   return values.find((value) => typeof value === "string" && value.trim()) || "";
 }
@@ -186,10 +264,13 @@ function artifactLabel(filename) {
 }
 
 function renderMarkdownMemo(markdown) {
-  const lines = String(markdown || "No report text was returned.").split(/\r?\n/);
+  const lines = cleanReportMarkdown(markdown).split(/\r?\n/);
   return lines.map((line, index) => {
     const key = `${index}-${line.slice(0, 12)}`;
-    if (!line.trim()) return <div className={styles.researchMemoBreak} key={key} />;
+    const trimmed = line.trim();
+    if (!trimmed) return <div className={styles.researchMemoBreak} key={key} />;
+    if (/^```/.test(trimmed) || /^[{}\[\],]+$/.test(trimmed)) return null;
+    if (/^"?(executive_judgment|strongest_points|red_team|open_questions|memo_patch)"?\s*:/.test(trimmed)) return null;
     if (line.startsWith("# ")) return <h3 key={key}>{line.replace(/^#\s+/, "")}</h3>;
     if (line.startsWith("## ")) return <h4 key={key}>{line.replace(/^##\s+/, "")}</h4>;
     if (line.startsWith("- ")) return <p className={styles.researchMemoBullet} key={key}>{line.replace(/^-\s+/, "")}</p>;
@@ -341,9 +422,9 @@ function renderAgents(research) {
   const agents = safeList(agentPayload.agents);
   const finalOrchestrator = agentPayload.final_orchestrator || {};
   const finalAnalysis = finalAnalysisFrom(finalOrchestrator);
-  const strongestPoints = safeList(finalAnalysis.strongest_points);
-  const redTeam = safeList(finalAnalysis.red_team);
-  const openQuestions = safeList(finalAnalysis.open_questions);
+  const strongestPoints = analysisItems(finalAnalysis.strongest_points);
+  const redTeam = analysisItems(finalAnalysis.red_team);
+  const openQuestions = analysisItems(finalAnalysis.open_questions);
   const sourceRecords = safeList(research?.sources?.records);
   const sourceErrors = sourceRecords.filter((source) => source.status === "error");
   const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
@@ -362,11 +443,11 @@ function renderAgents(research) {
         : "neutral";
 
   if (!research) {
-    return <p className={styles.emptyCopy}>The research process will appear after a run, with every stage preserved for reproducibility.</p>;
+    return <p className={styles.emptyCopy}>The analyst desk will appear after a run, with each review role preserved for reproducibility.</p>;
   }
 
   if (!agents.length) {
-    return <p className={styles.emptyCopy}>No process trace was emitted for this bundle.</p>;
+    return <p className={styles.emptyCopy}>No analyst review trace was emitted for this bundle.</p>;
   }
 
   const processSteps = [
@@ -391,7 +472,7 @@ function renderAgents(research) {
     {
       key: "challenge",
       label: "Thesis challenged",
-      detail: `${agents.length} deterministic analyst passes`,
+      detail: `${agents.length} specialist review roles`,
       state: "done",
     },
     {
@@ -402,7 +483,7 @@ function renderAgents(research) {
     },
     {
       key: "editor",
-      label: "Final synthesis",
+      label: "Final editor",
       detail: finalCallText,
       state: finalOrchestrator.status === "ok" ? "done" : finalOrchestrator.enabled ? "warn" : "idle",
     },
@@ -420,13 +501,13 @@ function renderAgents(research) {
     <div className={styles.researchStack}>
       <div className={styles.researchProcessHero} data-tone={processTone}>
         <div>
-          <span>Research process</span>
-          <strong>{auditStatus === "pass" ? "Ready for analyst review" : "Needs analyst attention"}</strong>
-          <p>Data, calculations, red-team critique, and audit trail were produced as separate reproducible steps.</p>
+          <span>Analyst desk</span>
+          <strong>{auditStatus === "pass" ? "Reviewed against the evidence" : "Review found open evidence gaps"}</strong>
+          <p>Specialist review roles read the audited finance-engine output. They do not calculate metrics; they only review the finished bundle.</p>
         </div>
         <div>
           <span>{formatCoverageScore(coverage.score)}</span>
-          <small>{finalCallText}</small>
+          <small>{agents.length} review roles</small>
         </div>
       </div>
 
@@ -443,8 +524,8 @@ function renderAgents(research) {
       <article className={styles.researchOrchestratorCard} data-tone={finalTone}>
         <div className={styles.researchAgentCardTop}>
           <div>
-            <span>Final synthesis</span>
-            <strong>{finalOrchestrator.status === "ok" ? "Editorial pass complete" : "Deterministic report complete"}</strong>
+            <span>Final editor</span>
+            <strong>{finalOrchestrator.status === "ok" ? "One synthesis call complete" : "Deterministic desk only"}</strong>
           </div>
           <small>{humanizeToken(finalOrchestrator.status || "deterministic")}</small>
         </div>
@@ -453,20 +534,20 @@ function renderAgents(research) {
             <p>{judgment}</p>
             <div className={styles.researchOrchestratorColumns}>
               <div>
-                <span>What matters</span>
-                {(strongestPoints.length ? strongestPoints : [finalAnalysis.strongest_points]).filter(Boolean).slice(0, 3).map((item, index) => (
+                <span>What supports it</span>
+                {strongestPoints.slice(0, 3).map((item, index) => (
                   <p key={`strong-${index}`}>{item}</p>
                 ))}
               </div>
               <div>
-                <span>Pushback</span>
-                {(redTeam.length ? redTeam : [finalAnalysis.red_team]).filter(Boolean).slice(0, 3).map((item, index) => (
+                <span>What could break</span>
+                {redTeam.slice(0, 3).map((item, index) => (
                   <p key={`red-team-${index}`}>{item}</p>
                 ))}
               </div>
               <div>
                 <span>Next checks</span>
-                {(openQuestions.length ? openQuestions : [finalAnalysis.open_questions]).filter(Boolean).slice(0, 3).map((item, index) => (
+                {openQuestions.slice(0, 3).map((item, index) => (
                   <p key={`open-${index}`}>{item}</p>
                 ))}
               </div>
@@ -476,13 +557,13 @@ function renderAgents(research) {
           <p>
             {finalOrchestrator.enabled
               ? finalOrchestrator.error || "The one-call final orchestrator was enabled but did not return a synthesis."
-              : "The deterministic analyst desk still ran. Enable the final editor only when you want one LLM synthesis after calculations and audit are complete."}
+              : "No final editor synthesis was added. The deterministic analyst desk still ran from audited outputs."}
           </p>
         )}
       </article>
 
       <details className={styles.researchTechnicalTrace}>
-        <summary>Reproducibility trail</summary>
+        <summary>Show reproducibility details</summary>
         <div className={styles.researchTraceGrid}>
           <div>
             <span>Agent layer</span>
@@ -507,7 +588,7 @@ function renderAgents(research) {
               <div className={styles.researchAgentRow} data-tone={statusTone(agent.status)} key={agent.id}>
                 <span>{humanizeToken(agent.status)}</span>
                 <div>
-                  <strong>{agent.name}</strong>
+                  <strong>{agentDisplayName(agent)}</strong>
                   <p>{agent.summary}</p>
                   {questions.length ? <small>{questions.slice(0, 2).join(" / ")}</small> : null}
                 </div>
@@ -908,7 +989,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
             type="button"
           >
             <span>{tab}</span>
-            {tab === "Process" && agentCount ? <small>{agentCount}</small> : null}
+            {tab === "Analysts" && agentCount ? <small>{agentCount}</small> : null}
             {tab === "Evidence" && evidenceCount ? <small>{evidenceCount}</small> : null}
             {tab === "Audit" && auditFindings.length ? <small>{auditFindings.length}</small> : null}
             {tab === "Delta" && deltaChanges.length ? <small>{deltaChanges.length}</small> : null}
@@ -944,7 +1025,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         >
           {activeTab === "Memo" ? renderMemo(research) : null}
           {activeTab === "Valuation" ? renderValuation(research) : null}
-          {activeTab === "Process" ? renderAgents(research) : null}
+          {activeTab === "Analysts" ? renderAgents(research) : null}
           {activeTab === "Delta" ? renderDelta(research) : null}
           {activeTab === "Evidence" ? renderEvidence(research) : null}
           {activeTab === "Audit" ? renderAudit(research) : null}

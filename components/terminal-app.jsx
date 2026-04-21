@@ -26,6 +26,13 @@ import PortfolioChat from "@/components/portfolio-chat";
 import EquityResearchPanel from "@/components/equity-research-panel";
 
 const DEFAULT_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
+const WORKSPACE_NAV = [
+  { href: "#today", label: "Today", detail: "Alerts and decision" },
+  { href: "#portfolio", label: "Portfolio", detail: "Performance and weights" },
+  { href: "#diversification", label: "Diversification", detail: "Overlap check" },
+  { href: "#research", label: "Research", detail: "Equity memo" },
+  { href: "#holdings", label: "Holdings", detail: "Edit positions" },
+];
 
 function ToneBadge({ tone = "neutral", children }) {
   return (
@@ -1338,6 +1345,42 @@ function CompactActionPanel({ title, kicker, emptyLabel, items, renderItem }) {
   );
 }
 
+function WorkspaceCommandMap({ alertCount, holdingsCount, stagedCount, showChat, onOpenChat }) {
+  return (
+    <section className={styles.commandMap} aria-label="Workspace command map">
+      <div className={styles.commandMapIntro}>
+        <p className={styles.kicker}>Operating path</p>
+        <h2>Read the brief, inspect the portfolio, then save only the moves that survive scrutiny.</h2>
+      </div>
+      <nav className={styles.commandRail} aria-label="Workspace sections">
+        {WORKSPACE_NAV.map((item) => (
+          <a className={styles.commandRailLink} href={item.href} key={item.href}>
+            <span>{item.label}</span>
+            <small>{item.detail}</small>
+          </a>
+        ))}
+      </nav>
+      <div className={styles.commandMapPulse}>
+        <div>
+          <span>{alertCount}</span>
+          <small>alerts</small>
+        </div>
+        <div>
+          <span>{holdingsCount}</span>
+          <small>holdings</small>
+        </div>
+        <div>
+          <span>{stagedCount}</span>
+          <small>staged</small>
+        </div>
+        <button className={styles.commandMapAsk} data-active={showChat} onClick={onOpenChat} type="button">
+          Ask workspace
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function joinedActionText(item) {
   return [
     item?.title,
@@ -1829,32 +1872,50 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
       <ComplianceNotice />
 
+      <WorkspaceCommandMap
+        alertCount={alerts.length}
+        holdingsCount={safeList(portfolioModule?.holdings).length}
+        onOpenChat={() => setShowChat(true)}
+        showChat={showChat}
+        stagedCount={escrowItems.length}
+      />
+
       <div className={styles.layout}>
         <section className={styles.mainColumn}>
-          <AlertsPanel alerts={alerts} />
-          <TodayDecisionPanel
-            blockedAction={blockedAction}
-            onDefer={(action) => recordDecision(action, "deferred")}
-            onReject={(action) => recordDecision(action, "rejected")}
-            onStage={stageAction}
-            pendingKey={pendingKey}
-            primaryAction={primaryAction}
-            stateSummary={stateSummary}
-          />
-          <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
-          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
-          <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
-          <HoldingsPanel
-            holdingDraft={holdingDraft}
-            onHoldingDraftChange={updateHoldingDraft}
-            onSubmitHoldingDraft={submitHoldingDraft}
-            onSubmitTrade={submitTradeInstruction}
-            onTradeInstructionChange={setTradeInstruction}
-            pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
-            portfolioModule={portfolioModule}
-            tradeError={tradeError}
-            tradeInstruction={tradeInstruction}
-          />
+          <div id="today" className={styles.sectionAnchor}>
+            <AlertsPanel alerts={alerts} />
+            <TodayDecisionPanel
+              blockedAction={blockedAction}
+              onDefer={(action) => recordDecision(action, "deferred")}
+              onReject={(action) => recordDecision(action, "rejected")}
+              onStage={stageAction}
+              pendingKey={pendingKey}
+              primaryAction={primaryAction}
+              stateSummary={stateSummary}
+            />
+          </div>
+          <div id="portfolio" className={styles.sectionAnchor}>
+            <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
+          </div>
+          <div id="diversification" className={styles.sectionAnchor}>
+            <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
+          </div>
+          <div id="research" className={styles.sectionAnchor}>
+            <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
+          </div>
+          <div id="holdings" className={styles.sectionAnchor}>
+            <HoldingsPanel
+              holdingDraft={holdingDraft}
+              onHoldingDraftChange={updateHoldingDraft}
+              onSubmitHoldingDraft={submitHoldingDraft}
+              onSubmitTrade={submitTradeInstruction}
+              onTradeInstructionChange={setTradeInstruction}
+              pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
+              portfolioModule={portfolioModule}
+              tradeError={tradeError}
+              tradeInstruction={tradeInstruction}
+            />
+          </div>
         </section>
 
         <aside className={styles.sideColumn}>

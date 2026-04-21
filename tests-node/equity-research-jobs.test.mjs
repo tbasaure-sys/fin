@@ -247,7 +247,10 @@ test("equity research adds one Vercel final orchestrator call when backend skips
     assert.equal(bundle.agents.final_orchestrator.runtime, "vercel");
     assert.equal(bundle.agents.final_orchestrator.call_budget.actual_calls, 1);
     assert.equal(bundle.agents.final_orchestrator.analysis.executive_judgment, "Evidence-backed final synthesis completed.");
-    assert.match(bundle.report_markdown, /Final orchestrator/);
+    assert.match(bundle.report_markdown, /## Analyst desk/);
+    assert.match(bundle.report_markdown, /## Final editor synthesis/);
+    assert.match(bundle.report_markdown, /What could break the case/);
+    assert.doesNotMatch(bundle.report_markdown, /Final LLM orchestrator|```json/);
     assert.equal(calls.length, 2);
     assert.equal(calls[1].body.model, "gpt-4o-mini");
   } finally {
