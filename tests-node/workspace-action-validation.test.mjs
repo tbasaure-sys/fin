@@ -7,6 +7,7 @@ import {
   parseDecisionPayload,
   parseEscrowPatchPayload,
   parseEscrowStagePayload,
+  parseFinancePlanPayload,
   parseMandatePatchPayload,
   parsePhantomDiversificationPayload,
   parsePortfolioUpdatePayload,
@@ -20,6 +21,33 @@ test("parsePortfolioUpdatePayload requires a trade instruction", () => {
   assert.throws(
     () => parsePortfolioUpdatePayload({}),
     (error) => error instanceof RequestValidationError && /instruction is required/i.test(error.message),
+  );
+});
+
+test("parseFinancePlanPayload normalizes monthly cashflow fields", () => {
+  const payload = parseFinancePlanPayload({
+    monthlyIncome: "10000",
+    fixedExpenses: 4200,
+    variableExpenses: "1800.50",
+    safetyBuffer: 750,
+    targetMonthlyInvestment: 2500,
+    baseCurrency: "usd",
+  });
+
+  assert.deepEqual(payload, {
+    monthlyIncome: 10000,
+    fixedExpenses: 4200,
+    variableExpenses: 1800.5,
+    safetyBuffer: 750,
+    targetMonthlyInvestment: 2500,
+    baseCurrency: "USD",
+  });
+});
+
+test("parseFinancePlanPayload rejects negative cashflow values", () => {
+  assert.throws(
+    () => parseFinancePlanPayload({ monthlyIncome: -1 }),
+    (error) => error instanceof RequestValidationError && /monthlyIncome must be at least 0/i.test(error.message),
   );
 });
 

@@ -94,3 +94,13 @@ create table if not exists module_snapshot (
   created_at timestamptz not null default now()
 );
 
+create table if not exists workspace_finance_plan (
+  workspace_id text primary key references workspace(id),
+  monthly_income numeric not null default 0,
+  fixed_expenses numeric not null default 0,
+  variable_expenses numeric not null default 0,
+  safety_buffer numeric not null default 0,
+  target_monthly_investment numeric not null default 0,
+  base_currency text not null default 'USD',
+  updated_at timestamptz not null default now()
+);

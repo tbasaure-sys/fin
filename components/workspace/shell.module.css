@@ -311,7 +311,7 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
   gap: 0.9rem;
   margin-bottom: 1rem;
 }
@@ -402,6 +402,157 @@
   gap: 0.8rem;
 }
 
+.financePanelGrid {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.92fr) minmax(0, 1.08fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.financeForm,
+.financeReadout,
+.financeAllocation {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.financeForm,
+.financeReadout {
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.financeInputGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.financeField {
+  min-width: 0;
+  display: grid;
+  gap: 0.42rem;
+}
+
+.financeField span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.financeInputWrap {
+  position: relative;
+}
+
+.financeInputWrap small {
+  position: absolute;
+  inset: 50% auto auto 0.95rem;
+  transform: translateY(-50%);
+  color: rgba(168, 184, 202, 0.78);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  pointer-events: none;
+}
+
+.financeInputWrap small + input {
+  padding-left: 3.2rem;
+}
+
+.financeFormFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.1rem;
+}
+
+.financeFormFooter p {
+  margin: 0;
+  max-width: 30rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.financeMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.financeAllocation {
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.financeAllocationHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+}
+
+.financeAllocationHead h3 {
+  margin: 0;
+}
+
+.financeAllocationBar {
+  display: flex;
+  min-height: 1rem;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.financeAllocationBar span {
+  min-width: 0.35rem;
+}
+
+.financeAllocationBar span[data-segment="fixed"],
+.financeLegend i[data-segment="fixed"] {
+  background: rgba(168, 184, 202, 0.7);
+}
+
+.financeAllocationBar span[data-segment="variable"],
+.financeLegend i[data-segment="variable"] {
+  background: rgba(248, 200, 111, 0.82);
+}
+
+.financeAllocationBar span[data-segment="buffer"],
+.financeLegend i[data-segment="buffer"] {
+  background: rgba(89, 138, 255, 0.76);
+}
+
+.financeAllocationBar span[data-segment="investable"],
+.financeLegend i[data-segment="investable"] {
+  background: rgba(122, 210, 194, 0.92);
+}
+
+.financeLegend {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 0.8rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.financeLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.financeLegend i {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
 .portfolioGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.75fr);
@@ -413,7 +564,7 @@
 .sidePanel,
 .tradeComposer {
   padding: 1.05rem;
-  border-radius: 22px;
+  border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   background: rgba(255, 255, 255, 0.03);
 }
@@ -459,6 +610,28 @@
   gap: 0.75rem;
 }
 
+.chartEmptyState {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 14rem;
+  align-content: center;
+  padding: 1.2rem;
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    rgba(6, 12, 22, 0.62);
+  background-size: 100% 25%, 25% 100%, auto;
+}
+
+.chartEmptyState p {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .rangeTabs {
   display: flex;
   flex-wrap: wrap;
@@ -495,25 +668,42 @@
 .chart {
   width: 100%;
   height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.chartPlot {
+  fill: rgba(5, 10, 18, 0.54);
+  stroke: rgba(255, 255, 255, 0.06);
 }
 
 .chartGrid {
-  stroke: rgba(255, 255, 255, 0.16);
-  stroke-width: 1.5;
+  stroke: rgba(255, 255, 255, 0.105);
+  stroke-width: 1;
+}
+
+.chartGridVertical {
+  stroke: rgba(255, 255, 255, 0.055);
+  stroke-width: 1;
 }
 
 .chartReference {
-  stroke: rgba(255, 255, 255, 0.12);
+  stroke: rgba(248, 200, 111, 0.35);
   stroke-width: 1;
-  stroke-dasharray: 5 6;
+  stroke-dasharray: 4 6;
+}
+
+.chartArea {
+  fill: url(#workspaceChartArea);
 }
 
 .chartLine {
   fill: none;
   stroke: url(#workspaceChartLine);
-  stroke-width: 3;
+  stroke-width: 3.4;
   stroke-linecap: round;
   stroke-linejoin: round;
+  filter: drop-shadow(0 8px 12px rgba(122, 210, 194, 0.12));
 }
 
 .chartBenchmark {
@@ -525,6 +715,19 @@
 
 .chartPoint {
   fill: rgba(248, 200, 111, 0.95);
+  stroke: rgba(6, 12, 22, 0.95);
+  stroke-width: 2;
+}
+
+.chartAxisLabel,
+.chartLatestLabel {
+  fill: rgba(168, 184, 202, 0.74);
+  font-size: 0.7rem;
+}
+
+.chartLatestLabel {
+  fill: rgba(248, 200, 111, 0.9);
+  font-weight: 700;
 }
 
 .chartLegend {
@@ -1229,7 +1432,7 @@
 
 .commandRail {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(6.8rem, 1fr));
   gap: 0.55rem;
 }
 
@@ -2341,6 +2544,8 @@
   .commandMap,
   .layout,
   .portfolioGrid,
+  .financePanelGrid,
+  .financeMetricGrid,
   .decisionGrid,
   .metricsGrid,
   .phantomSimpleGrid,
@@ -2461,6 +2666,7 @@
   }
 
   .tradeForm,
+  .financeInputGrid,
   .holdingQuickGrid,
   .holdingRow,
   .compactRow,
@@ -2472,6 +2678,8 @@
   }
 
   .holdingQuickActions,
+  .financeFormFooter,
+  .financeAllocationHead,
   .chartSummary,
   .chartMeta {
     display: grid;
@@ -2501,6 +2709,7 @@
   }
 
   .commandRail,
+  .financeLegend,
   .commandMapPulse {
     grid-template-columns: 1fr;
   }

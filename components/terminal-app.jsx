@@ -27,6 +27,7 @@ import EquityResearchPanel from "@/components/equity-research-panel";
 
 const DEFAULT_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
 const WORKSPACE_NAV = [
+  { href: "#cashflow", label: "Cashflow", detail: "Income and investable" },
   { href: "#today", label: "Today", detail: "Alerts and decision" },
   { href: "#portfolio", label: "Portfolio", detail: "Performance and weights" },
   { href: "#diversification", label: "Diversification", detail: "Overlap check" },
@@ -86,10 +87,12 @@ function RangeTabs({ value, onChange }) {
 }
 
 function PortfolioChart({ series, benchmarkSymbol }) {
-  const width = 640;
-  const height = 220;
-  const paddingX = 20;
-  const paddingY = 20;
+  const width = 680;
+  const height = 260;
+  const paddingLeft = 48;
+  const paddingRight = 20;
+  const paddingTop = 18;
+  const paddingBottom = 34;
   const rows = safeList(series)
     .map((row, index) => {
       const parsedDate = row?.date ? new Date(row.date) : null;
@@ -107,7 +110,12 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   const benchmarkPoints = rows.filter((row) => Number.isFinite(row.benchmark));
 
   if (portfolioPoints.length < 2 && benchmarkPoints.length < 2) {
-    return <p className={styles.emptyCopy}>Portfolio history is still limited. Stored snapshots will populate this chart.</p>;
+    return (
+      <div className={styles.chartEmptyState}>
+        <strong>Portfolio path will appear here</strong>
+        <p>Stored snapshots are needed before the app draws performance, benchmark spread, and trend direction.</p>
+      </div>
+    );
   }
 
   const values = rows.flatMap((point) => [point.portfolio, point.benchmark]).filter(Number.isFinite);
@@ -122,13 +130,17 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   const maxTimestamp = Math.max(...chartTimestamps);
   const safeTimeRange = maxTimestamp - minTimestamp || 1;
   const baseLineValue = min <= 1 && max >= 1 ? 1 : null;
+  const chartBottom = height - paddingBottom;
+  const chartTop = paddingTop;
+  const chartLeft = paddingLeft;
+  const chartRight = width - paddingRight;
 
   const pointX = (point, fallbackIndex) => {
     const timestamp = point.timestamp ?? fallbackIndex;
-    return paddingX + (((timestamp - minTimestamp) / safeTimeRange) * (width - (paddingX * 2)));
+    return chartLeft + (((timestamp - minTimestamp) / safeTimeRange) * (chartRight - chartLeft));
   };
 
-  const pointY = (value) => height - paddingY - (((value - min) / safeRange) * (height - (paddingY * 2)));
+  const pointY = (value) => chartBottom - (((value - min) / safeRange) * (chartBottom - chartTop));
 
   const buildPath = (points, valueKey) => points
     .map((point, index) => {
@@ -138,6 +150,8 @@ function PortfolioChart({ series, benchmarkSymbol }) {
     })
     .join(" ");
 
+  const portfolioPath = portfolioPoints.length >= 2 ? buildPath(portfolioPoints, "portfolio") : "";
+  const benchmarkPath = benchmarkPoints.length >= 2 ? buildPath(benchmarkPoints, "benchmark") : "";
   const latest = portfolioPoints[portfolioPoints.length - 1];
   const firstPortfolio = portfolioPoints[0];
   const latestX = latest ? pointX(latest, portfolioPoints.length - 1) : null;
@@ -150,6 +164,17 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   const startLabel = rows[0]?.date ? formatDate(rows[0].date) : "";
   const endLabel = rows[rows.length - 1]?.date ? formatDate(rows[rows.length - 1].date) : "";
   const baseLineY = baseLineValue === null ? null : pointY(baseLineValue);
+  const firstX = portfolioPoints[0] ? pointX(portfolioPoints[0], 0) : chartLeft;
+  const lastX = latest ? pointX(latest, portfolioPoints.length - 1) : chartRight;
+  const areaPath = portfolioPath
+    ? `${portfolioPath} L ${lastX.toFixed(1)} ${chartBottom.toFixed(1)} L ${firstX.toFixed(1)} ${chartBottom.toFixed(1)} Z`
+    : "";
+  const gridValues = [0, 0.25, 0.5, 0.75, 1].map((ratio) => min + (safeRange * ratio));
+  const verticalGuides = [0, 0.5, 1].map((ratio) => chartLeft + ((chartRight - chartLeft) * ratio));
+  const chartValueLabel = (value) => {
+    if (min > 0.55 && max < 1.6) return formatSignedPct(value - 1, 0);
+    return `${value.toFixed(2)}x`;
+  };
 
   return (
     <div className={styles.chartBlock}>
@@ -159,12 +184,36 @@ function PortfolioChart({ series, benchmarkSymbol }) {
             <stop offset="0%" stopColor="rgba(248, 200, 111, 0.95)" />
             <stop offset="100%" stopColor="rgba(122, 210, 194, 0.95)" />
           </linearGradient>
+          <linearGradient id="workspaceChartArea" x1="0%" x2="0%" y1="0%" y2="100%">
+            <stop offset="0%" stopColor="rgba(122, 210, 194, 0.22)" />
+            <stop offset="100%" stopColor="rgba(122, 210, 194, 0)" />
+          </linearGradient>
         </defs>
-        <path className={styles.chartGrid} d={`M ${paddingX} ${height - paddingY} L ${width - paddingX} ${height - paddingY}`} />
-        {baseLineY !== null ? <path className={styles.chartReference} d={`M ${paddingX} ${baseLineY.toFixed(1)} L ${width - paddingX} ${baseLineY.toFixed(1)}`} /> : null}
-        {hasBenchmark ? <path className={styles.chartBenchmark} d={buildPath(benchmarkPoints, "benchmark")} /> : null}
-        <path className={styles.chartLine} d={buildPath(portfolioPoints, "portfolio")} />
+        <rect className={styles.chartPlot} x={chartLeft} y={chartTop} width={chartRight - chartLeft} height={chartBottom - chartTop} rx="10" />
+        {gridValues.map((value) => {
+          const y = pointY(value);
+          return (
+            <g key={`grid-${value.toFixed(4)}`}>
+              <path className={styles.chartGrid} d={`M ${chartLeft} ${y.toFixed(1)} L ${chartRight} ${y.toFixed(1)}`} />
+              <text className={styles.chartAxisLabel} x={chartLeft - 10} y={y + 4} textAnchor="end">
+                {chartValueLabel(value)}
+              </text>
+            </g>
+          );
+        })}
+        {verticalGuides.map((x) => (
+          <path className={styles.chartGridVertical} d={`M ${x.toFixed(1)} ${chartTop} L ${x.toFixed(1)} ${chartBottom}`} key={`v-${x.toFixed(1)}`} />
+        ))}
+        {baseLineY !== null ? <path className={styles.chartReference} d={`M ${chartLeft} ${baseLineY.toFixed(1)} L ${chartRight} ${baseLineY.toFixed(1)}`} /> : null}
+        {areaPath ? <path className={styles.chartArea} d={areaPath} /> : null}
+        {hasBenchmark ? <path className={styles.chartBenchmark} d={benchmarkPath} /> : null}
+        {portfolioPath ? <path className={styles.chartLine} d={portfolioPath} /> : null}
         {latestX !== null && latestY !== null ? <circle className={styles.chartPoint} cx={latestX} cy={latestY} r="4" /> : null}
+        {latestX !== null && latestY !== null ? (
+          <text className={styles.chartLatestLabel} x={Math.min(latestX + 8, chartRight - 58)} y={Math.max(latestY - 10, chartTop + 14)}>
+            Latest
+          </text>
+        ) : null}
       </svg>
 
       <div className={styles.chartSummary}>
@@ -208,6 +257,177 @@ function HoldingsReturnDistribution({ rows }) {
   );
 }
 
+function FinancePlanField({ id, label, value, onChange, currency, inputMode = "decimal" }) {
+  return (
+    <label className={styles.financeField} htmlFor={id}>
+      <span>{label}</span>
+      <div className={styles.financeInputWrap}>
+        {currency ? <small>{currency}</small> : null}
+        <input
+          className={styles.textInput}
+          id={id}
+          inputMode={inputMode}
+          onChange={(event) => onChange(event.target.value)}
+          value={value}
+        />
+      </div>
+    </label>
+  );
+}
+
+function PersonalFinancePanel({ financePlan, draft, pending, onChange, onSubmit }) {
+  const plan = financePlan || {};
+  const metrics = plan.metrics || {};
+  const allocation = safeList(plan.allocation);
+  const currency = sanitizeCurrencyInput(draft.baseCurrency) || sanitizeCurrencyInput(plan.inputs?.baseCurrency) || "USD";
+  const hasIncome = draftMoney(plan.inputs?.monthlyIncome) > 0;
+  const metricTone = financeMetricTone(plan);
+  const allocationTotal = allocation.reduce((sum, item) => sum + Math.max(0, Number(item?.value) || 0), 0);
+  const showAllocation = hasIncome && allocationTotal > 0;
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <p className={styles.kicker}>Monthly money plan</p>
+          <h2>Know what is actually available to invest</h2>
+          <p className={styles.supportText}>
+            Income, fixed bills, variable spending, and buffer become one monthly contribution number before portfolio decisions.
+          </p>
+        </div>
+        <ToneBadge tone={plan.tone || metricTone}>{plan.title || "Plan not set"}</ToneBadge>
+      </div>
+
+      <div className={styles.financePanelGrid}>
+        <form
+          className={styles.financeForm}
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSubmit();
+          }}
+        >
+          <div className={styles.financeInputGrid}>
+            <FinancePlanField
+              currency={currency}
+              id="monthly-income"
+              label="Monthly income"
+              onChange={(value) => onChange("monthlyIncome", value)}
+              value={draft.monthlyIncome}
+            />
+            <FinancePlanField
+              currency={currency}
+              id="fixed-expenses"
+              label="Fixed expenses"
+              onChange={(value) => onChange("fixedExpenses", value)}
+              value={draft.fixedExpenses}
+            />
+            <FinancePlanField
+              currency={currency}
+              id="variable-expenses"
+              label="Variable expenses"
+              onChange={(value) => onChange("variableExpenses", value)}
+              value={draft.variableExpenses}
+            />
+            <FinancePlanField
+              currency={currency}
+              id="safety-buffer"
+              label="Cash buffer"
+              onChange={(value) => onChange("safetyBuffer", value)}
+              value={draft.safetyBuffer}
+            />
+            <FinancePlanField
+              currency={currency}
+              id="target-investment"
+              label="Target contribution"
+              onChange={(value) => onChange("targetMonthlyInvestment", value)}
+              value={draft.targetMonthlyInvestment}
+            />
+            <FinancePlanField
+              id="base-currency"
+              inputMode="text"
+              label="Currency"
+              onChange={(value) => onChange("baseCurrency", value)}
+              value={draft.baseCurrency}
+            />
+          </div>
+
+          <div className={styles.financeFormFooter}>
+            <p>{plan.body || "Save the plan to connect personal cashflow with portfolio allocation."}</p>
+            <button className={styles.primaryButton} disabled={pending} type="submit">
+              {pending ? "Saving..." : "Save money plan"}
+            </button>
+          </div>
+        </form>
+
+        <div className={styles.financeReadout}>
+          <div className={styles.financeMetricGrid}>
+            <MetricTile
+              detail="Income minus fixed costs, variable spending, and buffer."
+              label="Available to invest"
+              tone={metricTone}
+              value={formatMoney(metrics.monthlyInvestable, currency)}
+            />
+            <MetricTile
+              detail="Fixed and variable expenses before buffer."
+              label="Monthly burn"
+              value={formatMoney(metrics.monthlyOutflow, currency)}
+            />
+            <MetricTile
+              detail="Investable cash divided by monthly income."
+              label="Savings rate"
+              tone={metricTone}
+              value={formatOptionalRatio(metrics.savingsRate, 0)}
+            />
+            <MetricTile
+              detail="Available contribution versus your target."
+              label="Target coverage"
+              tone={metricTone}
+              value={metrics.targetCoverage === null ? "Set target" : formatOptionalRatio(metrics.targetCoverage, 0)}
+            />
+          </div>
+
+          <div className={styles.financeAllocation}>
+            <div className={styles.financeAllocationHead}>
+              <div>
+                <p className={styles.kicker}>Monthly allocation</p>
+                <h3>{showAllocation ? "Where income goes" : "Add income to draw the plan"}</h3>
+              </div>
+              {Number.isFinite(Number(metrics.annualContributionRate)) ? (
+                <ToneBadge tone="neutral">{formatOptionalRatio(metrics.annualContributionRate, 1)} of portfolio/year</ToneBadge>
+              ) : null}
+            </div>
+
+            {showAllocation ? (
+              <>
+                <div className={styles.financeAllocationBar} aria-label="Monthly income allocation">
+                  {allocation.map((item) => (
+                    <span
+                      data-segment={item.id}
+                      key={item.id}
+                      style={{ width: `${Math.max(4, Math.round((Number(item.ratio) || 0) * 100))}%` }}
+                      title={`${item.label}: ${formatMoney(item.value, currency)}`}
+                    />
+                  ))}
+                </div>
+                <div className={styles.financeLegend}>
+                  {allocation.map((item) => (
+                    <span key={`legend-${item.id}`}>
+                      <i data-segment={item.id} />
+                      {item.label}: {formatMoney(item.value, currency)}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className={styles.emptyCopy}>Once income is entered, this becomes a spend/buffer/investable bar instead of another abstract dashboard tile.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function formatBreadth(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "-";
@@ -226,6 +446,58 @@ function sanitizeTickerInput(value) {
 
 function sanitizeDecimalInput(value) {
   return String(value || "").replace(/[^0-9.]/g, "").slice(0, 16);
+}
+
+function sanitizeCurrencyInput(value) {
+  return String(value || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);
+}
+
+function formatFinanceInputValue(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric) || numeric === 0) return "";
+  return String(numeric).replace(/\.0+$/, "");
+}
+
+function financeDraftFromPlan(financePlan) {
+  const inputs = financePlan?.inputs || {};
+  return {
+    monthlyIncome: formatFinanceInputValue(inputs.monthlyIncome),
+    fixedExpenses: formatFinanceInputValue(inputs.fixedExpenses),
+    variableExpenses: formatFinanceInputValue(inputs.variableExpenses),
+    safetyBuffer: formatFinanceInputValue(inputs.safetyBuffer),
+    targetMonthlyInvestment: formatFinanceInputValue(inputs.targetMonthlyInvestment),
+    baseCurrency: sanitizeCurrencyInput(inputs.baseCurrency || "USD") || "USD",
+  };
+}
+
+function draftMoney(value) {
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? Math.max(0, numeric) : 0;
+}
+
+function formatMoney(value, currency = "USD") {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "-";
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: sanitizeCurrencyInput(currency) || "USD",
+      maximumFractionDigits: numeric >= 1000 ? 0 : 2,
+    }).format(numeric);
+  } catch {
+    return formatCurrency(numeric);
+  }
+}
+
+function formatOptionalRatio(value, digits = 0) {
+  return Number.isFinite(Number(value)) ? formatPct(Number(value), digits) : "-";
+}
+
+function financeMetricTone(financePlan) {
+  const status = String(financePlan?.status || "");
+  if (status === "target_funded" || status === "investable_ready") return "good";
+  if (status === "cashflow_blocked") return "bad";
+  return "warn";
 }
 
 const PHANTOM_MAX_HOLDINGS = 24;
@@ -1010,22 +1282,22 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
       <div className={styles.decisionGrid}>
         <MetricTile
           detail={cleanWorkspaceCopy(primaryAction?.whyNow || stateSummary?.decisionSummary || "Wait for a cleaner setup before widening risk.")}
-          label="Action"
+          label="Decision"
           value={cleanWorkspaceCopy(primaryAction?.title || "Protect capital")}
         />
         <MetricTile
           detail={cleanWorkspaceCopy(primaryAction?.watchFor || blockedAction?.watchFor || "Stronger risk confirmation and cleaner breadth confirmation.")}
-          label="What would change it"
+          label="Review trigger"
           value={activeAction ? formatSize(activeAction) : "No size change"}
         />
         <MetricTile
           detail={cleanWorkspaceCopy(activeAction?.funding || "Preserve current sizing until the setup improves.")}
-          label="How to fund it"
+          label="Funding source"
           value={cleanWorkspaceCopy(activeAction?.funding || "No funding change")}
         />
         <MetricTile
           detail={cleanWorkspaceCopy(blockedAction?.summary || "The current structure still does not justify broader risk.")}
-          label="Current stance"
+          label="Portfolio stance"
           value={cleanWorkspaceCopy(stateSummary?.stance || "Selective posture")}
         />
       </div>
@@ -1350,7 +1622,7 @@ function WorkspaceCommandMap({ alertCount, holdingsCount, stagedCount, showChat,
     <section className={styles.commandMap} aria-label="Workspace command map">
       <div className={styles.commandMapIntro}>
         <p className={styles.kicker}>Operating path</p>
-        <h2>Read the brief, inspect the portfolio, then save only the moves that survive scrutiny.</h2>
+        <h2>Start with cashflow, inspect the portfolio, then save only the moves that survive scrutiny.</h2>
       </div>
       <nav className={styles.commandRail} aria-label="Workspace sections">
         {WORKSPACE_NAV.map((item) => (
@@ -1455,6 +1727,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [showGlossary, setShowGlossary] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [portfolioRange, setPortfolioRange] = useState("1M");
+  const [financeDraft, setFinanceDraft] = useState(() => financeDraftFromPlan(initialDashboard?.personal_finance));
+  const [financeDraftDirty, setFinanceDraftDirty] = useState(false);
   const [holdingDraft, setHoldingDraft] = useState({
     ticker: "",
     sizing: "shares",
@@ -1468,6 +1742,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
   const stateSummary = dashboard?.state_summary || {};
   const portfolioModule = dashboard?.modules?.portfolio || null;
+  const personalFinance = dashboard?.personal_finance || null;
   const hasPortfolioHoldings = safeList(portfolioModule?.holdings).length > 0;
   const primaryAction = dashboard?.primary_action || null;
   const secondaryActions = hasPortfolioHoldings
@@ -1481,6 +1756,19 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).filter(isSettledLedgerItem).slice(0, 4);
   const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 3);
   const dataControl = dashboard?.data_control || {};
+
+  useEffect(() => {
+    if (financeDraftDirty) return;
+    setFinanceDraft(financeDraftFromPlan(personalFinance));
+  }, [
+    personalFinance?.inputs?.updatedAt,
+    personalFinance?.inputs?.monthlyIncome,
+    personalFinance?.inputs?.fixedExpenses,
+    personalFinance?.inputs?.variableExpenses,
+    personalFinance?.inputs?.safetyBuffer,
+    personalFinance?.inputs?.targetMonthlyInvestment,
+    personalFinance?.inputs?.baseCurrency,
+  ]);
 
   async function applyWorkspacePayload(payload, successMessage) {
     startTransition(() => {
@@ -1533,6 +1821,43 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       },
       "Live refresh requested.",
     );
+  }
+
+  function updateFinanceDraft(field, value) {
+    setFinanceDraftDirty(true);
+    setFinanceDraft((current) => ({
+      ...current,
+      [field]: field === "baseCurrency" ? sanitizeCurrencyInput(value) : sanitizeDecimalInput(value),
+    }));
+  }
+
+  async function submitFinanceDraft() {
+    if (!workspaceId) return;
+
+    setPendingKey("finance-plan");
+    setError("");
+
+    try {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/finance-plan`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          monthlyIncome: draftMoney(financeDraft.monthlyIncome),
+          fixedExpenses: draftMoney(financeDraft.fixedExpenses),
+          variableExpenses: draftMoney(financeDraft.variableExpenses),
+          safetyBuffer: draftMoney(financeDraft.safetyBuffer),
+          targetMonthlyInvestment: draftMoney(financeDraft.targetMonthlyInvestment),
+          baseCurrency: financeDraft.baseCurrency || "USD",
+        }),
+      });
+      const payload = await parseResponse(response);
+      await applyWorkspacePayload(payload, "Monthly money plan saved.");
+      setFinanceDraftDirty(false);
+    } catch (requestError) {
+      setError(String(requestError?.message || requestError || "Money plan update failed."));
+    } finally {
+      setPendingKey(null);
+    }
   }
 
   function updateHoldingDraft(field, value) {
@@ -1693,7 +2018,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <div>
           <p className={styles.eyebrow}>Private workspace</p>
           <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME}</h1>
-          <p className={styles.subtitle}>One workspace to read the market, understand the portfolio, and act without switching tools.</p>
+          <p className={styles.subtitle}>One workspace to plan monthly investable cash, read the market, understand the portfolio, and act without switching tools.</p>
         </div>
 
         <div className={styles.headerActions}>
@@ -1771,22 +2096,22 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               <li className={styles.welcomeStep}>
                 <span className={styles.welcomeStepNum}>1</span>
                 <div>
-                  <strong>Add your holdings</strong>
-                  <p>Scroll down to the "Portfolio" section. Enter the stocks, ETFs, or funds you own with how much of each. Even two or three positions is enough to start.</p>
+                  <strong>Set the monthly money plan</strong>
+                  <p>Enter income, fixed costs, variable spending, buffer, and target contribution so the app knows how much can actually be invested.</p>
                 </div>
               </li>
               <li className={styles.welcomeStep}>
                 <span className={styles.welcomeStepNum}>2</span>
                 <div>
-                  <strong>Read the portfolio brief</strong>
-                  <p>The first panels show what the market view means for your current holdings, including performance, concentration, and what deserves attention.</p>
+                  <strong>Add your holdings</strong>
+                  <p>Enter the stocks, ETFs, or funds you own with how much of each. Even two or three positions is enough to start.</p>
                 </div>
               </li>
               <li className={styles.welcomeStep}>
                 <span className={styles.welcomeStepNum}>3</span>
                 <div>
                   <strong>Use research before action</strong>
-                  <p>Run an equity memo, ask the portfolio chat, or stage a move only when the recommendation gives you a concrete reason to wait or act.</p>
+                  <p>Read the cashflow, portfolio chart, diversification check, and equity memo before staging any move.</p>
                 </div>
               </li>
             </ol>
@@ -1827,6 +2152,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <p className={styles.glossaryPanelSub}>Every unusual term this workspace uses, explained in plain language.</p>
             <dl className={styles.glossaryList}>
               {[
+                { term: "Monthly money plan", def: "Your income minus fixed expenses, variable expenses, and a cash buffer. The result is the amount the portfolio is allowed to receive each month." },
                 { term: "Risk overlap", def: "When holdings look different but tend to react to the same market shock. High overlap means the book is less diversified than it appears." },
                 { term: "Return since cost basis", def: "How much the current holding value has changed versus the cost stored for those positions." },
                 { term: "Benchmark history", def: "A comparison against SPY or another reference. It becomes reliable only after the workspace has enough stored snapshots." },
@@ -1863,6 +2189,12 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
         />
         <MetricTile
+          detail="Monthly income after expenses and buffer."
+          label="Investable cash"
+          tone={financeMetricTone(personalFinance)}
+          value={formatMoney(personalFinance?.metrics?.monthlyInvestable, personalFinance?.inputs?.baseCurrency)}
+        />
+        <MetricTile
           detail={connection.detail}
           label="Connection"
           tone={connection.status === "live" ? "good" : connection.status === "polling" ? "warn" : "neutral"}
@@ -1882,6 +2214,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
       <div className={styles.layout}>
         <section className={styles.mainColumn}>
+          <div id="cashflow" className={styles.sectionAnchor}>
+            <PersonalFinancePanel
+              draft={financeDraft}
+              financePlan={personalFinance}
+              onChange={updateFinanceDraft}
+              onSubmit={submitFinanceDraft}
+              pending={pendingKey === "finance-plan"}
+            />
+          </div>
           <div id="today" className={styles.sectionAnchor}>
             <AlertsPanel alerts={alerts} />
             <TodayDecisionPanel
