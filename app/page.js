@@ -1,104 +1,77 @@
 import Link from "next/link";
 
+import {
+  AgentDebateGraph,
+  CounterfactualMode,
+  ExposureContrast,
+  RealityGapHero,
+} from "@/components/public-home-experience";
+import styles from "@/app/home-page.module.css";
 import { getServerAuthSession } from "@/lib/server/auth/session";
 import { getServerConfig } from "@/lib/server/config";
-import styles from "@/app/public-home.module.css";
 
 export const dynamic = "force-dynamic";
+
+const principles = [
+  {
+    title: "Reality vs perception",
+    description: "Separate the allocation story from the structure that actually drives behavior.",
+  },
+  {
+    title: "Hidden structure",
+    description: "Expose overlap, crowding, and dependency clusters before they break under stress.",
+  },
+  {
+    title: "Decision",
+    description: "Turn the analysis into a judgment layer with consequences, tradeoffs, and action.",
+  },
+];
+
+const decisions = [
+  {
+    title: "AI cyclicality is hiding inside a balanced-looking book.",
+    gap: "2.4x more exposed than the sector map implies",
+    consequence: "Expected drawdown rises to -18% in a crowded-growth unwind",
+    action: "Reduce NVDA concentration and rebuild the position through less correlated cashflow names.",
+  },
+  {
+    title: "Two defensive wrappers are carrying the same duration shock.",
+    gap: "Rate sensitivity clusters in assets that look unrelated on paper",
+    consequence: "The portfolio de-risks less than expected when policy volatility spikes",
+    action: "Swap one wrapper for shorter-duration ballast before adding new equity risk.",
+  },
+  {
+    title: "A new idea fits the narrative, but not the portfolio.",
+    gap: "Correlation adds to an existing cluster instead of diversifying it",
+    consequence: "The next dollar increases fragility more than expected return",
+    action: "Stage the research, then fund only if the holding changes the structure rather than decorates it.",
+  },
+];
+
+const financeSignals = [
+  {
+    label: "Burn rate",
+    value: "$7.8K / month",
+    body: "Monthly spending sets the floor for how much capital the portfolio is allowed to risk.",
+  },
+  {
+    label: "Investment runway",
+    value: "14 months",
+    body: "Cash flow determines how long the current plan can keep compounding without forced decisions.",
+  },
+  {
+    label: "Risk capacity drift",
+    value: "Rising",
+    body: "When income, savings, or obligations move, the portfolio should change size before it changes opinions.",
+  },
+];
 
 export default async function HomePage() {
   const config = getServerConfig();
   const session = await getServerAuthSession();
+  const publicBrand = /allocator workspace/i.test(config.appName) ? "BLS Prime" : config.appName;
   const ctaHref = session ? "/app" : "/login";
-  const ctaLabel = session ? "Return to workspace" : "Open your workspace";
-  const offering = [
-    {
-      title: "Portfolio home base",
-      description:
-        "See your holdings, weights, performance, concentration, and exposure in one place instead of piecing it together across tabs.",
-    },
-    {
-      title: "Market context for your portfolio",
-      description:
-        "Understand what current market conditions mean for your specific book, not just the headline story on financial news.",
-    },
-    {
-      title: "Clear decision guidance",
-      description:
-        "Get structured guidance on whether a position looks like a hold, trim, hedge, rotate, or wait instead of vague commentary.",
-    },
-    {
-      title: "Risk overlap and concentration",
-      description:
-        "See which holdings are driving the same risk and where one position or theme is dominating the book.",
-    },
-    {
-      title: "Decision journal",
-      description:
-        "Record what you considered, why it mattered, and what evidence would make you revisit the decision.",
-    },
-    {
-      title: "Watchlist and alerts",
-      description:
-        "Track names you care about and surface the moments that deserve attention without living in your broker all day.",
-    },
-  ];
-  const plainEnglishGuide = [
-    {
-      term: "Concentration",
-      meaning:
-        "How much of your portfolio depends on one position, sector, or theme.",
-    },
-    {
-      term: "Risk overlap",
-      meaning:
-        "When holdings look different but tend to move together when markets get stressed.",
-    },
-    {
-      term: "Decision journal",
-      meaning:
-        "A short record of the decisions you made, passed on, or want to revisit when evidence changes.",
-    },
-    {
-      term: "Watchlist alerts",
-      meaning:
-        "Signals that a holding or idea deserves attention without requiring an immediate trade.",
-    },
-  ];
-
-  const faqs = [
-    {
-      q: "Do I need to connect my broker?",
-      a: "No. You can enter your holdings manually at any time. Broker connections are optional and never required to use the workspace.",
-    },
-    {
-      q: "Is my portfolio data private?",
-      a: "Yes. Your workspace is protected by your own password and is not shared with anyone. Only you can see your holdings and decisions.",
-    },
-    {
-      q: "What if I don't understand the financial terms?",
-      a: "The workspace explains every concept in plain language. You'll never see a number without an explanation of what it means for your situation.",
-    },
-    {
-      q: "Do I need investing experience to use this?",
-      a: "No. The workspace is built to guide you through each step — from entering your first holding to understanding whether a move is worth making.",
-    },
-    {
-      q: "Can I use this if I only own a few stocks or ETFs?",
-      a: "Yes. Even with two or three positions the workspace can show concentration, risk overlap, and whether your current mix is doing what you think it is.",
-    },
-    {
-      q: "Is this financial advice?",
-      a: "No. The workspace is research software. It organizes data, models, and AI-assisted explanations, but it does not recommend that you buy, sell, hold, hedge, or rebalance any security.",
-    },
-  ];
-
-  const stats = [
-    { value: "1 screen", label: "for your entire portfolio picture" },
-    { value: "Plain English", label: "explanations for every metric" },
-    { value: "No broker", label: "connection ever required" },
-    { value: "Private", label: "workspace protected by your password" },
-  ];
+  const ctaLabel = session ? "Open my workspace" : "Analyze my portfolio";
 
   return (
     <main className={styles.page}>
@@ -107,13 +80,21 @@ export default async function HomePage() {
 
         <nav className={styles.nav}>
           <Link className={styles.brand} href="/">
-            <span className={styles.brandName}>{config.appName}</span>
+            <span className={styles.brandName}>{publicBrand}</span>
           </Link>
+
+          <div className={styles.navLinks} aria-label="Primary">
+            <a href="#phantom">Phantom diversification</a>
+            <a href="#engine">Engine</a>
+            <a href="#decision">Decision layer</a>
+            <a href="#counterfactual">Counterfactual</a>
+          </div>
+
           <div className={styles.navActions}>
             {session ? (
               <>
                 <Link className={styles.btnSecondary} href="/app">
-                  Go to workspace
+                  Workspace
                 </Link>
                 <form action="/api/auth/logout" method="post" style={{ display: "contents" }}>
                   <button className={styles.btnGhost} type="submit">
@@ -122,288 +103,202 @@ export default async function HomePage() {
                 </form>
               </>
             ) : (
-              <Link className={styles.btnGhost} href="/login">
-                Sign in
-              </Link>
+              <>
+                <Link className={styles.btnGhost} href="/login">
+                  Log in
+                </Link>
+                <Link className={styles.btnSecondary} href="/login">
+                  Get started
+                </Link>
+              </>
             )}
           </div>
         </nav>
 
-        <div className={styles.heroBody}>
-          <p className={styles.eyebrow}>
-            <span className={styles.eyebrowDot} aria-hidden="true" />
-            Private investing workspace
-          </p>
-
-          <h1 className={styles.headline}>
-            See what you own,
-            <br />
-            <em className={styles.headlineAccent}>what is changing,</em>
-            <br />
-            and what deserves action.
-          </h1>
-
-          <p className={styles.sub}>
-            One private place to track your portfolio, understand hidden risk,
-            decide whether a move is worth making, and keep a clean record of
-            your investing decisions.
-          </p>
-
-          <div className={styles.heroActions}>
-            <Link className={styles.btnPrimary} href={ctaHref}>
-              {ctaLabel}
-            </Link>
-            {!session && (
-              <Link className={styles.btnSecondary} href="#how-it-works">
-                How it works
-              </Link>
-            )}
-          </div>
-
-          <div className={styles.heroProof}>
-            <span>One screen for holdings, risk, and next moves</span>
-            <span>Private by default and built around your actual portfolio</span>
-            <span>Explains unusual market risk in plain language</span>
-          </div>
-        </div>
-
-      </section>
-
-      <div className={styles.sectionDivider} aria-hidden="true" />
-
-      <div id="how-it-works" className={styles.section}>
-        <div className={styles.stepsSection}>
-          <div className={styles.stepsLeft}>
-            <p className={styles.tag}>How it works</p>
-            <h2 className={styles.sectionTitle}>
-              What happens after you <em>open the workspace</em>
-            </h2>
-            <p className={styles.sectionLead}>
-              The product is designed to answer three questions every investor
-              cares about: what do I own, what matters right now, and what
-              should I consider next?
+        <div className={styles.heroShell}>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}>Structural investing interface</p>
+            <h1 className={styles.headline}>Your portfolio is not what you think it is.</h1>
+            <p className={styles.subheadline}>
+              Surface diversification is not real diversification. {publicBrand} reveals the hidden
+              structure underneath so the next decision starts with reality instead of cosmetics.
             </p>
 
-            <div className={styles.stepsList}>
-              <div className={styles.step}>
-                <div className={styles.stepNum}>1</div>
-                <div className={styles.stepContent}>
-                  <strong>Create your account</strong>
-                  <p>
-                    Your private workspace is created automatically, so you begin
-                    with one place dedicated to your portfolio alone.
-                  </p>
+            <div className={styles.heroActions}>
+              <Link className={styles.btnPrimary} href={ctaHref}>
+                {ctaLabel}
+              </Link>
+              <a className={styles.btnGhost} href="#phantom">
+                See a real example
+              </a>
+            </div>
+
+            <div className={styles.principleRail}>
+              {principles.map((item) => (
+                <div className={styles.principleItem} key={item.title}>
+                  <strong>{item.title}</strong>
+                  <p>{item.description}</p>
                 </div>
-              </div>
-              <div className={styles.step}>
-                <div className={styles.stepNum}>2</div>
-                <div className={styles.stepContent}>
-                  <strong>Add your holdings</strong>
-                  <p>
-                    Enter the stocks, ETFs, or funds you own. The workspace turns
-                    them into a live picture of concentration, exposure, and
-                    performance.
-                  </p>
-                </div>
-              </div>
-              <div className={styles.step}>
-                <div className={styles.stepNum}>3</div>
-                <div className={styles.stepContent}>
-                  <strong>Review risk, choices, and next steps</strong>
-                  <p>
-                    Open the workspace to see your portfolio, the market forces
-                    shaping it, the risk building underneath it, and the actions
-                    worth considering.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          <div className={styles.stepsRight} aria-hidden="true">
-            <div className={styles.mockPanel}>
-              <div className={styles.mockHeader}>
-                <span className={styles.mockDot} />
-                <span className={styles.mockDot} />
-                <span className={styles.mockDot} />
-                <span className={styles.mockTitle}>Your workspace</span>
-              </div>
-              <div className={styles.mockRows}>
-                <div className={styles.mockRow}>
-                  <div className={styles.mockRowBody}>
-                    <span className={styles.mockRowLabel}>Market stance</span>
-                    <span className={styles.mockRowSub}>Whether conditions favor patience or action</span>
-                  </div>
-                  <span className={styles.mockRowValue} data-tone="green">
-                    Selective
-                  </span>
-                </div>
-                <div className={styles.mockRow}>
-                  <div className={styles.mockRowBody}>
-                    <span className={styles.mockRowLabel}>Risk overlap</span>
-                    <span className={styles.mockRowSub}>Several holdings may react to the same shock</span>
-                  </div>
-                  <span className={styles.mockRowValue} data-tone="red">
-                    High
-                  </span>
-                </div>
-                <div className={styles.mockRow}>
-                  <div className={styles.mockRowBody}>
-                    <span className={styles.mockRowLabel}>Largest concentration</span>
-                    <span className={styles.mockRowSub}>One position is driving more of the risk</span>
-                  </div>
-                  <span className={styles.mockRowValue} data-tone="gold">
-                    TSLA
-                  </span>
-                </div>
-                <div className={styles.mockRow}>
-                  <div className={styles.mockRowBody}>
-                    <span className={styles.mockRowLabel}>Action threshold</span>
-                    <span className={styles.mockRowSub}>The condition that would make a move worth reviewing</span>
-                  </div>
-                  <span className={styles.mockRowValue} data-tone="green">
-                    Ready
-                  </span>
-                </div>
-              </div>
-              <div className={styles.mockDecisionBanner}>
-                <div className={styles.mockDecisionText}>
-                  <span className={styles.mockDecisionLabel}>Suggested next move</span>
-                  <span className={styles.mockDecisionValue}>
-                    Trim concentration before adding new risk to the book
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <RealityGapHero />
         </div>
-      </div>
+      </section>
 
-      <div className={styles.sectionDivider} aria-hidden="true" />
-
-      <div className={`${styles.section} ${styles.featuresSection}`}>
-        <div className={styles.featuresIntro}>
+      <section id="phantom" className={styles.section}>
+        <div className={styles.sectionHeader}>
           <div>
-            <p className={styles.tag}>What you get</p>
-            <h2 className={styles.sectionTitle}>
-              A plain-English operating view
-              <br />
-              <em>for your investing life</em>
-            </h2>
+            <p className={styles.sectionTag}>The core insight</p>
+            <h2 className={styles.sectionTitle}>Most portfolios fail in ways no dashboard shows.</h2>
           </div>
           <p className={styles.sectionLead}>
-            If you are not technical, this is the simplest way to read the
-            product: it helps you understand the portfolio you already have, the
-            risk sitting inside it, and the moves that are worth your attention.
+            Classic allocation tells a story about wrappers, sectors, and labels. Structural exposure
+            tells a story about what actually breaks together under stress.
           </p>
         </div>
 
-        <div className={styles.offeringList}>
-          {offering.map((item) => (
-            <article className={styles.offeringRow} key={item.title}>
-              <h3 className={styles.offeringTitle}>{item.title}</h3>
-              <p className={styles.offeringDesc}>{item.description}</p>
+        <ExposureContrast />
+
+        <div className={styles.sectionBanner}>
+          <span className={styles.bannerLabel}>Phantom diversification</span>
+          <p>Two portfolios can look identical and behave oppositely under stress.</p>
+        </div>
+      </section>
+
+      <section id="engine" className={`${styles.section} ${styles.engineSection}`}>
+        <div className={styles.engineCopy}>
+          <p className={styles.sectionTag}>Multi-agent system</p>
+          <h2 className={styles.sectionTitle}>Not one model. A system that argues.</h2>
+          <p className={styles.sectionLead}>
+            Valuation, risk, macro, sentiment, and structural exposure do not vote quietly. Every
+            conclusion is pushed through disagreement before it becomes a judgment.
+          </p>
+          <div className={styles.argumentList}>
+            <div className={styles.argumentItem}>
+              <strong>Competing lenses</strong>
+              <p>Each agent sees a different failure mode and a different path to conviction.</p>
+            </div>
+            <div className={styles.argumentItem}>
+              <strong>Cross-examination</strong>
+              <p>The output is not a prediction. It is a defended position that survived challenge.</p>
+            </div>
+            <div className={styles.argumentItem}>
+              <strong>Structural memory</strong>
+              <p>What mattered before stays visible, so new research is added to context rather than replacing it.</p>
+            </div>
+          </div>
+        </div>
+
+        <AgentDebateGraph />
+      </section>
+
+      <section id="decision" className={`${styles.section} ${styles.decisionSection}`}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionTag}>Decision layer</p>
+            <h2 className={styles.sectionTitle}>The product is organized around decisions, not insights.</h2>
+          </div>
+          <p className={styles.sectionLead}>
+            Most apps stop at information. This interface goes one step further: reality gap,
+            stress consequence, and the action that follows from both.
+          </p>
+        </div>
+
+        <div className={styles.decisionGrid}>
+          {decisions.map((item) => (
+            <article className={styles.decisionCard} key={item.title}>
+              <p className={styles.cardTag}>Example output</p>
+              <h3>{item.title}</h3>
+              <dl className={styles.decisionFacts}>
+                <div>
+                  <dt>Reality gap</dt>
+                  <dd>{item.gap}</dd>
+                </div>
+                <div>
+                  <dt>Stress consequence</dt>
+                  <dd>{item.consequence}</dd>
+                </div>
+                <div>
+                  <dt>Suggested action</dt>
+                  <dd>{item.action}</dd>
+                </div>
+              </dl>
             </article>
           ))}
         </div>
+      </section>
 
-        <div className={styles.explainerSection}>
+      <section className={`${styles.section} ${styles.financeSection}`}>
+        <div className={styles.sectionHeader}>
           <div>
-            <p className={styles.tag}>Plain-English guide</p>
-            <h2 className={styles.sectionTitle}>
-              What the unusual terms
-              <br />
-              <em>actually mean</em>
-            </h2>
+            <p className={styles.sectionTag}>Personal finance layer</p>
+            <h2 className={styles.sectionTitle}>Your portfolio does not exist in isolation.</h2>
           </div>
-          <div className={styles.glossary}>
-            {plainEnglishGuide.map((item) => (
-              <div className={styles.glossaryRow} key={item.term}>
-                <strong className={styles.glossaryTerm}>{item.term}</strong>
-                <p className={styles.glossaryDesc}>{item.meaning}</p>
-              </div>
+          <p className={styles.sectionLead}>
+            Cash flow, burn rate, and changing obligations shape the risk the portfolio is actually
+            allowed to take. Allocation should answer to life, not hide from it.
+          </p>
+        </div>
+
+        <div className={styles.financeFlow}>
+          <div className={styles.financeTrack} aria-hidden="true">
+            <span>Cash flow</span>
+            <i />
+            <span>Deployable capital</span>
+            <i />
+            <span>Risk capacity</span>
+          </div>
+
+          <div className={styles.financeGrid}>
+            {financeSignals.map((item) => (
+              <article className={styles.financeCard} key={item.label}>
+                <p>{item.label}</p>
+                <strong>{item.value}</strong>
+                <span>{item.body}</span>
+              </article>
             ))}
           </div>
         </div>
+      </section>
 
-        <div className={styles.trustStrip}>
-          <div className={styles.trustItem}>
-            Private by default and centered on your own portfolio
+      <section id="counterfactual" className={`${styles.section} ${styles.counterSection}`}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionTag}>Counterfactual mode</p>
+            <h2 className={styles.sectionTitle}>Run the portfolio through the shocks it has not earned the right to forget.</h2>
           </div>
-          <div className={styles.trustItem}>
-            Manual holdings entry works if you do not want a broker connection
-          </div>
-          <div className={styles.trustItem}>
-            Built to support better decisions, not push constant trading
-          </div>
-          <div className={styles.trustItem}>
-            Designed so a serious investor can understand it in one sitting
-          </div>
+          <p className={styles.sectionLead}>
+            What the portfolio looks like today and how it behaves in a regime break are different
+            questions. This mode makes the divergence visible.
+          </p>
         </div>
-      </div>
 
-      <div className={styles.sectionDivider} aria-hidden="true" />
+        <CounterfactualMode />
+      </section>
 
-      {/* Stats strip */}
-      <div className={styles.statsStrip}>
-        {stats.map((s) => (
-          <div className={styles.statItem} key={s.value}>
-            <strong className={styles.statValue}>{s.value}</strong>
-            <span className={styles.statLabel}>{s.label}</span>
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.sectionDivider} aria-hidden="true" />
-
-      {/* FAQ */}
-      <div className={`${styles.section} ${styles.faqSection}`}>
-        <div className={styles.faqIntro}>
-          <p className={styles.tag}>Common questions</p>
-          <h2 className={styles.sectionTitle}>
-            Things people ask
-            <br />
-            <em>before they start</em>
-          </h2>
-        </div>
-        <div className={styles.faqList}>
-          {faqs.map((item) => (
-            <details className={styles.faqItem} key={item.q}>
-              <summary className={styles.faqQuestion}>{item.q}</summary>
-              <p className={styles.faqAnswer}>{item.a}</p>
-            </details>
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.sectionDivider} aria-hidden="true" />
-
-      <div className={styles.closerSection}>
-        <h2 className={styles.closerTitle}>
-          One place to understand
-          <br />
-          <em>what your portfolio is really doing.</em>
-        </h2>
-        <p className={styles.closerSub}>
-          Open the workspace when you want a cleaner read on risk, clearer next
-          steps, and a better record of how you invest over time.
+      <section className={styles.finalCta}>
+        <p className={styles.sectionTag}>Start with the structure</p>
+        <h2 className={styles.finalTitle}>Stop managing what you see. Start managing what matters.</h2>
+        <p className={styles.finalBody}>
+          Open the workspace when you want hidden dependency, structural exposure, and judgment to
+          speak before a trade does.
         </p>
-        <div className={styles.closerActions}>
+        <div className={styles.heroActions}>
           <Link className={styles.btnPrimary} href={ctaHref}>
             {ctaLabel}
           </Link>
-          {!session && (
-            <Link className={styles.btnSecondary} href="/login">
-              New or returning users -&gt;
-            </Link>
-          )}
+          <a className={styles.btnGhost} href="#counterfactual">
+            Explore counterfactual mode
+          </a>
         </div>
-      </div>
+      </section>
 
       <footer className={styles.footer}>
         <p>
-          (c) {new Date().getFullYear()} {config.appName}. A private workspace
-          for investors who want clarity before action. Not financial advice.
+          (c) {new Date().getFullYear()} {publicBrand}. Structural investing interface for reality,
+          hidden structure, and decision. Not financial advice.
         </p>
         <Link href="/terms">Terms of Service</Link>
       </footer>

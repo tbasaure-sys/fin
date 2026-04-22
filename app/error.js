@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useEffect } from "react";
 
-const appName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
+const rawAppName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
+const appName = /allocator workspace/i.test(rawAppName) ? "BLS Prime" : rawAppName;
 
 export default function Error({ error, reset }) {
   useEffect(() => {

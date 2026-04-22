@@ -1,11 +1,34 @@
 import "./globals.css";
 
-const appName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
+const rawAppName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
+const appName = /allocator workspace/i.test(rawAppName) ? "BLS Prime" : rawAppName;
 const cacheRecoveryVersion = "2026-04-03-v1";
+const appDescription =
+  "A private personal finance and investing workspace that connects monthly cashflow, portfolio risk, equity research, and decision memory.";
 
 export const metadata = {
   title: appName,
-  description: "A private investment workspace that puts your portfolio, market context, and decision support in one place.",
+  description: appDescription,
+  applicationName: appName,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: appName,
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+};
+
+export const viewport = {
+  themeColor: "#0b0f16",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }) {

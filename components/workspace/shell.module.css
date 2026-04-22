@@ -28,7 +28,8 @@
 
 .header,
 .panel,
-.banner {
+.banner,
+.truthSurface {
   position: relative;
   z-index: 1;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -66,6 +67,7 @@
 
 .header,
 .statusGrid,
+.truthSurface,
 .layout {
   animation: workspaceRise 520ms ease both;
 }
@@ -80,7 +82,8 @@
 }
 
 .header::after,
-.panel::after {
+.panel::after,
+.truthSurface::after {
   content: "";
   position: absolute;
   inset: 0 auto auto 0;
@@ -274,6 +277,12 @@
   margin-bottom: 1rem;
 }
 
+.truthSurface {
+  padding: 1.25rem 1.35rem 1.15rem;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
 .banner[data-tone="error"] {
   color: #ffd4cf;
   border-color: rgba(255, 124, 114, 0.22);
@@ -314,6 +323,355 @@
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
   gap: 0.9rem;
   margin-bottom: 1rem;
+}
+
+.truthHeroGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.truthLead,
+.truthVisual,
+.truthScore,
+.truthBand,
+.truthMapShell,
+.truthDecisionRail article,
+.truthLaneSummary div,
+.truthUtilityRail div {
+  min-width: 0;
+}
+
+.truthLead,
+.truthVisual,
+.truthMapShell {
+  display: grid;
+  gap: 1rem;
+}
+
+.truthLead h2 {
+  margin: 0;
+  max-width: 13ch;
+  font-size: clamp(1.7rem, 3vw, 2.7rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.truthMetaRow,
+.truthRiskRead,
+.truthMapLegend,
+.truthActionRow {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.truthScoreRail,
+.truthClusterGrid,
+.truthUtilityRail,
+.truthDecisionRail,
+.truthLaneSummary {
+  display: grid;
+  gap: 0;
+}
+
+.truthScoreRail {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.truthScore {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.95rem 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthScore span,
+.truthBand span,
+.truthUtilityRail span,
+.truthDecisionRail span,
+.truthLaneSummary span,
+.truthMapAxisLabel {
+  color: var(--muted);
+  font-size: 0.74rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.truthScore strong {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 0.9;
+}
+
+.truthScore small,
+.truthUtilityRail small,
+.truthDecisionRail p,
+.truthLaneSummary small,
+.truthBand p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.truthScore[data-tone="good"] strong,
+.truthBand[data-tone="good"] strong {
+  color: var(--good);
+}
+
+.truthScore[data-tone="warn"] strong,
+.truthBand[data-tone="warn"] strong {
+  color: var(--warn);
+}
+
+.truthScore[data-tone="bad"] strong,
+.truthBand[data-tone="bad"] strong {
+  color: #ffaf94;
+}
+
+.truthScoreTrack,
+.truthBandTrack {
+  height: 0.42rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.truthScoreTrack span,
+.truthBandTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(248, 200, 111, 0.92), rgba(122, 210, 194, 0.92));
+  transition: width 420ms ease;
+}
+
+.truthScore[data-tone="good"] .truthScoreTrack span {
+  background: rgba(82, 208, 163, 0.9);
+}
+
+.truthScore[data-tone="warn"] .truthScoreTrack span {
+  background: rgba(255, 180, 84, 0.9);
+}
+
+.truthScore[data-tone="bad"] .truthScoreTrack span {
+  background: rgba(255, 124, 114, 0.9);
+}
+
+.truthRiskRead {
+  row-gap: 0.4rem;
+}
+
+.truthRiskRead p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.truthRiskRead strong {
+  color: var(--text);
+}
+
+.truthUtilityRail {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthUtilityRail div {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.95rem 0.4rem 0.95rem 0;
+}
+
+.truthUtilityRail div + div {
+  padding-left: 0.95rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthUtilityRail strong,
+.truthLaneSummary strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.05;
+}
+
+.truthUtilityRail strong {
+  font-size: 1.15rem;
+}
+
+.truthActionRow {
+  row-gap: 0.7rem;
+}
+
+.truthVisual {
+  padding-left: 1.15rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.truthClusterGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.truthBand {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.12rem 0 0.65rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthBand strong {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.truthMapLegend {
+  gap: 0.8rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.truthMapLegend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.truthMapLegend i {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.truthMapLegend i[data-filter="holdings"] {
+  background: rgba(248, 200, 111, 0.95);
+}
+
+.truthMapLegend i[data-filter="watch"] {
+  background: rgba(122, 210, 194, 0.95);
+}
+
+.truthMapLegend i[data-filter="blocked"] {
+  background: rgba(255, 124, 114, 0.9);
+}
+
+.truthMap {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.truthMapFrame {
+  fill: rgba(255, 255, 255, 0.025);
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.truthMapGrid {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+}
+
+.truthMapAxisLabel {
+  fill: rgba(168, 184, 202, 0.74);
+}
+
+.truthMapPoint {
+  stroke: rgba(6, 12, 22, 0.94);
+  stroke-width: 2;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.18));
+}
+
+.truthMapPoint[data-filter="holdings"] {
+  fill: rgba(248, 200, 111, 0.95);
+}
+
+.truthMapPoint[data-filter="watch"] {
+  fill: rgba(122, 210, 194, 0.95);
+}
+
+.truthMapPoint[data-filter="blocked"] {
+  fill: rgba(255, 124, 114, 0.92);
+}
+
+.truthMapPoint[data-filter="neutral"] {
+  fill: rgba(168, 184, 202, 0.82);
+}
+
+.truthMapLabel {
+  fill: rgba(247, 242, 232, 0.92);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.truthMapEmpty {
+  display: grid;
+  gap: 0.35rem;
+  min-height: 14rem;
+  align-content: center;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.truthMapEmpty strong,
+.truthDecisionRail strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.truthMapEmpty p,
+.truthDecisionRail p,
+.truthBand p {
+  margin: 0;
+}
+
+.truthDecisionRail,
+.truthLaneSummary {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthDecisionRail {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.truthDecisionRail article {
+  display: grid;
+  gap: 0.28rem;
+  padding-right: 0.9rem;
+}
+
+.truthDecisionRail article + article {
+  padding-left: 0.9rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthDecisionRail strong {
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.truthLaneSummary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.truthLaneSummary div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.truthLaneSummary div + div {
+  padding-left: 0.9rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthLaneSummary strong {
+  font-size: 1.45rem;
 }
 
 .metricTile {
@@ -558,6 +916,131 @@
   grid-template-columns: minmax(0, 1.3fr) minmax(260px, 0.75fr);
   gap: 1rem;
   align-items: flex-start;
+}
+
+.portfolioNarrative,
+.portfolioDriverCard,
+.portfolioRoleBandList,
+.portfolioDriverList {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.portfolioNarrative {
+  margin: 1rem 0;
+  padding: 0.95rem 0 1rem;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.portfolioNarrative h3,
+.portfolioDriverCard h3 {
+  margin: 0;
+}
+
+.portfolioNarrativeStats,
+.portfolioDriverGrid {
+  display: grid;
+  gap: 0;
+}
+
+.portfolioNarrativeStats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.portfolioNarrativeStats div {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.9rem 0.95rem;
+}
+
+.portfolioNarrativeStats div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.portfolioNarrativeStats > div > span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.portfolioNarrativeStats strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 1.08rem;
+  line-height: 1.05;
+}
+
+.portfolioNarrativeStats small,
+.portfolioWarningList p,
+.portfolioDriverCard p,
+.portfolioDriverList article small,
+.portfolioRoleBand small {
+  color: var(--muted);
+  line-height: 1.42;
+}
+
+.portfolioWarningList {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.portfolioWarningList p {
+  margin: 0;
+  padding-left: 0.9rem;
+  position: relative;
+}
+
+.portfolioWarningList p::before {
+  content: "";
+  position: absolute;
+  inset: 0.52rem auto auto 0;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: rgba(255, 180, 84, 0.9);
+}
+
+.portfolioRoleBandList,
+.portfolioDriverList {
+  gap: 0;
+}
+
+.portfolioRoleBand,
+.portfolioDriverList article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.portfolioRoleBand:first-child,
+.portfolioDriverList article:first-child {
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.portfolioRoleBand strong,
+.portfolioDriverList strong {
+  display: block;
+  margin-bottom: 0.12rem;
+}
+
+.portfolioDriverGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.portfolioDriverCard {
+  padding-top: 1rem;
+}
+
+.portfolioDriverCard + .portfolioDriverCard {
+  padding-left: 1rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .chartPanel,
@@ -2541,9 +3024,17 @@
 
 @media (max-width: 1180px) {
   .statusGrid,
+  .truthHeroGrid,
+  .truthScoreRail,
+  .truthClusterGrid,
+  .truthUtilityRail,
+  .truthDecisionRail,
+  .truthLaneSummary,
   .commandMap,
   .layout,
   .portfolioGrid,
+  .portfolioNarrativeStats,
+  .portfolioDriverGrid,
   .financePanelGrid,
   .financeMetricGrid,
   .decisionGrid,
@@ -2613,6 +3104,23 @@
     justify-content: flex-start;
   }
 
+  .truthVisual {
+    padding-left: 0;
+    padding-top: 1rem;
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .truthUtilityRail div + div,
+  .truthDecisionRail article + article,
+  .truthLaneSummary div + div,
+  .portfolioNarrativeStats div + div,
+  .portfolioDriverCard + .portfolioDriverCard {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
   .commandRail {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -2629,7 +3137,8 @@
 
   .panel,
   .header,
-  .banner {
+  .banner,
+  .truthSurface {
     border-radius: 24px;
   }
 
@@ -2712,6 +3221,20 @@
   .financeLegend,
   .commandMapPulse {
     grid-template-columns: 1fr;
+  }
+
+  .truthSurface {
+    padding: 1rem;
+  }
+
+  .truthLead h2 {
+    max-width: 12ch;
+    font-size: clamp(1.45rem, 9vw, 2rem);
+  }
+
+  .truthUtilityRail div,
+  .truthDecisionRail article {
+    padding-right: 0;
   }
 }
 
@@ -3045,6 +3568,7 @@
 .header,
 .panel,
 .banner,
+.truthSurface,
 .metricTile,
 .chartPanel,
 .sidePanel,
@@ -3069,6 +3593,7 @@
   .shell,
   .header,
   .statusGrid,
+  .truthSurface,
   .layout,
   .commandMap,
   .panel,

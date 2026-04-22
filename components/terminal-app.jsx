@@ -25,14 +25,15 @@ import styles from "@/components/workspace/shell.module.css";
 import PortfolioChat from "@/components/portfolio-chat";
 import EquityResearchPanel from "@/components/equity-research-panel";
 
-const DEFAULT_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
+const RAW_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
+const DEFAULT_APP_NAME = /allocator workspace/i.test(RAW_APP_NAME) ? "BLS Prime" : RAW_APP_NAME;
 const WORKSPACE_NAV = [
-  { href: "#cashflow", label: "Cashflow", detail: "Income and investable" },
-  { href: "#today", label: "Today", detail: "Alerts and decision" },
-  { href: "#portfolio", label: "Portfolio", detail: "Performance and weights" },
-  { href: "#diversification", label: "Diversification", detail: "Overlap check" },
-  { href: "#research", label: "Research", detail: "Equity memo" },
-  { href: "#holdings", label: "Holdings", detail: "Edit positions" },
+  { href: "#cashflow", label: "Money plan", detail: "Income, burn, investable" },
+  { href: "#today", label: "Decision", detail: "Reality gap and move" },
+  { href: "#portfolio", label: "Portfolio", detail: "Path and carriers" },
+  { href: "#diversification", label: "Overlap", detail: "Stress-tested breadth" },
+  { href: "#research", label: "Research", detail: "Multi-agent memo" },
+  { href: "#holdings", label: "Holdings", detail: "Direct position edits" },
 ];
 
 function ToneBadge({ tone = "neutral", children }) {
@@ -1132,14 +1133,14 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Phantom diversification</p>
-          <h2>Is the breadth real?</h2>
+          <p className={styles.kicker}>Structural overlap</p>
+          <h2>How much diversification actually survives stress</h2>
           <p className={styles.supportText}>
-            Tests whether the current portfolio still has independent bets after recent stress is included.
+            Checks whether the current holdings still behave like separate bets once recent correlation stress is added.
           </p>
         </div>
         <button className={styles.primaryButton} disabled={analysisPending} onClick={runAnalysis} type="button">
-          {analysisPending ? "Checking..." : analysis ? "Refresh" : "Run check"}
+          {analysisPending ? "Checking..." : analysis ? "Refresh" : "Check structure"}
         </button>
       </div>
 
@@ -1266,9 +1267,9 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Recommended move</p>
+          <p className={styles.kicker}>Action frontier</p>
           <h2>{title}</h2>
-          <p className={styles.supportText}>The clearest action the current market read supports right now.</p>
+          <p className={styles.supportText}>The clearest move that still survives the current legitimacy surface.</p>
         </div>
         <ToneBadge tone={statusTone(isBlocked ? "briefing" : (primaryAction?.status || "ready"))}>
           {isBlocked ? "Wait" : "Actionable"}
@@ -1319,8 +1320,9 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
   );
 }
 
-function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
+function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
   const portfolio = portfolioModule || {};
+  const portfolioXray = xray || {};
   const analytics = portfolio.analytics || {};
   const holdings = safeList(portfolio.holdings);
   const hasHoldings = holdings.length > 0;
@@ -1329,16 +1331,24 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
   const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis unavailable";
   const hasCostBasisReturn = hasHoldings && Boolean(analytics.unrealizedReturnLabel);
   const returnDistribution = hasHoldings ? safeList(portfolio?.charts?.valuationDistribution) : [];
+  const roleBands = safeList(portfolioXray.roleBands).slice(0, 4);
+  const carriers = safeList(portfolioXray.carriers).slice(0, 4);
+  const fragilityLoad = safeList(portfolioXray.fragilityLoad).slice(0, 4);
+  const recoveryDrivers = safeList(portfolioXray.recoveryDrivers).slice(0, 4);
+  const concentrationWarnings = safeList(portfolioXray.concentrationWarnings).slice(0, 3);
+  const concentration = portfolioXray.concentration || {};
+  const recoveryShare = portfolioXray.recoveryShare || "-";
+  const fragileShare = portfolioXray.fragileShare || "-";
 
   return (
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Portfolio</p>
+          <p className={styles.kicker}>Portfolio x-ray</p>
           <h2>{hasHoldings && analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "Add holdings to start"}</h2>
           <p className={styles.supportText}>
             {hasHoldings
-              ? "Total value, tracked performance, and the positions currently driving the portfolio."
+              ? "Start with what is carrying the book, then read performance and benchmark context."
               : "Enter positions below before the workspace shows portfolio performance or benchmark comparisons."}
           </p>
         </div>
@@ -1367,6 +1377,51 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
         />
       </div>
 
+      <div className={styles.portfolioNarrative}>
+        <div>
+          <p className={styles.kicker}>Structural read</p>
+          <h3>
+            {cleanWorkspaceCopy(
+              portfolioXray.carryingNarrative
+              || (hasHoldings
+                ? "The portfolio x-ray is building the real carriers of the book."
+                : "Connect holdings to see what is actually carrying the book."),
+            )}
+          </h3>
+        </div>
+
+        <div className={styles.portfolioNarrativeStats}>
+          <div>
+            <span>Concentration</span>
+            <strong>{concentration.verdict || "-"}</strong>
+            <small>Top five: {concentration.topFive || "-"}</small>
+          </div>
+          <div>
+            <span>Recovery share</span>
+            <strong>{recoveryShare}</strong>
+            <small>Book weight still adding recoverability.</small>
+          </div>
+          <div>
+            <span>Fragile share</span>
+            <strong>{fragileShare}</strong>
+            <small>Weight that can reload fragility fast.</small>
+          </div>
+          <div>
+            <span>Cash buffer</span>
+            <strong>{concentration.ballast || "-"}</strong>
+            <small>Protection sleeve inside the current book.</small>
+          </div>
+        </div>
+
+        {concentrationWarnings.length ? (
+          <div className={styles.portfolioWarningList}>
+            {concentrationWarnings.map((warning, index) => (
+              <p key={`portfolio-warning-${index}`}>{cleanWorkspaceCopy(warning)}</p>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
       <div className={styles.portfolioGrid}>
         <div className={styles.chartPanel}>
           <RangeTabs onChange={onRangeChange} value={range} />
@@ -1392,13 +1447,28 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
         <aside className={styles.sidePanel}>
           <div className={styles.sidePanelHeader}>
             <div>
-              <p className={styles.kicker}>Largest positions</p>
-              <h3>Top positions by weight</h3>
+              <p className={styles.kicker}>Role bands</p>
+              <h3>Which sleeves are carrying the book</h3>
             </div>
-            <ToneBadge tone="neutral">{topHoldings.length} shown</ToneBadge>
+            <ToneBadge tone="neutral">{roleBands.length || topHoldings.length} shown</ToneBadge>
           </div>
 
-          {topHoldings.length ? (
+          {roleBands.length ? (
+            <div className={styles.portfolioRoleBandList}>
+              {roleBands.map((band) => (
+                <article className={styles.portfolioRoleBand} key={`role-band-${band.id}`}>
+                  <div>
+                    <strong>{band.label}</strong>
+                    <small>{safeList(band.names).join(", ") || band.description || "Role band"}</small>
+                  </div>
+                  <div>
+                    <strong>{band.weight || "-"}</strong>
+                    <small>Fragility {band.fragilityLabel} / Recovery {band.recoveryLabel}</small>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : topHoldings.length ? (
             <div className={styles.holdingStack}>
               {topHoldings.map((holding) => (
                 <article className={styles.holdingRow} key={`hero-${holding.ticker}`}>
@@ -1418,6 +1488,85 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange }) {
           )}
         </aside>
       </div>
+
+      {(carriers.length || fragilityLoad.length || recoveryDrivers.length) ? (
+        <div className={styles.portfolioDriverGrid}>
+          <section className={styles.portfolioDriverCard}>
+            <div>
+              <p className={styles.kicker}>Main carriers</p>
+              <h3>What is actually driving the book</h3>
+            </div>
+            {carriers.length ? (
+              <div className={styles.portfolioDriverList}>
+                {carriers.map((item) => (
+                  <article key={`carrier-${item.ticker}`}>
+                    <div>
+                      <strong>{item.ticker}</strong>
+                      <small>{item.role || item.sector || "Carrier"}</small>
+                    </div>
+                    <div>
+                      <strong>{item.weight || "-"}</strong>
+                      <small>Recovery {item.recovery || "-"}</small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyCopy}>Carrier list appears after holdings are connected.</p>
+            )}
+          </section>
+
+          <section className={styles.portfolioDriverCard}>
+            <div>
+              <p className={styles.kicker}>Fragility load</p>
+              <h3>Where the portfolio can break fastest</h3>
+            </div>
+            {fragilityLoad.length ? (
+              <div className={styles.portfolioDriverList}>
+                {fragilityLoad.map((item) => (
+                  <article key={`fragility-${item.ticker}`}>
+                    <div>
+                      <strong>{item.ticker}</strong>
+                      <small>{item.role || "Holding"}</small>
+                    </div>
+                    <div>
+                      <strong>{item.load || "-"}</strong>
+                      <small>Fragility contribution</small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyCopy}>Fragility contribution will appear with the x-ray.</p>
+            )}
+          </section>
+
+          <section className={styles.portfolioDriverCard}>
+            <div>
+              <p className={styles.kicker}>Recovery drivers</p>
+              <h3>What still earns its place in the book</h3>
+            </div>
+            {recoveryDrivers.length ? (
+              <div className={styles.portfolioDriverList}>
+                {recoveryDrivers.map((item) => (
+                  <article key={`recovery-${item.ticker}`}>
+                    <div>
+                      <strong>{item.ticker}</strong>
+                      <small>{item.role || "Holding"}</small>
+                    </div>
+                    <div>
+                      <strong>{item.contribution || "-"}</strong>
+                      <small>Recovery contribution</small>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.emptyCopy}>Recovery contribution will appear with the x-ray.</p>
+            )}
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -1622,7 +1771,7 @@ function WorkspaceCommandMap({ alertCount, holdingsCount, stagedCount, showChat,
     <section className={styles.commandMap} aria-label="Workspace command map">
       <div className={styles.commandMapIntro}>
         <p className={styles.kicker}>Operating path</p>
-        <h2>Start with cashflow, inspect the portfolio, then save only the moves that survive scrutiny.</h2>
+        <h2>Plan the cash, read the hidden structure, then act only on moves that stay legitimate.</h2>
       </div>
       <nav className={styles.commandRail} aria-label="Workspace sections">
         {WORKSPACE_NAV.map((item) => (
@@ -1648,6 +1797,371 @@ function WorkspaceCommandMap({ alertCount, holdingsCount, stagedCount, showChat,
         <button className={styles.commandMapAsk} data-active={showChat} onClick={onOpenChat} type="button">
           Ask workspace
         </button>
+      </div>
+    </section>
+  );
+}
+
+function clampUnitInterval(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return null;
+  return Math.max(0, Math.min(1, numeric));
+}
+
+function weightedRatio(entries, fallback = null) {
+  let weighted = 0;
+  let totalWeight = 0;
+
+  for (const [value, weight] of Array.isArray(entries) ? entries : []) {
+    const numeric = clampUnitInterval(value);
+    const weightValue = Number(weight);
+    if (numeric === null || !Number.isFinite(weightValue) || weightValue <= 0) continue;
+    weighted += numeric * weightValue;
+    totalWeight += weightValue;
+  }
+
+  if (!totalWeight) return fallback;
+  return clampUnitInterval(weighted / totalWeight);
+}
+
+function formatScoreValue(value) {
+  const numeric = clampUnitInterval(value);
+  return numeric === null ? "-" : `${Math.round(numeric * 100)}`;
+}
+
+function diversificationRiskLabel(value) {
+  const numeric = clampUnitInterval(value);
+  if (numeric === null) return "Unknown";
+  if (numeric >= 0.68) return "Low";
+  if (numeric >= 0.48) return "Moderate";
+  return "High";
+}
+
+function structuralRiskLabel(value) {
+  const numeric = clampUnitInterval(value);
+  if (numeric === null) return "Unknown";
+  if (numeric >= 0.67) return "High";
+  if (numeric >= 0.45) return "Medium";
+  return "Contained";
+}
+
+function truthTone(value) {
+  const numeric = clampUnitInterval(value);
+  if (numeric === null) return "neutral";
+  if (numeric >= 0.67) return "good";
+  if (numeric >= 0.45) return "warn";
+  return "bad";
+}
+
+function realityGapTone(value) {
+  const numeric = clampUnitInterval(value);
+  if (numeric === null) return "neutral";
+  if (numeric >= 0.18) return "bad";
+  if (numeric >= 0.08) return "warn";
+  return "good";
+}
+
+function mapFilterTone(value) {
+  const normalized = String(value || "").toLowerCase();
+  if (normalized === "holdings") return "holdings";
+  if (normalized === "watch") return "watch";
+  if (normalized === "blocked") return "blocked";
+  return "neutral";
+}
+
+function RecoverabilityMapFigure({ items }) {
+  const points = safeList(items).slice(0, 16);
+  const width = 420;
+  const height = 248;
+  const paddingX = 36;
+  const paddingTop = 22;
+  const paddingBottom = 34;
+  const plotWidth = width - (paddingX * 2);
+  const plotHeight = height - paddingTop - paddingBottom;
+
+  if (!points.length) {
+    return (
+      <div className={styles.truthMapEmpty}>
+        <strong>Structural map pending.</strong>
+        <p>Connect holdings or build a watchlist and the map will show what looks earned, fragile, or still blocked.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.truthMapShell}>
+      <div className={styles.truthMapLegend}>
+        <span><i data-filter="holdings" />Holdings</span>
+        <span><i data-filter="watch" />Watch ideas</span>
+        <span><i data-filter="blocked" />Blocked</span>
+      </div>
+
+      <svg className={styles.truthMap} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Recoverability map">
+        <rect
+          className={styles.truthMapFrame}
+          height={plotHeight}
+          rx="14"
+          width={plotWidth}
+          x={paddingX}
+          y={paddingTop}
+        />
+        {[0.25, 0.5, 0.75].map((ratio) => {
+          const x = paddingX + (plotWidth * ratio);
+          const y = paddingTop + (plotHeight * ratio);
+          return (
+            <g key={`truth-map-grid-${ratio}`}>
+              <path className={styles.truthMapGrid} d={`M ${x.toFixed(1)} ${paddingTop} L ${x.toFixed(1)} ${paddingTop + plotHeight}`} />
+              <path className={styles.truthMapGrid} d={`M ${paddingX} ${y.toFixed(1)} L ${paddingX + plotWidth} ${y.toFixed(1)}`} />
+            </g>
+          );
+        })}
+        <text className={styles.truthMapAxisLabel} x={paddingX} y={height - 8}>Low recoverability</text>
+        <text className={styles.truthMapAxisLabel} textAnchor="end" x={paddingX + plotWidth} y={height - 8}>High recoverability</text>
+        <text
+          className={styles.truthMapAxisLabel}
+          textAnchor="middle"
+          transform={`translate(14 ${(paddingTop + (plotHeight / 2)).toFixed(1)}) rotate(-90)`}
+        >
+          Fragility
+        </text>
+        <text className={styles.truthMapAxisLabel} x={paddingX + 10} y={paddingTop + 16}>Earned</text>
+        <text className={styles.truthMapAxisLabel} textAnchor="end" x={paddingX + plotWidth - 10} y={paddingTop + plotHeight - 10}>Fragile</text>
+
+        {points.map((item, index) => {
+          const x = paddingX + ((clampUnitInterval(item?.x) || 0) * plotWidth);
+          const y = paddingTop + ((1 - (clampUnitInterval(item?.y) || 0)) * plotHeight);
+          const filterTone = mapFilterTone(item?.filter || item?.legitimacy || item?.kind);
+          const showLabel = index < 7;
+          return (
+            <g key={item.id || `${item.label}-${index}`} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
+              <title>{`${item.label}: ${item.meta || item.quadrant || item.kind || "Map point"}`}</title>
+              <circle className={styles.truthMapPoint} data-filter={filterTone} r={showLabel ? 7 : 5.5} />
+              {showLabel ? <text className={styles.truthMapLabel} x="10" y="4">{item.label}</text> : null}
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function TruthInterfacePanel({
+  blockedAction,
+  dashboard,
+  ledgerItems,
+  personalFinance,
+  portfolioModule,
+  primaryAction,
+  showChat,
+  stateSummary,
+  onToggleChat,
+}) {
+  const xray = dashboard?.xray || {};
+  const frontier = dashboard?.frontier || {};
+  const balanceSheet = dashboard?.recoverability_balance_sheet || {};
+  const confidencePanel = dashboard?.confidence_panel || {};
+  const riskCluster = dashboard?.modules?.risk?.clusterDecomposition || {};
+  const recoverabilityMap = dashboard?.recoverability_map || {};
+  const capitalTwin = dashboard?.capital_twin || {};
+  const holdingsCount = Number(xray?.holdingsCount || stateSummary?.holdings || safeList(portfolioModule?.holdings).length || 0);
+  const topFiveConcentration = parseDisplayPercent(xray?.concentration?.topFive);
+  const recoveryShare = parseDisplayPercent(xray?.recoveryShare);
+  const fragileShare = parseDisplayPercent(xray?.fragileShare);
+  const phantomTax = parseDisplayPercent(balanceSheet?.phantomTax);
+  const netFreedom = parseDisplayPercent(balanceSheet?.netFreedom);
+  const optionalityReserve = parseDisplayPercent(balanceSheet?.optionalityReserve);
+  const visibleScore = weightedRatio(
+    [
+      [holdingsCount ? Math.min(holdingsCount, 12) / 12 : null, 0.38],
+      [topFiveConcentration === null ? null : 1 - topFiveConcentration, 0.62],
+    ],
+    holdingsCount ? Math.max(0.32, Math.min(0.84, holdingsCount / 10)) : 0.42,
+  );
+  const structuralScore = weightedRatio(
+    [
+      [recoveryShare, 0.34],
+      [fragileShare === null ? null : 1 - fragileShare, 0.26],
+      [phantomTax === null ? null : 1 - phantomTax, 0.24],
+      [netFreedom, 0.16],
+    ],
+    visibleScore === null ? 0.38 : clampUnitInterval(visibleScore * 0.82),
+  );
+  const actualStructuralRisk = weightedRatio(
+    [
+      [riskCluster?.gScore, 0.44],
+      [fragileShare, 0.24],
+      [phantomTax, 0.18],
+      [riskCluster?.rScore, 0.14],
+    ],
+    structuralScore === null ? 0.5 : clampUnitInterval(1 - structuralScore),
+  );
+  const realityGap = visibleScore !== null && structuralScore !== null
+    ? clampUnitInterval(Math.max(visibleScore - structuralScore, 0))
+    : null;
+  const activeAction = primaryAction || blockedAction || safeList(frontier?.allItems)[0] || null;
+  const latestCounterfactual = safeList(ledgerItems)[0] || safeList(dashboard?.counterfactual_ledger?.items)[0] || null;
+  const scenarioHighlight = safeList(capitalTwin?.scenarios).find((item) => item.id === "phantom_rebound")
+    || safeList(capitalTwin?.scenarios)[0]
+    || null;
+  const investableCash = personalFinance?.metrics?.monthlyInvestable;
+  const targetCoverage = personalFinance?.metrics?.targetCoverage;
+  const laneSummary = safeList(frontier?.laneSummary);
+
+  return (
+    <section className={styles.truthSurface}>
+      <div className={styles.truthHeroGrid}>
+        <div className={styles.truthLead}>
+          <div>
+            <p className={styles.kicker}>Truth interface</p>
+            <h2>Read the portfolio by hidden structure, not by surface allocation.</h2>
+            <p className={styles.supportText}>
+              {cleanWorkspaceCopy(
+                stateSummary?.decisionSummary
+                || balanceSheet?.headlineState
+                || frontier?.subhead
+                || "Visible diversification is only the first read. The real question is how much of it still survives stress.",
+              )}
+            </p>
+          </div>
+
+          <div className={styles.truthMetaRow}>
+            <ToneBadge tone={truthTone(parseDisplayPercent(balanceSheet?.optionalityReserve))}>
+              {balanceSheet?.accountingState || "Live read"}
+            </ToneBadge>
+            <ToneBadge tone="neutral">{confidencePanel?.confidenceBand || "Usable evidence"}</ToneBadge>
+            <ToneBadge tone={realityGapTone(realityGap)}>
+              {riskCluster?.dominantLabel || "Cluster read pending"}
+            </ToneBadge>
+          </div>
+
+          <div className={styles.truthScoreRail}>
+            <article className={styles.truthScore} data-tone="neutral">
+              <span>Perceived diversification</span>
+              <strong>{formatScoreValue(visibleScore)}</strong>
+              <small>
+                {holdingsCount
+                  ? `${holdingsCount} connected holdings. Top five concentration: ${xray?.concentration?.topFive || "-"}.`
+                  : "Connect holdings to estimate the visible spread of the book."}
+              </small>
+              <div className={styles.truthScoreTrack}>
+                <span style={{ width: `${formatScoreValue(visibleScore) === "-" ? 0 : formatScoreValue(visibleScore)}%` }} />
+              </div>
+            </article>
+
+            <article className={styles.truthScore} data-tone={realityGapTone(realityGap)}>
+              <span>Real diversification</span>
+              <strong>{formatScoreValue(structuralScore)}</strong>
+              <small>
+                {cleanWorkspaceCopy(
+                  balanceSheet?.headlineState
+                  || xray?.carryingNarrative
+                  || "Structural diversification folds in recoverability, fragility, and phantom tax before it earns a higher score.",
+                )}
+              </small>
+              <div className={styles.truthScoreTrack}>
+                <span style={{ width: `${formatScoreValue(structuralScore) === "-" ? 0 : formatScoreValue(structuralScore)}%` }} />
+              </div>
+            </article>
+          </div>
+
+          <div className={styles.truthRiskRead}>
+            <p>Perceived risk: <strong>{diversificationRiskLabel(visibleScore)}</strong></p>
+            <p>Actual structural risk: <strong>{structuralRiskLabel(actualStructuralRisk)}</strong></p>
+            <p>Decision rights: <strong>{confidencePanel?.decisionRights || "Suggest only"}</strong></p>
+            <p>Reality gap: <strong>{realityGap === null ? "-" : formatPct(realityGap, 0)}</strong></p>
+          </div>
+
+          <div className={styles.truthUtilityRail}>
+            <div>
+              <span>Investable cash</span>
+              <strong>{formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)}</strong>
+              <small>Monthly capacity after burn and buffer.</small>
+            </div>
+            <div>
+              <span>Target coverage</span>
+              <strong>{targetCoverage === null || targetCoverage === undefined ? "Set target" : formatOptionalRatio(targetCoverage, 0)}</strong>
+              <small>How much of the planned contribution is truly funded.</small>
+            </div>
+            <div>
+              <span>Optionality reserve</span>
+              <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
+              <small>{cleanWorkspaceCopy(balanceSheet?.spendRule || "Spend risk budget only when the live state reopens.")}</small>
+            </div>
+          </div>
+
+          <div className={styles.truthActionRow}>
+            <button className={styles.primaryButton} onClick={onToggleChat} type="button">
+              {showChat ? "Hide explanation" : "Explain the gap"}
+            </button>
+            <a className={styles.secondaryLink} href="#today">Review the frontier</a>
+            <a className={styles.secondaryLink} href="#diversification">Stress-test holdings</a>
+          </div>
+        </div>
+
+        <div className={styles.truthVisual}>
+          <div className={styles.truthClusterGrid}>
+            <article className={styles.truthBand}>
+              <span>Structural pressure</span>
+              <strong>{riskCluster?.gLabel || "-"}</strong>
+              <div className={styles.truthBandTrack}>
+                <span style={{ width: `${Math.round((clampUnitInterval(riskCluster?.gScore) || 0) * 100)}%` }} />
+              </div>
+              <p>{cleanWorkspaceCopy(riskCluster?.gMeaning || "How much internal weakness is loading fragility into the book.")}</p>
+            </article>
+
+            <article className={styles.truthBand}>
+              <span>Shock pressure</span>
+              <strong>{riskCluster?.rLabel || "-"}</strong>
+              <div className={styles.truthBandTrack}>
+                <span style={{ width: `${Math.round((clampUnitInterval(riskCluster?.rScore) || 0) * 100)}%` }} />
+              </div>
+              <p>{cleanWorkspaceCopy(riskCluster?.rMeaning || "How much acute regime stress is still dominating the read.")}</p>
+            </article>
+          </div>
+
+          <RecoverabilityMapFigure items={recoverabilityMap?.items} />
+        </div>
+      </div>
+
+      <div className={styles.truthDecisionRail}>
+        <article>
+          <span>Now</span>
+          <strong>{cleanWorkspaceCopy(activeAction?.title || stateSummary?.stance || "Stay patient")}</strong>
+          <p>{cleanWorkspaceCopy(activeAction?.summary || stateSummary?.decisionSummary || "The workspace will surface the next legitimate move here.")}</p>
+        </article>
+        <article>
+          <span>Next unlock</span>
+          <strong>{cleanWorkspaceCopy(frontier?.nextUnlockCondition || dashboard?.decision_workspace?.reopenTrigger || "Need a cleaner state before spending more risk budget.")}</strong>
+          <p>What needs to improve before the frontier opens further.</p>
+        </article>
+        <article>
+          <span>Close risk if</span>
+          <strong>{cleanWorkspaceCopy(frontier?.closeCondition || dashboard?.decision_workspace?.closeTrigger || stateSummary?.mainRisk || "If the structure weakens again.")}</strong>
+          <p>Invalidation stays visible so conviction has consequences.</p>
+        </article>
+        <article>
+          <span>{latestCounterfactual ? "Counterfactual" : "Stress path"}</span>
+          <strong>{latestCounterfactual ? latestCounterfactual.verdict : scenarioHighlight?.label || "Outcome tracking pending"}</strong>
+          <p>
+            {latestCounterfactual
+              ? `${latestCounterfactual.response}: ${latestCounterfactual.excessDeltaLabel}.`
+              : cleanWorkspaceCopy(scenarioHighlight?.explanation || "Once decisions accumulate, the ledger will show whether waiting, acting, or passing actually helped.")}
+          </p>
+        </article>
+      </div>
+
+      <div className={styles.truthLaneSummary}>
+        {(laneSummary.length ? laneSummary : [
+          { id: "unlocked", label: "Unlocked", count: 0, description: "Currently legitimate" },
+          { id: "staged", label: "Staged", count: 0, description: "Held in escrow" },
+          { id: "illegitimate", label: "Illegitimate", count: 0, description: "Blocked by state" },
+        ]).map((lane) => (
+          <div key={lane.id}>
+            <span>{lane.label}</span>
+            <strong>{lane.count ?? 0}</strong>
+            <small>{lane.description || "No items yet."}</small>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -2018,7 +2532,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <div>
           <p className={styles.eyebrow}>Private workspace</p>
           <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME}</h1>
-          <p className={styles.subtitle}>One workspace to plan monthly investable cash, read the market, understand the portfolio, and act without switching tools.</p>
+          <p className={styles.subtitle}>Cash plan, structural read, and action frontier in one place.</p>
         </div>
 
         <div className={styles.headerActions}>
@@ -2090,7 +2604,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
             <h2 className={styles.welcomeGuideTitle}>Welcome to your workspace</h2>
             <p className={styles.welcomeGuideSubtitle}>
-              Three steps to get the most out of this tool — no technical knowledge needed.
+              Three steps to get the most out of this tool - no technical knowledge needed.
             </p>
             <ol className={styles.welcomeSteps}>
               <li className={styles.welcomeStep}>
@@ -2128,7 +2642,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 onClick={() => setShowWelcomeGuide(false)}
                 type="button"
               >
-                I'm ready — hide this
+                I'm ready - hide this
               </button>
             </div>
           </div>
@@ -2168,6 +2682,18 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </div>
         </div>
       )}
+
+      <TruthInterfacePanel
+        blockedAction={blockedAction}
+        dashboard={dashboard}
+        ledgerItems={ledgerItems}
+        personalFinance={personalFinance}
+        portfolioModule={portfolioModule}
+        primaryAction={primaryAction}
+        showChat={showChat}
+        stateSummary={stateSummary}
+        onToggleChat={() => setShowChat((value) => !value)}
+      />
 
       <section className={styles.statusGrid}>
         <MetricTile
@@ -2236,7 +2762,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             />
           </div>
           <div id="portfolio" className={styles.sectionAnchor}>
-            <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} />
+            <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
           </div>
           <div id="diversification" className={styles.sectionAnchor}>
             <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />

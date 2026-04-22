@@ -122,7 +122,7 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
         }
       }
 
-      // Finalize — remove streaming flag
+      // Finalize the answer state after the stream ends.
       setHistory((h) =>
         h.map((m, i) => (i === h.length - 1 ? { ...m, _streaming: false } : m)),
       );
@@ -176,7 +176,7 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
             <p className={styles.emptyTitle}>Ask anything about your portfolio</p>
             <p className={styles.emptySub}>
               I have full context of your holdings, market state, risk metrics,
-              and alerts. Ask me in plain English — no jargon needed.
+              and alerts. Ask me in plain English - no jargon needed.
             </p>
             <div className={styles.starters}>
               {STARTER_QUESTIONS.map((q) => (

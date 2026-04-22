@@ -907,7 +907,7 @@
   max-width: 74ch;
 }
 
-/* ─── RESPONSIVE ─── */
+/* Responsive */
 @media (max-width: 900px) {
   .stepsSection {
     grid-template-columns: 1fr;
@@ -969,6 +969,71 @@
 .featureCard,
 .trustStrip {
   border-radius: 8px;
+}
+
+.ritualSection {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: 4rem;
+  align-items: start;
+}
+
+.ritualIntro {
+  position: sticky;
+  top: 2rem;
+}
+
+.ritualRail {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--border-faint);
+}
+
+.ritualStep {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 0.62fr) minmax(0, 1fr);
+  gap: 1.2rem;
+  align-items: start;
+  padding: 1.45rem 0;
+  border-bottom: 1px solid var(--border-faint);
+}
+
+.ritualStep span {
+  color: var(--gold);
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.ritualStep strong {
+  color: var(--ink);
+  font-size: 1.02rem;
+}
+
+.ritualStep p {
+  margin: 0;
+  color: var(--ink-muted);
+  line-height: 1.65;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 900px) {
+  .ritualSection {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .ritualIntro {
+    position: static;
+  }
+
+  .ritualStep {
+    grid-template-columns: 3.5rem 1fr;
+  }
+
+  .ritualStep p {
+    grid-column: 2;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

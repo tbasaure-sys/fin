@@ -6,7 +6,7 @@ import { formatCurrency, formatDateTime, formatPct, safeList, statusTone } from 
 import { parseResponse } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
 
-const RESEARCH_TABS = ["Memo", "Valuation", "Analysts", "Delta", "Evidence", "Audit"];
+const RESEARCH_TABS = ["Memo", "Value", "Debate", "Changes", "Sources", "Audit"];
 const AGENT_STAGES = [
   { key: "intake", label: "Collect", detail: "Sources", threshold: 0 },
   { key: "normalize", label: "Clean", detail: "Statements", threshold: 18 },
@@ -443,7 +443,7 @@ function renderAgents(research) {
         : "neutral";
 
   if (!research) {
-    return <p className={styles.emptyCopy}>The analyst desk will appear after a run, with each review role preserved for reproducibility.</p>;
+    return <p className={styles.emptyCopy}>The review debate appears after a run, with each specialist check preserved for reproducibility.</p>;
   }
 
   if (!agents.length) {
@@ -501,9 +501,9 @@ function renderAgents(research) {
     <div className={styles.researchStack}>
       <div className={styles.researchProcessHero} data-tone={processTone}>
         <div>
-          <span>Analyst desk</span>
-          <strong>{auditStatus === "pass" ? "Reviewed against the evidence" : "Review found open evidence gaps"}</strong>
-          <p>Specialist review roles read the audited finance-engine output. They do not calculate metrics; they only review the finished bundle.</p>
+          <span>Review debate</span>
+          <strong>{auditStatus === "pass" ? "The case was challenged against the ledger" : "The review found open evidence gaps"}</strong>
+          <p>These review roles do not invent numbers. They read the finished audited bundle, challenge the case, and surface what still needs proof.</p>
         </div>
         <div>
           <span>{formatCoverageScore(coverage.score)}</span>
@@ -524,7 +524,7 @@ function renderAgents(research) {
       <article className={styles.researchOrchestratorCard} data-tone={finalTone}>
         <div className={styles.researchAgentCardTop}>
           <div>
-            <span>Final editor</span>
+            <span>Final synthesis</span>
             <strong>{finalOrchestrator.status === "ok" ? "One synthesis call complete" : "Deterministic desk only"}</strong>
           </div>
           <small>{humanizeToken(finalOrchestrator.status || "deterministic")}</small>
@@ -818,6 +818,22 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
     coverage.expected_metrics
       ? `${coverage.covered_expected_metrics}/${coverage.expected_metrics} required metrics`
       : `${evidenceCount} ledger points`;
+  const finalOrchestrator = research?.agents?.final_orchestrator || research?.sources?.agent_outputs?.final_orchestrator || {};
+  const finalAnalysis = finalAnalysisFrom(finalOrchestrator);
+  const executiveJudgment = firstUsefulText(finalAnalysis.executive_judgment, finalAnalysis.memo_patch);
+  const researchStateLabel = !research
+    ? "Waiting for run"
+    : research?.audit?.status === "pass"
+      ? "Ready for review"
+      : research?.audit?.status === "needs_attention"
+        ? "Evidence gaps open"
+        : "Partially reviewed";
+  const openIssueLabel = missingRequiredMetrics.length
+    ? summarizeGaps(missingRequiredMetrics, 3)
+    : auditFindings[0]?.code || "No required gaps";
+  const openIssueDetail = missingRequiredMetrics.length
+    ? "These required metrics still need source-backed support."
+    : auditFindings[0]?.message || coverage.statement_authority || "Required metrics are covered for the current run.";
 
   function stageState(stage, index) {
     const next = AGENT_STAGES[index + 1];
@@ -833,14 +849,14 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
     <section className={`${styles.panel} ${styles.researchPanel}`}>
       <div className={styles.researchCommandSurface}>
         <div className={styles.researchIdentity}>
-          <p className={styles.kicker}>Equity research OS</p>
-          <h2>{research?.ticker || ticker || "Ticker"} research workstation</h2>
+          <p className={styles.kicker}>Research desk</p>
+          <h2>{research?.ticker || ticker || "Ticker"} research desk</h2>
           <p className={styles.supportText}>
-            Deterministic finance engine, evidence ledger, reverse DCF, delta memory, and audit trail in one run.
+            Run one company through statements, valuation, review debate, and audit. This should answer what the case is, what it is worth, and what is still unresolved.
           </p>
           <div className={styles.researchStatusLine}>
-            <span data-tone={pending ? "warn" : research ? "good" : "neutral"}>{pending ? "Running" : research ? "Ready" : "Idle"}</span>
-            <span>{mode === "full" ? "Full report" : "Quick memo"}</span>
+            <span data-tone={pending ? "warn" : research ? "good" : "neutral"}>{pending ? "Running" : research ? "Ready" : "Ready to run"}</span>
+            <span>{mode === "full" ? "Full desk" : "Quick read"}</span>
             <span>{storedRunCount ? `${storedRunCount} stored runs` : "No stored run yet"}</span>
           </div>
         </div>
@@ -855,7 +871,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
               value={ticker}
             />
             <button className={styles.primaryButton} disabled={pending || !ticker} onClick={() => runResearch()} type="button">
-              {pending ? "Running..." : "Run"}
+              {pending ? "Running..." : "Run analysis"}
             </button>
           </div>
           <div className={styles.segmentedControl}>
@@ -868,7 +884,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
                 type="button"
                 title={option === "full" ? "Run the complete analyst bundle" : "Run a fast memo and valuation pass"}
               >
-                {option}
+                {option === "full" ? "Full desk" : "Quick read"}
               </button>
             ))}
           </div>
@@ -905,24 +921,24 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
       <div className={styles.researchMetricGrid}>
         <ResearchMetric
           detail={research?.company_profile?.industry || "Profile loads from FMP via the Railway backend."}
-          label="Company"
+          label="Business"
           tone={research ? "good" : "neutral"}
           value={research?.company_profile?.name || "No run yet"}
         />
         <ResearchMetric
           detail="Latest annual statement row."
-          label="Revenue"
+          label="Latest revenue"
           value={compactCurrency(ratios.latest_revenue)}
         />
         <ResearchMetric
           detail="Base case deterministic DCF."
-          label="Base value"
+          label="Base value/share"
           tone={baseScenario ? "warn" : "neutral"}
           value={compactCurrency(baseScenario?.intrinsic_value_per_share)}
         />
         <ResearchMetric
           detail={`${coverageDetail}, ${auditFindings.length} audit finding${auditFindings.length === 1 ? "" : "s"}.`}
-          label="Audit"
+          label="Audit state"
           tone={auditTone(research?.audit?.status, coverage)}
           value={research ? humanizeToken(research?.audit?.status) : "Waiting"}
         />
@@ -941,21 +957,45 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         </div>
       ) : null}
 
+      {research ? (
+        <div className={styles.researchCoverageSummary}>
+          <div>
+            <span>Current answer</span>
+            <strong>{researchStateLabel}</strong>
+            <small>{executiveJudgment || "The run is assembling the memo, valuation, and audit bundle."}</small>
+          </div>
+          <div>
+            <span>Best supported value</span>
+            <strong>{compactCurrency(baseScenario?.intrinsic_value_per_share)}</strong>
+            <small>
+              {research?.valuation?.available
+                ? `Reverse DCF implied growth ${formatPct(research?.valuation?.reverse_dcf?.implied_revenue_cagr)}.`
+                : research?.valuation?.reason || "Valuation is waiting on missing inputs."}
+            </small>
+          </div>
+          <div>
+            <span>What still needs work</span>
+            <strong>{openIssueLabel}</strong>
+            <small>{openIssueDetail}</small>
+          </div>
+        </div>
+      ) : null}
+
       <div className={styles.researchSignalGrid}>
         <div>
-          <span>Ledger coverage</span>
+          <span>Coverage</span>
           <strong>{research ? formatCoverageScore(coverage.score) : "Waiting"}</strong>
         </div>
         <div>
-          <span>Source spine</span>
+          <span>Statement source</span>
           <strong>{sourceSpineLabel}</strong>
         </div>
         <div>
-          <span>Delta memory</span>
+          <span>Prior changes</span>
           <strong>{deltaChanges.length ? `${deltaChanges.length} changes` : "No prior change"}</strong>
         </div>
         <div>
-          <span>Workbook</span>
+          <span>Downloads</span>
           <strong>{hasXlsx ? "Model ready" : "Not emitted"}</strong>
         </div>
       </div>
@@ -989,10 +1029,10 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
             type="button"
           >
             <span>{tab}</span>
-            {tab === "Analysts" && agentCount ? <small>{agentCount}</small> : null}
-            {tab === "Evidence" && evidenceCount ? <small>{evidenceCount}</small> : null}
+            {tab === "Debate" && agentCount ? <small>{agentCount}</small> : null}
+            {tab === "Sources" && evidenceCount ? <small>{evidenceCount}</small> : null}
             {tab === "Audit" && auditFindings.length ? <small>{auditFindings.length}</small> : null}
-            {tab === "Delta" && deltaChanges.length ? <small>{deltaChanges.length}</small> : null}
+            {tab === "Changes" && deltaChanges.length ? <small>{deltaChanges.length}</small> : null}
           </button>
         ))}
       </div>
@@ -1024,10 +1064,10 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
           id={`equity-research-tabpanel-${activeTab.toLowerCase()}`}
         >
           {activeTab === "Memo" ? renderMemo(research) : null}
-          {activeTab === "Valuation" ? renderValuation(research) : null}
-          {activeTab === "Analysts" ? renderAgents(research) : null}
-          {activeTab === "Delta" ? renderDelta(research) : null}
-          {activeTab === "Evidence" ? renderEvidence(research) : null}
+          {activeTab === "Value" ? renderValuation(research) : null}
+          {activeTab === "Debate" ? renderAgents(research) : null}
+          {activeTab === "Changes" ? renderDelta(research) : null}
+          {activeTab === "Sources" ? renderEvidence(research) : null}
           {activeTab === "Audit" ? renderAudit(research) : null}
         </div>
       </div>

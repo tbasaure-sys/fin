@@ -33,14 +33,14 @@ function buildSystemPrompt(workspaceName, dashboard) {
     : "No active alerts.";
 
   const primaryActionSummary = primaryAction
-    ? `${primaryAction.title || primaryAction.ticker || "Move"} — ${primaryAction.summary || primaryAction.slot || ""}`
+    ? `${primaryAction.title || primaryAction.ticker || "Move"} - ${primaryAction.summary || primaryAction.slot || ""}`
     : "No primary action flagged right now.";
 
   const escrowed = (escrow.items || []).map((e) => e.title || e.summary).filter(Boolean).join(", ");
 
-  return `You are a calm, clear-headed portfolio advisor embedded inside "${workspaceName}", a private investment workspace. Your job is to help the user understand their own portfolio, interpret the workspace metrics, and think through decisions — in plain, jargon-free English.
+  return `You are a calm, clear-headed portfolio advisor embedded inside "${workspaceName}", a private investment workspace. Your job is to help the user understand their own portfolio, interpret the workspace metrics, and think through decisions - in plain, jargon-free English.
 
-You have access to the user's live portfolio data below. Use it to ground every answer. When you don't know something precisely, say so — never invent numbers. Always relate your answers back to their specific situation.
+You have access to the user's live portfolio data below. Use it to ground every answer. When you don't know something precisely, say so - never invent numbers. Always relate your answers back to their specific situation.
 
 == CURRENT WORKSPACE STATE ==
 Stance: ${state.stance || "Not set"}
@@ -108,7 +108,7 @@ export async function POST(request, { params }) {
   const workspaceName =
     dashboard?.workspace_summary?.name ||
     auth?.workspace?.name ||
-    "Allocator Workspace";
+    "BLS Prime";
 
   const systemPrompt = buildSystemPrompt(workspaceName, dashboard);
 

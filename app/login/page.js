@@ -36,14 +36,14 @@ export default async function LoginPage({ searchParams }) {
           <p className={styles.kicker}>Account access</p>
 
           <h1 className={styles.headline}>
-            Your portfolio,
+            Your capital OS,
             <br />
             <em>protected by your password.</em>
           </h1>
 
           <p className={styles.lead}>
-            Create your account with an email and password, then come back to
-            the same workspace any time without relying on a shared private code.
+            Sign in once, then return to the same money plan, portfolio,
+            research desk, and decision memory from web or mobile.
           </p>
 
           <div className={styles.benefits}>
@@ -57,15 +57,15 @@ export default async function LoginPage({ searchParams }) {
             <div className={styles.benefit}>
               <div className={styles.benefitIcon}>GO</div>
               <div className={styles.benefitBody}>
-                <strong>Fast first setup</strong>
-                <p>New users can create their account in one step and land directly in their private workspace.</p>
+                <strong>One private workspace</strong>
+                <p>Your finance plan, holdings, research, and staged decisions all come back after login.</p>
               </div>
             </div>
             <div className={styles.benefit}>
-              <div className={styles.benefitIcon}>UP</div>
+              <div className={styles.benefitIcon}>OS</div>
               <div className={styles.benefitBody}>
-                <strong>Legacy users still work</strong>
-                <p>If an email already existed from the old flow, Create account will let that user define a password and continue.</p>
+                <strong>Web and mobile ready</strong>
+                <p>The native app uses the same account and the same workspace APIs as the website.</p>
               </div>
             </div>
           </div>
@@ -80,7 +80,7 @@ export default async function LoginPage({ searchParams }) {
           <div className={styles.pathPicker}>
             <div className={styles.pathCard} data-path="new">
               <strong>First time here?</strong>
-              <p>Create your account below — it only takes a minute.</p>
+              <p>Create your account below - it only takes a minute.</p>
             </div>
             <div className={styles.pathCard} data-path="returning">
               <strong>Already have an account?</strong>
