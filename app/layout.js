@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const appName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "Allocator Workspace";
 const cacheRecoveryVersion = "2026-04-03-v1";
@@ -102,7 +103,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
