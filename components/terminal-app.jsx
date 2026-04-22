@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import {
   PORTFOLIO_RANGES,
@@ -28,7 +28,7 @@ import EquityResearchPanel from "@/components/equity-research-panel";
 const RAW_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
 const DEFAULT_APP_NAME = /allocator workspace/i.test(RAW_APP_NAME) ? "BLS Prime" : RAW_APP_NAME;
 const WORKSPACE_NAV = [
-  { href: "#cashflow", label: "Money plan", detail: "Income, burn, investable" },
+  { href: "#cashflow", label: "Money plan", detail: "Income, bills, investable" },
   { href: "#today", label: "Decision", detail: "Reality gap and move" },
   { href: "#portfolio", label: "Portfolio", detail: "Path and carriers" },
   { href: "#diversification", label: "Overlap", detail: "Stress-tested breadth" },
@@ -45,10 +45,11 @@ function ToneBadge({ tone = "neutral", children }) {
 }
 
 function MetricTile({ label, value, detail, tone = "neutral" }) {
+  const displayValue = value === null || value === undefined || value === "" ? "-" : value;
   return (
     <article className={styles.metricTile} data-tone={tone}>
       <span>{label}</span>
-      <strong>{value || "-"}</strong>
+      <strong>{displayValue}</strong>
       {detail ? <small>{detail}</small> : null}
     </article>
   );
@@ -91,8 +92,8 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   const width = 680;
   const height = 260;
   const paddingLeft = 48;
-  const paddingRight = 20;
-  const paddingTop = 18;
+  const paddingRight = 36;
+  const paddingTop = 20;
   const paddingBottom = 34;
   const rows = safeList(series)
     .map((row, index) => {
@@ -119,10 +120,21 @@ function PortfolioChart({ series, benchmarkSymbol }) {
     );
   }
 
-  const values = rows.flatMap((point) => [point.portfolio, point.benchmark]).filter(Number.isFinite);
-  const rawMin = Math.min(...values);
-  const rawMax = Math.max(...values);
-  const valuePadding = Math.max((rawMax - rawMin) * 0.08, 0.02);
+  const normalizeSeries = (points, key) => {
+    const first = Number(points[0]?.[key]);
+    if (!Number.isFinite(first) || first <= 0) return [];
+    return points.map((point) => ({
+      ...point,
+      display: (Number(point[key]) / first) - 1,
+    }));
+  };
+
+  const normalizedPortfolio = normalizeSeries(portfolioPoints, "portfolio");
+  const normalizedBenchmark = normalizeSeries(benchmarkPoints, "benchmark");
+  const values = [...normalizedPortfolio, ...normalizedBenchmark].map((point) => point.display).filter(Number.isFinite);
+  const rawMin = Math.min(...values, 0);
+  const rawMax = Math.max(...values, 0);
+  const valuePadding = Math.max((rawMax - rawMin) * 0.14, 0.04);
   const min = rawMin - valuePadding;
   const max = rawMax + valuePadding;
   const safeRange = max - min || 1;
@@ -130,7 +142,7 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   const minTimestamp = Math.min(...chartTimestamps);
   const maxTimestamp = Math.max(...chartTimestamps);
   const safeTimeRange = maxTimestamp - minTimestamp || 1;
-  const baseLineValue = min <= 1 && max >= 1 ? 1 : null;
+  const baseLineValue = min <= 0 && max >= 0 ? 0 : null;
   const chartBottom = height - paddingBottom;
   const chartTop = paddingTop;
   const chartLeft = paddingLeft;
@@ -143,39 +155,38 @@ function PortfolioChart({ series, benchmarkSymbol }) {
 
   const pointY = (value) => chartBottom - (((value - min) / safeRange) * (chartBottom - chartTop));
 
-  const buildPath = (points, valueKey) => points
+  const buildPath = (points) => points
     .map((point, index) => {
       const x = pointX(point, index);
-      const y = pointY(point[valueKey]);
+      const y = pointY(point.display);
       return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
     })
     .join(" ");
 
-  const portfolioPath = portfolioPoints.length >= 2 ? buildPath(portfolioPoints, "portfolio") : "";
-  const benchmarkPath = benchmarkPoints.length >= 2 ? buildPath(benchmarkPoints, "benchmark") : "";
-  const latest = portfolioPoints[portfolioPoints.length - 1];
-  const firstPortfolio = portfolioPoints[0];
+  const portfolioPath = normalizedPortfolio.length >= 2 ? buildPath(normalizedPortfolio) : "";
+  const benchmarkPath = normalizedBenchmark.length >= 2 ? buildPath(normalizedBenchmark) : "";
+  const latest = normalizedPortfolio[normalizedPortfolio.length - 1];
+  const firstPortfolio = normalizedPortfolio[0];
   const latestX = latest ? pointX(latest, portfolioPoints.length - 1) : null;
-  const latestY = latest ? pointY(latest.portfolio) : null;
-  const hasBenchmark = benchmarkPoints.length >= 2;
-  const firstBenchmark = benchmarkPoints[0] || null;
-  const latestBenchmark = benchmarkPoints[benchmarkPoints.length - 1] || null;
-  const portfolioChange = latest && firstPortfolio ? latest.portfolio - firstPortfolio.portfolio : null;
-  const benchmarkChange = latestBenchmark && firstBenchmark ? latestBenchmark.benchmark - firstBenchmark.benchmark : null;
+  const latestY = latest ? pointY(latest.display) : null;
+  const hasBenchmark = normalizedBenchmark.length >= 2;
+  const firstBenchmark = normalizedBenchmark[0] || null;
+  const latestBenchmark = normalizedBenchmark[normalizedBenchmark.length - 1] || null;
+  const portfolioChange = latest && firstPortfolio ? latest.display - firstPortfolio.display : null;
+  const benchmarkChange = latestBenchmark && firstBenchmark ? latestBenchmark.display - firstBenchmark.display : null;
   const startLabel = rows[0]?.date ? formatDate(rows[0].date) : "";
   const endLabel = rows[rows.length - 1]?.date ? formatDate(rows[rows.length - 1].date) : "";
   const baseLineY = baseLineValue === null ? null : pointY(baseLineValue);
-  const firstX = portfolioPoints[0] ? pointX(portfolioPoints[0], 0) : chartLeft;
+  const firstX = normalizedPortfolio[0] ? pointX(normalizedPortfolio[0], 0) : chartLeft;
   const lastX = latest ? pointX(latest, portfolioPoints.length - 1) : chartRight;
   const areaPath = portfolioPath
     ? `${portfolioPath} L ${lastX.toFixed(1)} ${chartBottom.toFixed(1)} L ${firstX.toFixed(1)} ${chartBottom.toFixed(1)} Z`
     : "";
   const gridValues = [0, 0.25, 0.5, 0.75, 1].map((ratio) => min + (safeRange * ratio));
   const verticalGuides = [0, 0.5, 1].map((ratio) => chartLeft + ((chartRight - chartLeft) * ratio));
-  const chartValueLabel = (value) => {
-    if (min > 0.55 && max < 1.6) return formatSignedPct(value - 1, 0);
-    return `${value.toFixed(2)}x`;
-  };
+  const chartValueLabel = (value) => formatSignedPct(value, Math.abs(value) >= 1 ? 0 : 1);
+  const benchmarkEndX = latestBenchmark ? pointX(latestBenchmark, normalizedBenchmark.length - 1) : null;
+  const benchmarkEndY = latestBenchmark ? pointY(latestBenchmark.display) : null;
 
   return (
     <div className={styles.chartBlock}>
@@ -210,10 +221,18 @@ function PortfolioChart({ series, benchmarkSymbol }) {
         {hasBenchmark ? <path className={styles.chartBenchmark} d={benchmarkPath} /> : null}
         {portfolioPath ? <path className={styles.chartLine} d={portfolioPath} /> : null}
         {latestX !== null && latestY !== null ? <circle className={styles.chartPoint} cx={latestX} cy={latestY} r="4" /> : null}
+        {latestX !== null && latestY !== null ? <circle className={styles.chartHaloPoint} cx={latestX} cy={latestY} r="7" /> : null}
         {latestX !== null && latestY !== null ? (
-          <text className={styles.chartLatestLabel} x={Math.min(latestX + 8, chartRight - 58)} y={Math.max(latestY - 10, chartTop + 14)}>
-            Latest
-          </text>
+          <g transform={`translate(${Math.min(latestX + 8, chartRight - 98)} ${Math.max(latestY - 16, chartTop + 14)})`}>
+            <rect className={styles.chartEndTag} height="18" rx="9" width="92" x="0" y="-12" />
+            <text className={styles.chartLatestLabel} x="10" y="0">Portfolio {portfolioChange === null ? "-" : formatSignedPct(portfolioChange, 1)}</text>
+          </g>
+        ) : null}
+        {benchmarkEndX !== null && benchmarkEndY !== null ? (
+          <g transform={`translate(${Math.min(benchmarkEndX + 8, chartRight - 84)} ${Math.min(benchmarkEndY + 18, chartBottom - 4)})`}>
+            <rect className={styles.chartBenchmarkTag} height="18" rx="9" width="78" x="0" y="-12" />
+            <text className={styles.chartBenchmarkLabel} x="10" y="0">{benchmarkSymbol || "SPY"} {benchmarkChange === null ? "-" : formatSignedPct(benchmarkChange, 1)}</text>
+          </g>
         ) : null}
       </svg>
 
@@ -233,27 +252,90 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   );
 }
 
-function HoldingsReturnDistribution({ rows }) {
-  const buckets = safeList(rows).filter((row) => Number(row?.count) > 0);
-  if (!buckets.length) {
+function normalizeWorkspaceName(value) {
+  const text = String(value || "").trim();
+  if (!text) return DEFAULT_APP_NAME;
+  return /allocator workspace/i.test(text) ? "BLS Prime" : text;
+}
+
+function isTechnicalWorkspaceMessage(value) {
+  return /runtime bootstrap|market:|alpha_volume_panel|fred request failed|internal server error|pipeline|traceback|exception|stack trace|\/api\/|railway|backend snapshot/i.test(String(value || ""));
+}
+
+function needsAutoRefresh(workspaceSummary) {
+  const timestamp = workspaceSummary?.last_updated || workspaceSummary?.market_data_as_of;
+  if (!timestamp) return true;
+  const parsed = Date.parse(timestamp);
+  if (!Number.isFinite(parsed)) return true;
+
+  const snapshotDate = new Date(parsed);
+  const now = new Date();
+  const sameDay = snapshotDate.toDateString() === now.toDateString();
+  const ageHours = (now.getTime() - snapshotDate.getTime()) / (1000 * 60 * 60);
+
+  return !sameDay || ageHours >= 4;
+}
+
+function HoldingsReturnBreakdown({ returns }) {
+  const leaders = safeList(returns?.leaders);
+  const detractors = safeList(returns?.detractors);
+  const trackedCount = Number(returns?.trackedCount || 0);
+
+  if (!leaders.length && !detractors.length) {
     return (
       <p className={styles.emptyCopy}>
-        Holding-level return buckets will appear after cost basis is available.
+        Position-level return leaders will appear once cost basis is stored for the holdings.
       </p>
     );
   }
 
   return (
-    <div className={styles.returnDistribution} aria-label="Holding return distribution">
-      {buckets.map((row) => (
-        <div className={styles.returnBucket} key={row.id || row.label}>
-          <div className={styles.returnBucketBar}>
-            <span style={{ height: `${Math.max(8, Math.round((Number(row.ratio) || 0) * 100))}%` }} />
-          </div>
-          <strong>{row.label}</strong>
-          <small>{row.valueLabel}</small>
+    <div className={styles.returnBreakdown} aria-label="Holding return breakdown">
+      <article className={styles.returnColumn}>
+        <div className={styles.returnColumnHead}>
+          <strong>Top unrealized gains</strong>
+          <small>{trackedCount} tracked with cost basis</small>
         </div>
-      ))}
+        <div className={styles.returnList}>
+          {leaders.map((row) => (
+            <article className={styles.returnRow} key={`leader-${row.ticker}`}>
+              <div>
+                <strong>{row.ticker}</strong>
+                <small>{row.sector}</small>
+              </div>
+              <div>
+                <strong>{row.pnlLabel}</strong>
+                <small>{row.returnLabel} since cost basis</small>
+              </div>
+            </article>
+          ))}
+        </div>
+      </article>
+
+      <article className={styles.returnColumn}>
+        <div className={styles.returnColumnHead}>
+          <strong>Largest drags</strong>
+          <small>{detractors.length ? "Where the unrealized drag still sits" : "No tracked drags right now"}</small>
+        </div>
+        {detractors.length ? (
+          <div className={styles.returnList}>
+            {detractors.map((row) => (
+              <article className={styles.returnRow} key={`detractor-${row.ticker}`}>
+                <div>
+                  <strong>{row.ticker}</strong>
+                  <small>{row.sector}</small>
+                </div>
+                <div>
+                  <strong>{row.pnlLabel}</strong>
+                  <small>{row.returnLabel} since cost basis</small>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className={styles.emptyCopy}>No current losers with stored cost basis.</p>
+        )}
+      </article>
     </div>
   );
 }
@@ -362,6 +444,26 @@ function PersonalFinancePanel({ financePlan, draft, pending, onChange, onSubmit 
 
         <div className={styles.financeReadout}>
           <div className={styles.financeMetricGrid}>
+            <MetricTile
+              detail="Cash coming in before bills, spending, or buffer."
+              label="Monthly income"
+              value={formatMoney(plan.inputs?.monthlyIncome, currency)}
+            />
+            <MetricTile
+              detail="Recurring bills and committed monthly costs."
+              label="Fixed costs"
+              value={formatMoney(plan.inputs?.fixedExpenses, currency)}
+            />
+            <MetricTile
+              detail="Flexible spending that still needs to be funded."
+              label="Variable spending"
+              value={formatMoney(plan.inputs?.variableExpenses, currency)}
+            />
+            <MetricTile
+              detail="Cash intentionally kept out of the market."
+              label="Cash buffer"
+              value={formatMoney(plan.inputs?.safetyBuffer, currency)}
+            />
             <MetricTile
               detail="Income minus fixed costs, variable spending, and buffer."
               label="Available to invest"
@@ -1330,7 +1432,8 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
   const chartSeries = hasHoldings ? filterPortfolioSeries(portfolio?.charts?.growthComparison, range) : [];
   const currentGainLabel = analytics.unrealizedReturnLabel || "Cost basis unavailable";
   const hasCostBasisReturn = hasHoldings && Boolean(analytics.unrealizedReturnLabel);
-  const returnDistribution = hasHoldings ? safeList(portfolio?.charts?.valuationDistribution) : [];
+  const returnBreakdown = hasHoldings ? (portfolio?.returns || {}) : {};
+  const topReturnLeader = safeList(returnBreakdown?.leaders)[0] || null;
   const roleBands = safeList(portfolioXray.roleBands).slice(0, 4);
   const carriers = safeList(portfolioXray.carriers).slice(0, 4);
   const fragilityLoad = safeList(portfolioXray.fragilityLoad).slice(0, 4);
@@ -1374,6 +1477,12 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
           label={`vs ${analytics.benchmarkSymbol || "SPY"}`}
           tone={hasHoldings && analytics.hasBenchmarkHistory ? "good" : "neutral"}
           value={hasHoldings && analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Benchmark limited"}
+        />
+        <MetricTile
+          detail={topReturnLeader ? `${topReturnLeader.returnLabel} since cost basis.` : "Save cost basis to rank which positions have created the most unrealized gain."}
+          label="Top return contributor"
+          tone={topReturnLeader ? "good" : "neutral"}
+          value={topReturnLeader ? `${topReturnLeader.ticker} ${topReturnLeader.pnlLabel}` : "Cost basis needed"}
         />
       </div>
 
@@ -1438,9 +1547,9 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
           <div className={styles.returnDistributionShell}>
             <div>
               <p className={styles.kicker}>Holding returns</p>
-              <h3>Return since cost basis</h3>
+              <h3>Where unrealized gains and drags come from</h3>
             </div>
-            <HoldingsReturnDistribution rows={returnDistribution} />
+            <HoldingsReturnBreakdown returns={returnBreakdown} />
           </div>
         </div>
 
@@ -2183,7 +2292,19 @@ function joinedActionText(item) {
 }
 
 function cleanWorkspaceCopy(value) {
-  return String(value || "").replace(/\bballast\b/gi, "cash buffer");
+  return String(value || "")
+    .replace(/\bballast\b/gi, "cash buffer")
+    .replace(/\bkeep risk elevated\b/gi, "Risk-on, but selective")
+    .replace(/\bbroad beta\b/gi, "broad market exposure");
+}
+
+function friendlyWorkspaceMessage(value, fallback = "") {
+  const text = cleanWorkspaceCopy(value).trim();
+  if (!text) return fallback;
+  if (isTechnicalWorkspaceMessage(text)) {
+    return fallback || "Live market refresh is still catching up. The workspace is using the latest completed session for now.";
+  }
+  return text;
 }
 
 function isExpiredTimestamp(value) {
@@ -2234,6 +2355,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     initialDashboard,
     workspaceId,
   });
+  const autoRefreshRef = useRef(false);
   const [banner, setBanner] = useState("");
   const [error, setError] = useState("");
   const [pendingKey, setPendingKey] = useState(null);
@@ -2270,6 +2392,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).filter(isSettledLedgerItem).slice(0, 4);
   const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 3);
   const dataControl = dashboard?.data_control || {};
+  const workspaceName = normalizeWorkspaceName(
+    dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME,
+  );
 
   useEffect(() => {
     if (financeDraftDirty) return;
@@ -2291,6 +2416,29 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     if (successMessage) setBanner(successMessage);
   }
 
+  async function requestLiveRefresh() {
+    const refreshResponse = await fetch("/api/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    });
+    const refreshPayload = await parseResponse(refreshResponse);
+    await new Promise((resolve) => window.setTimeout(resolve, 1200));
+    const latestWorkspace = await refreshSnapshot();
+
+    return {
+      ...latestWorkspace,
+      __refreshMessage:
+        latestWorkspace?.workspace_summary?.last_updated
+        && latestWorkspace.workspace_summary.last_updated !== dashboard?.workspace_summary?.last_updated
+          ? "Live market session refreshed."
+          : friendlyWorkspaceMessage(
+            refreshPayload?.message,
+            "Refreshing the latest market session in the background.",
+          ),
+    };
+  }
+
   async function runWorkspaceAction(key, requestFactory, successMessage) {
     if (!workspaceId) return;
 
@@ -2305,7 +2453,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       const nextBanner = payload?.__refreshMessage || successMessage;
       await applyWorkspacePayload(payload, nextBanner);
     } catch (requestError) {
-      setError(String(requestError?.message || requestError || "Request failed."));
+      setError(friendlyWorkspaceMessage(requestError?.message || requestError, "Request failed."));
     } finally {
       setPendingKey(null);
     }
@@ -2314,28 +2462,26 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   async function refreshWorkspace() {
     await runWorkspaceAction(
       "refresh",
-      async () => {
-        const refreshResponse = await fetch("/api/refresh", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          cache: "no-store",
-        });
-        const refreshPayload = await parseResponse(refreshResponse);
-        await new Promise((resolve) => window.setTimeout(resolve, 1200));
-        const latestWorkspace = await refreshSnapshot();
-
-        return {
-          ...latestWorkspace,
-          __refreshMessage:
-            latestWorkspace?.workspace_summary?.last_updated &&
-            latestWorkspace.workspace_summary.last_updated !== dashboard?.workspace_summary?.last_updated
-              ? "Live analysis refreshed."
-              : refreshPayload?.message || "Refresh queued. Analysis is still rebuilding.",
-        };
-      },
-      "Live refresh requested.",
+      requestLiveRefresh,
+      "Refreshing the latest market session.",
     );
   }
+
+  useEffect(() => {
+    if (!workspaceId || autoRefreshRef.current || !needsAutoRefresh(dashboard?.workspace_summary)) return;
+    autoRefreshRef.current = true;
+    setBanner("Syncing the latest market session...");
+
+    void requestLiveRefresh()
+      .then((payload) => applyWorkspacePayload(payload, payload?.__refreshMessage || "Live market session refreshed."))
+      .catch(() => {
+        setBanner("Could not refresh on entry. The workspace is using the latest completed session for now.");
+      });
+  }, [
+    dashboard?.workspace_summary?.last_updated,
+    dashboard?.workspace_summary?.market_data_as_of,
+    workspaceId,
+  ]);
 
   function updateFinanceDraft(field, value) {
     setFinanceDraftDirty(true);
@@ -2368,7 +2514,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       await applyWorkspacePayload(payload, "Monthly money plan saved.");
       setFinanceDraftDirty(false);
     } catch (requestError) {
-      setError(String(requestError?.message || requestError || "Money plan update failed."));
+      setError(friendlyWorkspaceMessage(requestError?.message || requestError, "Money plan update failed."));
     } finally {
       setPendingKey(null);
     }
@@ -2439,7 +2585,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Holdings saved.");
       resetHoldingDraft();
     } catch (requestError) {
-      setTradeError(String(requestError?.message || requestError || "Holding update failed."));
+      setTradeError(friendlyWorkspaceMessage(requestError?.message || requestError, "Holding update failed."));
     } finally {
       setPendingKey(null);
     }
@@ -2463,7 +2609,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Holdings saved.");
       setTradeInstruction("");
     } catch (requestError) {
-      setTradeError(String(requestError?.message || requestError || "Trade update failed."));
+      setTradeError(friendlyWorkspaceMessage(requestError?.message || requestError, "Trade update failed."));
     } finally {
       setPendingKey(null);
     }
@@ -2531,7 +2677,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       <header className={styles.header}>
         <div>
           <p className={styles.eyebrow}>Private workspace</p>
-          <h1>{dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME}</h1>
+          <h1>{workspaceName}</h1>
           <p className={styles.subtitle}>Cash plan, structural read, and action frontier in one place.</p>
         </div>
 
@@ -2541,7 +2687,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <ToneBadge tone={statusTone(dashboard?.workspace_summary?.backend_status)}>
               {capitalize(dashboard?.workspace_summary?.backend_status, "Live")}
             </ToneBadge>
-            <ToneBadge tone={connection.status === "live" ? "good" : connection.status === "polling" ? "warn" : "neutral"}>
+            <ToneBadge tone={connection.status === "live" ? "good" : connection.status === "polling" || connection.status === "warn" ? "warn" : "neutral"}>
               {connection.label}
             </ToneBadge>
             <ToneBadge tone="neutral">{dashboard?.workspace_summary?.last_updated_label || "No refresh time"}</ToneBadge>
@@ -2723,7 +2869,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <MetricTile
           detail={connection.detail}
           label="Connection"
-          tone={connection.status === "live" ? "good" : connection.status === "polling" ? "warn" : "neutral"}
+          tone={connection.status === "live" ? "good" : connection.status === "polling" || connection.status === "warn" ? "warn" : "neutral"}
           value={connection.label}
         />
       </section>
@@ -2865,8 +3011,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.kicker}>Current brief</p>
-                <h2>{stateSummary?.stance || "Stay patient"}</h2>
-                <p className={styles.supportText}>The short read behind the current posture and the evidence supporting it.</p>
+                <h2>{cleanWorkspaceCopy(stateSummary?.stance || "Stay patient")}</h2>
+                <p className={styles.supportText}>The current posture in plain language, plus the evidence that still supports it.</p>
               </div>
             </div>
             <p className={styles.lead}>{cleanWorkspaceCopy(stateSummary?.decisionSummary || "The workspace will keep surfacing the clearest next action as live analysis refreshes.")}</p>

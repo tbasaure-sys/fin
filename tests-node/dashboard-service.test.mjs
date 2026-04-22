@@ -39,7 +39,7 @@ test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snaps
   assert.equal(dashboard.modules.scanner.rows.length, 0);
   assert.equal(dashboard.modules.scanner.ideaMap.length, 0);
   assert.equal(dashboard.modules.risk.signalBars.length, 0);
-  assert.match(dashboard.data_control.analysisSource, /partial analysis/i);
+  assert.match(dashboard.data_control.analysisSource, /latest completed session/i);
 });
 
 test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quotes exist", () => {
@@ -68,7 +68,7 @@ test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quo
 
   assert.equal(dashboard.market_ribbon[0].symbol, "SPY");
   assert.equal(dashboard.market_ribbon[1].status, "cache");
-  assert.equal(dashboard.workspace_summary.primary_stance, "Take moderate risk");
+  assert.equal(dashboard.workspace_summary.primary_stance, "Stay measured");
 });
 
 test("normalizeWorkspaceDashboard builds live next best moves from screener and portfolio data", () => {
@@ -137,7 +137,7 @@ test("normalizeWorkspaceDashboard builds live next best moves from screener and 
   assert.ok(dashboard.modules.command.stepDownTrials.length === 3);
   assert.equal(dashboard.primary_action.ticker, "TSM");
   assert.equal(dashboard.secondary_actions[0].ticker, "ASTS");
-  assert.equal(dashboard.state_summary.stance, "Take moderate risk");
+  assert.equal(dashboard.state_summary.stance, "Stay measured");
   assert.ok(dashboard.evidence_drawer.headline);
   assert.equal(dashboard.escrow.items.length, 0);
   assert.ok(dashboard.memory.weeklyBrief.length > 0);

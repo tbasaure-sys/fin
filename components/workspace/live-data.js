@@ -18,11 +18,20 @@ export async function parseResponse(response) {
   return payload;
 }
 
+function sanitizeLiveDetail(message, fallback) {
+  const text = String(message || "").trim();
+  if (!text) return fallback;
+  if (/runtime bootstrap|market:|alpha_volume_panel|fred request failed|internal server error|pipeline|traceback|exception|stack trace|\/api\/|railway|backend snapshot/i.test(text)) {
+    return fallback;
+  }
+  return text;
+}
+
 export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
   const [dashboard, setDashboard] = useState(initialDashboard);
   const [connection, setConnection] = useState({
     status: "connecting",
-    label: "Connecting",
+    label: "Connecting live data",
     detail: "Opening the live workspace channel.",
   });
   const lastEventRef = useRef(Date.now());
@@ -64,37 +73,42 @@ export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
       stream = new EventSource(`/api/v1/workspaces/${workspaceId}/stream`);
 
       stream.addEventListener("open", () => {
-        setLive("live", "Live channel active", "Listening for workspace freshness updates.");
+        setLive("live", "Live sync on", "Listening for fresh market and workspace updates.");
       });
 
       for (const eventName of ["workspace_snapshot", "refresh_completed", "freshness_changed"]) {
         stream.addEventListener(eventName, () => {
           lastEventRef.current = Date.now();
-          setLive("live", "Live channel active", "Workspace freshness changed. Syncing the latest snapshot.");
+          setLive("live", "Syncing latest session", "A newer market session was detected. Updating the workspace.");
           void triggerRefresh();
         });
       }
 
       stream.addEventListener("refresh_started", () => {
         lastEventRef.current = Date.now();
-        setLive("polling", "Refresh running", "The backend is rebuilding the latest analysis snapshot.");
+        setLive("polling", "Refreshing live data", "Pulling the newest market session into the workspace.");
       });
 
       stream.addEventListener("refresh_failed", (event) => {
         lastEventRef.current = Date.now();
-        let detail = "Live refresh failed. Falling back to snapshot polling.";
+        let detail = "The latest market session is still catching up. Using the last completed snapshot for now.";
         try {
           const payload = JSON.parse(event.data);
-          if (payload?.message) detail = payload.message;
+          if (payload?.message) {
+            detail = sanitizeLiveDetail(
+              payload.message,
+              "The latest market session is still catching up. Using the last completed snapshot for now.",
+            );
+          }
         } catch {
           // Ignore malformed event payloads.
         }
-        setLive("warn", "Polling fallback", detail);
+        setLive("warn", "Using last completed session", detail);
       });
 
       stream.onerror = () => {
         if (!isActive) return;
-        setLive("polling", "Polling fallback", "The live channel dropped. Using timed workspace polling until it recovers.");
+        setLive("polling", "Live sync paused", "The live channel dropped. Keeping the workspace updated with periodic checks.");
         stream?.close();
         stream = null;
       };

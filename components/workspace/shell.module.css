@@ -1156,24 +1156,24 @@
 }
 
 .chartPlot {
-  fill: rgba(5, 10, 18, 0.54);
-  stroke: rgba(255, 255, 255, 0.06);
+  fill: rgba(5, 10, 18, 0.72);
+  stroke: rgba(255, 255, 255, 0.05);
 }
 
 .chartGrid {
-  stroke: rgba(255, 255, 255, 0.105);
+  stroke: rgba(255, 255, 255, 0.08);
   stroke-width: 1;
 }
 
 .chartGridVertical {
-  stroke: rgba(255, 255, 255, 0.055);
+  stroke: rgba(255, 255, 255, 0.045);
   stroke-width: 1;
 }
 
 .chartReference {
-  stroke: rgba(248, 200, 111, 0.35);
+  stroke: rgba(255, 255, 255, 0.16);
   stroke-width: 1;
-  stroke-dasharray: 4 6;
+  stroke-dasharray: 4 5;
 }
 
 .chartArea {
@@ -1191,14 +1191,20 @@
 
 .chartBenchmark {
   fill: none;
-  stroke: rgba(168, 184, 202, 0.56);
+  stroke: rgba(168, 184, 202, 0.62);
   stroke-width: 2;
-  stroke-dasharray: 8 6;
+  stroke-dasharray: 6 5;
 }
 
 .chartPoint {
   fill: rgba(248, 200, 111, 0.95);
   stroke: rgba(6, 12, 22, 0.95);
+  stroke-width: 2;
+}
+
+.chartHaloPoint {
+  fill: none;
+  stroke: rgba(248, 200, 111, 0.26);
   stroke-width: 2;
 }
 
@@ -1211,6 +1217,18 @@
 .chartLatestLabel {
   fill: rgba(248, 200, 111, 0.9);
   font-weight: 700;
+}
+
+.chartEndTag,
+.chartBenchmarkTag {
+  fill: rgba(7, 13, 24, 0.94);
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.chartBenchmarkLabel {
+  fill: rgba(201, 212, 226, 0.88);
+  font-size: 0.67rem;
+  font-weight: 600;
 }
 
 .chartLegend {
@@ -1275,6 +1293,74 @@
 
 .returnDistributionShell h3 {
   margin: 0;
+}
+
+.returnBreakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.returnColumn {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.returnColumnHead {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.returnColumnHead strong {
+  font-size: 0.98rem;
+}
+
+.returnColumnHead small {
+  color: var(--muted);
+}
+
+.returnList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.returnRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.9rem 0.95rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.returnRow > div {
+  display: grid;
+  gap: 0.14rem;
+  min-width: 0;
+}
+
+.returnRow strong,
+.returnRow small {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.returnRow > div:last-child {
+  text-align: right;
+}
+
+.returnRow > div:last-child strong {
+  font-size: 1rem;
+}
+
+.returnRow > div:last-child strong:not([data-tone]) {
+  color: var(--text);
+}
+
+.returnRow small {
+  color: var(--muted);
 }
 
 .returnDistribution {
@@ -3050,6 +3136,7 @@
   .researchSignalGrid,
   .researchCoverageRail,
   .researchCoverageSummary,
+  .returnBreakdown,
   .researchProcessHero,
   .researchProcessRail,
   .researchTraceGrid,
@@ -3182,7 +3269,8 @@
   .alertRow,
   .legalNotice,
   .researchTickerRow,
-  .phantomActionBar {
+  .phantomActionBar,
+  .returnRow {
     grid-template-columns: 1fr;
   }
 
@@ -3235,6 +3323,10 @@
   .truthUtilityRail div,
   .truthDecisionRail article {
     padding-right: 0;
+  }
+
+  .returnRow > div:last-child {
+    text-align: left;
   }
 }
 
