@@ -31,6 +31,9 @@ node_modules/
 
 # local SDKs
 /flutter/
+/mobile/
+devserver.stdout.log
+devserver.stderr.log
 
 # local repo copies
 /clean-repo/
