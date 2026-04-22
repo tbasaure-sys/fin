@@ -1875,22 +1875,38 @@ function CompactActionPanel({ title, kicker, emptyLabel, items, renderItem }) {
   );
 }
 
-function WorkspaceCommandMap({ alertCount, holdingsCount, stagedCount, showChat, onOpenChat }) {
+function WorkspaceSidebar({
+  alertCount,
+  holdingsCount,
+  stagedCount,
+  showChat,
+  onOpenChat,
+  onOpenGlossary,
+  onOpenGuide,
+}) {
   return (
-    <section className={styles.commandMap} aria-label="Workspace command map">
-      <div className={styles.commandMapIntro}>
+    <section className={styles.workspaceSidebar} aria-label="Workspace navigation">
+      <div className={styles.workspaceSidebarTop}>
         <p className={styles.kicker}>Operating path</p>
-        <h2>Plan the cash, read the hidden structure, then act only on moves that stay legitimate.</h2>
+        <h2>Move through the workspace with a clearer rhythm.</h2>
+        <p className={styles.supportText}>
+          Start with the monthly plan, review the portfolio, check overlap, and then act with
+          research close at hand.
+        </p>
       </div>
-      <nav className={styles.commandRail} aria-label="Workspace sections">
+
+      <nav className={styles.workspaceSidebarNav} aria-label="Workspace sections">
         {WORKSPACE_NAV.map((item) => (
-          <a className={styles.commandRailLink} href={item.href} key={item.href}>
-            <span>{item.label}</span>
-            <small>{item.detail}</small>
+          <a className={styles.workspaceSidebarLink} href={item.href} key={item.href}>
+            <div>
+              <span>{item.label}</span>
+              <small>{item.detail}</small>
+            </div>
           </a>
         ))}
       </nav>
-      <div className={styles.commandMapPulse}>
+
+      <div className={styles.workspaceSidebarStats}>
         <div>
           <span>{alertCount}</span>
           <small>alerts</small>
@@ -1903,9 +1919,22 @@ function WorkspaceCommandMap({ alertCount, holdingsCount, stagedCount, showChat,
           <span>{stagedCount}</span>
           <small>staged</small>
         </div>
-        <button className={styles.commandMapAsk} data-active={showChat} onClick={onOpenChat} type="button">
+      </div>
+
+      <div className={styles.workspaceSidebarActions}>
+        <button className={styles.chatTrigger} data-active={showChat} onClick={onOpenChat} type="button">
           Ask workspace
         </button>
+        <button className={styles.glossaryTrigger} onClick={onOpenGlossary} type="button">
+          Glossary
+        </button>
+        <button className={styles.welcomeTrigger} onClick={onOpenGuide} type="button">
+          Getting started
+        </button>
+        <div className={styles.workspaceSidebarLinks}>
+          <Link className={styles.secondaryLink} href="/terms">Terms</Link>
+          <Link className={styles.secondaryLink} href="/">Home</Link>
+        </div>
       </div>
     </section>
   );
@@ -2697,33 +2726,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
               {pendingKey === "refresh" ? "Refreshing..." : "Refresh"}
             </button>
-            <button
-              className={styles.chatTrigger}
-              data-active={showChat}
-              onClick={() => setShowChat((v) => !v)}
-              title="Ask your portfolio a question"
-              type="button"
-            >
-              Ask your portfolio
-            </button>
-            <button
-              className={styles.glossaryTrigger}
-              onClick={() => setShowGlossary((v) => !v)}
-              title="Open plain-English glossary"
-              type="button"
-            >
-              Glossary
-            </button>
-            <button
-              className={styles.welcomeTrigger}
-              onClick={() => setShowWelcomeGuide((v) => !v)}
-              title="Show getting started guide"
-              type="button"
-            >
-              Getting started
-            </button>
-            <Link className={styles.secondaryLink} href="/terms">Terms</Link>
-            <Link className={styles.secondaryLink} href="/">Home</Link>
             <form action="/api/auth/logout" method="post">
               <button className={styles.textButton} type="submit">Sign out</button>
             </form>
@@ -2876,14 +2878,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
       <ComplianceNotice />
 
-      <WorkspaceCommandMap
-        alertCount={alerts.length}
-        holdingsCount={safeList(portfolioModule?.holdings).length}
-        onOpenChat={() => setShowChat(true)}
-        showChat={showChat}
-        stagedCount={escrowItems.length}
-      />
-
       <div className={styles.layout}>
         <section className={styles.mainColumn}>
           <div id="cashflow" className={styles.sectionAnchor}>
@@ -2932,6 +2926,16 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </section>
 
         <aside className={styles.sideColumn}>
+          <WorkspaceSidebar
+            alertCount={alerts.length}
+            holdingsCount={safeList(portfolioModule?.holdings).length}
+            onOpenChat={() => setShowChat(true)}
+            onOpenGlossary={() => setShowGlossary(true)}
+            onOpenGuide={() => setShowWelcomeGuide(true)}
+            showChat={showChat}
+            stagedCount={escrowItems.length}
+          />
+
           {escrowItems.length ? (
             <CompactActionPanel
               emptyLabel=""
