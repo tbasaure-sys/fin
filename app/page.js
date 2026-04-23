@@ -22,8 +22,8 @@ export default async function HomePage() {
         </Link>
 
         <div className={styles.navLinks} aria-label="Primary">
-          <a href="#workspace">Workspace</a>
-          <a href="#layers">Layers</a>
+          <a href="#workspace">Platform</a>
+          <a href="#workflow">Workflow</a>
           <a href="#cta">Start</a>
         </div>
 
@@ -54,11 +54,11 @@ export default async function HomePage() {
 
       <section className={styles.hero}>
         <div className={styles.heroIntro}>
-          <p className={styles.eyebrow}>Personal finance. Portfolio clarity. Research.</p>
-          <h1 className={styles.headline}>One workspace for your finances, portfolio, and research.</h1>
+          <p className={styles.eyebrow}>Personal finance, portfolio clarity, and research</p>
+          <h1 className={styles.headline}>A calmer way to manage cash and investments.</h1>
           <p className={styles.subheadline}>
-            Ask about monthly cashflow, review the portfolio, read a company, and keep everything in
-            the same calm decision workspace.
+            Follow monthly cashflow, understand what is really driving the portfolio, and keep
+            research close to the decision it is meant to support.
           </p>
 
           <div className={styles.heroActions}>
@@ -66,7 +66,7 @@ export default async function HomePage() {
               {primaryLabel}
             </Link>
             <a className={styles.btnGhost} href="#workspace">
-              See the platform
+              View the platform
             </a>
           </div>
         </div>
@@ -76,13 +76,13 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className={styles.section} id="layers">
+      <section className={styles.section} id="workflow">
         <div className={styles.sectionIntro}>
-          <p className={styles.sectionTag}>One question, layered answers</p>
-          <h2 className={styles.sectionTitle}>Start with the answer, then open the layers that matter.</h2>
+          <p className={styles.sectionTag}>One operating model</p>
+          <h2 className={styles.sectionTitle}>Cashflow, portfolio, and research should inform the same decision.</h2>
           <p className={styles.sectionBody}>
-            BLS Prime keeps the current read simple first, then lets you open the money plan, the
-            portfolio structure, the company brief, and the supporting references without losing the thread.
+            The monthly plan funds the portfolio. The portfolio shapes the research. The research
+            returns to a cleaner action. BLS Prime keeps that loop in one place.
           </p>
         </div>
 
@@ -91,18 +91,17 @@ export default async function HomePage() {
 
       <section className={styles.finalBand} id="cta">
         <p className={styles.sectionTag}>BLS Prime</p>
-        <h2 className={styles.finalTitle}>A calmer way to manage personal finance and investing together.</h2>
+        <h2 className={styles.finalTitle}>Keep the full picture in one workspace.</h2>
         <p className={styles.finalBody}>
-          Follow the cash, understand the portfolio, and keep research close to the decision it is
-          supposed to support.
+          A cleaner daily rhythm for saving, investing, and studying what you own.
         </p>
 
         <div className={styles.heroActions}>
           <Link className={styles.btnPrimary} href={primaryHref}>
             {primaryLabel}
           </Link>
-          <a className={styles.btnGhost} href="#layers">
-            Explore the layers
+          <a className={styles.btnGhost} href="#workflow">
+            See the workflow
           </a>
         </div>
       </section>

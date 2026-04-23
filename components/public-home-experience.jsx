@@ -1,57 +1,56 @@
 import styles from "@/app/home-page.module.css";
 
-const SUGGESTIONS = [
-  "How much is available to invest this month?",
-  "Where is overlap highest right now?",
-  "Summarize NVDA in one brief.",
-  "What should change before adding risk?",
+const WORKSPACE_ITEMS = [
+  "Today",
+  "Money plan",
+  "Portfolio",
+  "Research",
+  "Holdings",
+];
+
+const TABS = ["Overview", "Portfolio", "Research"];
+
+const LEAD_STATS = [
+  { label: "Monthly room", value: "$5.4K" },
+  { label: "Real diversification", value: "48" },
+  { label: "Top contributor", value: "NVDA" },
+];
+
+const REFERENCES = [
+  { title: "Monthly plan", detail: "Income, fixed costs, variable spending, reserve." },
+  { title: "Portfolio data", detail: "Current weights, cost basis, performance snapshots." },
+  { title: "Research memory", detail: "Filings, earnings notes, and company briefs." },
+];
+
+const POSITION_ROWS = [
+  { ticker: "SGOV", type: "Cash sleeve", weight: "7.6%" },
+  { ticker: "TLT", type: "Rates", weight: "7.1%" },
+  { ticker: "UNH", type: "Healthcare", weight: "6.1%" },
+  { ticker: "NVDA", type: "AI and growth", weight: "5.4%" },
 ];
 
 const SUPPORT_ITEMS = [
   {
-    title: "Money plan",
-    body: "Monthly income, fixed costs, variable spending, and available-to-invest all stay in the same view.",
+    title: "Money plan first",
+    body: "See what is truly available to invest after income, fixed costs, variable spending, and reserve.",
   },
   {
-    title: "Portfolio read",
-    body: "The portfolio summary starts simple, then opens into structure, overlap, and the names carrying the book.",
+    title: "Portfolio with context",
+    body: "Read performance, hidden overlap, and top contributors in the same operating view.",
   },
   {
-    title: "Research brief",
-    body: "Company work reads like a concise answer first, with references and details one layer below.",
+    title: "Research that stays close",
+    body: "Open the current company brief without losing the portfolio and cashflow context around it.",
   },
 ];
 
-const MONEY_METRICS = [
-  { label: "Monthly income", value: "$14.8K" },
-  { label: "Fixed costs", value: "$4.2K" },
-  { label: "Variable spending", value: "$2.1K" },
-  { label: "Available to invest", value: "$5.4K" },
-];
-
-const PORTFOLIO_SERIES = [100, 101, 103, 102, 105, 107, 109, 108, 111, 114, 113, 116];
-
-const EXPOSURE_SEGMENTS = [
-  { label: "AI and growth", value: 38, color: "#d6aa4b" },
-  { label: "Rate sensitivity", value: 22, color: "#4e79ff" },
-  { label: "Consumer beta", value: 16, color: "#4bc1ae" },
-  { label: "Healthcare", value: 11, color: "#7b8798" },
-  { label: "True ballast", value: 13, color: "#96a5ba" },
-];
-
-const RESEARCH_TAGS = ["Revenue growth", "Valuation", "Portfolio fit", "Sources attached"];
-
-const REFERENCES = [
-  { title: "Portfolio data", detail: "Current holdings and weights" },
-  { title: "Monthly plan", detail: "Income, bills, and investable cash" },
-  { title: "Company sources", detail: "Filings, earnings, and research notes" },
-  { title: "Decision memory", detail: "What changed and why" },
-];
+const PORTFOLIO_SERIES = [100, 101, 103, 102, 104, 106, 108, 107, 109, 111, 112, 114];
 
 function buildLinePath(values, width, height, padding) {
   const min = Math.min(...values);
   const max = Math.max(...values);
   const safeRange = max - min || 1;
+
   return values
     .map((value, index) => {
       const x = padding.left + (((width - padding.left - padding.right) / (values.length - 1)) * index);
@@ -69,204 +68,85 @@ function buildAreaPath(values, width, height, padding) {
   return `${line} L ${lastX.toFixed(1)} ${baseY.toFixed(1)} L ${firstX.toFixed(1)} ${baseY.toFixed(1)} Z`;
 }
 
-function buildTickLines(center, radius, count) {
-  return Array.from({ length: count }, (_, index) => {
-    const angle = ((Math.PI * 2) / count) * index - (Math.PI / 2);
-    return {
-      x1: center + Math.cos(angle) * (radius + 7),
-      y1: center + Math.sin(angle) * (radius + 7),
-      x2: center + Math.cos(angle) * (radius + 13),
-      y2: center + Math.sin(angle) * (radius + 13),
-    };
-  });
-}
-
-function ExposureRing() {
-  const size = 196;
-  const center = size / 2;
-  const radius = 62;
-  const strokeWidth = 16;
-  const circumference = 2 * Math.PI * radius;
-  const ticks = buildTickLines(center, radius, 24);
-  const total = EXPOSURE_SEGMENTS.reduce((sum, item) => sum + item.value, 0) || 1;
-  let consumed = 0;
-
-  const arcs = EXPOSURE_SEGMENTS.map((item) => {
-    const arcLength = circumference * (item.value / total);
-    const dash = Math.max(arcLength - 5, 0);
-    const current = {
-      ...item,
-      dash,
-      offset: consumed,
-    };
-    consumed += arcLength;
-    return current;
-  });
-
-  return (
-    <div className={styles.previewRingBlock}>
-      <svg aria-label="Underlying exposure" className={styles.previewRingSvg} viewBox={`0 0 ${size} ${size}`} role="img">
-        <g className={styles.previewRingTicks}>
-          {ticks.map((tick, index) => (
-            <line key={`tick-${index}`} x1={tick.x1} x2={tick.x2} y1={tick.y1} y2={tick.y2} />
-          ))}
-        </g>
-        <circle className={styles.previewRingTrack} cx={center} cy={center} r={radius} strokeWidth={strokeWidth} />
-        <g transform={`rotate(-90 ${center} ${center})`}>
-          {arcs.map((item) => (
-            <circle
-              key={item.label}
-              className={styles.previewRingArc}
-              cx={center}
-              cy={center}
-              r={radius}
-              stroke={item.color}
-              strokeDasharray={`${item.dash} ${circumference}`}
-              strokeDashoffset={-item.offset}
-              strokeWidth={strokeWidth}
-            />
-          ))}
-        </g>
-        <circle className={styles.previewRingInner} cx={center} cy={center} r="41" />
-        <text className={styles.previewRingScore} x={center} y={center - 2}>
-          48
-        </text>
-        <text className={styles.previewRingLabel} x={center} y={center + 18}>
-          Real score
-        </text>
-      </svg>
-
-      <div className={styles.previewRingLegend}>
-        {EXPOSURE_SEGMENTS.map((item) => (
-          <div className={styles.previewLegendRow} key={item.label}>
-            <div>
-              <i style={{ background: item.color }} />
-              <span>{item.label}</span>
-            </div>
-            <strong>{item.value}%</strong>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function WorkspacePreview({ brand }) {
-  const padding = { left: 18, right: 10, top: 16, bottom: 18 };
-  const linePath = buildLinePath(PORTFOLIO_SERIES, 310, 146, padding);
-  const areaPath = buildAreaPath(PORTFOLIO_SERIES, 310, 146, padding);
+  const padding = { left: 18, right: 12, top: 16, bottom: 22 };
+  const linePath = buildLinePath(PORTFOLIO_SERIES, 420, 180, padding);
+  const areaPath = buildAreaPath(PORTFOLIO_SERIES, 420, 180, padding);
 
   return (
     <div className={styles.previewShell}>
       <aside className={styles.previewSidebar}>
-        <div className={styles.previewSidebarBrand}>{brand}</div>
-        <div className={styles.previewSidebarNav}>
-          <span className={styles.previewSidebarItem} data-active="true">Home</span>
-          <span className={styles.previewSidebarItem}>Money plan</span>
-          <span className={styles.previewSidebarItem}>Portfolio</span>
-          <span className={styles.previewSidebarItem}>Research</span>
-          <span className={styles.previewSidebarItem}>Decisions</span>
-          <span className={styles.previewSidebarItem}>Settings</span>
+        <div>
+          <div className={styles.previewSidebarBrand}>{brand}</div>
+          <div className={styles.previewSidebarHint}>Decision workspace</div>
+        </div>
+
+        <nav className={styles.previewSidebarNav} aria-label="Workspace navigation">
+          {WORKSPACE_ITEMS.map((item, index) => (
+            <span
+              className={styles.previewSidebarItem}
+              data-active={index === 0}
+              key={item}
+            >
+              {item}
+            </span>
+          ))}
+        </nav>
+
+        <div className={styles.previewSidebarMeta}>
+          <span>Monthly plan connected</span>
+          <span>Connected holdings</span>
+          <span>Research memory active</span>
         </div>
       </aside>
 
       <div className={styles.previewMain}>
-        <div className={styles.previewContextRow}>
+        <div className={styles.previewTopRow}>
           <div>
-            <span className={styles.previewContextLabel}>BLS Prime workspace</span>
-            <strong>Current state: live and ready</strong>
+            <span className={styles.previewSectionLabel}>BLS Prime workspace</span>
+            <strong>Current answer and the operating layers behind it</strong>
           </div>
-          <div className={styles.previewContextPills}>
-            <span>Cashflow connected</span>
-            <span>Portfolio loaded</span>
-            <span>Research active</span>
+
+          <div className={styles.previewTopMeta}>
+            <span>Apr 22</span>
+            <span>Current session</span>
           </div>
         </div>
 
-        <button className={styles.previewComposer} type="button">
-          Ask about cashflow, portfolio, or a company
-        </button>
+        <div className={styles.previewToolbar}>
+          <div className={styles.previewTabs}>
+            {TABS.map((item, index) => (
+              <span className={styles.previewTab} data-active={index === 0} key={item}>
+                {item}
+              </span>
+            ))}
+          </div>
 
-        <div className={styles.previewSuggestions}>
-          {SUGGESTIONS.map((item) => (
-            <button className={styles.previewSuggestion} key={item} type="button">
-              {item}
-            </button>
-          ))}
+          <div className={styles.previewSearch}>Ask about cashflow, the portfolio, or a company</div>
         </div>
 
-        <div className={styles.previewAnswerGrid}>
-          <div className={styles.previewAnswerColumn}>
-            <section className={styles.previewAnswerCard}>
-              <p className={styles.previewAnswerTag}>Current answer</p>
-              <h3>There is room to invest this month, but overlap is still the main portfolio constraint.</h3>
-              <p>
-                The monthly plan supports new capital, yet the portfolio is still leaning on the same
-                growth and rate-sensitive structure. The next move should improve fit before it adds size.
-              </p>
-              <div className={styles.previewAnswerActions}>
-                <span>Review monthly plan</span>
-                <span>Check overlap</span>
-                <span>Open current brief</span>
-              </div>
-            </section>
+        <div className={styles.previewHeroGrid}>
+          <section className={styles.previewLeadPanel}>
+            <p className={styles.previewModuleTag}>Current answer</p>
+            <h3>New capital is available this month, but portfolio fit should improve first.</h3>
+            <p>
+              Cashflow is funding fresh capital, while overlap in growth and rate-sensitive exposures
+              still deserves attention before adding size.
+            </p>
 
-            <div className={styles.previewModuleGrid}>
-              <article className={styles.previewModuleCard}>
-                <p className={styles.previewModuleTag}>Money plan</p>
-                <h4>Monthly room to invest</h4>
-                <div className={styles.previewMetricList}>
-                  {MONEY_METRICS.map((item) => (
-                    <div className={styles.previewMetricRow} key={item.label}>
-                      <span>{item.label}</span>
-                      <strong>{item.value}</strong>
-                    </div>
-                  ))}
+            <div className={styles.previewLeadStats}>
+              {LEAD_STATS.map((item) => (
+                <div className={styles.previewLeadStat} key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
                 </div>
-              </article>
-
-              <article className={styles.previewModuleCard}>
-                <p className={styles.previewModuleTag}>Portfolio structure</p>
-                <h4>Current portfolio read</h4>
-                <div className={styles.previewChartWrap}>
-                  <svg className={styles.previewChart} viewBox="0 0 310 146" role="img" aria-label="Portfolio chart">
-                    <defs>
-                      <linearGradient id="previewArea" x1="0%" x2="0%" y1="0%" y2="100%">
-                        <stop offset="0%" stopColor="rgba(214, 170, 75, 0.22)" />
-                        <stop offset="100%" stopColor="rgba(214, 170, 75, 0)" />
-                      </linearGradient>
-                    </defs>
-                    {[34, 66, 98, 130].map((y) => (
-                      <line className={styles.previewChartGrid} key={y} x1="18" x2="300" y1={y} y2={y} />
-                    ))}
-                    <path className={styles.previewChartArea} d={areaPath} />
-                    <path className={styles.previewChartLine} d={linePath} />
-                  </svg>
-                </div>
-                <ExposureRing />
-              </article>
-
-              <article className={styles.previewModuleCard}>
-                <p className={styles.previewModuleTag}>Research brief</p>
-                <h4>NVDA remains compelling, but fit matters more than excitement.</h4>
-                <p className={styles.previewResearchBody}>
-                  Demand is still strong, yet the position should be judged against the portfolio's
-                  existing AI and growth exposure before adding more size.
-                </p>
-                <div className={styles.previewTagRow}>
-                  {RESEARCH_TAGS.map((item) => (
-                    <span className={styles.previewTag} key={item}>
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </article>
+              ))}
             </div>
-          </div>
+          </section>
 
-          <aside className={styles.previewSourcesCard}>
+          <aside className={styles.previewReferencePanel}>
             <p className={styles.previewModuleTag}>References</p>
-            <h4>What the answer is drawing from</h4>
+            <h3>What the workspace is drawing from</h3>
             <div className={styles.previewReferenceList}>
               {REFERENCES.map((item) => (
                 <article className={styles.previewReferenceRow} key={item.title}>
@@ -277,6 +157,51 @@ export function WorkspacePreview({ brand }) {
             </div>
           </aside>
         </div>
+
+        <div className={styles.previewDetailGrid}>
+          <section className={styles.previewChartPanel}>
+            <p className={styles.previewModuleTag}>Portfolio path</p>
+            <h3>Performance stays readable next to the decision.</h3>
+            <div className={styles.previewChartWrap}>
+              <svg className={styles.previewChart} viewBox="0 0 420 180" role="img" aria-label="Portfolio chart">
+                {[34, 74, 114, 154].map((y) => (
+                  <line className={styles.previewChartGrid} key={y} x1="18" x2="408" y1={y} y2={y} />
+                ))}
+                <path className={styles.previewChartArea} d={areaPath} />
+                <path className={styles.previewChartLine} d={linePath} />
+              </svg>
+            </div>
+            <div className={styles.previewChartMeta}>
+              <span>Portfolio +8.4%</span>
+              <span>Since tracking began</span>
+            </div>
+          </section>
+
+          <section className={styles.previewTablePanel}>
+            <p className={styles.previewModuleTag}>Top positions</p>
+            <h3>Largest weights in the current book.</h3>
+            <div className={styles.previewTable}>
+              {POSITION_ROWS.map((item) => (
+                <div className={styles.previewTableRow} key={item.ticker}>
+                  <div>
+                    <strong>{item.ticker}</strong>
+                    <span>{item.type}</span>
+                  </div>
+                  <strong>{item.weight}</strong>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.previewResearchPanel}>
+            <p className={styles.previewModuleTag}>Research brief</p>
+            <h3>Company work should read like a clear answer, not a stack of disconnected notes.</h3>
+            <p>
+              Each brief starts concise, keeps the main conclusion visible, and lets the supporting
+              sources sit one layer below instead of flooding the screen.
+            </p>
+          </section>
+        </div>
       </div>
     </div>
   );
@@ -285,8 +210,9 @@ export function WorkspacePreview({ brand }) {
 export function SupportStrip() {
   return (
     <div className={styles.supportStrip}>
-      {SUPPORT_ITEMS.map((item) => (
+      {SUPPORT_ITEMS.map((item, index) => (
         <article className={styles.supportItem} key={item.title}>
+          <span>{String(index + 1).padStart(2, "0")}</span>
           <strong>{item.title}</strong>
           <p>{item.body}</p>
         </article>

@@ -28,12 +28,54 @@ import EquityResearchPanel from "@/components/equity-research-panel";
 const RAW_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
 const DEFAULT_APP_NAME = /allocator workspace/i.test(RAW_APP_NAME) ? "BLS Prime" : RAW_APP_NAME;
 const WORKSPACE_NAV = [
-  { href: "#cashflow", label: "Money plan", detail: "Income, bills, investable" },
-  { href: "#today", label: "Decision", detail: "Reality gap and move" },
-  { href: "#portfolio", label: "Portfolio", detail: "Path and carriers" },
-  { href: "#diversification", label: "Overlap", detail: "Stress-tested breadth" },
-  { href: "#research", label: "Research", detail: "Multi-agent memo" },
-  { href: "#holdings", label: "Holdings", detail: "Direct position edits" },
+  {
+    id: "today",
+    href: "#today",
+    label: "Today",
+    detail: "Brief and action",
+    title: "Current brief and immediate move",
+    body: "Start with the live read, the supporting notes, and the move that currently deserves attention.",
+  },
+  {
+    id: "cashflow",
+    href: "#cashflow",
+    label: "Money plan",
+    detail: "Income and investable cash",
+    title: "Monthly cashflow and investable room",
+    body: "Keep income, fixed costs, variable spending, and the funded contribution in one operating view.",
+  },
+  {
+    id: "portfolio",
+    href: "#portfolio",
+    label: "Portfolio",
+    detail: "Path and carriers",
+    title: "Performance, weight, and what is carrying the book",
+    body: "Read the portfolio through performance, position weight, and the names doing the real work.",
+  },
+  {
+    id: "diversification",
+    href: "#diversification",
+    label: "Overlap",
+    detail: "Structural breadth",
+    title: "Real breadth and overlap under stress",
+    body: "Check whether the portfolio still has independent bets once hidden concentration is included.",
+  },
+  {
+    id: "research",
+    href: "#research",
+    label: "Research",
+    detail: "Company brief",
+    title: "Company work in a concise research brief",
+    body: "Open the current memo, the valuation debate, and the sources without leaving the workspace.",
+  },
+  {
+    id: "holdings",
+    href: "#holdings",
+    label: "Holdings",
+    detail: "Positions and edits",
+    title: "Direct position updates and stored holdings",
+    body: "Review what is connected, add positions, and save sizing changes in the same operating surface.",
+  },
 ];
 
 function ToneBadge({ tone = "neutral", children }) {
@@ -1876,49 +1918,46 @@ function CompactActionPanel({ title, kicker, emptyLabel, items, renderItem }) {
 }
 
 function WorkspaceSidebar({
+  activeSection,
   alertCount,
   holdingsCount,
+  onSelectSection,
   stagedCount,
   showChat,
   onOpenChat,
   onOpenGlossary,
   onOpenGuide,
+  workspaceName,
 }) {
   return (
     <section className={styles.workspaceSidebar} aria-label="Workspace navigation">
       <div className={styles.workspaceSidebarTop}>
-        <p className={styles.kicker}>Operating path</p>
-        <h2>Move through the workspace with a clearer rhythm.</h2>
-        <p className={styles.supportText}>
-          Start with the monthly plan, review the portfolio, check overlap, and then act with
-          research close at hand.
-        </p>
+        <p className={styles.kicker}>Workspace</p>
+        <h2>{workspaceName}</h2>
+        <p className={styles.supportText}>Open one layer at a time and keep the current decision in view.</p>
       </div>
 
       <nav className={styles.workspaceSidebarNav} aria-label="Workspace sections">
         {WORKSPACE_NAV.map((item) => (
-          <a className={styles.workspaceSidebarLink} href={item.href} key={item.href}>
+          <button
+            className={styles.workspaceSidebarLink}
+            data-active={activeSection === item.id}
+            key={item.id}
+            onClick={() => onSelectSection(item.id)}
+            type="button"
+          >
             <div>
               <span>{item.label}</span>
               <small>{item.detail}</small>
             </div>
-          </a>
+          </button>
         ))}
       </nav>
 
-      <div className={styles.workspaceSidebarStats}>
-        <div>
-          <span>{alertCount}</span>
-          <small>alerts</small>
-        </div>
-        <div>
-          <span>{holdingsCount}</span>
-          <small>holdings</small>
-        </div>
-        <div>
-          <span>{stagedCount}</span>
-          <small>staged</small>
-        </div>
+      <div className={styles.workspaceSidebarMeta}>
+        <span>{alertCount} active alert{alertCount === 1 ? "" : "s"}</span>
+        <span>{holdingsCount} connected holding{holdingsCount === 1 ? "" : "s"}</span>
+        <span>{stagedCount} staged action{stagedCount === 1 ? "" : "s"}</span>
       </div>
 
       <div className={styles.workspaceSidebarActions}>
@@ -2087,6 +2126,7 @@ function TruthInterfacePanel({
   blockedAction,
   dashboard,
   ledgerItems,
+  onSelectSection,
   personalFinance,
   portfolioModule,
   primaryAction,
@@ -2148,7 +2188,6 @@ function TruthInterfacePanel({
     "How much can I invest this month?",
     "Where is overlap highest right now?",
     "Summarize the current brief.",
-    "What should change before adding risk?",
   ];
   const briefNotes = safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3);
   const referenceItems = [
@@ -2183,8 +2222,9 @@ function TruthInterfacePanel({
       <div className={styles.answerWorkspace}>
         <div className={styles.answerWorkspaceHead}>
           <div>
-            <p className={styles.kicker}>Current workspace answer</p>
-            <h2>Start with the answer, then open the layers that matter.</h2>
+            <p className={styles.kicker}>Current answer</p>
+            <h2>{cleanWorkspaceCopy(activeAction?.title || stateSummary?.stance || "Current workspace read")}</h2>
+            <p className={styles.supportText}>Use the sidebar to open money plan, portfolio, research, or holdings one layer at a time.</p>
           </div>
           <div className={styles.answerWorkspaceMeta}>
             <ToneBadge tone={truthTone(parseDisplayPercent(balanceSheet?.optionalityReserve))}>
@@ -2213,7 +2253,7 @@ function TruthInterfacePanel({
           <div className={styles.answerMainColumn}>
             <article className={styles.answerCard}>
               <p className={styles.answerCardTag}>Executive answer</p>
-              <h3>{cleanWorkspaceCopy(activeAction?.title || stateSummary?.stance || "Stay patient")}</h3>
+              <h3>{cleanWorkspaceCopy(activeAction?.title || stateSummary?.decisionSummary || "Stay patient")}</h3>
               <p>
                 {cleanWorkspaceCopy(
                   activeAction?.summary
@@ -2228,30 +2268,34 @@ function TruthInterfacePanel({
                 <button className={styles.primaryButton} onClick={onToggleChat} type="button">
                   {showChat ? "Hide explanation" : "Open explanation"}
                 </button>
-                <a className={styles.secondaryLink} href="#today">Review decision</a>
-                <a className={styles.secondaryLink} href="#diversification">Check overlap</a>
+                <button className={styles.secondaryButton} onClick={() => onSelectSection("today")} type="button">
+                  Review decision
+                </button>
+                <button className={styles.secondaryButton} onClick={() => onSelectSection("diversification")} type="button">
+                  Check overlap
+                </button>
               </div>
             </article>
 
             <div className={styles.answerModuleGrid}>
               <article className={styles.answerModule}>
                 <p className={styles.kicker}>Money plan</p>
-                <h3>What is actually available to invest</h3>
+                <h3>Available to invest this month</h3>
                 <div className={styles.answerMetricList}>
                   <div>
                     <span>Investable cash</span>
                     <strong>{formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)}</strong>
-                    <small>Monthly room after burn and buffer.</small>
+                    <small>After expenses and reserve.</small>
                   </div>
                   <div>
                     <span>Target coverage</span>
                     <strong>{targetCoverage === null || targetCoverage === undefined ? "Set target" : formatOptionalRatio(targetCoverage, 0)}</strong>
-                    <small>How much of the planned contribution is truly funded.</small>
+                    <small>Share of the planned contribution that is funded.</small>
                   </div>
                   <div>
                     <span>Optionality reserve</span>
                     <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
-                    <small>{cleanWorkspaceCopy(balanceSheet?.spendRule || "Spend risk budget only when the live state reopens.")}</small>
+                    <small>{cleanWorkspaceCopy(balanceSheet?.spendRule || "Keep reserve for a cleaner setup.")}</small>
                   </div>
                 </div>
               </article>
@@ -2263,12 +2307,12 @@ function TruthInterfacePanel({
                   <div>
                     <span>Perceived diversification</span>
                     <strong>{formatScoreValue(visibleScore)}</strong>
-                    <small>{holdingsCount ? `${holdingsCount} connected holdings.` : "Connect holdings to estimate visible spread."}</small>
+                    <small>{holdingsCount ? `${holdingsCount} holdings connected.` : "Connect holdings to estimate visible spread."}</small>
                   </div>
                   <div>
                     <span>Real diversification</span>
                     <strong>{formatScoreValue(structuralScore)}</strong>
-                    <small>{cleanWorkspaceCopy(xray?.carryingNarrative || "The structural read folds overlap and fragility into the score.")}</small>
+                    <small>{cleanWorkspaceCopy(xray?.carryingNarrative || "Overlap and fragility are folded into the structural read.")}</small>
                   </div>
                   <div>
                     <span>Actual structural risk</span>
@@ -2295,7 +2339,7 @@ function TruthInterfacePanel({
 
               <article className={styles.answerModule}>
                 <p className={styles.kicker}>Current brief</p>
-                <h3>What the workspace is emphasizing now</h3>
+                <h3>What deserves attention now</h3>
                 {briefNotes.length ? (
                   <div className={styles.answerReferenceList}>
                     {briefNotes.map((item, index) => (
@@ -2408,9 +2452,9 @@ function ComplianceNotice() {
   return (
     <section className={styles.legalNotice}>
       <div>
-        <strong>Research tool, not financial advice.</strong>
+        <strong>For planning and research.</strong>
         <p>
-          The workspace organizes data, models, and AI-assisted analysis for your review. It does not provide personalized investment, tax, or legal advice.
+          This workspace helps organize cashflow, portfolio context, and research. It does not replace individualized investment, tax, or legal advice.
         </p>
       </div>
       <Link className={styles.secondaryLink} href="/terms">Terms</Link>
@@ -2431,6 +2475,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [showWelcomeGuide, setShowWelcomeGuide] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [activeWorkspaceSection, setActiveWorkspaceSection] = useState(WORKSPACE_NAV[0].id);
   const [portfolioRange, setPortfolioRange] = useState("1M");
   const [financeDraft, setFinanceDraft] = useState(() => financeDraftFromPlan(initialDashboard?.personal_finance));
   const [financeDraftDirty, setFinanceDraftDirty] = useState(false);
@@ -2460,10 +2505,206 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const escrowItems = safeList(dashboard?.escrow?.items).filter(isActiveEscrowItem).slice(0, 4);
   const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).filter(isSettledLedgerItem).slice(0, 4);
   const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 3);
-  const dataControl = dashboard?.data_control || {};
   const workspaceName = normalizeWorkspaceName(
     dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME,
   );
+  const holdingsCount = safeList(portfolioModule?.holdings).length;
+  const activeSectionConfig = WORKSPACE_NAV.find((item) => item.id === activeWorkspaceSection) || WORKSPACE_NAV[0];
+  const currentBriefPanel = (
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <p className={styles.kicker}>Current brief</p>
+          <h2>{cleanWorkspaceCopy(stateSummary?.stance || "Stay patient")}</h2>
+          <p className={styles.supportText}>The current posture in plain language, plus the evidence still supporting it.</p>
+        </div>
+      </div>
+      <p className={styles.lead}>
+        {cleanWorkspaceCopy(
+          stateSummary?.decisionSummary
+          || "The workspace will keep surfacing the clearest next action as live analysis refreshes.",
+        )}
+      </p>
+      <InlineList
+        emptyLabel="No evidence notes are available yet."
+        items={safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3)}
+      />
+    </section>
+  );
+
+  let activeWorkspacePanels = null;
+  switch (activeWorkspaceSection) {
+    case "cashflow":
+      activeWorkspacePanels = (
+        <PersonalFinancePanel
+          draft={financeDraft}
+          financePlan={personalFinance}
+          onChange={updateFinanceDraft}
+          onSubmit={submitFinanceDraft}
+          pending={pendingKey === "finance-plan"}
+        />
+      );
+      break;
+    case "portfolio":
+      activeWorkspacePanels = (
+        <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
+      );
+      break;
+    case "diversification":
+      activeWorkspacePanels = (
+        <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
+      );
+      break;
+    case "research":
+      activeWorkspacePanels = (
+        <>
+          <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
+          {secondaryActions.length ? (
+            <CompactActionPanel
+              emptyLabel=""
+              items={secondaryActions}
+              kicker="Research queue"
+              renderItem={(action) => (
+                <article className={styles.compactRow} key={action.id}>
+                  <div>
+                    <strong>{action.ticker || action.title}</strong>
+                    <p>{action.summary || action.slot || "Watch"}</p>
+                  </div>
+                  <ToneBadge tone={actionTone(action)}>{action.sizeLabel || formatSize(action)}</ToneBadge>
+                </article>
+              )}
+              title="Live opportunities"
+            />
+          ) : null}
+        </>
+      );
+      break;
+    case "holdings":
+      activeWorkspacePanels = (
+        <>
+          <HoldingsPanel
+            holdingDraft={holdingDraft}
+            onHoldingDraftChange={updateHoldingDraft}
+            onSubmitHoldingDraft={submitHoldingDraft}
+            onSubmitTrade={submitTradeInstruction}
+            onTradeInstructionChange={setTradeInstruction}
+            pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
+            portfolioModule={portfolioModule}
+            tradeError={tradeError}
+            tradeInstruction={tradeInstruction}
+          />
+          {escrowItems.length ? (
+            <CompactActionPanel
+              emptyLabel=""
+              items={escrowItems}
+              kicker="Staged"
+              renderItem={(item) => (
+                <article className={styles.compactRow} key={item.id}>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.summary || item.slot || "Ready when you are."}</p>
+                    <span>Expires {formatDate(item.expiresAt)}</span>
+                  </div>
+                  <div className={styles.compactActions}>
+                    <button
+                      className={styles.secondaryButton}
+                      disabled={pendingKey !== null}
+                      onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} executed.`)}
+                      type="button"
+                    >
+                      {pendingKey === `execute:${item.id}` ? "Executing..." : "Execute"}
+                    </button>
+                    <button
+                      className={styles.textButton}
+                      disabled={pendingKey !== null}
+                      onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelled.`)}
+                      type="button"
+                    >
+                      {pendingKey === `cancel:${item.id}` ? "Updating..." : "Cancel"}
+                    </button>
+                  </div>
+                </article>
+              )}
+              title={`${escrowItems.length} staged action${escrowItems.length === 1 ? "" : "s"}`}
+            />
+          ) : null}
+        </>
+      );
+      break;
+    case "today":
+    default:
+      activeWorkspacePanels = (
+        <>
+          <AlertsPanel alerts={alerts} />
+          <TodayDecisionPanel
+            blockedAction={blockedAction}
+            onDefer={(action) => recordDecision(action, "deferred")}
+            onReject={(action) => recordDecision(action, "rejected")}
+            onStage={stageAction}
+            pendingKey={pendingKey}
+            primaryAction={primaryAction}
+            stateSummary={stateSummary}
+          />
+          {escrowItems.length ? (
+            <CompactActionPanel
+              emptyLabel=""
+              items={escrowItems}
+              kicker="Staged"
+              renderItem={(item) => (
+                <article className={styles.compactRow} key={item.id}>
+                  <div>
+                    <strong>{item.title}</strong>
+                    <p>{item.summary || item.slot || "Ready when you are."}</p>
+                    <span>Expires {formatDate(item.expiresAt)}</span>
+                  </div>
+                  <div className={styles.compactActions}>
+                    <button
+                      className={styles.secondaryButton}
+                      disabled={pendingKey !== null}
+                      onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} executed.`)}
+                      type="button"
+                    >
+                      {pendingKey === `execute:${item.id}` ? "Executing..." : "Execute"}
+                    </button>
+                    <button
+                      className={styles.textButton}
+                      disabled={pendingKey !== null}
+                      onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelled.`)}
+                      type="button"
+                    >
+                      {pendingKey === `cancel:${item.id}` ? "Updating..." : "Cancel"}
+                    </button>
+                  </div>
+                </article>
+              )}
+              title={`${escrowItems.length} staged action${escrowItems.length === 1 ? "" : "s"}`}
+            />
+          ) : null}
+          {currentBriefPanel}
+          {ledgerItems.length ? (
+            <CompactActionPanel
+              emptyLabel=""
+              items={ledgerItems}
+              kicker="Activity"
+              renderItem={(item) => (
+                <article className={styles.compactRow} key={item.id || item.title}>
+                  <div>
+                    <strong>{item.title || "Decision event"}</strong>
+                    <p>{item.summary || item.note || "Outcome is still settling."}</p>
+                    <span>{formatDateTime(item.occurredAt)}</span>
+                  </div>
+                  <ToneBadge tone={responseTone(item.userResponse || item.response || "noted")}>
+                    {item.resultLabel || capitalize(item.userResponse || item.response, "Noted")}
+                  </ToneBadge>
+                </article>
+              )}
+              title="Recent outcomes"
+            />
+          ) : null}
+        </>
+      );
+      break;
+  }
 
   useEffect(() => {
     if (financeDraftDirty) return;
@@ -2875,6 +3116,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         blockedAction={blockedAction}
         dashboard={dashboard}
         ledgerItems={ledgerItems}
+        onSelectSection={setActiveWorkspaceSection}
         personalFinance={personalFinance}
         portfolioModule={portfolioModule}
         primaryAction={primaryAction}
@@ -2885,187 +3127,68 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
       <section className={styles.statusGrid}>
         <MetricTile
-          detail={dataControl.notes?.[0] || "Refresh rebuilds the analysis behind this workspace."}
-          label="Analysis source"
-          tone={statusTone(dashboard?.workspace_summary?.backend_status)}
-          value={dataControl.analysisSource || "Status unavailable"}
-        />
-        <MetricTile
-          detail={dataControl.notes?.[3] || "Private holdings overlay is not connected."}
-          label="Holdings source"
-          tone={portfolioModule?.analytics?.holdingsCount ? "good" : "warn"}
-          value={dataControl.holdingsSource?.label || "No private holdings source"}
-        />
-        <MetricTile
-          detail={dataControl.notes?.[1] || "Price tiles use the latest market date in the snapshot."}
-          label="Market date"
-          tone="neutral"
-          value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
-        />
-        <MetricTile
-          detail="Monthly income after expenses and buffer."
-          label="Investable cash"
+          detail="Monthly cash remaining after expenses and reserve."
+          label="Monthly room"
           tone={financeMetricTone(personalFinance)}
           value={formatMoney(personalFinance?.metrics?.monthlyInvestable, personalFinance?.inputs?.baseCurrency)}
         />
         <MetricTile
-          detail={connection.detail}
-          label="Connection"
-          tone={connection.status === "live" ? "good" : connection.status === "polling" || connection.status === "warn" ? "warn" : "neutral"}
-          value={connection.label}
+          detail={holdingsCount ? "Private holdings are connected to the current workspace." : "Add holdings to unlock the live portfolio read."}
+          label="Holdings connected"
+          tone={holdingsCount ? "good" : "warn"}
+          value={holdingsCount ? `${holdingsCount} name${holdingsCount === 1 ? "" : "s"}` : "Not connected"}
+        />
+        <MetricTile
+          detail="Latest market date currently loaded into the workspace."
+          label="Market snapshot"
+          tone="neutral"
+          value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
+        />
+        <MetricTile
+          detail={cleanWorkspaceCopy(stateSummary?.decisionSummary || connection.detail || "The workspace is ready for the next decision.")}
+          label="Current posture"
+          tone={statusTone(primaryAction?.status || connection.status || "neutral")}
+          value={cleanWorkspaceCopy(stateSummary?.stance || connection.label || "Live workspace")}
         />
       </section>
 
       <ComplianceNotice />
 
       <div className={styles.layout}>
-        <section className={styles.mainColumn}>
-          <div id="cashflow" className={styles.sectionAnchor}>
-            <PersonalFinancePanel
-              draft={financeDraft}
-              financePlan={personalFinance}
-              onChange={updateFinanceDraft}
-              onSubmit={submitFinanceDraft}
-              pending={pendingKey === "finance-plan"}
-            />
-          </div>
-          <div id="today" className={styles.sectionAnchor}>
-            <AlertsPanel alerts={alerts} />
-            <TodayDecisionPanel
-              blockedAction={blockedAction}
-              onDefer={(action) => recordDecision(action, "deferred")}
-              onReject={(action) => recordDecision(action, "rejected")}
-              onStage={stageAction}
-              pendingKey={pendingKey}
-              primaryAction={primaryAction}
-              stateSummary={stateSummary}
-            />
-          </div>
-          <div id="portfolio" className={styles.sectionAnchor}>
-            <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
-          </div>
-          <div id="diversification" className={styles.sectionAnchor}>
-            <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
-          </div>
-          <div id="research" className={styles.sectionAnchor}>
-            <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
-          </div>
-          <div id="holdings" className={styles.sectionAnchor}>
-            <HoldingsPanel
-              holdingDraft={holdingDraft}
-              onHoldingDraftChange={updateHoldingDraft}
-              onSubmitHoldingDraft={submitHoldingDraft}
-              onSubmitTrade={submitTradeInstruction}
-              onTradeInstructionChange={setTradeInstruction}
-              pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
-              portfolioModule={portfolioModule}
-              tradeError={tradeError}
-              tradeInstruction={tradeInstruction}
-            />
-          </div>
-        </section>
-
         <aside className={styles.sideColumn}>
           <WorkspaceSidebar
+            activeSection={activeWorkspaceSection}
             alertCount={alerts.length}
-            holdingsCount={safeList(portfolioModule?.holdings).length}
+            holdingsCount={holdingsCount}
             onOpenChat={() => setShowChat(true)}
             onOpenGlossary={() => setShowGlossary(true)}
             onOpenGuide={() => setShowWelcomeGuide(true)}
+            onSelectSection={setActiveWorkspaceSection}
             showChat={showChat}
             stagedCount={escrowItems.length}
+            workspaceName={workspaceName}
           />
-
-          {escrowItems.length ? (
-            <CompactActionPanel
-              emptyLabel=""
-              items={escrowItems}
-              kicker="Staged"
-              renderItem={(item) => (
-                <article className={styles.compactRow} key={item.id}>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.summary || item.slot || "Ready when you are."}</p>
-                    <span>Expires {formatDate(item.expiresAt)}</span>
-                  </div>
-                  <div className={styles.compactActions}>
-                    <button
-                      className={styles.secondaryButton}
-                      disabled={pendingKey !== null}
-                      onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} executed.`)}
-                      type="button"
-                    >
-                      {pendingKey === `execute:${item.id}` ? "Executing..." : "Execute"}
-                    </button>
-                    <button
-                      className={styles.textButton}
-                      disabled={pendingKey !== null}
-                      onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelled.`)}
-                      type="button"
-                    >
-                      {pendingKey === `cancel:${item.id}` ? "Updating..." : "Cancel"}
-                    </button>
-                  </div>
-                </article>
-              )}
-              title={`${escrowItems.length} staged action${escrowItems.length === 1 ? "" : "s"}`}
-            />
-          ) : null}
-
-          {secondaryActions.length ? (
-            <CompactActionPanel
-              emptyLabel=""
-              items={secondaryActions}
-              kicker="Research queue"
-              renderItem={(action) => (
-                <article className={styles.compactRow} key={action.id}>
-                  <div>
-                    <strong>{action.ticker || action.title}</strong>
-                    <p>{action.summary || action.slot || "Watch"}</p>
-                  </div>
-                  <ToneBadge tone={actionTone(action)}>{action.sizeLabel || formatSize(action)}</ToneBadge>
-                </article>
-              )}
-              title="Live opportunities"
-            />
-          ) : null}
-
-          {ledgerItems.length ? (
-            <CompactActionPanel
-              emptyLabel=""
-              items={ledgerItems}
-              kicker="Activity"
-              renderItem={(item) => (
-                <article className={styles.compactRow} key={item.id || item.title}>
-                  <div>
-                    <strong>{item.title || "Decision event"}</strong>
-                    <p>{item.summary || item.note || "Outcome is still settling."}</p>
-                    <span>{formatDateTime(item.occurredAt)}</span>
-                  </div>
-                  <ToneBadge tone={responseTone(item.userResponse || item.response || "noted")}>
-                    {item.resultLabel || capitalize(item.userResponse || item.response, "Noted")}
-                  </ToneBadge>
-                </article>
-              )}
-              title="Recent outcomes"
-            />
-          ) : null}
-
-          <section className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <p className={styles.kicker}>Current brief</p>
-                <h2>{cleanWorkspaceCopy(stateSummary?.stance || "Stay patient")}</h2>
-                <p className={styles.supportText}>The current posture in plain language, plus the evidence that still supports it.</p>
-              </div>
-            </div>
-            <p className={styles.lead}>{cleanWorkspaceCopy(stateSummary?.decisionSummary || "The workspace will keep surfacing the clearest next action as live analysis refreshes.")}</p>
-            <InlineList
-              emptyLabel="No evidence notes are available yet."
-              items={safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3)}
-            />
-          </section>
         </aside>
+
+        <section className={styles.mainColumn}>
+          <div className={styles.workspaceStageHeader}>
+            <div>
+              <p className={styles.kicker}>{activeSectionConfig.label}</p>
+              <h2>{activeSectionConfig.title}</h2>
+              <p className={styles.supportText}>{activeSectionConfig.body}</p>
+            </div>
+            <div className={styles.workspaceStageMeta}>
+              <ToneBadge tone="neutral">{activeSectionConfig.detail}</ToneBadge>
+              <ToneBadge tone={connection.status === "live" ? "good" : connection.status === "polling" || connection.status === "warn" ? "warn" : "neutral"}>
+                {connection.label}
+              </ToneBadge>
+            </div>
+          </div>
+
+          <div className={styles.sectionAnchor} id={activeSectionConfig.id}>
+            {activeWorkspacePanels}
+          </div>
+        </section>
       </div>
 
       {isPending ? <div className={styles.pendingNote}>Applying update...</div> : null}
