@@ -1,44 +1,11 @@
 import Link from "next/link";
 
-import {
-  ExposureComparison,
-  HeroDashboard,
-  ResearchSystem,
-} from "@/components/public-home-experience";
+import { SupportStrip, WorkspacePreview } from "@/components/public-home-experience";
 import styles from "@/app/home-page.module.css";
 import { getServerAuthSession } from "@/lib/server/auth/session";
 import { getServerConfig } from "@/lib/server/config";
 
 export const dynamic = "force-dynamic";
-
-const FEATURE_STRIP = [
-  {
-    title: "Personal finance",
-    detail: "Monthly cashflow, fixed costs, variable spending, and investable cash in one place.",
-  },
-  {
-    title: "Portfolio clarity",
-    detail: "See portfolio mix, underlying exposure, and concentration with cleaner context.",
-  },
-  {
-    title: "Research desk",
-    detail: "Turn company work into a living memo instead of scattered notes.",
-  },
-  {
-    title: "Decision support",
-    detail: "Keep the next move tied to what the portfolio can actually absorb.",
-  },
-  {
-    title: "Private by design",
-    detail: "A calm workspace for your own finances, portfolio, and research.",
-  },
-];
-
-const CLARITY_POINTS = [
-  "Compare portfolio mix and underlying exposure side by side.",
-  "Spot overlap before a small concentration becomes the whole story.",
-  "Connect each read to a decision that still makes sense in real life.",
-];
 
 export default async function HomePage() {
   const config = getServerConfig();
@@ -55,10 +22,9 @@ export default async function HomePage() {
         </Link>
 
         <div className={styles.navLinks} aria-label="Primary">
-          <a href="#product">Product</a>
-          <a href="#clarity">Portfolio clarity</a>
-          <a href="#research">Research</a>
-          <a href="#cta">About</a>
+          <a href="#workspace">Workspace</a>
+          <a href="#layers">Layers</a>
+          <a href="#cta">Start</a>
         </div>
 
         <div className={styles.navActions}>
@@ -87,77 +53,56 @@ export default async function HomePage() {
       </nav>
 
       <section className={styles.hero}>
-        <div className={styles.heroCopy}>
+        <div className={styles.heroIntro}>
           <p className={styles.eyebrow}>Personal finance. Portfolio clarity. Research.</p>
-          <h1 className={styles.headline}>Clarity for your money. Confidence for your portfolio.</h1>
+          <h1 className={styles.headline}>One workspace for your finances, portfolio, and research.</h1>
           <p className={styles.subheadline}>
-            {publicBrand} brings together monthly cashflow, portfolio oversight, and research in one
-            calm workspace, so each decision starts with context instead of clutter.
+            Ask about monthly cashflow, review the portfolio, read a company, and keep everything in
+            the same calm decision workspace.
           </p>
 
           <div className={styles.heroActions}>
             <Link className={styles.btnPrimary} href={primaryHref}>
               {primaryLabel}
             </Link>
-            <a className={styles.btnGhost} href="#product">
+            <a className={styles.btnGhost} href="#workspace">
               See the platform
             </a>
           </div>
         </div>
 
-        <div className={styles.heroVisual} id="product">
-          <HeroDashboard brand={publicBrand} />
+        <div className={styles.workspaceStage} id="workspace">
+          <WorkspacePreview brand={publicBrand} />
         </div>
       </section>
 
-      <section className={styles.featureStrip} aria-label="Core capabilities">
-        {FEATURE_STRIP.map((item) => (
-          <article className={styles.featureItem} key={item.title}>
-            <strong>{item.title}</strong>
-            <p>{item.detail}</p>
-          </article>
-        ))}
-      </section>
-
-      <section className={styles.section} id="clarity">
-        <div className={styles.sectionGrid}>
-          <div className={styles.editorialBlock}>
-            <p className={styles.sectionTag}>A clearer view of diversification</p>
-            <h2 className={styles.sectionTitle}>See portfolio mix and underlying exposure in the same frame.</h2>
-            <p className={styles.sectionBody}>
-              The goal is not to overwhelm with metrics. It is to make the portfolio easier to read,
-              easier to explain, and easier to improve.
-            </p>
-            <ul className={styles.bulletList}>
-              {CLARITY_POINTS.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-
-          <ExposureComparison />
+      <section className={styles.section} id="layers">
+        <div className={styles.sectionIntro}>
+          <p className={styles.sectionTag}>One question, layered answers</p>
+          <h2 className={styles.sectionTitle}>Start with the answer, then open the layers that matter.</h2>
+          <p className={styles.sectionBody}>
+            BLS Prime keeps the current read simple first, then lets you open the money plan, the
+            portfolio structure, the company brief, and the supporting references without losing the thread.
+          </p>
         </div>
-      </section>
 
-      <section className={styles.section} id="research">
-        <ResearchSystem />
+        <SupportStrip />
       </section>
 
       <section className={styles.finalBand} id="cta">
         <p className={styles.sectionTag}>BLS Prime</p>
-        <h2 className={styles.finalBandTitle}>
-          Bring your finances and investing into one calm, intelligent workspace.
-        </h2>
-        <p className={styles.finalBandBody}>
+        <h2 className={styles.finalTitle}>A calmer way to manage personal finance and investing together.</h2>
+        <p className={styles.finalBody}>
           Follow the cash, understand the portfolio, and keep research close to the decision it is
-          meant to support.
+          supposed to support.
         </p>
+
         <div className={styles.heroActions}>
           <Link className={styles.btnPrimary} href={primaryHref}>
             {primaryLabel}
           </Link>
-          <a className={styles.btnGhost} href="#clarity">
-            Explore portfolio clarity
+          <a className={styles.btnGhost} href="#layers">
+            Explore the layers
           </a>
         </div>
       </section>

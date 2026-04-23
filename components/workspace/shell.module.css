@@ -283,6 +283,238 @@
   overflow: hidden;
 }
 
+.answerWorkspace,
+.answerMainColumn,
+.answerSourcesCard,
+.answerModuleGrid,
+.answerMetricList,
+.answerReferenceList,
+.answerWorkspaceMeta,
+.answerSuggestions,
+.answerCardActions,
+.answerMicroMeta,
+.answerTrackGroup {
+  display: grid;
+}
+
+.answerWorkspace {
+  gap: 1rem;
+}
+
+.answerWorkspaceHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.answerWorkspaceHead h2 {
+  margin: 0;
+  max-width: 14ch;
+  font-size: clamp(1.7rem, 3vw, 2.7rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+}
+
+.answerWorkspaceMeta {
+  grid-auto-flow: column;
+  gap: 0.6rem;
+  align-items: start;
+}
+
+.answerComposer,
+.answerSuggestion {
+  font: inherit;
+  color: inherit;
+}
+
+.answerComposer {
+  width: 100%;
+  min-height: 4rem;
+  padding: 1rem 1.15rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.035);
+  text-align: left;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.answerComposer:hover {
+  transform: translateY(-1px);
+  border-color: rgba(248, 200, 111, 0.24);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.answerSuggestions {
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 0.55rem;
+  overflow-x: auto;
+  padding-bottom: 0.1rem;
+}
+
+.answerSuggestion {
+  min-height: 2rem;
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--muted);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.answerSuggestion:hover {
+  border-color: rgba(122, 210, 194, 0.2);
+  color: var(--text);
+}
+
+.answerGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.38fr);
+  gap: 1rem;
+}
+
+.answerMainColumn {
+  gap: 1rem;
+  min-width: 0;
+}
+
+.answerCard,
+.answerModule,
+.answerSourcesCard {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.answerCardTag {
+  margin: 0 0 0.8rem;
+  color: var(--accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.answerCard h3,
+.answerModule h3,
+.answerSourcesCard h3 {
+  margin: 0;
+  line-height: 1.16;
+  letter-spacing: -0.02em;
+}
+
+.answerCard h3 {
+  font-size: clamp(1.25rem, 2.2vw, 1.55rem);
+}
+
+.answerCard p,
+.answerReferenceRow p {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.answerCardActions {
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.9rem;
+}
+
+.answerModuleGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.answerMetricList {
+  gap: 0.8rem;
+  margin-top: 0.85rem;
+}
+
+.answerMetricList div {
+  display: grid;
+  gap: 0.22rem;
+}
+
+.answerMetricList span,
+.answerTrackGroup label,
+.answerMicroMeta span {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.answerMetricList strong {
+  font-size: 1.1rem;
+  line-height: 1.05;
+}
+
+.answerMetricList small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.answerTrackGroup {
+  gap: 0.65rem;
+  margin-top: 0.9rem;
+}
+
+.answerTrackGroup > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.answerTrack {
+  height: 0.42rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.answerTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(248, 200, 111, 0.92), rgba(122, 210, 194, 0.92));
+}
+
+.answerSourcesCard {
+  gap: 0.85rem;
+  align-content: start;
+}
+
+.answerReferenceList {
+  gap: 0.65rem;
+}
+
+.answerReferenceRow + .answerReferenceRow {
+  padding-top: 0.65rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.answerReferenceRow strong {
+  display: block;
+  font-size: 0.84rem;
+}
+
+.answerMicroMeta {
+  gap: 0.45rem;
+  margin-top: 0.9rem;
+}
+
+.answerSourceFooter {
+  margin-top: 0.2rem;
+}
+
+.answerSourceFooter .truthMapShell {
+  min-height: 12rem;
+}
+
 .banner[data-tone="error"] {
   color: #ffd4cf;
   border-color: rgba(255, 124, 114, 0.22);
@@ -3214,6 +3446,8 @@
 @media (max-width: 1180px) {
   .statusGrid,
   .truthHeroGrid,
+  .answerGrid,
+  .answerModuleGrid,
   .truthScoreRail,
   .truthClusterGrid,
   .truthUtilityRail,
@@ -3284,6 +3518,16 @@
 
   .header {
     grid-template-columns: 1fr;
+  }
+
+  .answerWorkspaceHead {
+    display: grid;
+  }
+
+  .answerWorkspaceMeta,
+  .answerCardActions {
+    grid-auto-flow: row;
+    justify-content: flex-start;
   }
 
   .headerActions {
@@ -3419,6 +3663,15 @@
   .workspaceSidebarStats,
   .workspaceSidebarLinks {
     grid-template-columns: 1fr;
+  }
+
+  .answerSuggestions {
+    grid-auto-flow: row;
+    grid-auto-columns: 1fr;
+  }
+
+  .answerSuggestion {
+    justify-content: flex-start;
   }
 
   .truthSurface {

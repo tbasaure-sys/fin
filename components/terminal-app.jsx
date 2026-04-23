@@ -2143,26 +2143,50 @@ function TruthInterfacePanel({
     || null;
   const investableCash = personalFinance?.metrics?.monthlyInvestable;
   const targetCoverage = personalFinance?.metrics?.targetCoverage;
-  const laneSummary = safeList(frontier?.laneSummary);
+  const portfolioAnalytics = portfolioModule?.analytics || {};
+  const suggestionPrompts = [
+    "How much can I invest this month?",
+    "Where is overlap highest right now?",
+    "Summarize the current brief.",
+    "What should change before adding risk?",
+  ];
+  const briefNotes = safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3);
+  const referenceItems = [
+    {
+      title: "Portfolio data",
+      detail: holdingsCount
+        ? `${holdingsCount} connected holdings${portfolioAnalytics.chartSource ? ` - ${portfolioAnalytics.chartSource}` : ""}.`
+        : "Add holdings to unlock a live portfolio read.",
+    },
+    {
+      title: "Money plan",
+      detail: investableCash === null || investableCash === undefined
+        ? "Set income, spending, and buffer to fund the monthly plan."
+        : `${formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)} available after burn and buffer.`,
+    },
+    {
+      title: "Market snapshot",
+      detail: dashboard?.workspace_summary?.market_data_label || dashboard?.workspace_summary?.last_updated_label || "Current session",
+    },
+    {
+      title: "Current brief",
+      detail: cleanWorkspaceCopy(
+        briefNotes[0]
+        || frontier?.subhead
+        || "The current workspace read appears here once the latest evidence is assembled.",
+      ),
+    },
+  ];
 
   return (
     <section className={styles.truthSurface}>
-      <div className={styles.truthHeroGrid}>
-        <div className={styles.truthLead}>
+      <div className={styles.answerWorkspace}>
+        <div className={styles.answerWorkspaceHead}>
           <div>
-            <p className={styles.kicker}>Truth interface</p>
-            <h2>Read the portfolio by hidden structure, not by surface allocation.</h2>
-            <p className={styles.supportText}>
-              {cleanWorkspaceCopy(
-                stateSummary?.decisionSummary
-                || balanceSheet?.headlineState
-                || frontier?.subhead
-                || "Visible diversification is only the first read. The real question is how much of it still survives stress.",
-              )}
-            </p>
+            <p className={styles.kicker}>Current workspace answer</p>
+            <h2>Start with the answer, then open the layers that matter.</h2>
           </div>
-
-          <div className={styles.truthMetaRow}>
+          <div className={styles.answerWorkspaceMeta}>
             <ToneBadge tone={truthTone(parseDisplayPercent(balanceSheet?.optionalityReserve))}>
               {balanceSheet?.accountingState || "Live read"}
             </ToneBadge>
@@ -2171,135 +2195,151 @@ function TruthInterfacePanel({
               {riskCluster?.dominantLabel || "Cluster read pending"}
             </ToneBadge>
           </div>
+        </div>
 
-          <div className={styles.truthScoreRail}>
-            <article className={styles.truthScore} data-tone="neutral">
-              <span>Perceived diversification</span>
-              <strong>{formatScoreValue(visibleScore)}</strong>
-              <small>
-                {holdingsCount
-                  ? `${holdingsCount} connected holdings. Top five concentration: ${xray?.concentration?.topFive || "-"}.`
-                  : "Connect holdings to estimate the visible spread of the book."}
-              </small>
-              <div className={styles.truthScoreTrack}>
-                <span style={{ width: `${formatScoreValue(visibleScore) === "-" ? 0 : formatScoreValue(visibleScore)}%` }} />
-              </div>
-            </article>
+        <button className={styles.answerComposer} onClick={onToggleChat} type="button">
+          {showChat ? "Keep asking about cashflow, portfolio, or a company" : "Ask about cashflow, portfolio, or a company"}
+        </button>
 
-            <article className={styles.truthScore} data-tone={realityGapTone(realityGap)}>
-              <span>Real diversification</span>
-              <strong>{formatScoreValue(structuralScore)}</strong>
-              <small>
-                {cleanWorkspaceCopy(
-                  balanceSheet?.headlineState
-                  || xray?.carryingNarrative
-                  || "Structural diversification folds in recoverability, fragility, and phantom tax before it earns a higher score.",
-                )}
-              </small>
-              <div className={styles.truthScoreTrack}>
-                <span style={{ width: `${formatScoreValue(structuralScore) === "-" ? 0 : formatScoreValue(structuralScore)}%` }} />
-              </div>
-            </article>
-          </div>
-
-          <div className={styles.truthRiskRead}>
-            <p>Perceived risk: <strong>{diversificationRiskLabel(visibleScore)}</strong></p>
-            <p>Actual structural risk: <strong>{structuralRiskLabel(actualStructuralRisk)}</strong></p>
-            <p>Decision rights: <strong>{confidencePanel?.decisionRights || "Suggest only"}</strong></p>
-            <p>Reality gap: <strong>{realityGap === null ? "-" : formatPct(realityGap, 0)}</strong></p>
-          </div>
-
-          <div className={styles.truthUtilityRail}>
-            <div>
-              <span>Investable cash</span>
-              <strong>{formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)}</strong>
-              <small>Monthly capacity after burn and buffer.</small>
-            </div>
-            <div>
-              <span>Target coverage</span>
-              <strong>{targetCoverage === null || targetCoverage === undefined ? "Set target" : formatOptionalRatio(targetCoverage, 0)}</strong>
-              <small>How much of the planned contribution is truly funded.</small>
-            </div>
-            <div>
-              <span>Optionality reserve</span>
-              <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
-              <small>{cleanWorkspaceCopy(balanceSheet?.spendRule || "Spend risk budget only when the live state reopens.")}</small>
-            </div>
-          </div>
-
-          <div className={styles.truthActionRow}>
-            <button className={styles.primaryButton} onClick={onToggleChat} type="button">
-              {showChat ? "Hide explanation" : "Explain the gap"}
+        <div className={styles.answerSuggestions}>
+          {suggestionPrompts.map((prompt) => (
+            <button className={styles.answerSuggestion} key={prompt} onClick={onToggleChat} type="button">
+              {prompt}
             </button>
-            <a className={styles.secondaryLink} href="#today">Review the frontier</a>
-            <a className={styles.secondaryLink} href="#diversification">Stress-test holdings</a>
-          </div>
+          ))}
         </div>
 
-        <div className={styles.truthVisual}>
-          <div className={styles.truthClusterGrid}>
-            <article className={styles.truthBand}>
-              <span>Structural pressure</span>
-              <strong>{riskCluster?.gLabel || "-"}</strong>
-              <div className={styles.truthBandTrack}>
-                <span style={{ width: `${Math.round((clampUnitInterval(riskCluster?.gScore) || 0) * 100)}%` }} />
+        <div className={styles.answerGrid}>
+          <div className={styles.answerMainColumn}>
+            <article className={styles.answerCard}>
+              <p className={styles.answerCardTag}>Executive answer</p>
+              <h3>{cleanWorkspaceCopy(activeAction?.title || stateSummary?.stance || "Stay patient")}</h3>
+              <p>
+                {cleanWorkspaceCopy(
+                  activeAction?.summary
+                  || stateSummary?.decisionSummary
+                  || balanceSheet?.headlineState
+                  || frontier?.subhead
+                  || "The workspace will surface the clearest current answer here.",
+                )}
+              </p>
+
+              <div className={styles.answerCardActions}>
+                <button className={styles.primaryButton} onClick={onToggleChat} type="button">
+                  {showChat ? "Hide explanation" : "Open explanation"}
+                </button>
+                <a className={styles.secondaryLink} href="#today">Review decision</a>
+                <a className={styles.secondaryLink} href="#diversification">Check overlap</a>
               </div>
-              <p>{cleanWorkspaceCopy(riskCluster?.gMeaning || "How much internal weakness is loading fragility into the book.")}</p>
             </article>
 
-            <article className={styles.truthBand}>
-              <span>Shock pressure</span>
-              <strong>{riskCluster?.rLabel || "-"}</strong>
-              <div className={styles.truthBandTrack}>
-                <span style={{ width: `${Math.round((clampUnitInterval(riskCluster?.rScore) || 0) * 100)}%` }} />
-              </div>
-              <p>{cleanWorkspaceCopy(riskCluster?.rMeaning || "How much acute regime stress is still dominating the read.")}</p>
-            </article>
+            <div className={styles.answerModuleGrid}>
+              <article className={styles.answerModule}>
+                <p className={styles.kicker}>Money plan</p>
+                <h3>What is actually available to invest</h3>
+                <div className={styles.answerMetricList}>
+                  <div>
+                    <span>Investable cash</span>
+                    <strong>{formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)}</strong>
+                    <small>Monthly room after burn and buffer.</small>
+                  </div>
+                  <div>
+                    <span>Target coverage</span>
+                    <strong>{targetCoverage === null || targetCoverage === undefined ? "Set target" : formatOptionalRatio(targetCoverage, 0)}</strong>
+                    <small>How much of the planned contribution is truly funded.</small>
+                  </div>
+                  <div>
+                    <span>Optionality reserve</span>
+                    <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
+                    <small>{cleanWorkspaceCopy(balanceSheet?.spendRule || "Spend risk budget only when the live state reopens.")}</small>
+                  </div>
+                </div>
+              </article>
+
+              <article className={styles.answerModule}>
+                <p className={styles.kicker}>Portfolio structure</p>
+                <h3>How the portfolio reads right now</h3>
+                <div className={styles.answerMetricList}>
+                  <div>
+                    <span>Perceived diversification</span>
+                    <strong>{formatScoreValue(visibleScore)}</strong>
+                    <small>{holdingsCount ? `${holdingsCount} connected holdings.` : "Connect holdings to estimate visible spread."}</small>
+                  </div>
+                  <div>
+                    <span>Real diversification</span>
+                    <strong>{formatScoreValue(structuralScore)}</strong>
+                    <small>{cleanWorkspaceCopy(xray?.carryingNarrative || "The structural read folds overlap and fragility into the score.")}</small>
+                  </div>
+                  <div>
+                    <span>Actual structural risk</span>
+                    <strong>{structuralRiskLabel(actualStructuralRisk)}</strong>
+                    <small>Reality gap: {realityGap === null ? "-" : formatPct(realityGap, 0)}.</small>
+                  </div>
+                </div>
+
+                <div className={styles.answerTrackGroup}>
+                  <div>
+                    <label>Structural pressure</label>
+                    <div className={styles.answerTrack}>
+                      <span style={{ width: `${Math.round((clampUnitInterval(riskCluster?.gScore) || 0) * 100)}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label>Shock pressure</label>
+                    <div className={styles.answerTrack}>
+                      <span style={{ width: `${Math.round((clampUnitInterval(riskCluster?.rScore) || 0) * 100)}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <article className={styles.answerModule}>
+                <p className={styles.kicker}>Current brief</p>
+                <h3>What the workspace is emphasizing now</h3>
+                {briefNotes.length ? (
+                  <div className={styles.answerReferenceList}>
+                    {briefNotes.map((item, index) => (
+                      <article className={styles.answerReferenceRow} key={`brief-note-${index}`}>
+                        <strong>Note {index + 1}</strong>
+                        <p>{cleanWorkspaceCopy(item)}</p>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.supportText}>
+                    {cleanWorkspaceCopy(
+                      scenarioHighlight?.explanation
+                      || "The latest research brief and market notes will collect here as the workspace updates.",
+                    )}
+                  </p>
+                )}
+
+                <div className={styles.answerMicroMeta}>
+                  <span>Next unlock: {cleanWorkspaceCopy(frontier?.nextUnlockCondition || "Need a cleaner state before adding more risk.")}</span>
+                  <span>Close risk if: {cleanWorkspaceCopy(frontier?.closeCondition || stateSummary?.mainRisk || "If the structure weakens again.")}</span>
+                  <span>{latestCounterfactual ? `${latestCounterfactual.verdict}: ${latestCounterfactual.excessDeltaLabel}.` : "Counterfactual ledger will appear as decisions accumulate."}</span>
+                </div>
+              </article>
+            </div>
           </div>
 
-          <RecoverabilityMapFigure items={recoverabilityMap?.items} />
+          <aside className={styles.answerSourcesCard}>
+            <p className={styles.answerCardTag}>References</p>
+            <h3>What the answer is drawing from</h3>
+            <div className={styles.answerReferenceList}>
+              {referenceItems.map((item) => (
+                <article className={styles.answerReferenceRow} key={item.title}>
+                  <strong>{item.title}</strong>
+                  <p>{item.detail}</p>
+                </article>
+              ))}
+            </div>
+
+            <div className={styles.answerSourceFooter}>
+              <RecoverabilityMapFigure items={recoverabilityMap?.items} />
+            </div>
+          </aside>
         </div>
-      </div>
-
-      <div className={styles.truthDecisionRail}>
-        <article>
-          <span>Now</span>
-          <strong>{cleanWorkspaceCopy(activeAction?.title || stateSummary?.stance || "Stay patient")}</strong>
-          <p>{cleanWorkspaceCopy(activeAction?.summary || stateSummary?.decisionSummary || "The workspace will surface the next legitimate move here.")}</p>
-        </article>
-        <article>
-          <span>Next unlock</span>
-          <strong>{cleanWorkspaceCopy(frontier?.nextUnlockCondition || dashboard?.decision_workspace?.reopenTrigger || "Need a cleaner state before spending more risk budget.")}</strong>
-          <p>What needs to improve before the frontier opens further.</p>
-        </article>
-        <article>
-          <span>Close risk if</span>
-          <strong>{cleanWorkspaceCopy(frontier?.closeCondition || dashboard?.decision_workspace?.closeTrigger || stateSummary?.mainRisk || "If the structure weakens again.")}</strong>
-          <p>Invalidation stays visible so conviction has consequences.</p>
-        </article>
-        <article>
-          <span>{latestCounterfactual ? "Counterfactual" : "Stress path"}</span>
-          <strong>{latestCounterfactual ? latestCounterfactual.verdict : scenarioHighlight?.label || "Outcome tracking pending"}</strong>
-          <p>
-            {latestCounterfactual
-              ? `${latestCounterfactual.response}: ${latestCounterfactual.excessDeltaLabel}.`
-              : cleanWorkspaceCopy(scenarioHighlight?.explanation || "Once decisions accumulate, the ledger will show whether waiting, acting, or passing actually helped.")}
-          </p>
-        </article>
-      </div>
-
-      <div className={styles.truthLaneSummary}>
-        {(laneSummary.length ? laneSummary : [
-          { id: "unlocked", label: "Unlocked", count: 0, description: "Currently legitimate" },
-          { id: "staged", label: "Staged", count: 0, description: "Held in escrow" },
-          { id: "illegitimate", label: "Illegitimate", count: 0, description: "Blocked by state" },
-        ]).map((lane) => (
-          <div key={lane.id}>
-            <span>{lane.label}</span>
-            <strong>{lane.count ?? 0}</strong>
-            <small>{lane.description || "No items yet."}</small>
-          </div>
-        ))}
       </div>
     </section>
   );
