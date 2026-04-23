@@ -32,6 +32,7 @@ const WORKSPACE_NAV = [
     id: "today",
     href: "#today",
     label: "Today",
+    priority: "Start",
     detail: "Brief and action",
     title: "Current brief and immediate move",
     body: "Start with the live read, the supporting notes, and the move that currently deserves attention.",
@@ -40,6 +41,7 @@ const WORKSPACE_NAV = [
     id: "cashflow",
     href: "#cashflow",
     label: "Money plan",
+    priority: "Fund",
     detail: "Income and investable cash",
     title: "Monthly cashflow and investable room",
     body: "Keep income, fixed costs, variable spending, and the funded contribution in one operating view.",
@@ -48,6 +50,7 @@ const WORKSPACE_NAV = [
     id: "portfolio",
     href: "#portfolio",
     label: "Portfolio",
+    priority: "Read",
     detail: "Path and carriers",
     title: "Performance, weight, and what is carrying the book",
     body: "Read the portfolio through performance, position weight, and the names doing the real work.",
@@ -56,6 +59,7 @@ const WORKSPACE_NAV = [
     id: "diversification",
     href: "#diversification",
     label: "Overlap",
+    priority: "Audit",
     detail: "Structural breadth",
     title: "Real breadth and overlap under stress",
     body: "Check whether the portfolio still has independent bets once hidden concentration is included.",
@@ -64,6 +68,7 @@ const WORKSPACE_NAV = [
     id: "research",
     href: "#research",
     label: "Research",
+    priority: "Explain",
     detail: "Company brief",
     title: "Company work in a concise research brief",
     body: "Open the current memo, the valuation debate, and the sources without leaving the workspace.",
@@ -72,6 +77,7 @@ const WORKSPACE_NAV = [
     id: "holdings",
     href: "#holdings",
     label: "Holdings",
+    priority: "Update",
     detail: "Positions and edits",
     title: "Direct position updates and stored holdings",
     body: "Review what is connected, add positions, and save sizing changes in the same operating surface.",
@@ -1932,44 +1938,60 @@ function WorkspaceSidebar({
   return (
     <section className={styles.workspaceSidebar} aria-label="Workspace navigation">
       <div className={styles.workspaceSidebarTop}>
-        <p className={styles.kicker}>Workspace</p>
-        <h2>{workspaceName}</h2>
-        <p className={styles.supportText}>Open one layer at a time and keep the current decision in view.</p>
+        <Link className={styles.workspaceBrand} href="/">
+          <span className={styles.workspaceBrandMark} aria-hidden="true">B</span>
+          <span>{workspaceName}</span>
+        </Link>
+        <p className={styles.supportText}>One decision surface. Open only the layer you need.</p>
       </div>
 
       <nav className={styles.workspaceSidebarNav} aria-label="Workspace sections">
-        {WORKSPACE_NAV.map((item) => (
+        {WORKSPACE_NAV.map((item, index) => (
           <button
             className={styles.workspaceSidebarLink}
             data-active={activeSection === item.id}
+            data-priority={index < 3 ? "primary" : "secondary"}
             key={item.id}
             onClick={() => onSelectSection(item.id)}
             type="button"
           >
+            <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
             <div>
               <span>{item.label}</span>
               <small>{item.detail}</small>
             </div>
+            <em>{item.priority}</em>
           </button>
         ))}
       </nav>
 
       <div className={styles.workspaceSidebarMeta}>
-        <span>{alertCount} active alert{alertCount === 1 ? "" : "s"}</span>
-        <span>{holdingsCount} connected holding{holdingsCount === 1 ? "" : "s"}</span>
-        <span>{stagedCount} staged action{stagedCount === 1 ? "" : "s"}</span>
+        <article className={styles.workspaceSidebarStat}>
+          <strong>{alertCount}</strong>
+          <span>Alerts</span>
+        </article>
+        <article className={styles.workspaceSidebarStat}>
+          <strong>{holdingsCount}</strong>
+          <span>Holdings</span>
+        </article>
+        <article className={styles.workspaceSidebarStat}>
+          <strong>{stagedCount}</strong>
+          <span>Staged</span>
+        </article>
       </div>
 
       <div className={styles.workspaceSidebarActions}>
         <button className={styles.chatTrigger} data-active={showChat} onClick={onOpenChat} type="button">
           Ask workspace
         </button>
-        <button className={styles.glossaryTrigger} onClick={onOpenGlossary} type="button">
-          Glossary
-        </button>
-        <button className={styles.welcomeTrigger} onClick={onOpenGuide} type="button">
-          Getting started
-        </button>
+        <div className={styles.workspaceSidebarUtility}>
+          <button className={styles.glossaryTrigger} onClick={onOpenGlossary} type="button">
+            Glossary
+          </button>
+          <button className={styles.welcomeTrigger} onClick={onOpenGuide} type="button">
+            Guide
+          </button>
+        </div>
         <div className={styles.workspaceSidebarLinks}>
           <Link className={styles.secondaryLink} href="/terms">Terms</Link>
           <Link className={styles.secondaryLink} href="/">Home</Link>
@@ -2984,177 +3006,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     <main className={styles.shell}>
       <div className={styles.backdrop} aria-hidden="true" />
 
-      <header className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>Private workspace</p>
-          <h1>{workspaceName}</h1>
-          <p className={styles.subtitle}>Cash plan, structural read, and action frontier in one place.</p>
-        </div>
-
-        <div className={styles.headerActions}>
-          <div className={styles.headerMeta}>
-            <ToneBadge tone="neutral">{initialSession?.user?.name || "Member workspace"}</ToneBadge>
-            <ToneBadge tone={statusTone(dashboard?.workspace_summary?.backend_status)}>
-              {capitalize(dashboard?.workspace_summary?.backend_status, "Live")}
-            </ToneBadge>
-            <ToneBadge tone={connection.status === "live" ? "good" : connection.status === "polling" || connection.status === "warn" ? "warn" : "neutral"}>
-              {connection.label}
-            </ToneBadge>
-            <ToneBadge tone="neutral">{dashboard?.workspace_summary?.last_updated_label || "No refresh time"}</ToneBadge>
-          </div>
-
-          <div className={styles.buttonRow}>
-            <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
-              {pendingKey === "refresh" ? "Refreshing..." : "Refresh"}
-            </button>
-            <form action="/api/auth/logout" method="post">
-              <button className={styles.textButton} type="submit">Sign out</button>
-            </form>
-          </div>
-        </div>
-      </header>
-
-      {banner ? <div className={styles.banner}>{banner}</div> : null}
-      {error ? <div className={styles.banner} data-tone="error">{error}</div> : null}
-
-      {showWelcomeGuide && (
-        <div className={styles.welcomeGuide}>
-          <div className={styles.welcomeGuideInner}>
-            <div className={styles.welcomeGuideHead}>
-              <span className={styles.welcomeGuideBadge}>Getting started</span>
-              <button
-                aria-label="Dismiss welcome guide"
-                className={styles.welcomeGuideClose}
-                onClick={() => setShowWelcomeGuide(false)}
-                type="button"
-              >
-                Close
-              </button>
-            </div>
-            <h2 className={styles.welcomeGuideTitle}>Welcome to your workspace</h2>
-            <p className={styles.welcomeGuideSubtitle}>
-              Three steps to get the most out of this tool - no technical knowledge needed.
-            </p>
-            <ol className={styles.welcomeSteps}>
-              <li className={styles.welcomeStep}>
-                <span className={styles.welcomeStepNum}>1</span>
-                <div>
-                  <strong>Set the monthly money plan</strong>
-                  <p>Enter income, fixed costs, variable spending, buffer, and target contribution so the app knows how much can actually be invested.</p>
-                </div>
-              </li>
-              <li className={styles.welcomeStep}>
-                <span className={styles.welcomeStepNum}>2</span>
-                <div>
-                  <strong>Add your holdings</strong>
-                  <p>Enter the stocks, ETFs, or funds you own with how much of each. Even two or three positions is enough to start.</p>
-                </div>
-              </li>
-              <li className={styles.welcomeStep}>
-                <span className={styles.welcomeStepNum}>3</span>
-                <div>
-                  <strong>Use research before action</strong>
-                  <p>Read the cashflow, portfolio chart, diversification check, and equity memo before staging any move.</p>
-                </div>
-              </li>
-            </ol>
-            <div className={styles.welcomeGuideFoot}>
-              <button
-                className={styles.welcomeGuideBtn}
-                onClick={() => setShowGlossary(true)}
-                type="button"
-              >
-                Open term glossary
-              </button>
-              <button
-                className={styles.welcomeGuideDismiss}
-                onClick={() => setShowWelcomeGuide(false)}
-                type="button"
-              >
-                I'm ready - hide this
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showGlossary && (
-        <div className={styles.glossaryOverlay} role="dialog" aria-label="Term glossary">
-          <div className={styles.glossaryPanel}>
-            <div className={styles.glossaryPanelHead}>
-              <h2>Plain-English glossary</h2>
-              <button
-                aria-label="Close glossary"
-                className={styles.welcomeGuideClose}
-                onClick={() => setShowGlossary(false)}
-                type="button"
-              >
-                Close
-              </button>
-            </div>
-            <p className={styles.glossaryPanelSub}>Every unusual term this workspace uses, explained in plain language.</p>
-            <dl className={styles.glossaryList}>
-              {[
-                { term: "Monthly money plan", def: "Your income minus fixed expenses, variable expenses, and a cash buffer. The result is the amount the portfolio is allowed to receive each month." },
-                { term: "Risk overlap", def: "When holdings look different but tend to react to the same market shock. High overlap means the book is less diversified than it appears." },
-                { term: "Return since cost basis", def: "How much the current holding value has changed versus the cost stored for those positions." },
-                { term: "Benchmark history", def: "A comparison against SPY or another reference. It becomes reliable only after the workspace has enough stored snapshots." },
-                { term: "Stance", def: "The current recommended posture for your portfolio: cautious, neutral, or opportunistic. It changes as market conditions shift." },
-                { term: "Staged moves", def: "Actions you saved for later. They only reappear when there is an actual prepared move to review." },
-              ].map(({ term, def }) => (
-                <div className={styles.glossaryEntry} key={term}>
-                  <dt className={styles.glossaryTerm}>{term}</dt>
-                  <dd className={styles.glossaryDef}>{def}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </div>
-      )}
-
-      <TruthInterfacePanel
-        blockedAction={blockedAction}
-        dashboard={dashboard}
-        ledgerItems={ledgerItems}
-        onSelectSection={setActiveWorkspaceSection}
-        personalFinance={personalFinance}
-        portfolioModule={portfolioModule}
-        primaryAction={primaryAction}
-        showChat={showChat}
-        stateSummary={stateSummary}
-        onToggleChat={() => setShowChat((value) => !value)}
-      />
-
-      <section className={styles.statusGrid}>
-        <MetricTile
-          detail="Monthly cash remaining after expenses and reserve."
-          label="Monthly room"
-          tone={financeMetricTone(personalFinance)}
-          value={formatMoney(personalFinance?.metrics?.monthlyInvestable, personalFinance?.inputs?.baseCurrency)}
-        />
-        <MetricTile
-          detail={holdingsCount ? "Private holdings are connected to the current workspace." : "Add holdings to unlock the live portfolio read."}
-          label="Holdings connected"
-          tone={holdingsCount ? "good" : "warn"}
-          value={holdingsCount ? `${holdingsCount} name${holdingsCount === 1 ? "" : "s"}` : "Not connected"}
-        />
-        <MetricTile
-          detail="Latest market date currently loaded into the workspace."
-          label="Market snapshot"
-          tone="neutral"
-          value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
-        />
-        <MetricTile
-          detail={cleanWorkspaceCopy(stateSummary?.decisionSummary || connection.detail || "The workspace is ready for the next decision.")}
-          label="Current posture"
-          tone={statusTone(primaryAction?.status || connection.status || "neutral")}
-          value={cleanWorkspaceCopy(stateSummary?.stance || connection.label || "Live workspace")}
-        />
-      </section>
-
-      <ComplianceNotice />
-
-      <div className={styles.layout}>
+      <div className={styles.workspaceFrame}>
         <aside className={styles.sideColumn}>
           <WorkspaceSidebar
             activeSection={activeWorkspaceSection}
@@ -3170,7 +3022,178 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           />
         </aside>
 
-        <section className={styles.mainColumn}>
+        <div className={styles.workspaceContent}>
+          <header className={styles.header}>
+            <div>
+              <p className={styles.eyebrow}>Private workspace</p>
+              <h1>{workspaceName}</h1>
+              <p className={styles.subtitle}>Cash plan, portfolio structure, and research memory in one place.</p>
+            </div>
+
+            <div className={styles.headerActions}>
+              <div className={styles.headerMeta}>
+                <ToneBadge tone="neutral">{initialSession?.user?.name || "Member"}</ToneBadge>
+                <ToneBadge tone={statusTone(dashboard?.workspace_summary?.backend_status)}>
+                  {capitalize(dashboard?.workspace_summary?.backend_status, "Live")}
+                </ToneBadge>
+                <ToneBadge tone={connection.status === "live" ? "good" : connection.status === "polling" || connection.status === "warn" ? "warn" : "neutral"}>
+                  {connection.label}
+                </ToneBadge>
+                <ToneBadge tone="neutral">{dashboard?.workspace_summary?.last_updated_label || "No refresh time"}</ToneBadge>
+              </div>
+
+              <div className={styles.buttonRow}>
+                <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
+                  {pendingKey === "refresh" ? "Refreshing..." : "Refresh"}
+                </button>
+                <form action="/api/auth/logout" method="post">
+                  <button className={styles.textButton} type="submit">Sign out</button>
+                </form>
+              </div>
+            </div>
+          </header>
+
+          {banner ? <div className={styles.banner}>{banner}</div> : null}
+          {error ? <div className={styles.banner} data-tone="error">{error}</div> : null}
+
+          {showWelcomeGuide && (
+            <div className={styles.welcomeGuide}>
+              <div className={styles.welcomeGuideInner}>
+                <div className={styles.welcomeGuideHead}>
+                  <span className={styles.welcomeGuideBadge}>Getting started</span>
+                  <button
+                    aria-label="Dismiss welcome guide"
+                    className={styles.welcomeGuideClose}
+                    onClick={() => setShowWelcomeGuide(false)}
+                    type="button"
+                  >
+                    Close
+                  </button>
+                </div>
+                <h2 className={styles.welcomeGuideTitle}>Welcome to your workspace</h2>
+                <p className={styles.welcomeGuideSubtitle}>
+                  Three steps to get the most out of this tool - no technical knowledge needed.
+                </p>
+                <ol className={styles.welcomeSteps}>
+                  <li className={styles.welcomeStep}>
+                    <span className={styles.welcomeStepNum}>1</span>
+                    <div>
+                      <strong>Set the monthly money plan</strong>
+                      <p>Enter income, fixed costs, variable spending, buffer, and target contribution.</p>
+                    </div>
+                  </li>
+                  <li className={styles.welcomeStep}>
+                    <span className={styles.welcomeStepNum}>2</span>
+                    <div>
+                      <strong>Add your holdings</strong>
+                      <p>Two or three positions are enough to unlock the live portfolio read.</p>
+                    </div>
+                  </li>
+                  <li className={styles.welcomeStep}>
+                    <span className={styles.welcomeStepNum}>3</span>
+                    <div>
+                      <strong>Read before action</strong>
+                      <p>Use cashflow, overlap, and research before staging any move.</p>
+                    </div>
+                  </li>
+                </ol>
+                <div className={styles.welcomeGuideFoot}>
+                  <button
+                    className={styles.welcomeGuideBtn}
+                    onClick={() => setShowGlossary(true)}
+                    type="button"
+                  >
+                    Open glossary
+                  </button>
+                  <button
+                    className={styles.welcomeGuideDismiss}
+                    onClick={() => setShowWelcomeGuide(false)}
+                    type="button"
+                  >
+                    Hide guide
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {showGlossary && (
+            <div className={styles.glossaryOverlay} role="dialog" aria-label="Term glossary">
+              <div className={styles.glossaryPanel}>
+                <div className={styles.glossaryPanelHead}>
+                  <h2>Plain-English glossary</h2>
+                  <button
+                    aria-label="Close glossary"
+                    className={styles.welcomeGuideClose}
+                    onClick={() => setShowGlossary(false)}
+                    type="button"
+                  >
+                    Close
+                  </button>
+                </div>
+                <p className={styles.glossaryPanelSub}>Every unusual term this workspace uses, explained in plain language.</p>
+                <dl className={styles.glossaryList}>
+                  {[
+                    { term: "Monthly money plan", def: "Income minus expenses and cash buffer. The result is what the portfolio can receive." },
+                    { term: "Risk overlap", def: "When holdings look different but react to the same market shock." },
+                    { term: "Return since cost basis", def: "Current holding value compared with stored purchase cost." },
+                    { term: "Benchmark history", def: "Portfolio comparison against SPY or another reference." },
+                    { term: "Stance", def: "The current posture: cautious, neutral, or opportunistic." },
+                    { term: "Staged moves", def: "Actions saved for later review." },
+                  ].map(({ term, def }) => (
+                    <div className={styles.glossaryEntry} key={term}>
+                      <dt className={styles.glossaryTerm}>{term}</dt>
+                      <dd className={styles.glossaryDef}>{def}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </div>
+          )}
+
+          <TruthInterfacePanel
+            blockedAction={blockedAction}
+            dashboard={dashboard}
+            ledgerItems={ledgerItems}
+            onSelectSection={setActiveWorkspaceSection}
+            personalFinance={personalFinance}
+            portfolioModule={portfolioModule}
+            primaryAction={primaryAction}
+            showChat={showChat}
+            stateSummary={stateSummary}
+            onToggleChat={() => setShowChat((value) => !value)}
+          />
+
+          <section className={styles.statusGrid}>
+            <MetricTile
+              detail="After expenses and reserve."
+              label="Monthly room"
+              tone={financeMetricTone(personalFinance)}
+              value={formatMoney(personalFinance?.metrics?.monthlyInvestable, personalFinance?.inputs?.baseCurrency)}
+            />
+            <MetricTile
+              detail={holdingsCount ? "Connected to this workspace." : "Add holdings to unlock the live read."}
+              label="Holdings"
+              tone={holdingsCount ? "good" : "warn"}
+              value={holdingsCount ? `${holdingsCount} name${holdingsCount === 1 ? "" : "s"}` : "Not connected"}
+            />
+            <MetricTile
+              detail="Latest loaded market date."
+              label="Snapshot"
+              tone="neutral"
+              value={dashboard?.workspace_summary?.market_data_label || "No market timestamp"}
+            />
+            <MetricTile
+              detail={cleanWorkspaceCopy(stateSummary?.decisionSummary || connection.detail || "Ready for the next decision.")}
+              label="Posture"
+              tone={statusTone(primaryAction?.status || connection.status || "neutral")}
+              value={cleanWorkspaceCopy(stateSummary?.stance || connection.label || "Live workspace")}
+            />
+          </section>
+
+          <ComplianceNotice />
+
+          <section className={styles.mainColumn}>
           <div className={styles.workspaceStageHeader}>
             <div>
               <p className={styles.kicker}>{activeSectionConfig.label}</p>
@@ -3189,6 +3212,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             {activeWorkspacePanels}
           </div>
         </section>
+        </div>
       </div>
 
       {isPending ? <div className={styles.pendingNote}>Applying update...</div> : null}
