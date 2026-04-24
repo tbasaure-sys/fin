@@ -2508,6 +2508,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     targetValueUsd: "",
     price: "",
   });
+  const pendingSectionScrollRef = useRef(null);
   const [tradeInstruction, setTradeInstruction] = useState("");
   const [tradeError, setTradeError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -2729,6 +2730,27 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    function applyHashSection() {
+      const hashSection = window.location.hash.replace(/^#/, "");
+      if (!WORKSPACE_NAV.some((item) => item.id === hashSection)) return;
+      pendingSectionScrollRef.current = hashSection;
+      setActiveWorkspaceSection(hashSection);
+    }
+
+    applyHashSection();
+    window.addEventListener("hashchange", applyHashSection);
+    return () => window.removeEventListener("hashchange", applyHashSection);
+  }, []);
+
+  useEffect(() => {
+    if (pendingSectionScrollRef.current !== activeWorkspaceSection) return;
+    pendingSectionScrollRef.current = null;
+    scrollWorkspaceSection(activeWorkspaceSection);
+  }, [activeWorkspaceSection]);
+
+  useEffect(() => {
     if (financeDraftDirty) return;
     setFinanceDraft(financeDraftFromPlan(personalFinance));
   }, [
@@ -2740,6 +2762,34 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     personalFinance?.inputs?.targetMonthlyInvestment,
     personalFinance?.inputs?.baseCurrency,
   ]);
+
+  function scrollWorkspaceSection(sectionId) {
+    if (typeof window === "undefined") return;
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(sectionId)?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+  }
+
+  function selectWorkspaceSection(sectionId) {
+    const nextSection = WORKSPACE_NAV.find((item) => item.id === sectionId)?.id;
+    if (!nextSection) return;
+
+    pendingSectionScrollRef.current = nextSection;
+    setActiveWorkspaceSection(nextSection);
+
+    if (typeof window !== "undefined" && window.location.hash !== `#${nextSection}`) {
+      window.history.replaceState(null, "", `#${nextSection}`);
+    }
+
+    if (nextSection === activeWorkspaceSection) {
+      pendingSectionScrollRef.current = null;
+      scrollWorkspaceSection(nextSection);
+    }
+  }
 
   async function applyWorkspacePayload(payload, successMessage) {
     startTransition(() => {
@@ -3015,7 +3065,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             onOpenChat={() => setShowChat(true)}
             onOpenGlossary={() => setShowGlossary(true)}
             onOpenGuide={() => setShowWelcomeGuide(true)}
-            onSelectSection={setActiveWorkspaceSection}
+            onSelectSection={selectWorkspaceSection}
             showChat={showChat}
             stagedCount={escrowItems.length}
             workspaceName={workspaceName}
@@ -3155,7 +3205,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             blockedAction={blockedAction}
             dashboard={dashboard}
             ledgerItems={ledgerItems}
-            onSelectSection={setActiveWorkspaceSection}
+            onSelectSection={selectWorkspaceSection}
             personalFinance={personalFinance}
             portfolioModule={portfolioModule}
             primaryAction={primaryAction}

@@ -1,137 +1,143 @@
+"use client";
+
+import { useRef, useState } from "react";
+
 import styles from "@/app/home-page.module.css";
 
 const WORKSPACE_ITEMS = [
-  "Today",
-  "Money plan",
-  "Portfolio",
-  "Research",
-  "Holdings",
+  { label: "Decision", target: "decision" },
+  { label: "Rules", target: "rules" },
+  { label: "Visibility", target: "visibility" },
+  { label: "Real rebound", target: "rebound" },
+  { label: "Repair", target: "repair" },
 ];
 
-const TABS = ["Overview", "Portfolio", "Research"];
+const TABS = [
+  { label: "Brief", target: "decision" },
+  { label: "Rules", target: "rules" },
+  { label: "Repair", target: "repair" },
+];
 
 const LEAD_STATS = [
-  { label: "Monthly room", value: "$5.4K" },
-  { label: "Real diversification", value: "48" },
-  { label: "Top contributor", value: "NVDA" },
+  { label: "Allowed to add", value: "No" },
+  { label: "Visible bets", value: "2/4" },
+  { label: "Best repair", value: "Switch" },
 ];
 
 const REFERENCES = [
-  { title: "Monthly plan", detail: "Income, fixed costs, variable spending, reserve." },
-  { title: "Portfolio data", detail: "Current weights, cost basis, performance snapshots." },
-  { title: "Research memory", detail: "Filings, earnings notes, and company briefs." },
+  { title: "Rule check", detail: "The move must pass your own guardrails before it can be treated as legitimate." },
+  { title: "Visibility check", detail: "The market must be clear enough to reward the reason you own the position." },
+  { title: "Rebound check", detail: "Price recovery is not enough if the structure underneath has not improved." },
 ];
 
-const POSITION_ROWS = [
-  { ticker: "SGOV", type: "Cash sleeve", weight: "7.6%" },
-  { ticker: "TLT", type: "Rates", weight: "7.1%" },
-  { ticker: "UNH", type: "Healthcare", weight: "6.1%" },
-  { ticker: "NVDA", type: "AI and growth", weight: "5.4%" },
+const REPAIR_ROWS = [
+  { label: "Trim", detail: "Crowded winner that bounced without repairing", value: "-1.5%" },
+  { label: "Add", detail: "Quality name whose structure improved first", value: "+1.0%" },
+  { label: "Hold back", detail: "Keep cash until the rebound becomes real", value: "+0.5%" },
 ];
 
 const SUPPORT_ITEMS = [
   {
-    title: "Money plan first",
-    body: "See what is truly available to invest after income, fixed costs, variable spending, and reserve.",
+    title: "Rules before action",
+    body: "The app tells you whether a move is allowed by your own guardrails before emotion gets a vote.",
   },
   {
-    title: "Portfolio with context",
-    body: "Read performance, hidden overlap, and top contributors in the same operating view.",
+    title: "Know when a bet is hidden",
+    body: "Some ideas are right but invisible because the market is moving everything together.",
   },
   {
-    title: "Research that stays close",
-    body: "Open the current company brief without losing the portfolio and cashflow context around it.",
+    title: "Separate real repair from fake calm",
+    body: "A rebound can look good on the screen while the portfolio underneath is still fragile.",
   },
 ];
 
-const PORTFOLIO_SERIES = [100, 101, 103, 102, 104, 106, 108, 107, 109, 111, 112, 114];
-
-function buildLinePath(values, width, height, padding) {
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const safeRange = max - min || 1;
-
-  return values
-    .map((value, index) => {
-      const x = padding.left + (((width - padding.left - padding.right) / (values.length - 1)) * index);
-      const y = height - padding.bottom - (((value - min) / safeRange) * (height - padding.top - padding.bottom));
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
-    })
-    .join(" ");
-}
-
-function buildAreaPath(values, width, height, padding) {
-  const line = buildLinePath(values, width, height, padding);
-  const baseY = height - padding.bottom;
-  const firstX = padding.left;
-  const lastX = width - padding.right;
-  return `${line} L ${lastX.toFixed(1)} ${baseY.toFixed(1)} L ${firstX.toFixed(1)} ${baseY.toFixed(1)} Z`;
-}
-
 export function WorkspacePreview({ brand }) {
-  const padding = { left: 18, right: 12, top: 16, bottom: 22 };
-  const linePath = buildLinePath(PORTFOLIO_SERIES, 420, 180, padding);
-  const areaPath = buildAreaPath(PORTFOLIO_SERIES, 420, 180, padding);
+  const [activePreviewSection, setActivePreviewSection] = useState(WORKSPACE_ITEMS[0].target);
+  const sectionRefs = useRef({});
+  const activeTab = TABS.find((item) => item.target === activePreviewSection)?.target || TABS[0].target;
+
+  function selectPreviewSection(target) {
+    setActivePreviewSection(target);
+    sectionRefs.current[target]?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "nearest",
+    });
+  }
 
   return (
     <div className={styles.previewShell}>
       <aside className={styles.previewSidebar}>
         <div>
           <div className={styles.previewSidebarBrand}>{brand}</div>
-          <div className={styles.previewSidebarHint}>Decision workspace</div>
+          <div className={styles.previewSidebarHint}>Capital judgment system</div>
         </div>
 
         <nav className={styles.previewSidebarNav} aria-label="Workspace navigation">
-          {WORKSPACE_ITEMS.map((item, index) => (
-            <span
+          {WORKSPACE_ITEMS.map((item) => (
+            <button
               className={styles.previewSidebarItem}
-              data-active={index === 0}
-              key={item}
+              data-active={activePreviewSection === item.target}
+              key={item.label}
+              onClick={() => selectPreviewSection(item.target)}
+              type="button"
             >
-              {item}
-            </span>
+              {item.label}
+            </button>
           ))}
         </nav>
 
         <div className={styles.previewSidebarMeta}>
-          <span>Monthly plan connected</span>
-          <span>Connected holdings</span>
-          <span>Research memory active</span>
+          <span>Rules enforced</span>
+          <span>Visibility checked</span>
+          <span>Repair staged</span>
         </div>
       </aside>
 
       <div className={styles.previewMain}>
         <div className={styles.previewTopRow}>
           <div>
-            <span className={styles.previewSectionLabel}>BLS Prime workspace</span>
-            <strong>Current answer and the operating layers behind it</strong>
+            <span className={styles.previewSectionLabel}>Sample workspace</span>
+            <strong>A plain-English review before capital moves</strong>
           </div>
 
           <div className={styles.previewTopMeta}>
             <span>Apr 22</span>
-            <span>Current session</span>
+            <span>Updated brief</span>
           </div>
         </div>
 
         <div className={styles.previewToolbar}>
           <div className={styles.previewTabs}>
-            {TABS.map((item, index) => (
-              <span className={styles.previewTab} data-active={index === 0} key={item}>
-                {item}
-              </span>
+            {TABS.map((item) => (
+              <button
+                className={styles.previewTab}
+                data-active={activeTab === item.target}
+                key={item.label}
+                onClick={() => selectPreviewSection(item.target)}
+                type="button"
+              >
+                {item.label}
+              </button>
             ))}
           </div>
 
-          <div className={styles.previewSearch}>Ask about cashflow, the portfolio, or a company</div>
+          <div className={styles.previewSearch}>Ask: am I allowed to add risk?</div>
         </div>
 
         <div className={styles.previewHeroGrid}>
-          <section className={styles.previewLeadPanel}>
-            <p className={styles.previewModuleTag}>Current answer</p>
-            <h3>New capital is available this month, but portfolio fit should improve first.</h3>
+          <section
+            className={styles.previewLeadPanel}
+            data-highlight={activePreviewSection === "decision"}
+            ref={(node) => {
+              sectionRefs.current.decision = node;
+            }}
+          >
+            <p className={styles.previewModuleTag}>Today&apos;s decision</p>
+            <h3>Wait. The rebound is not real enough yet.</h3>
             <p>
-              Cashflow is funding fresh capital, while overlap in growth and rate-sensitive exposures
-              still deserves attention before adding size.
+              You may have cash available, but the rules still block a broad add.
+              The market is bouncing before the portfolio structure has repaired.
             </p>
 
             <div className={styles.previewLeadStats}>
@@ -144,9 +150,15 @@ export function WorkspacePreview({ brand }) {
             </div>
           </section>
 
-          <aside className={styles.previewReferencePanel}>
-            <p className={styles.previewModuleTag}>References</p>
-            <h3>What the workspace is drawing from</h3>
+          <aside
+            className={styles.previewReferencePanel}
+            data-highlight={activePreviewSection === "inputs"}
+            ref={(node) => {
+              sectionRefs.current.inputs = node;
+            }}
+          >
+            <p className={styles.previewModuleTag}>Inputs</p>
+            <h3>What the answer checks</h3>
             <div className={styles.previewReferenceList}>
               {REFERENCES.map((item) => (
                 <article className={styles.previewReferenceRow} key={item.title}>
@@ -159,47 +171,84 @@ export function WorkspacePreview({ brand }) {
         </div>
 
         <div className={styles.previewDetailGrid}>
-          <section className={styles.previewChartPanel}>
-            <p className={styles.previewModuleTag}>Portfolio path</p>
-            <h3>Performance stays readable next to the decision.</h3>
-            <div className={styles.previewChartWrap}>
-              <svg className={styles.previewChart} viewBox="0 0 420 180" role="img" aria-label="Portfolio chart">
-                {[34, 74, 114, 154].map((y) => (
-                  <line className={styles.previewChartGrid} key={y} x1="18" x2="408" y1={y} y2={y} />
-                ))}
-                <path className={styles.previewChartArea} d={areaPath} />
-                <path className={styles.previewChartLine} d={linePath} />
-              </svg>
-            </div>
-            <div className={styles.previewChartMeta}>
-              <span>Portfolio +8.4%</span>
-              <span>Since tracking began</span>
+          <section
+            className={styles.previewChartPanel}
+            data-highlight={activePreviewSection === "rules"}
+            ref={(node) => {
+              sectionRefs.current.rules = node;
+            }}
+          >
+            <p className={styles.previewModuleTag}>Rules</p>
+            <h3>Your guardrails decide what has standing.</h3>
+            <div className={styles.previewRuleStack}>
+              <article>
+                <span>Rule 4</span>
+                <strong>No large add while fake-rebound risk is high.</strong>
+              </article>
+              <article>
+                <span>Evidence</span>
+                <strong>Too weak to suspend the rule.</strong>
+              </article>
+              <article>
+                <span>Result</span>
+                <strong>Action blocked. Review again after structure improves.</strong>
+              </article>
             </div>
           </section>
 
-          <section className={styles.previewTablePanel}>
-            <p className={styles.previewModuleTag}>Top positions</p>
-            <h3>Largest weights in the current book.</h3>
+          <section
+            className={styles.previewTablePanel}
+            data-highlight={activePreviewSection === "visibility"}
+            ref={(node) => {
+              sectionRefs.current.visibility = node;
+            }}
+          >
+            <p className={styles.previewModuleTag}>Visibility</p>
+            <h3>Two ideas are right, but the market cannot see them yet.</h3>
+            <div className={styles.previewVisibilityMeter} aria-label="Market clarity">
+              <span style={{ width: "32%" }} />
+            </div>
+            <p className={styles.previewSmallCopy}>
+              When everything moves together, a good company thesis can become temporarily invisible.
+              The risk remains, but the reward cannot show up yet.
+            </p>
+          </section>
+
+          <section
+            className={styles.previewResearchPanel}
+            data-highlight={activePreviewSection === "rebound"}
+            ref={(node) => {
+              sectionRefs.current.rebound = node;
+            }}
+          >
+            <p className={styles.previewModuleTag}>Real or fake calm?</p>
+            <h3>Prices improved. The repair did not.</h3>
+            <p>
+              BLS Prime separates a comforting price bounce from a real improvement in the portfolio.
+              That prevents you from adding risk just because the screen looks calmer.
+            </p>
+          </section>
+
+          <section
+            className={styles.previewRepairPanel}
+            data-highlight={activePreviewSection === "repair"}
+            ref={(node) => {
+              sectionRefs.current.repair = node;
+            }}
+          >
+            <p className={styles.previewModuleTag}>Repair candidate</p>
+            <h3>One small switch can improve the book without adding new cash.</h3>
             <div className={styles.previewTable}>
-              {POSITION_ROWS.map((item) => (
-                <div className={styles.previewTableRow} key={item.ticker}>
+              {REPAIR_ROWS.map((item) => (
+                <div className={styles.previewTableRow} key={item.label}>
                   <div>
-                    <strong>{item.ticker}</strong>
-                    <span>{item.type}</span>
+                    <strong>{item.label}</strong>
+                    <span>{item.detail}</span>
                   </div>
-                  <strong>{item.weight}</strong>
+                  <strong>{item.value}</strong>
                 </div>
               ))}
             </div>
-          </section>
-
-          <section className={styles.previewResearchPanel}>
-            <p className={styles.previewModuleTag}>Research brief</p>
-            <h3>Company work should read like a clear answer, not a stack of disconnected notes.</h3>
-            <p>
-              Each brief starts concise, keeps the main conclusion visible, and lets the supporting
-              sources sit one layer below instead of flooding the screen.
-            </p>
           </section>
         </div>
       </div>

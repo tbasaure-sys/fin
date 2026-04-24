@@ -23,7 +23,7 @@ export default async function HomePage() {
 
         <div className={styles.navLinks} aria-label="Primary">
           <a href="#workspace">Platform</a>
-          <a href="#workflow">Workflow</a>
+          <a href="#workflow">Plain English</a>
           <a href="#cta">Start</a>
         </div>
 
@@ -54,11 +54,11 @@ export default async function HomePage() {
 
       <section className={styles.hero}>
         <div className={styles.heroIntro}>
-          <p className={styles.eyebrow}>Personal finance, portfolio clarity, and research</p>
-          <h1 className={styles.headline}>A calmer way to manage cash and investments.</h1>
+          <p className={styles.eyebrow}>Rules, visibility, and real repair</p>
+          <h1 className={styles.headline}>Know when a money move is actually allowed.</h1>
           <p className={styles.subheadline}>
-            Follow monthly cashflow, understand what is really driving the portfolio, and keep
-            research close to the decision it is meant to support.
+            BLS Prime checks three things before you act: do your rules allow it,
+            can the market see the reason for the bet, and is the rebound real or just cosmetic.
           </p>
 
           <div className={styles.heroActions}>
@@ -66,7 +66,7 @@ export default async function HomePage() {
               {primaryLabel}
             </Link>
             <a className={styles.btnGhost} href="#workspace">
-              View the platform
+              See the workspace
             </a>
           </div>
         </div>
@@ -78,11 +78,11 @@ export default async function HomePage() {
 
       <section className={styles.section} id="workflow">
         <div className={styles.sectionIntro}>
-          <p className={styles.sectionTag}>One operating model</p>
-          <h2 className={styles.sectionTitle}>Cashflow, portfolio, and research should inform the same decision.</h2>
+          <p className={styles.sectionTag}>Plain-English system</p>
+          <h2 className={styles.sectionTitle}>Three checks before capital moves.</h2>
           <p className={styles.sectionBody}>
-            The monthly plan funds the portfolio. The portfolio shapes the research. The research
-            returns to a cleaner action. BLS Prime keeps that loop in one place.
+            No finance background needed. The workspace translates complex market structure
+            into simple answers: allowed, hidden, fake calm, or real repair.
           </p>
         </div>
 
@@ -91,9 +91,10 @@ export default async function HomePage() {
 
       <section className={styles.finalBand} id="cta">
         <p className={styles.sectionTag}>BLS Prime</p>
-        <h2 className={styles.finalTitle}>Keep the full picture in one workspace.</h2>
+        <h2 className={styles.finalTitle}>Move only when the answer has standing.</h2>
         <p className={styles.finalBody}>
-          A cleaner daily rhythm for saving, investing, and studying what you own.
+          Set the rules once, let the workspace review every decision, and keep a record
+          of what happened after you acted or waited.
         </p>
 
         <div className={styles.heroActions}>
@@ -101,15 +102,15 @@ export default async function HomePage() {
             {primaryLabel}
           </Link>
           <a className={styles.btnGhost} href="#workflow">
-            See the workflow
+            See how it works
           </a>
         </div>
       </section>
 
       <footer className={styles.footer}>
         <p>
-          (c) {new Date().getFullYear()} {publicBrand}. Personal finance, portfolio clarity, and
-          research in one workspace. Not financial advice.
+          (c) {new Date().getFullYear()} {publicBrand}. Rules, visibility, and repair
+          before action. Not financial advice.
         </p>
         <Link href="/terms">Terms of Service</Link>
       </footer>
