@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const rawAppName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
 const appName = /allocator workspace/i.test(rawAppName) ? "BLS Prime" : rawAppName;
@@ -125,7 +126,10 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
