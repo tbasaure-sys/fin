@@ -4047,6 +4047,7 @@
   --workspace-border: rgba(231, 223, 207, 0.09);
   --workspace-border-strong: rgba(216, 173, 88, 0.34);
   padding: clamp(0.85rem, 1.6vw, 1.25rem);
+  overflow-x: clip;
   background:
     linear-gradient(180deg, #05070b 0%, #080d12 46%, #06080c 100%);
 }
@@ -4074,6 +4075,19 @@
   min-width: 0;
   display: grid;
   gap: 1rem;
+}
+
+.sideColumn,
+.header,
+.truthSurface,
+.answerGrid,
+.answerMainColumn,
+.answerCard,
+.answerModule,
+.answerSourcesCard,
+.workspaceSidebar,
+.workspaceStageHeader {
+  min-width: 0;
 }
 
 .header,
@@ -4417,6 +4431,24 @@
     grid-template-columns: 1fr;
   }
 
+  .header {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .headerActions {
+    width: 100%;
+    align-items: flex-start;
+  }
+
+  .headerMeta {
+    justify-content: flex-start;
+  }
+
+  .buttonRow {
+    flex-wrap: wrap;
+  }
+
   .sideColumn {
     position: static;
   }
@@ -4440,12 +4472,63 @@
   .statusGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .answerGrid,
+  .answerModuleGrid,
+  .truthHeroGrid,
+  .truthScoreRail,
+  .truthClusterGrid,
+  .truthUtilityRail,
+  .truthDecisionRail,
+  .truthLaneSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .answerWorkspaceHead {
+    display: grid;
+  }
+
+  .answerWorkspaceMeta {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .answerCardActions {
+    grid-auto-flow: row;
+    grid-auto-columns: 1fr;
+  }
+
+  .answerCardActions > button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 760px) {
+  .shell {
+    padding: 0.65rem;
+  }
+
   .workspaceFrame,
   .workspaceContent {
     gap: 0.75rem;
+  }
+
+  .workspaceContent {
+    order: 1;
+  }
+
+  .sideColumn {
+    order: 2;
+  }
+
+  .header,
+  .truthSurface,
+  .workspaceSidebar,
+  .workspaceStageHeader,
+  .panel,
+  .metricTile,
+  .legalNotice {
+    padding: 0.85rem;
   }
 
   .header,
@@ -4454,23 +4537,177 @@
     display: grid;
   }
 
-  .workspaceSidebarNav,
-  .statusGrid,
-  .workspaceSidebarUtility,
-  .workspaceSidebarLinks {
+  .header {
     grid-template-columns: 1fr;
   }
 
+  .header h1 {
+    max-width: none;
+    font-size: clamp(1.85rem, 9vw, 2.45rem);
+    line-height: 0.98;
+    overflow-wrap: anywhere;
+  }
+
+  .subtitle,
+  .supportText {
+    max-width: none;
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .headerMeta,
+  .buttonRow {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .badge,
+  .primaryButton,
+  .secondaryButton,
+  .textButton,
+  .secondaryLink {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+    white-space: normal;
+    text-align: center;
+  }
+
+  .workspaceSidebarNav,
+  .statusGrid,
+  .workspaceSidebarUtility,
+  .workspaceSidebarLinks,
+  .answerGrid,
+  .answerModuleGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspaceSidebarTop {
+    gap: 0.45rem;
+  }
+
+  .workspaceBrand {
+    align-items: flex-start;
+  }
+
+  .workspaceBrand span:last-child {
+    font-size: 0.78rem;
+    line-height: 1.2;
+  }
+
   .workspaceSidebarLink {
-    grid-template-columns: 1.65rem minmax(0, 1fr) auto;
+    grid-template-columns: 1.55rem minmax(0, 1fr);
+    padding: 0.68rem;
   }
 
   .workspaceSidebarLink em {
-    display: inline;
+    display: none;
   }
 
   .workspaceSidebarMeta {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .workspaceSidebarStat {
+    padding: 0.56rem 0.35rem;
+    text-align: center;
+  }
+
+  .workspaceSidebarStat strong {
+    font-size: 0.98rem;
+  }
+
+  .workspaceSidebarStat span {
+    font-size: 0.62rem;
+  }
+
+  .answerWorkspace {
+    gap: 0.75rem;
+  }
+
+  .answerWorkspaceHead h2 {
+    max-width: none;
+    font-size: clamp(1.55rem, 8vw, 2.15rem);
+    overflow-wrap: anywhere;
+  }
+
+  .answerWorkspaceMeta {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .answerComposer {
+    min-height: 2.9rem;
+    padding: 0.82rem;
+    text-align: center;
+  }
+
+  .answerSuggestions {
+    grid-auto-flow: row;
+    grid-auto-columns: 1fr;
+  }
+
+  .answerSuggestion {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .answerCard,
+  .answerModule,
+  .answerSourcesCard {
+    padding: 0.85rem;
+  }
+
+  .answerCard h3,
+  .answerModule h3,
+  .answerSourcesCard h3 {
+    overflow-wrap: anywhere;
+  }
+
+  .answerCardActions {
+    grid-auto-flow: row;
+    grid-auto-columns: 1fr;
+  }
+
+  .answerCardActions > button {
+    width: 100%;
+  }
+
+  .answerReferenceRow p,
+  .answerCard p,
+  .answerMetricList small {
+    font-size: 0.9rem;
+  }
+
+  .answerSourceFooter .truthMapShell {
+    min-height: 0;
+  }
+
+  .truthMapShell {
+    gap: 0.7rem;
+  }
+
+  .truthMapLegend {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+  }
+
+  .truthMap {
+    max-width: 100%;
+  }
+
+  .truthMapAxisLabel {
+    font-size: 0.56rem;
+  }
+
+  .truthMapLabel {
+    font-size: 0.58rem;
   }
 }
 
