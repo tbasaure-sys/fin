@@ -5,54 +5,61 @@ import { useRef, useState } from "react";
 import styles from "@/app/home-page.module.css";
 
 const WORKSPACE_ITEMS = [
+  { label: "Inputs", target: "inputs" },
+  { label: "Attention", target: "attention" },
+  { label: "Layers", target: "layers" },
+  { label: "Consensus", target: "consensus" },
   { label: "Decision", target: "decision" },
-  { label: "Rules", target: "rules" },
-  { label: "Visibility", target: "visibility" },
-  { label: "Real rebound", target: "rebound" },
-  { label: "Repair", target: "repair" },
 ];
 
 const TABS = [
   { label: "Brief", target: "decision" },
-  { label: "Rules", target: "rules" },
-  { label: "Repair", target: "repair" },
+  { label: "Layers", target: "layers" },
+  { label: "Consensus", target: "consensus" },
 ];
 
 const LEAD_STATS = [
-  { label: "Allowed to add", value: "No" },
-  { label: "Visible bets", value: "2/4" },
-  { label: "Best repair", value: "Switch" },
+  { label: "Final call", value: "Reduce" },
+  { label: "Confidence", value: "72%" },
+  { label: "Action status", value: "Staged" },
 ];
 
-const REFERENCES = [
-  { title: "Rule check", detail: "The move must pass your own guardrails before it can be treated as legitimate." },
-  { title: "Visibility check", detail: "The market must be clear enough to reward the reason you own the position." },
-  { title: "Rebound check", detail: "Price recovery is not enough if the structure underneath has not improved." },
+const INPUT_ROWS = [
+  { title: "Market data", detail: "Price, volume, volatility" },
+  { title: "Fundamentals", detail: "Cash flow, debt, margins" },
+  { title: "News and sentiment", detail: "Real-time narrative shift" },
+  { title: "Your portfolio", detail: "Holdings, limits, exposures" },
+  { title: "Policy rules", detail: "What actions are allowed" },
 ];
 
-const REPAIR_ROWS = [
-  { label: "Trim", detail: "Crowded winner that bounced without repairing", value: "-1.5%" },
-  { label: "Add", detail: "Quality name whose structure improved first", value: "+1.0%" },
-  { label: "Hold back", detail: "Keep cash until the rebound becomes real", value: "+0.5%" },
+const AGENT_ROWS = [
+  { label: "Valuation layer", detail: "Is the price fair?", stance: "Support", value: "78%" },
+  { label: "Risk layer", detail: "What can break first?", stance: "Warn", value: "62%" },
+  { label: "Macro layer", detail: "Is the regime helping?", stance: "Neutral", value: "55%" },
+  { label: "Flow layer", detail: "Are buyers real or crowded?", stance: "Warn", value: "71%" },
 ];
 
 const SUPPORT_ITEMS = [
   {
-    title: "Rules before action",
-    body: "The app tells you whether a move is allowed by your own guardrails before emotion gets a vote.",
+    title: "Transformer-style decision engine",
+    body: "The workspace reads many signals at once, then lets the important ones carry more weight.",
   },
   {
-    title: "Know when a bet is hidden",
-    body: "Some ideas are right but invisible because the market is moving everything together.",
+    title: "Layered debate",
+    body: "Specialist layers test valuation, risk, macro, flows, and your own rules before a call is made.",
   },
   {
-    title: "Separate real repair from fake calm",
-    body: "A rebound can look good on the screen while the portfolio underneath is still fragile.",
+    title: "Attention to what matters",
+    body: "Instead of showing every number, BLS Prime highlights the signals that changed the decision.",
+  },
+  {
+    title: "Explainable action",
+    body: "The final answer comes with the layers, weights, rule check, and next step that produced it.",
   },
 ];
 
 export function WorkspacePreview({ brand }) {
-  const [activePreviewSection, setActivePreviewSection] = useState(WORKSPACE_ITEMS[0].target);
+  const [activePreviewSection, setActivePreviewSection] = useState("decision");
   const sectionRefs = useRef({});
   const activeTab = TABS.find((item) => item.target === activePreviewSection)?.target || TABS[0].target;
 
@@ -70,7 +77,7 @@ export function WorkspacePreview({ brand }) {
       <aside className={styles.previewSidebar}>
         <div>
           <div className={styles.previewSidebarBrand}>{brand}</div>
-          <div className={styles.previewSidebarHint}>Capital judgment system</div>
+          <div className={styles.previewSidebarHint}>Multi-layer transformer</div>
         </div>
 
         <nav className={styles.previewSidebarNav} aria-label="Workspace navigation">
@@ -88,17 +95,17 @@ export function WorkspacePreview({ brand }) {
         </nav>
 
         <div className={styles.previewSidebarMeta}>
-          <span>Rules enforced</span>
-          <span>Visibility checked</span>
-          <span>Repair staged</span>
+          <span>5 signal layers</span>
+          <span>4 specialist layers</span>
+          <span>1 explainable decision</span>
         </div>
       </aside>
 
       <div className={styles.previewMain}>
         <div className={styles.previewTopRow}>
           <div>
-            <span className={styles.previewSectionLabel}>Sample workspace</span>
-            <strong>A plain-English review before capital moves</strong>
+            <span className={styles.previewSectionLabel}>Decision engine</span>
+            <strong>Powered by multi-layer transformers</strong>
           </div>
 
           <div className={styles.previewTopMeta}>
@@ -122,7 +129,7 @@ export function WorkspacePreview({ brand }) {
             ))}
           </div>
 
-          <div className={styles.previewSearch}>Ask: am I allowed to add risk?</div>
+          <div className={styles.previewSearch}>Ask: which layers changed the decision?</div>
         </div>
 
         <div className={styles.previewHeroGrid}>
@@ -133,11 +140,11 @@ export function WorkspacePreview({ brand }) {
               sectionRefs.current.decision = node;
             }}
           >
-            <p className={styles.previewModuleTag}>Today&apos;s decision</p>
-            <h3>Wait. The rebound is not real enough yet.</h3>
+            <p className={styles.previewModuleTag}>Final decision</p>
+            <h3>Reduce risk. The rebound is still too fragile.</h3>
             <p>
-              You may have cash available, but the rules still block a broad add.
-              The market is bouncing before the portfolio structure has repaired.
+              The layers disagree on valuation, but the attention layer gives more weight to risk,
+              crowded flows, and your policy rules. The system stages a smaller action instead of a broad add.
             </p>
 
             <div className={styles.previewLeadStats}>
@@ -157,10 +164,10 @@ export function WorkspacePreview({ brand }) {
               sectionRefs.current.inputs = node;
             }}
           >
-            <p className={styles.previewModuleTag}>Inputs</p>
-            <h3>What the answer checks</h3>
+            <p className={styles.previewModuleTag}>1. Inputs</p>
+            <h3>The engine starts with five plain sources.</h3>
             <div className={styles.previewReferenceList}>
-              {REFERENCES.map((item) => (
+              {INPUT_ROWS.map((item) => (
                 <article className={styles.previewReferenceRow} key={item.title}>
                   <strong>{item.title}</strong>
                   <p>{item.detail}</p>
@@ -173,73 +180,90 @@ export function WorkspacePreview({ brand }) {
         <div className={styles.previewDetailGrid}>
           <section
             className={styles.previewChartPanel}
-            data-highlight={activePreviewSection === "rules"}
+            data-highlight={activePreviewSection === "attention"}
             ref={(node) => {
-              sectionRefs.current.rules = node;
+              sectionRefs.current.attention = node;
             }}
           >
-            <p className={styles.previewModuleTag}>Rules</p>
-            <h3>Your guardrails decide what has standing.</h3>
-            <div className={styles.previewRuleStack}>
-              <article>
-                <span>Rule 4</span>
-                <strong>No large add while fake-rebound risk is high.</strong>
-              </article>
-              <article>
-                <span>Evidence</span>
-                <strong>Too weak to suspend the rule.</strong>
-              </article>
-              <article>
-                <span>Result</span>
-                <strong>Action blocked. Review again after structure improves.</strong>
-              </article>
+            <p className={styles.previewModuleTag}>2. Attention layers</p>
+            <h3>The model finds what changed the decision.</h3>
+            <div className={styles.previewTransformerMap} aria-label="Transformer attention map">
+              {[0, 1, 2, 3, 4, 5].map((item) => (
+                <span key={`left-${item}`} />
+              ))}
+              <div className={styles.previewAttentionCore}>
+                {[0, 1, 2].map((item) => (
+                  <i key={`core-${item}`} />
+                ))}
+              </div>
+              {[0, 1, 2, 3, 4, 5].map((item) => (
+                <span key={`right-${item}`} />
+              ))}
             </div>
+            <p className={styles.previewSmallCopy}>
+              In human terms: it pays less attention to noise and more attention to the few signals
+              that actually change what you should do.
+            </p>
           </section>
 
           <section
             className={styles.previewTablePanel}
-            data-highlight={activePreviewSection === "visibility"}
+            data-highlight={activePreviewSection === "layers"}
             ref={(node) => {
-              sectionRefs.current.visibility = node;
+              sectionRefs.current.layers = node;
             }}
           >
-            <p className={styles.previewModuleTag}>Visibility</p>
-            <h3>Two ideas are right, but the market cannot see them yet.</h3>
-            <div className={styles.previewVisibilityMeter} aria-label="Market clarity">
-              <span style={{ width: "32%" }} />
+            <p className={styles.previewModuleTag}>3. Layer outputs</p>
+            <h3>Specialist layers test the same move.</h3>
+            <div className={styles.previewAgentList}>
+              {AGENT_ROWS.map((item) => (
+                <article className={styles.previewAgentRow} data-stance={item.stance.toLowerCase()} key={item.label}>
+                  <div>
+                    <strong>{item.label}</strong>
+                    <span>{item.detail}</span>
+                  </div>
+                  <em>{item.stance}</em>
+                  <b>{item.value}</b>
+                </article>
+              ))}
             </div>
-            <p className={styles.previewSmallCopy}>
-              When everything moves together, a good company thesis can become temporarily invisible.
-              The risk remains, but the reward cannot show up yet.
-            </p>
           </section>
 
           <section
             className={styles.previewResearchPanel}
-            data-highlight={activePreviewSection === "rebound"}
+            data-highlight={activePreviewSection === "consensus"}
             ref={(node) => {
-              sectionRefs.current.rebound = node;
+              sectionRefs.current.consensus = node;
             }}
           >
-            <p className={styles.previewModuleTag}>Real or fake calm?</p>
-            <h3>Prices improved. The repair did not.</h3>
-            <p>
-              BLS Prime separates a comforting price bounce from a real improvement in the portfolio.
-              That prevents you from adding risk just because the screen looks calmer.
-            </p>
+            <p className={styles.previewModuleTag}>4. Aggregation</p>
+            <h3>Consensus forms only after the layers are weighted.</h3>
+            <div className={styles.previewConsensusGrid}>
+              {["Valuation", "Risk", "Macro", "Flow"].map((item, index) => (
+                <div className={styles.previewConsensusRow} key={item}>
+                  <span>{item}</span>
+                  <i style={{ width: `${64 - index * 11}%` }} />
+                  <strong>{22 - index * 3}%</strong>
+                </div>
+              ))}
+            </div>
           </section>
 
           <section
             className={styles.previewRepairPanel}
-            data-highlight={activePreviewSection === "repair"}
+            data-highlight={activePreviewSection === "decision"}
             ref={(node) => {
-              sectionRefs.current.repair = node;
+              sectionRefs.current.action = node;
             }}
           >
-            <p className={styles.previewModuleTag}>Repair candidate</p>
-            <h3>One small switch can improve the book without adding new cash.</h3>
+            <p className={styles.previewModuleTag}>5. Action plan</p>
+            <h3>What the decision becomes in the real portfolio.</h3>
             <div className={styles.previewTable}>
-              {REPAIR_ROWS.map((item) => (
+              {[
+                { label: "Trim", detail: "Reduce the fragile winner first", value: "-1.5%" },
+                { label: "Wait", detail: "Do not add broad risk yet", value: "24h" },
+                { label: "Review", detail: "Re-run when flow and repair agree", value: "Next" },
+              ].map((item) => (
                 <div className={styles.previewTableRow} key={item.label}>
                   <div>
                     <strong>{item.label}</strong>

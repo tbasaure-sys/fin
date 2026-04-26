@@ -22,9 +22,11 @@ export default async function HomePage() {
         </Link>
 
         <div className={styles.navLinks} aria-label="Primary">
-          <a href="#workspace">Platform</a>
-          <a href="#workflow">Plain English</a>
+          <a href="#workspace">Product</a>
+          <a href="#workflow">Solutions</a>
+          <a href="#research">Research Layers</a>
           <a href="#cta">Start</a>
+          <a href="#about">About</a>
         </div>
 
         <div className={styles.navActions}>
@@ -54,11 +56,13 @@ export default async function HomePage() {
 
       <section className={styles.hero}>
         <div className={styles.heroIntro}>
-          <p className={styles.eyebrow}>Rules, visibility, and real repair</p>
-          <h1 className={styles.headline}>Know when a money move is actually allowed.</h1>
+          <p className={styles.eyebrow}>AI-powered investment intelligence</p>
+          <h1 className={styles.headline}>
+            We do not just analyze your portfolio. We <span className={styles.headlineAccent}>understand it.</span>
+          </h1>
           <p className={styles.subheadline}>
-            BLS Prime checks three things before you act: do your rules allow it,
-            can the market see the reason for the bet, and is the rebound real or just cosmetic.
+            BLS Prime uses a multi-layer transformer structure to read market data,
+            weigh evidence, and turn complex portfolio signals into a clear next action.
           </p>
 
           <div className={styles.heroActions}>
@@ -78,23 +82,41 @@ export default async function HomePage() {
 
       <section className={styles.section} id="workflow">
         <div className={styles.sectionIntro}>
-          <p className={styles.sectionTag}>Plain-English system</p>
-          <h2 className={styles.sectionTitle}>Three checks before capital moves.</h2>
+          <p className={styles.sectionTag}>Transformer operating model</p>
+          <h2 className={styles.sectionTitle}>Signals become decisions through layers.</h2>
           <p className={styles.sectionBody}>
-            No finance background needed. The workspace translates complex market structure
-            into simple answers: allowed, hidden, fake calm, or real repair.
+            No finance background needed. Each layer has a simple job: collect the evidence,
+            find what matters, stress-test the disagreement, combine the views, and show the action.
           </p>
         </div>
 
         <SupportStrip />
       </section>
 
+      <section className={styles.finalBand} id="research">
+        <p className={styles.sectionTag}>Research layers</p>
+        <h2 className={styles.finalTitle}>Many analytical layers. One accountable answer.</h2>
+        <p className={styles.finalBody}>
+          The system does not ask one model for an opinion. It routes the decision through
+          layers for valuation, risk, macro, flows, and policy, then shows why the final call won.
+        </p>
+
+        <div className={styles.heroActions}>
+          <a className={styles.btnPrimary} href="#workspace">
+            View the engine
+          </a>
+          <a className={styles.btnGhost} href="#cta">
+            Start with your portfolio
+          </a>
+        </div>
+      </section>
+
       <section className={styles.finalBand} id="cta">
         <p className={styles.sectionTag}>BLS Prime</p>
-        <h2 className={styles.finalTitle}>Move only when the answer has standing.</h2>
+        <h2 className={styles.finalTitle}>Move only when the layers agree enough.</h2>
         <p className={styles.finalBody}>
-          Set the rules once, let the workspace review every decision, and keep a record
-          of what happened after you acted or waited.
+          Set your rules once, let the layers review every decision, and keep a record
+          of which signals, weights, and checks led to action or restraint.
         </p>
 
         <div className={styles.heroActions}>
@@ -107,10 +129,10 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <footer className={styles.footer}>
+      <footer className={styles.footer} id="about">
         <p>
-          (c) {new Date().getFullYear()} {publicBrand}. Rules, visibility, and repair
-          before action. Not financial advice.
+          (c) {new Date().getFullYear()} {publicBrand}. Multi-layer portfolio intelligence.
+          Not financial advice.
         </p>
         <Link href="/terms">Terms of Service</Link>
       </footer>
