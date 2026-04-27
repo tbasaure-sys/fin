@@ -72,6 +72,46 @@
   gap: 0.75rem;
 }
 
+.languageToggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.4rem;
+  padding: 0.18rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.languageOption {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.45rem;
+  min-height: 2rem;
+  padding: 0 0.7rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.languageOption:hover,
+.languageOption:focus-visible {
+  color: var(--text);
+}
+
+.languageOption[data-active="true"] {
+  background: linear-gradient(135deg, #ddb564 0%, #c89137 100%);
+  color: #071019;
+}
+
 .btnPrimary,
 .btnSecondary,
 .btnGhost {
@@ -579,7 +619,15 @@
   color: #92d38c;
 }
 
+.previewAgentRow[data-stance="apoya"] em {
+  color: #92d38c;
+}
+
 .previewAgentRow[data-stance="warn"] em {
+  color: #ff8a4c;
+}
+
+.previewAgentRow[data-stance="advierte"] em {
   color: #ff8a4c;
 }
 
