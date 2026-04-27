@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import styles from "@/components/portfolio-chat.module.css";
+import { useLanguagePreference } from "@/components/language-layer";
 
 const STARTER_QUESTIONS = [
   "Is my portfolio too concentrated right now?",
@@ -11,6 +12,15 @@ const STARTER_QUESTIONS = [
   "What would I need to see before adding more risk to the portfolio?",
   "What is the clearest reason to wait before adding risk?",
 ];
+
+const STARTER_QUESTIONS_ES = {
+  "Is my portfolio too concentrated right now?": "¿Mi portafolio está demasiado concentrado ahora?",
+  "What does the current market stance mean for me specifically?": "¿Qué significa para mí la postura actual del mercado?",
+  "Which of my positions adds the least real diversification?": "¿Cuál de mis posiciones agrega menos diversificación real?",
+  "Should I be worried about what the alerts are flagging?": "¿Debería preocuparme por lo que marcan las alertas?",
+  "What would I need to see before adding more risk to the portfolio?": "¿Qué tendría que ver antes de agregar más riesgo al portafolio?",
+  "What is the clearest reason to wait before adding risk?": "¿Cuál es la razón más clara para esperar antes de agregar riesgo?",
+};
 
 function AssistantMessage({ content, streaming }) {
   return (
@@ -34,6 +44,7 @@ function UserMessage({ content }) {
 }
 
 export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
+  const { language } = useLanguagePreference();
   const [history, setHistory] = useState([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -76,6 +87,7 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
           message: trimmed,
           history: newHistory.slice(-12),
           dashboard,
+          language,
         }),
         signal: controller.signal,
       });
@@ -183,10 +195,10 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
                 <button
                   className={styles.starter}
                   key={q}
-                  onClick={() => sendMessage(q)}
+                  onClick={() => sendMessage(language === "es" ? STARTER_QUESTIONS_ES[q] : q)}
                   type="button"
                 >
-                  {q}
+                  {language === "es" ? STARTER_QUESTIONS_ES[q] : q}
                 </button>
               ))}
             </div>

@@ -4,8 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import styles from "@/app/home-page.module.css";
-
-const LANGUAGE_STORAGE_KEY = "blsprime_language_preference";
+import { LANGUAGE_STORAGE_KEY, writeStoredLanguage } from "@/components/language-layer";
 
 const COPY = {
   en: {
@@ -317,8 +316,7 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
       return;
     }
 
-    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-    document.documentElement.lang = language;
+    writeStoredLanguage(language);
   }, [hasResolvedLanguage, language]);
 
   return (

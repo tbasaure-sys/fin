@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 
-function buildSystemPrompt(workspaceName, dashboard) {
+function buildSystemPrompt(workspaceName, dashboard, language = "en") {
   const state = dashboard?.state_summary || {};
   const portfolio = dashboard?.modules?.portfolio || null;
   const holdings = portfolio?.holdings || [];
@@ -38,7 +38,11 @@ function buildSystemPrompt(workspaceName, dashboard) {
 
   const escrowed = (escrow.items || []).map((e) => e.title || e.summary).filter(Boolean).join(", ");
 
-  return `You are a calm, clear-headed portfolio advisor embedded inside "${workspaceName}", a private investment workspace. Your job is to help the user understand their own portfolio, interpret the workspace metrics, and think through decisions - in plain, jargon-free English.
+  const languageInstruction = language === "es"
+    ? "Answer in clear, simple Spanish. The user may not be a finance professional. If you use a financial term, explain it briefly in Spanish in parentheses."
+    : "Answer in plain English. The user may not be a finance professional.";
+
+  return `You are a calm, clear-headed portfolio advisor embedded inside "${workspaceName}", a private investment workspace. Your job is to help the user understand their own portfolio, interpret the workspace metrics, and think through decisions - in plain, jargon-free language.
 
 You have access to the user's live portfolio data below. Use it to ground every answer. When you don't know something precisely, say so - never invent numbers. Always relate your answers back to their specific situation.
 
@@ -71,7 +75,7 @@ ${memory?.weeklyBrief?.[0] || evidenceDrawer?.headline || "No brief available."}
 ${(evidenceDrawer?.currentRead || []).slice(0, 3).join(" | ") || "None."}
 
 == INSTRUCTIONS ==
-- Answer in plain English. The user may not be a finance professional.
+- ${languageInstruction}
 - Ground every answer in the portfolio data above. Reference specific holdings, metrics, or alerts when relevant.
 - Explain any financial term you use in parentheses immediately after using it.
 - If the user asks about a position not in their holdings, say you don't see it in their current workspace.
@@ -99,7 +103,7 @@ export async function POST(request, { params }) {
     return Response.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { message, history = [], dashboard = {} } = body;
+  const { message, history = [], dashboard = {}, language = "en" } = body;
 
   if (!message || typeof message !== "string" || !message.trim()) {
     return Response.json({ error: "Message is required." }, { status: 400 });
@@ -110,7 +114,7 @@ export async function POST(request, { params }) {
     auth?.workspace?.name ||
     "BLS Prime";
 
-  const systemPrompt = buildSystemPrompt(workspaceName, dashboard);
+  const systemPrompt = buildSystemPrompt(workspaceName, dashboard, language === "es" ? "es" : "en");
 
   // Build message array: system + history (capped at last 12) + new user message
   const safeHistory = Array.isArray(history) ? history.slice(-12) : [];

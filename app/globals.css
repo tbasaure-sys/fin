@@ -58,6 +58,53 @@ a {
   text-decoration: none;
 }
 
+.global-language-dock {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  padding: 0.24rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(6, 11, 19, 0.84);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(16px);
+}
+
+.global-language-dock span {
+  padding: 0 0.44rem 0 0.62rem;
+  color: rgba(232, 237, 245, 0.62);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.global-language-dock button {
+  min-width: 2.38rem;
+  min-height: 2rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(232, 237, 245, 0.72);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.global-language-dock button[data-active="true"] {
+  background: linear-gradient(135deg, #ddb564 0%, #c89137 100%);
+  color: #071019;
+}
+
+@media (max-width: 640px) {
+  .global-language-dock {
+    right: 0.75rem;
+    bottom: 0.75rem;
+  }
+}
+
 .terminal-root {
   position: relative;
   min-height: 100vh;
