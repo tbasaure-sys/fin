@@ -17,7 +17,7 @@ const COPY = {
       product: "Product",
       solutions: "Solutions",
       research: "Research Layers",
-      start: "Start",
+      start: "Action plan",
       about: "About",
     },
     auth: {
@@ -36,6 +36,8 @@ const COPY = {
       primaryAuthed: "Open workspace",
       primaryGuest: "Get started",
       secondary: "See the workspace",
+      pathLabel: "How to read it",
+      path: ["Data", "Layers", "Decision"],
     },
     workflow: {
       tag: "Transformer operating model",
@@ -79,8 +81,8 @@ const COPY = {
       ],
       topLabel: "Decision engine",
       topTitle: "Powered by multi-layer transformers",
-      topDate: "Apr 22",
-      topStatus: "Updated brief",
+      topDate: "Live example",
+      topStatus: "Click any layer to inspect it",
       ask: "Ask: which layers changed the decision?",
       leadTag: "Final decision",
       leadTitle: "Reduce risk. The rebound is still too fragile.",
@@ -151,7 +153,7 @@ const COPY = {
       product: "Producto",
       solutions: "Soluciones",
       research: "Capas de investigación",
-      start: "Empezar",
+      start: "Plan",
       about: "Acerca de",
     },
     auth: {
@@ -170,6 +172,8 @@ const COPY = {
       primaryAuthed: "Abrir workspace",
       primaryGuest: "Empezar",
       secondary: "Ver el workspace",
+      pathLabel: "Cómo leerlo",
+      path: ["Datos", "Capas", "Decisión"],
     },
     workflow: {
       tag: "Modelo operativo transformer",
@@ -213,8 +217,8 @@ const COPY = {
       ],
       topLabel: "Motor de decisión",
       topTitle: "Impulsado por transformers multicapa",
-      topDate: "22 abr",
-      topStatus: "Resumen actualizado",
+      topDate: "Ejemplo en vivo",
+      topStatus: "Toca una capa para explorarla",
       ask: "Pregunta: ¿qué capas cambiaron la decisión?",
       leadTag: "Decisión final",
       leadTitle: "Reducir riesgo. El rebote sigue siendo demasiado frágil.",
@@ -325,11 +329,21 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
         </Link>
 
         <div className={styles.navLinks} aria-label={copy.navAria}>
-          <a href="#workspace">{copy.nav.product}</a>
-          <a href="#workflow">{copy.nav.solutions}</a>
-          <a href="#research">{copy.nav.research}</a>
-          <a href="#cta">{copy.nav.start}</a>
-          <a href="#about">{copy.nav.about}</a>
+          <a data-testid="public-nav-product" href="#workspace">
+            {copy.nav.product}
+          </a>
+          <a data-testid="public-nav-solutions" href="#workflow">
+            {copy.nav.solutions}
+          </a>
+          <a data-testid="public-nav-research" href="#research">
+            {copy.nav.research}
+          </a>
+          <a data-testid="public-nav-plan" href="#cta">
+            {copy.nav.start}
+          </a>
+          <a data-testid="public-nav-about" href="#about">
+            {copy.nav.about}
+          </a>
         </div>
 
         <div className={styles.navActions}>
@@ -374,6 +388,15 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
             <a className={styles.btnGhost} href="#workspace">
               {copy.hero.secondary}
             </a>
+          </div>
+
+          <div className={styles.heroPath} aria-label={copy.hero.pathLabel} data-testid="hero-path">
+            <span>{copy.hero.pathLabel}</span>
+            <ol>
+              {copy.hero.path.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ol>
           </div>
         </div>
 
@@ -435,6 +458,7 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
 function LanguageToggle({ copy, language, onChange }) {
   return (
     <div className={styles.languageToggle} aria-label={copy.languageAria} role="group">
+      <span className={styles.languageLabel}>{language === "es" ? "Idioma" : "Language"}</span>
       {[
         { code: "en", label: "EN" },
         { code: "es", label: "ES" },
@@ -444,6 +468,7 @@ function LanguageToggle({ copy, language, onChange }) {
           aria-pressed={language === option.code}
           className={styles.languageOption}
           data-active={language === option.code}
+          data-testid={`language-${option.code}`}
           key={option.code}
           onClick={() => onChange(normalizeLanguage(option.code))}
           type="button"
@@ -486,6 +511,7 @@ export function WorkspacePreview({ brand, copy = COPY.en }) {
             <button
               className={styles.previewSidebarItem}
               data-active={activePreviewSection === item.target}
+              data-testid={`preview-nav-${item.target}`}
               key={item.label}
               onClick={() => selectPreviewSection(item.target)}
               type="button"
@@ -521,6 +547,7 @@ export function WorkspacePreview({ brand, copy = COPY.en }) {
               <button
                 className={styles.previewTab}
                 data-active={activeTab === item.target}
+                data-testid={`preview-tab-${item.target}`}
                 key={item.label}
                 onClick={() => selectPreviewSection(item.target)}
                 type="button"

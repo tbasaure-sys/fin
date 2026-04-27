@@ -75,11 +75,19 @@
 .languageToggle {
   display: inline-flex;
   align-items: center;
+  gap: 0.18rem;
   min-height: 2.4rem;
   padding: 0.18rem;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.035);
+}
+
+.languageLabel {
+  padding: 0 0.42rem 0 0.62rem;
+  color: var(--dim);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .languageOption {
@@ -216,6 +224,53 @@
   flex-wrap: wrap;
   gap: 0.9rem;
   margin-top: 1.8rem;
+}
+
+.heroPath {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 1.4rem;
+  color: var(--dim);
+}
+
+.heroPath > span {
+  color: var(--gold);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.heroPath ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.46rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.heroPath li {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.05rem;
+  padding: 0.45rem 0.74rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.028);
+  color: rgba(245, 241, 232, 0.82);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.heroPath li + li::before {
+  content: "->";
+  position: absolute;
+  left: -0.7rem;
+  color: rgba(214, 170, 75, 0.76);
+  font-size: 0.72rem;
 }
 
 .workspaceStage {
@@ -861,6 +916,7 @@
 
   .previewTabs,
   .heroActions,
+  .heroPath ol,
   .navLinks,
   .navActions {
     flex-wrap: wrap;
@@ -1020,6 +1076,14 @@
   .heroActions,
   .navActions {
     width: 100%;
+  }
+
+  .languageToggle {
+    order: -1;
+  }
+
+  .languageLabel {
+    min-width: 4.25rem;
   }
 
   .btnPrimary,
