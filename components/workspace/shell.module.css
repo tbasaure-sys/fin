@@ -432,6 +432,10 @@
   gap: 1rem;
 }
 
+.answerModuleWide {
+  grid-column: span 2;
+}
+
 .answerMetricList {
   gap: 0.8rem;
   margin-top: 0.85rem;
@@ -481,6 +485,177 @@
   height: 100%;
   border-radius: inherit;
   background: linear-gradient(90deg, rgba(248, 200, 111, 0.92), rgba(122, 210, 194, 0.92));
+}
+
+.diversificationClockCard {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.5fr) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  min-height: 100%;
+}
+
+.diversificationClockVisual {
+  display: grid;
+  place-items: center;
+  min-height: 12.5rem;
+}
+
+.clockDial {
+  --dial-size: min(11rem, 100%);
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--dial-size);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at center, rgba(8, 14, 24, 0.98) 0 42%, transparent 43%),
+    conic-gradient(
+      from 210deg,
+      rgba(122, 210, 194, 0.9) 0 72deg,
+      rgba(248, 200, 111, 0.9) 72deg 176deg,
+      rgba(255, 124, 114, 0.8) 176deg 246deg,
+      rgba(255, 255, 255, 0.08) 246deg 360deg
+    );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 22px 48px rgba(0, 0, 0, 0.24);
+  overflow: hidden;
+}
+
+.clockDial::before,
+.clockDial::after {
+  content: "";
+  position: absolute;
+  inset: 13%;
+  border-radius: inherit;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+}
+
+.clockDial::after {
+  inset: 30%;
+  border-style: solid;
+  background: rgba(6, 12, 22, 0.7);
+}
+
+.clockPiece,
+.clockHand {
+  position: absolute;
+  transform-origin: 50% 50%;
+  animation: clockAssemble 900ms cubic-bezier(0.2, 0.9, 0.24, 1) both;
+}
+
+.clockPiece {
+  inset: 7%;
+  border-radius: inherit;
+  opacity: 0.8;
+  clip-path: polygon(50% 50%, 100% 0, 100% 45%, 50% 50%);
+}
+
+.clockPiece[data-piece="visible"] {
+  background: rgba(248, 200, 111, 0.3);
+  transform: rotate(22deg) translateX(8px);
+}
+
+.clockPiece[data-piece="tested"] {
+  background: rgba(122, 210, 194, 0.26);
+  transform: rotate(148deg) translateX(-7px);
+  animation-delay: 80ms;
+}
+
+.clockPiece[data-piece="gap"] {
+  background: rgba(255, 124, 114, 0.22);
+  transform: rotate(272deg) translateY(7px);
+  animation-delay: 150ms;
+}
+
+.clockHand {
+  width: 42%;
+  height: 2px;
+  inset: calc(50% - 1px) auto auto 50%;
+  border-radius: 999px;
+  background: rgba(247, 242, 232, 0.84);
+  transform: rotate(var(--clock-rotation)) translateX(-2px);
+}
+
+.clockHand[data-hand="tested"] {
+  width: 35%;
+  height: 3px;
+  background: rgba(122, 210, 194, 0.95);
+  animation-delay: 220ms;
+}
+
+.clockDial strong,
+.clockDial small {
+  position: relative;
+  z-index: 2;
+}
+
+.clockDial strong {
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 0.85;
+}
+
+.clockDial small {
+  align-self: end;
+  margin-top: 3.2rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.diversificationClockCopy {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.diversificationClockCopy h3 {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+  line-height: 1.16;
+}
+
+.diversificationClockCopy p:last-child {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.diversificationClockMetrics {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.diversificationClockMetrics div {
+  display: grid;
+  gap: 0.16rem;
+  padding: 0.82rem 0.75rem 0.82rem 0;
+}
+
+.diversificationClockMetrics div + div {
+  padding-left: 0.82rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.diversificationClockMetrics span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.diversificationClockMetrics strong {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.diversificationClockMetrics small {
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 .answerSourcesCard {
@@ -3459,11 +3634,31 @@
   }
 }
 
+@keyframes clockAssemble {
+  from {
+    opacity: 0;
+    transform: rotate(calc(var(--clock-rotation, 0deg) - 34deg)) translate(18px, 12px) scale(0.92);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .clockPiece,
+  .clockHand {
+    animation-timeline: view();
+    animation-range: entry 10% cover 42%;
+  }
+}
+
 @media (max-width: 1180px) {
   .statusGrid,
   .truthHeroGrid,
   .answerGrid,
   .answerModuleGrid,
+  .diversificationClockCard,
+  .diversificationClockMetrics,
   .truthScoreRail,
   .truthClusterGrid,
   .truthUtilityRail,
@@ -3534,6 +3729,16 @@
 
   .header {
     grid-template-columns: 1fr;
+  }
+
+  .answerModuleWide {
+    grid-column: auto;
+  }
+
+  .diversificationClockMetrics div + div {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
   }
 
   .answerWorkspaceHead {
