@@ -202,7 +202,7 @@
 
 .headline {
   max-width: 10ch;
-  font-size: clamp(3.4rem, 7vw, 6rem);
+  font-size: clamp(3.1rem, 6.4vw, 5.35rem);
 }
 
 .headlineAccent {
@@ -426,7 +426,7 @@
 
 .previewHeroGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.04fr) minmax(260px, 0.52fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
@@ -540,13 +540,17 @@
 
 .previewDetailGrid {
   display: grid;
-  grid-template-columns: minmax(0, 0.96fr) minmax(320px, 0.78fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 
-.previewResearchPanel,
-.previewRepairPanel {
-  grid-column: 1 / -1;
+.previewLeadPanel:not([data-highlight="true"]),
+.previewReferencePanel:not([data-highlight="true"]),
+.previewChartPanel:not([data-highlight="true"]),
+.previewTablePanel:not([data-highlight="true"]),
+.previewResearchPanel:not([data-highlight="true"]),
+.previewRepairPanel:not([data-highlight="true"]) {
+  display: none;
 }
 
 .previewRuleStack {

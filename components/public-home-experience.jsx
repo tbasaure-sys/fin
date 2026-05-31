@@ -14,11 +14,7 @@ const COPY = {
     languageAria: "Choose page language",
     nav: {
       product: "Product",
-      solutions: "Solutions",
-      research: "Research",
       factorlab: "FactorLab",
-      start: "Action plan",
-      about: "About",
     },
     auth: {
       workspace: "Workspace",
@@ -32,19 +28,16 @@ const COPY = {
       titleStart: "Know what to do with your money",
       titleAccent: "before you act.",
       body:
-        "BLS Prime reads your cash, holdings, market context, and research notes, then shows what looks ready, what needs caution, and what should wait.",
+        "BLS Prime turns cash, holdings, market context, and research into one clear next step: act, wait, or reject.",
       primaryAuthed: "Open workspace",
       primaryGuest: "Get started",
       secondary: "See the workspace",
-      factorlab: "Open FactorLab",
-      pathLabel: "How to read it",
-      path: ["Data", "Layers", "Decision"],
     },
     workflow: {
-      tag: "How it works",
-      title: "Many signals become one plain answer.",
+      tag: "What you get",
+      title: "One calm read before you move.",
       body:
-        "No finance background needed. The app gathers the evidence, separates important signals from noise, checks the risks, and turns the result into a next step.",
+        "The workspace shows what changed, what can go wrong, and what action is allowed by your own rules.",
     },
     research: {
       tag: "Research desk",
@@ -139,10 +132,6 @@ const COPY = {
         title: "Reasons you can inspect",
         body: "Every answer shows the checks and evidence that changed the decision.",
       },
-      {
-        title: "A next step, or a reason to wait",
-        body: "The product is useful even when the right move is patience.",
-      },
     ],
   },
   es: {
@@ -152,11 +141,7 @@ const COPY = {
     languageAria: "Elegir idioma de la página",
     nav: {
       product: "Producto",
-      solutions: "Soluciones",
-      research: "Investigación",
       factorlab: "FactorLab",
-      start: "Plan",
-      about: "Acerca de",
     },
     auth: {
       workspace: "Espacio",
@@ -170,19 +155,16 @@ const COPY = {
       titleStart: "Ten claro qué hacer con tu dinero",
       titleAccent: "antes de actuar.",
       body:
-        "BLS Prime lee tu caja, posiciones, contexto de mercado y notas de investigación, y muestra qué parece listo, qué exige cautela y qué debería esperar.",
+        "BLS Prime convierte caja, posiciones, mercado e investigación en un próximo paso claro: actuar, esperar o rechazar.",
       primaryAuthed: "Abrir espacio",
       primaryGuest: "Empezar",
       secondary: "Ver el espacio",
-      factorlab: "Abrir FactorLab",
-      pathLabel: "Cómo leerlo",
-      path: ["Datos", "Riesgos", "Decisión"],
     },
     workflow: {
-      tag: "Cómo funciona",
-      title: "Muchas señales se convierten en una respuesta clara.",
+      tag: "Qué recibes",
+      title: "Una lectura tranquila antes de moverte.",
       body:
-        "No necesitas saber finanzas. La app junta evidencia, separa lo importante del ruido, revisa los riesgos y convierte el resultado en un próximo paso.",
+        "El espacio muestra qué cambió, qué puede salir mal y qué acción permiten tus propias reglas.",
     },
     research: {
       tag: "Mesa de investigación",
@@ -277,10 +259,6 @@ const COPY = {
         title: "Razones que puedes revisar",
         body: "Cada respuesta muestra los chequeos y la evidencia que cambiaron la decisión.",
       },
-      {
-        title: "Un próximo paso, o una razón para esperar",
-        body: "El producto también sirve cuando el mejor movimiento es tener paciencia.",
-      },
     ],
   },
 };
@@ -334,21 +312,9 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
           <a data-testid="public-nav-product" href="#workspace">
             {copy.nav.product}
           </a>
-          <a data-testid="public-nav-solutions" href="#workflow">
-            {copy.nav.solutions}
-          </a>
-          <a data-testid="public-nav-research" href="#research">
-            {copy.nav.research}
-          </a>
           <Link data-testid="public-nav-factorlab" href="/factorlab">
             {copy.nav.factorlab}
           </Link>
-          <a data-testid="public-nav-plan" href="#cta">
-            {copy.nav.start}
-          </a>
-          <a data-testid="public-nav-about" href="#about">
-            {copy.nav.about}
-          </a>
         </div>
 
         <div className={styles.navActions}>
@@ -393,18 +359,6 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
             <a className={styles.btnGhost} href="#workspace">
               {copy.hero.secondary}
             </a>
-            <Link className={styles.btnGhost} href="/factorlab">
-              {copy.hero.factorlab}
-            </Link>
-          </div>
-
-          <div className={styles.heroPath} aria-label={copy.hero.pathLabel} data-testid="hero-path">
-            <span>{copy.hero.pathLabel}</span>
-            <ol>
-              {copy.hero.path.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ol>
           </div>
         </div>
 
@@ -421,21 +375,6 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
         </div>
 
         <SupportStrip items={copy.support} />
-      </section>
-
-      <section className={styles.finalBand} id="research">
-        <p className={styles.sectionTag}>{copy.research.tag}</p>
-        <h2 className={styles.finalTitle}>{copy.research.title}</h2>
-        <p className={styles.finalBody}>{copy.research.body}</p>
-
-        <div className={styles.heroActions}>
-          <a className={styles.btnPrimary} href="#workspace">
-            {copy.research.primary}
-          </a>
-          <a className={styles.btnGhost} href="#cta">
-            {copy.research.secondary}
-          </a>
-        </div>
       </section>
 
       <section className={styles.finalBand} id="cta">

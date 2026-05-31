@@ -4,6 +4,132 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import styles from "@/app/factorlab/factorlab.module.css";
+import { useLanguagePreference } from "@/components/language-layer";
+
+const COPY = {
+  en: {
+    navAria: "FactorLab navigation",
+    nav: { builder: "Builder", catalog: "Catalog", diagnostics: "Diagnostics" },
+    workspace: "Workspace",
+    language: "Language",
+    hero: {
+      kicker: "FactorLab",
+      title: "Point-in-time screening with refusals built in.",
+      body:
+        "Build factor screens, check the logic before a run, and get a clear refusal when a step would leak future data.",
+    },
+    status: {
+      aria: "FactorLab status",
+      registry: "Registry",
+      operators: "63 operators",
+      sourceMode: "Source mode",
+      sourceValue: "Parquet / CSV",
+      currentRun: "Current run",
+      accepted: "Accepted",
+      refused: "Refused",
+    },
+    catalog: {
+      title: "Operator catalog",
+      count: "9 families",
+      ariaSuffix: "operator family",
+    },
+    builder: {
+      label: "Screen builder",
+      asof: "As of",
+      topK: "Top K",
+    },
+    inspector: {
+      label: "Selected node",
+      pit: "PIT join",
+      deterministic: "deterministic",
+      handle: "Handle",
+      input: "Input",
+      params: "Params",
+      dagAria: "DAG view",
+    },
+    spec: {
+      label: "Spec JSON",
+      value: "round-trip ready",
+    },
+    run: {
+      label: "Run state",
+      validTitle: "Ranked candidates",
+      refusedTitle: "Structured refusal",
+      modeAria: "Run mode",
+      valid: "Valid",
+      refused: "Refused",
+      entity: "Entity",
+      score: "Score",
+      mom: "Mom Z",
+      quality: "Quality Z",
+      resvol: "Resvol",
+      refusal: "Refused",
+      refusalMessage: "lead() introduces look-ahead bias unless explicitly acknowledged for labeling.",
+    },
+    footer: "Candidate rankings and diagnostics. Not financial advice.",
+  },
+  es: {
+    navAria: "Navegación de FactorLab",
+    nav: { builder: "Constructor", catalog: "Catálogo", diagnostics: "Diagnóstico" },
+    workspace: "Espacio",
+    language: "Idioma",
+    hero: {
+      kicker: "FactorLab",
+      title: "Filtros de factores con fecha real y rechazos claros.",
+      body:
+        "Arma filtros de inversión, revisa la lógica antes de correrlos y recibe un rechazo claro si un paso mira datos del futuro.",
+    },
+    status: {
+      aria: "Estado de FactorLab",
+      registry: "Catálogo",
+      operators: "63 operadores",
+      sourceMode: "Datos",
+      sourceValue: "Parquet / CSV",
+      currentRun: "Corrida actual",
+      accepted: "Aceptada",
+      refused: "Rechazada",
+    },
+    catalog: {
+      title: "Catálogo de operadores",
+      count: "9 familias",
+      ariaSuffix: "familia de operadores",
+    },
+    builder: {
+      label: "Constructor de filtro",
+      asof: "Fecha de corte",
+      topK: "Top K",
+    },
+    inspector: {
+      label: "Nodo seleccionado",
+      pit: "Join con fecha real",
+      deterministic: "determinístico",
+      handle: "Nombre",
+      input: "Entrada",
+      params: "Parámetros",
+      dagAria: "Vista DAG",
+    },
+    spec: {
+      label: "Spec JSON",
+      value: "listo para guardar y recargar",
+    },
+    run: {
+      label: "Estado de corrida",
+      validTitle: "Candidatos rankeados",
+      refusedTitle: "Rechazo estructurado",
+      modeAria: "Modo de corrida",
+      valid: "Válida",
+      refused: "Rechazada",
+      entity: "Activo",
+      score: "Puntaje",
+      mom: "Mom Z",
+      quality: "Calidad Z",
+      resvol: "Volatilidad",
+      refusal: "Rechazado",
+      refusalMessage: "lead() mira datos futuros, salvo que se use explícitamente para crear etiquetas.",
+    },
+    footer: "Ranking de candidatos y diagnóstico. No es asesoría financiera.",
+  },
+};
 
 const families = [
   {
@@ -110,6 +236,8 @@ const refusalPayload = {
 };
 
 export function FactorLabWorkstation() {
+  const { language, setLanguage } = useLanguagePreference();
+  const copy = COPY[language] || COPY.en;
   const [activeStep, setActiveStep] = useState(pipeline[0].id);
   const [mode, setMode] = useState("valid");
   const [asof, setAsof] = useState("2023-12-29");
@@ -139,38 +267,44 @@ export function FactorLabWorkstation() {
         <Link className={styles.brand} href="/">
           BLS Prime
         </Link>
-        <nav className={styles.nav} aria-label="FactorLab navigation">
-          <a href="#builder">Builder</a>
-          <a href="#catalog">Catalog</a>
-          <a href="#diagnostics">Diagnostics</a>
+        <nav className={styles.nav} aria-label={copy.navAria}>
+          <a href="#builder">{copy.nav.builder}</a>
+          <a href="#catalog">{copy.nav.catalog}</a>
+          <a href="#diagnostics">{copy.nav.diagnostics}</a>
         </nav>
-        <Link className={styles.workspaceLink} href="/app">
-          Workspace
-        </Link>
+        <div className={styles.headerActions}>
+          <div className={styles.languageToggle} aria-label={copy.language} role="group">
+            <span>{copy.language}</span>
+            <button data-active={language === "en"} onClick={() => setLanguage("en")} type="button">EN</button>
+            <button data-active={language === "es"} onClick={() => setLanguage("es")} type="button">ES</button>
+          </div>
+          <Link className={styles.workspaceLink} href="/app">
+            {copy.workspace}
+          </Link>
+        </div>
       </header>
 
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
-          <p className={styles.kicker}>FactorLab</p>
-          <h1>Point-in-time screening with refusals built in.</h1>
+          <p className={styles.kicker}>{copy.hero.kicker}</p>
+          <h1>{copy.hero.title}</h1>
           <p>
-            Compose deterministic factor screens, inspect the DAG before execution, and surface unsafe work as
-            structured diagnostics instead of silent output.
+            {copy.hero.body}
           </p>
         </div>
 
-        <div className={styles.statusPlane} aria-label="FactorLab status">
+        <div className={styles.statusPlane} aria-label={copy.status.aria}>
           <div>
-            <span>Registry</span>
-            <strong>63 operators</strong>
+            <span>{copy.status.registry}</span>
+            <strong>{copy.status.operators}</strong>
           </div>
           <div>
-            <span>Source mode</span>
-            <strong>BYO parquet / CSV</strong>
+            <span>{copy.status.sourceMode}</span>
+            <strong>{copy.status.sourceValue}</strong>
           </div>
           <div>
-            <span>Current run</span>
-            <strong>{mode === "valid" ? "Accepted" : "Refused"}</strong>
+            <span>{copy.status.currentRun}</span>
+            <strong>{mode === "valid" ? copy.status.accepted : copy.status.refused}</strong>
           </div>
         </div>
       </section>
@@ -178,8 +312,8 @@ export function FactorLabWorkstation() {
       <section className={styles.workbench} id="builder">
         <aside className={styles.rail} id="catalog">
           <div className={styles.railHeader}>
-            <span>Operator catalog</span>
-            <strong>9 families</strong>
+            <span>{copy.catalog.title}</span>
+            <strong>{copy.catalog.count}</strong>
           </div>
           <div className={styles.familyList}>
             {families.map((family) => (
@@ -187,7 +321,7 @@ export function FactorLabWorkstation() {
                 className={styles.familyButton}
                 key={family.name}
                 type="button"
-                aria-label={`${family.name} operator family`}
+                aria-label={`${family.name} ${copy.catalog.ariaSuffix}`}
               >
                 <span>{family.name}</span>
                 <strong>{family.count}</strong>
@@ -201,16 +335,16 @@ export function FactorLabWorkstation() {
           <section className={styles.builderPanel}>
             <div className={styles.panelTopline}>
               <div>
-                <span>Screen builder</span>
+                <span>{copy.builder.label}</span>
                 <strong>momentum_quality</strong>
               </div>
               <div className={styles.controlRow}>
                 <label>
-                  <span>As of</span>
+                  <span>{copy.builder.asof}</span>
                   <input value={asof} onChange={(event) => setAsof(event.target.value)} />
                 </label>
                 <label>
-                  <span>Top K</span>
+                  <span>{copy.builder.topK}</span>
                   <input
                     min="1"
                     max="50"
@@ -242,30 +376,30 @@ export function FactorLabWorkstation() {
           <section className={styles.inspectorPanel}>
             <div className={styles.panelTopline}>
               <div>
-                <span>Selected node</span>
+                <span>{copy.inspector.label}</span>
                 <strong>{activeNode.op}</strong>
               </div>
-              <mark>{activeNode.status === "pit" ? "PIT join" : "deterministic"}</mark>
+              <mark>{activeNode.status === "pit" ? copy.inspector.pit : copy.inspector.deterministic}</mark>
             </div>
 
             <div className={styles.nodeDetail}>
               <dl>
                 <div>
-                  <dt>Handle</dt>
+                  <dt>{copy.inspector.handle}</dt>
                   <dd>{activeNode.id}</dd>
                 </div>
                 <div>
-                  <dt>Input</dt>
+                  <dt>{copy.inspector.input}</dt>
                   <dd>{activeNode.source}</dd>
                 </div>
                 <div>
-                  <dt>Params</dt>
+                  <dt>{copy.inspector.params}</dt>
                   <dd>{activeNode.params}</dd>
                 </div>
               </dl>
             </div>
 
-            <div className={styles.dagView} aria-label="DAG view">
+            <div className={styles.dagView} aria-label={copy.inspector.dagAria}>
               {pipeline.map((step) => (
                 <div className={styles.dagNode} data-active={activeStep === step.id} key={step.id}>
                   <span>{step.id}</span>
@@ -277,8 +411,8 @@ export function FactorLabWorkstation() {
           <section className={styles.specPanel}>
             <div className={styles.panelTopline}>
               <div>
-                <span>Spec JSON</span>
-                <strong>round-trip ready</strong>
+                <span>{copy.spec.label}</span>
+                <strong>{copy.spec.value}</strong>
               </div>
             </div>
             <pre>{JSON.stringify(renderedSpec, null, 2)}</pre>
@@ -287,15 +421,15 @@ export function FactorLabWorkstation() {
           <section className={styles.runPanel} id="diagnostics">
             <div className={styles.panelTopline}>
               <div>
-                <span>Run state</span>
-                <strong>{mode === "valid" ? "Ranked candidates" : "Structured refusal"}</strong>
+                <span>{copy.run.label}</span>
+                <strong>{mode === "valid" ? copy.run.validTitle : copy.run.refusedTitle}</strong>
               </div>
-              <div className={styles.segmented} role="tablist" aria-label="Run mode">
+              <div className={styles.segmented} role="tablist" aria-label={copy.run.modeAria}>
                 <button data-active={mode === "valid"} onClick={() => setMode("valid")} type="button">
-                  Valid
+                  {copy.run.valid}
                 </button>
                 <button data-active={mode === "refused"} onClick={() => setMode("refused")} type="button">
-                  Refused
+                  {copy.run.refused}
                 </button>
               </div>
             </div>
@@ -304,11 +438,11 @@ export function FactorLabWorkstation() {
               <table className={styles.resultsTable}>
                 <thead>
                   <tr>
-                    <th>Entity</th>
-                    <th>Score</th>
-                    <th>Mom Z</th>
-                    <th>Quality Z</th>
-                    <th>Resvol</th>
+                    <th>{copy.run.entity}</th>
+                    <th>{copy.run.score}</th>
+                    <th>{copy.run.mom}</th>
+                    <th>{copy.run.quality}</th>
+                    <th>{copy.run.resvol}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -325,17 +459,21 @@ export function FactorLabWorkstation() {
               </table>
             ) : (
               <div className={styles.refusal}>
-                <span>Refused</span>
+                <span>{copy.run.refusal}</span>
                 <strong>
                   {refusalPayload.error_type} in {refusalPayload.op}() at step {refusalPayload.node_index}
                 </strong>
-                <p>{refusalPayload.message}</p>
+                <p>{copy.run.refusalMessage}</p>
                 <pre>{JSON.stringify(refusalPayload, null, 2)}</pre>
               </div>
             )}
           </section>
         </div>
       </section>
+      <footer className="factorlab-page-footer">
+        <Link href="/">BLS Prime</Link>
+        <span>{copy.footer}</span>
+      </footer>
     </section>
   );
 }
