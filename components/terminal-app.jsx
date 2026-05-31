@@ -2468,6 +2468,19 @@ function TruthInterfacePanel({
       ),
     },
   ];
+  const decisionTitle = cleanWorkspaceCopy(activeAction?.title || stateSummary?.stance || "Lectura actual");
+  const decisionCopy = cleanWorkspaceCopy(
+    activeAction?.summary
+    || stateSummary?.decisionSummary
+    || balanceSheet?.headlineState
+    || frontier?.subhead
+    || "El espacio mostrará aquí la respuesta actual más clara.",
+  );
+  const reserveCopy = cleanWorkspaceCopy(balanceSheet?.spendRule || "Mantén la reserva hasta que el escenario sea más limpio.");
+  const investableDisplay = formatMoney(investableCash, personalFinance?.inputs?.baseCurrency);
+  const realIndependenceLabel = formatScoreValue(structuralScore);
+  const visibleIndependenceLabel = formatScoreValue(visibleScore);
+  const gapLabel = realityGap === null ? "-" : `${Math.round(clampUnitInterval(realityGap) * 100)}%`;
 
   return (
     <section className={styles.truthSurface}>
@@ -2475,8 +2488,8 @@ function TruthInterfacePanel({
         <div className={styles.answerWorkspaceHead}>
           <div>
             <p className={styles.kicker}>Respuesta actual</p>
-            <h2>{cleanWorkspaceCopy(activeAction?.title || stateSummary?.stance || "Lectura actual")}</h2>
-            <p className={styles.supportText}>Abre solo la capa que necesitas: caja, portafolio, solapamiento, investigación, FactorLab o posiciones.</p>
+            <h2>{decisionTitle}</h2>
+            <p className={styles.supportText}>Una pantalla para decidir: cuánto capital está libre, cuánta independencia queda y qué revisar después.</p>
           </div>
           <div className={styles.answerWorkspaceMeta}>
             <ToneBadge tone={truthTone(parseDisplayPercent(balanceSheet?.optionalityReserve))}>
@@ -2505,23 +2518,33 @@ function TruthInterfacePanel({
           <div className={styles.answerMainColumn}>
             <article className={styles.answerCard}>
               <p className={styles.answerCardTag}>Respuesta ejecutiva</p>
-              <h3>{cleanWorkspaceCopy(activeAction?.title || stateSummary?.decisionSummary || "Stay patient")}</h3>
-              <p>
-                {cleanWorkspaceCopy(
-                  activeAction?.summary
-                  || stateSummary?.decisionSummary
-                  || balanceSheet?.headlineState
-                  || frontier?.subhead
-                  || "El espacio mostrará aquí la respuesta actual más clara.",
-                )}
-              </p>
+              <h3>{decisionTitle}</h3>
+              <p>{decisionCopy}</p>
+
+              <div className={styles.decisionPillarGrid} aria-label="Lectura principal del workspace">
+                <div>
+                  <span>Disponible</span>
+                  <strong>{investableDisplay}</strong>
+                  <small>Después de gastos y reserva.</small>
+                </div>
+                <div>
+                  <span>Independencia real</span>
+                  <strong>{realIndependenceLabel}</strong>
+                  <small>Visible {visibleIndependenceLabel}; brecha {gapLabel}.</small>
+                </div>
+                <div>
+                  <span>Reserva</span>
+                  <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
+                  <small>{reserveCopy}</small>
+                </div>
+              </div>
 
               <div className={styles.answerCardActions}>
                 <button className={styles.primaryButton} onClick={onToggleChat} type="button">
-                  {showChat ? "Ocultar explicacion" : "Abrir explicacion"}
+                  {showChat ? "Ocultar explicación" : "Abrir explicación"}
                 </button>
                 <button className={styles.secondaryButton} onClick={() => onSelectSection("today")} type="button">
-                  Revisar decision
+                  Revisar decisión
                 </button>
                 <button className={styles.secondaryButton} onClick={() => onSelectSection("diversification")} type="button">
                   Revisar solapamiento
@@ -2536,7 +2559,7 @@ function TruthInterfacePanel({
                 <div className={styles.answerMetricList}>
                   <div>
                     <span>Caja invertible</span>
-                    <strong>{formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)}</strong>
+                    <strong>{investableDisplay}</strong>
                     <small>Después de gastos y reserva.</small>
                   </div>
                   <div>
@@ -2547,7 +2570,7 @@ function TruthInterfacePanel({
                   <div>
                     <span>Reserva de opcionalidad</span>
                     <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
-                    <small>{cleanWorkspaceCopy(balanceSheet?.spendRule || "Mantener reserva hasta que el escenario sea más limpio.")}</small>
+                    <small>{reserveCopy}</small>
                   </div>
                 </div>
               </article>
@@ -2604,8 +2627,38 @@ function joinedActionText(item) {
     .toLowerCase();
 }
 
+function normalizeWorkspaceCopyInput(value) {
+  if (Array.isArray(value)) {
+    return value.map(normalizeWorkspaceCopyInput).filter(Boolean).join(" ");
+  }
+
+  if (value && typeof value === "object") {
+    const preferredKeys = [
+      "summary",
+      "note",
+      "title",
+      "headline",
+      "body",
+      "detail",
+      "description",
+      "reason",
+      "message",
+      "text",
+    ];
+
+    for (const key of preferredKeys) {
+      const candidate = normalizeWorkspaceCopyInput(value[key]);
+      if (candidate) return candidate;
+    }
+
+    return "";
+  }
+
+  return String(value || "");
+}
+
 function cleanWorkspaceCopy(value) {
-  return String(value || "")
+  return normalizeWorkspaceCopyInput(value)
     .replace(/\bphantom diversification\b/gi, "solapamiento oculto")
     .replace(/\bphantom breadth\b/gi, "amplitud no probada")
     .replace(/\bphantom diversifier\b/gi, "posición con protección frágil")
@@ -2614,8 +2667,12 @@ function cleanWorkspaceCopy(value) {
     .replace(/\brecoverability\b/gi, "recuperabilidad")
     .replace(/\bphantom\b/gi, "oculto")
     .replace(/\bfantasma\b/gi, "oculto")
-    .replace(/\bKeep\s+[A-Z0-9.-]+\s+as\s+(?:cash buffer|reserva de caja)\b/gi, "Mantén esa parte como reserva de caja por ahora")
+    .replace(/\bKeep\s+[A-Z0-9.-]+\s+as\s+(?:a\s+)?(?:cash buffer|reserva de caja)\b/gi, "Mantén esa parte como reserva de caja por ahora")
+    .replace(/\bkeep\s+uup(?:\s+as\s+(?:a\s+)?(?:cash buffer|reserva de caja))?\.?/gi, "Mantén esa parte como reserva de caja por ahora")
+    .replace(/\bMantener\s+[A-Z0-9.-]+\s+como\s+reserva de caja\b/gi, "Mantén esa parte como reserva de caja por ahora")
     .replace(/\b[A-Z0-9.-]+\s+is the sleeve preserving room to act later\.?/gi, "Esa parte preserva margen para actuar después.")
+    .replace(/\bReview again after healing velocity positive and budget recovers\.?/gi, "Revisar cuando mejore la tendencia y se recupere el presupuesto.")
+    .replace(/\bremaining budget falls below ([0-9.]+%)\.?/gi, "el presupuesto restante cae bajo $1.")
     .replace(/\bDo not spend optionality on broad risk adds right now\.?/gi, "No uses la reserva de opcionalidad para sumar riesgo amplio ahora.")
     .replace(/\bdo not spend optionality\b/gi, "no usar la reserva de opcionalidad")
     .replace(/\bballast\b/gi, "reserva de caja")

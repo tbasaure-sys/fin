@@ -4610,8 +4610,79 @@
   background: rgba(255, 255, 255, 0.024);
 }
 
+.answerCard {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border-color: rgba(216, 173, 88, 0.18);
+  background:
+    linear-gradient(135deg, rgba(216, 173, 88, 0.095), rgba(255, 255, 255, 0.018) 42%),
+    linear-gradient(180deg, rgba(13, 18, 25, 0.98), rgba(6, 10, 15, 0.94));
+}
+
+.answerCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(248, 200, 111, 0.95), rgba(122, 210, 194, 0.75), transparent);
+}
+
+.answerCard h3 {
+  max-width: 22ch;
+  font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+  line-height: 1.02;
+}
+
+.answerCard > p:not(.answerCardTag) {
+  max-width: 64ch;
+  font-size: 0.98rem;
+}
+
+.decisionPillarGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.decisionPillarGrid > div {
+  min-width: 0;
+  display: grid;
+  gap: 0.24rem;
+  padding: 0.78rem 0.82rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  background: rgba(255, 255, 255, 0.032);
+}
+
+.decisionPillarGrid span {
+  color: rgba(168, 184, 202, 0.82);
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.decisionPillarGrid strong {
+  color: var(--text);
+  font-size: clamp(1.08rem, 1.8vw, 1.38rem);
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.decisionPillarGrid small {
+  color: var(--muted);
+  line-height: 1.35;
+}
+
 .answerModuleGrid {
+  grid-template-columns: minmax(230px, 0.68fr) minmax(0, 1.32fr);
   gap: 0.8rem;
+}
+
+.answerModuleWide {
+  grid-column: auto;
 }
 
 .answerMetricList {
@@ -4893,6 +4964,7 @@
 
   .answerGrid,
   .answerModuleGrid,
+  .decisionPillarGrid,
   .factorLabGrid,
   .truthHeroGrid,
   .truthScoreRail,
@@ -4999,7 +5071,8 @@
   .workspaceSidebarUtility,
   .workspaceSidebarLinks,
   .answerGrid,
-  .answerModuleGrid {
+  .answerModuleGrid,
+  .decisionPillarGrid {
     grid-template-columns: 1fr;
   }
 
