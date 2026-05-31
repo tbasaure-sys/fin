@@ -2596,6 +2596,19 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [tradeError, setTradeError] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    if (!showGlossary) return undefined;
+
+    function handleGlossaryKeydown(event) {
+      if (event.key === "Escape") {
+        setShowGlossary(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleGlossaryKeydown);
+    return () => window.removeEventListener("keydown", handleGlossaryKeydown);
+  }, [showGlossary]);
+
   const stateSummary = dashboard?.state_summary || {};
   const portfolioModule = dashboard?.modules?.portfolio || null;
   const personalFinance = dashboard?.personal_finance || null;
@@ -3251,17 +3264,28 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           )}
 
           {showGlossary && (
-            <div className={styles.glossaryOverlay} role="dialog" aria-label="Glosario de terminos">
+            <div
+              className={styles.glossaryOverlay}
+              role="dialog"
+              aria-label="Glosario de terminos"
+              aria-modal="true"
+              onClick={(event) => {
+                if (event.target === event.currentTarget) {
+                  setShowGlossary(false);
+                }
+              }}
+            >
               <div className={styles.glossaryPanel}>
                 <div className={styles.glossaryPanelHead}>
                   <h2>Glosario simple</h2>
                   <button
                     aria-label="Cerrar glosario"
-                    className={styles.welcomeGuideClose}
+                    className={styles.glossaryCloseButton}
+                    data-testid="glossary-close"
                     onClick={() => setShowGlossary(false)}
                     type="button"
                   >
-                    Cerrar
+                    Cerrar glosario
                   </button>
                 </div>
                 <p className={styles.glossaryPanelSub}>Cada termino raro que usa este espacio, explicado sin jerga.</p>

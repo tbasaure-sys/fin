@@ -4208,6 +4208,30 @@
   margin: 0;
 }
 
+.glossaryCloseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.2rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  color: rgba(247, 242, 232, 0.82);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.glossaryCloseButton:hover,
+.glossaryCloseButton:focus-visible {
+  border-color: rgba(122, 210, 194, 0.38);
+  background: rgba(122, 210, 194, 0.1);
+  color: #f7f2e8;
+}
+
 .glossaryPanelSub {
   font-size: 0.82rem;
   color: rgba(247, 242, 232, 0.5);
