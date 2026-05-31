@@ -658,6 +658,110 @@
   line-height: 1.35;
 }
 
+.factorLabGrid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.72fr) minmax(220px, 0.82fr) minmax(0, 1.35fr);
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.factorLabExplainer,
+.factorLabResult {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.028);
+}
+
+.factorLabExplainer h3,
+.factorLabResult h3 {
+  margin: 0;
+  line-height: 1.18;
+}
+
+.factorLabExplainer ol {
+  display: grid;
+  gap: 0.72rem;
+  margin: 0.9rem 0 0;
+  padding-left: 1.15rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.factorLabRules,
+.factorLabCandidateList {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.factorLabRules button {
+  display: grid;
+  gap: 0.28rem;
+  width: 100%;
+  min-height: 4.7rem;
+  padding: 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.factorLabRules button[data-active="true"] {
+  border-color: rgba(248, 200, 111, 0.36);
+  background: rgba(248, 200, 111, 0.07);
+}
+
+.factorLabRules span,
+.factorLabResult p,
+.factorLabCandidateList span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.factorLabCandidateList {
+  margin-top: 0.9rem;
+}
+
+.factorLabCandidateList article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.factorLabCandidateList article:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.factorLabCandidateList article > div {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.factorLabCandidateList b {
+  color: var(--accent);
+  font-size: 1.05rem;
+}
+
+.factorLabRefusal {
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 124, 114, 0.26);
+  background: rgba(255, 124, 114, 0.06);
+}
+
+.factorLabRefusal code {
+  color: rgba(248, 200, 111, 0.96);
+}
+
 .answerSourcesCard {
   gap: 0.85rem;
   align-content: start;
@@ -3657,6 +3761,7 @@
   .truthHeroGrid,
   .answerGrid,
   .answerModuleGrid,
+  .factorLabGrid,
   .diversificationClockCard,
   .diversificationClockMetrics,
   .truthScoreRail,
@@ -4704,6 +4809,7 @@
 
   .answerGrid,
   .answerModuleGrid,
+  .factorLabGrid,
   .truthHeroGrid,
   .truthScoreRail,
   .truthClusterGrid,

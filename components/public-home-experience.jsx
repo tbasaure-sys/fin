@@ -285,6 +285,7 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
   const [hasResolvedLanguage, setHasResolvedLanguage] = useState(false);
   const copy = COPY[language];
   const primaryHref = isAuthenticated ? "/app" : "/login";
+  const factorLabHref = isAuthenticated ? "/app#factorlab" : "/login?next=/app%23factorlab";
   const primaryLabel = isAuthenticated ? copy.hero.primaryAuthed : copy.hero.primaryGuest;
 
   useEffect(() => {
@@ -312,7 +313,7 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
           <a data-testid="public-nav-product" href="#workspace">
             {copy.nav.product}
           </a>
-          <Link data-testid="public-nav-factorlab" href="/factorlab">
+          <Link data-testid="public-nav-factorlab" href={factorLabHref}>
             {copy.nav.factorlab}
           </Link>
         </div>
