@@ -2383,7 +2383,6 @@ function RecoverabilityMapFigure({ items }) {
 function TruthInterfacePanel({
   blockedAction,
   dashboard,
-  ledgerItems,
   onSelectSection,
   personalFinance,
   portfolioModule,
@@ -2398,7 +2397,6 @@ function TruthInterfacePanel({
   const confidencePanel = dashboard?.confidence_panel || {};
   const riskCluster = dashboard?.modules?.risk?.clusterDecomposition || {};
   const recoverabilityMap = dashboard?.recoverability_map || {};
-  const capitalTwin = dashboard?.capital_twin || {};
   const holdingsCount = Number(xray?.holdingsCount || stateSummary?.holdings || safeList(portfolioModule?.holdings).length || 0);
   const topFiveConcentration = parseDisplayPercent(xray?.concentration?.topFive);
   const recoveryShare = parseDisplayPercent(xray?.recoveryShare);
@@ -2435,10 +2433,6 @@ function TruthInterfacePanel({
     ? clampUnitInterval(Math.max(visibleScore - structuralScore, 0))
     : null;
   const activeAction = primaryAction || blockedAction || safeList(frontier?.allItems)[0] || null;
-  const latestCounterfactual = safeList(ledgerItems)[0] || safeList(dashboard?.counterfactual_ledger?.items)[0] || null;
-  const scenarioHighlight = safeList(capitalTwin?.scenarios).find((item) => item.id === "phantom_rebound")
-    || safeList(capitalTwin?.scenarios)[0]
-    || null;
   const investableCash = personalFinance?.metrics?.monthlyInvestable;
   const targetCoverage = personalFinance?.metrics?.targetCoverage;
   const portfolioAnalytics = portfolioModule?.analytics || {};
@@ -2570,33 +2564,6 @@ function TruthInterfacePanel({
                 />
               </article>
 
-              <article className={styles.answerModule}>
-                <p className={styles.kicker}>Resumen actual</p>
-                <h3>Qué merece atención ahora</h3>
-                {briefNotes.length ? (
-                  <div className={styles.answerReferenceList}>
-                    {briefNotes.map((item, index) => (
-                      <article className={styles.answerReferenceRow} key={`brief-note-${index}`}>
-                        <strong>Nota {index + 1}</strong>
-                        <p>{cleanWorkspaceCopy(item)}</p>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <p className={styles.supportText}>
-                    {cleanWorkspaceCopy(
-                      scenarioHighlight?.explanation
-                      || "El último informe y las notas de mercado aparecerán aquí cuando el espacio se actualice.",
-                    )}
-                  </p>
-                )}
-
-                <div className={styles.answerMicroMeta}>
-                  <span>Próximo desbloqueo: {cleanWorkspaceCopy(frontier?.nextUnlockCondition || "Hace falta un estado más limpio antes de sumar riesgo.")}</span>
-                  <span>Cerrar riesgo si: {cleanWorkspaceCopy(frontier?.closeCondition || stateSummary?.mainRisk || "Si la estructura vuelve a debilitarse.")}</span>
-                  <span>{latestCounterfactual ? `${latestCounterfactual.verdict}: ${latestCounterfactual.excessDeltaLabel}.` : "El registro contrafactual aparecerá cuando se acumulen decisiones."}</span>
-                </div>
-              </article>
             </div>
           </div>
 
@@ -3493,7 +3460,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <TruthInterfacePanel
             blockedAction={blockedAction}
             dashboard={dashboard}
-            ledgerItems={ledgerItems}
             onSelectSection={selectWorkspaceSection}
             personalFinance={personalFinance}
             portfolioModule={portfolioModule}
