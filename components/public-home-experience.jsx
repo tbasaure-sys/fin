@@ -16,6 +16,7 @@ const COPY = {
       product: "Product",
       solutions: "Solutions",
       research: "Research Layers",
+      factorlab: "FactorLab",
       start: "Action plan",
       about: "About",
     },
@@ -35,6 +36,7 @@ const COPY = {
       primaryAuthed: "Open workspace",
       primaryGuest: "Get started",
       secondary: "See the workspace",
+      factorlab: "Open FactorLab",
       pathLabel: "How to read it",
       path: ["Data", "Layers", "Decision"],
     },
@@ -152,6 +154,7 @@ const COPY = {
       product: "Producto",
       solutions: "Soluciones",
       research: "Capas de investigación",
+      factorlab: "FactorLab",
       start: "Plan",
       about: "Acerca de",
     },
@@ -171,6 +174,7 @@ const COPY = {
       primaryAuthed: "Abrir workspace",
       primaryGuest: "Empezar",
       secondary: "Ver el workspace",
+      factorlab: "Abrir FactorLab",
       pathLabel: "Cómo leerlo",
       path: ["Datos", "Capas", "Decisión"],
     },
@@ -336,6 +340,9 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
           <a data-testid="public-nav-research" href="#research">
             {copy.nav.research}
           </a>
+          <Link data-testid="public-nav-factorlab" href="/factorlab">
+            {copy.nav.factorlab}
+          </Link>
           <a data-testid="public-nav-plan" href="#cta">
             {copy.nav.start}
           </a>
@@ -386,6 +393,9 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
             <a className={styles.btnGhost} href="#workspace">
               {copy.hero.secondary}
             </a>
+            <Link className={styles.btnGhost} href="/factorlab">
+              {copy.hero.factorlab}
+            </Link>
           </div>
 
           <div className={styles.heroPath} aria-label={copy.hero.pathLabel} data-testid="hero-path">
