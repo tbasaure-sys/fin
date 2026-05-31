@@ -719,7 +719,7 @@ function phantomTone(classification) {
 function phantomClassificationLabel(classification, fallback) {
   if (classification === "real-dominant") return "Predomina lo real";
   if (classification === "mixed") return "Mixto";
-  if (classification === "phantom-dominant") return "Predomina lo fantasma";
+  if (classification === "phantom-dominant") return "Mucho solapamiento oculto";
   return fallback ? cleanWorkspaceCopy(fallback) : "Sin clasificar";
 }
 
@@ -732,7 +732,7 @@ function contributorTone(role) {
 
 function contributorRoleLabel(role) {
   if (role === "real diversifier") return "Diversificador real";
-  if (role === "phantom diversifier") return "Diversificador fragil";
+  if (role === "phantom diversifier") return "Aporta menos proteccion";
   if (role === "crowding source") return "Fuente de concentracion";
   return cleanWorkspaceCopy(role || "Sin rol");
 }
@@ -803,7 +803,7 @@ function PhantomBreadthChart({ series }) {
       <div className={styles.chartLegend}>
         <span><i className={styles.legendSwatch} data-series="phantom-raw" />Amplitud visible</span>
         <span><i className={styles.legendSwatch} data-series="phantom-real" />Amplitud real</span>
-        <span><i className={styles.legendSwatch} data-series="phantom-gap" />Brecha fantasma</span>
+        <span><i className={styles.legendSwatch} data-series="phantom-gap" />Solapamiento oculto</span>
       </div>
       <div className={styles.phantomChartMeta}>
         <span>{firstLabel}</span>
@@ -951,7 +951,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Diversificacion fantasma</p>
+          <p className={styles.kicker}>Solapamiento oculto</p>
           <h2>Revisa si tu diversificacion es real o solo parece real</h2>
           <p className={styles.supportText}>
             Este modulo hace una pregunta simple: si el mercado se vuelve mas dificil, tus posiciones siguen siendo apuestas distintas o empiezan a moverse juntas?
@@ -1079,7 +1079,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <article className={styles.phantomResultMetric} data-tone="bad">
               <span>Diversificacion en riesgo</span>
               <strong>{formatPct(analysis?.current?.phantom_share || 0, 0)}</strong>
-              <small>{analysis?.copy?.phantom_share || `${formatBreadth(analysis?.current?.phantom_breadth)} puntos desaparecen cuando las posiciones se parecen demasiado.`}</small>
+              <small>{cleanWorkspaceCopy(analysis?.copy?.phantom_share || `${formatBreadth(analysis?.current?.phantom_breadth)} puntos desaparecen cuando varias posiciones repiten el mismo riesgo.`)}</small>
             </article>
           </div>
 
@@ -1089,9 +1089,9 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
               <h3>{analysis ? phantomClassificationLabel(analysis?.current?.classification, analysis?.current?.classification_label) : (analysis?.copy?.verdict || "Ejecuta el modulo para puntuar la mezcla actual.")}</h3>
             </div>
             <div className={styles.phantomNarrativeCopy}>
-              <p>{analysis?.copy?.verdict || "Ejecuta el modulo para puntuar la mezcla actual."}</p>
-              <p>{analysis?.copy?.phantom || "Si el score cae mucho desde amplitud de mercado a amplitud probada, varias posiciones repiten la misma apuesta subyacente."}</p>
-              <p>{analysis?.copy?.improve || "Usa la tabla para ver que posiciones agregan algo genuinamente distinto y cuales repiten exposicion existente."}</p>
+              <p>{cleanWorkspaceCopy(analysis?.copy?.verdict || "Ejecuta el modulo para puntuar la mezcla actual.")}</p>
+              <p>{cleanWorkspaceCopy(analysis?.copy?.phantom || "Si el score cae mucho desde amplitud de mercado a amplitud probada, varias posiciones repiten la misma apuesta de fondo.")}</p>
+              <p>{cleanWorkspaceCopy(analysis?.copy?.improve || "Usa la tabla para ver que posiciones agregan algo genuinamente distinto y cuales repiten exposicion existente.")}</p>
             </div>
           </div>
 
@@ -1102,7 +1102,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                 <h3>Algunas posiciones se analizaron con proxies de sector o pais</h3>
               </div>
               <div className={styles.phantomNarrativeCopy}>
-                <p>{analysis?.copy?.proxy_note || "Cuando un fondo o accion no tiene historial usable, el modulo estima diversificacion con ETF sectorial, ETF pais o proxy que indiques."}</p>
+                <p>{cleanWorkspaceCopy(analysis?.copy?.proxy_note || "Cuando un fondo o accion no tiene historial usable, el modulo estima diversificacion con ETF sectorial, ETF pais o proxy que indiques.")}</p>
                 <p>
                   {safeList(analysis?.diagnostics?.proxied_holdings)
                     .map((row) => `${row.ticker} via ${row.history_label || row.history_symbol}`)
@@ -1163,7 +1163,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             {activeContributor ? (
               <div className={styles.phantomContributorFocus}>
                 <strong>{activeContributor.ticker}</strong>
-                <p>{activeContributor.role_summary || analysis?.copy?.leave_one_out || "Quita una posicion por vez para ver si agrega diversificacion real o si se solapa con el resto."}</p>
+                <p>{cleanWorkspaceCopy(activeContributor.role_summary || analysis?.copy?.leave_one_out || "Quita una posicion por vez para ver si agrega diversificacion real o si se solapa con el resto.")}</p>
                 <p>Quitar este nombre cambia la amplitud visible en {formatBreadth(activeContributor.delta_raw_breadth)}, la diversificacion que resiste en {formatBreadth(activeContributor.delta_real_breadth)} y el riesgo de solapamiento en {formatBreadth(activeContributor.delta_phantom_breadth)}.</p>
               </div>
             ) : null}
@@ -1213,7 +1213,7 @@ function phantomSimpleGuidance(current) {
     return {
       tone: "bad",
       title: "Reducir solapamiento antes de sumar riesgo",
-      body: "El portafolio puede verse amplio, pero la mayor parte de esa amplitud aun no esta probada bajo estres.",
+      body: "El portafolio puede verse amplio, pero muchas posiciones todavia se parecen demasiado cuando llega el estres.",
     };
   }
   if (Number.isFinite(testedRatio) && testedRatio >= 0.67) {
@@ -1300,8 +1300,8 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
           <p className={styles.kicker}>Solapamiento estructural</p>
           <h2>Cuanta diversificacion sobrevive cuando llega el estres</h2>
           <p className={styles.supportText}>
-            Mide si las posiciones siguen siendo apuestas distintas cuando sube la correlacion. Es la misma idea del paper:
-            amplitud visible menos amplitud probada deja la brecha fantasma.
+            Mide si las posiciones siguen siendo apuestas distintas cuando los mercados se ponen nerviosos.
+            Si varias se mueven juntas, la diversificacion visible puede exagerar la proteccion real.
           </p>
         </div>
         <button className={styles.primaryButton} disabled={analysisPending} onClick={runAnalysis} type="button">
@@ -1343,13 +1343,13 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                 />
               </div>
 
-              <div className={styles.phantomSimpleBar} aria-label="Tested versus phantom breadth">
+              <div className={styles.phantomSimpleBar} aria-label="Amplitud probada versus solapamiento oculto">
                 <span className={styles.phantomSimpleBarTested} style={{ width: `${testedWidth}%` }} />
                 {phantomWidth ? <span className={styles.phantomSimpleBarRisk} style={{ width: `${phantomWidth}%` }} /> : null}
               </div>
               <div className={styles.phantomSimpleLegend}>
                 <span>Probada: {formatBreadth(current?.real_breadth)}</span>
-                <span>Fantasma: {formatBreadth(current?.phantom_breadth)}</span>
+                <span>Oculto: {formatBreadth(current?.phantom_breadth)}</span>
               </div>
             </>
           ) : (
@@ -1375,7 +1375,7 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                 <article key={`simple-phantom-${row.ticker}`}>
                   <div>
                     <strong>{row.ticker}</strong>
-                    <span>{row.role_summary || row.role}</span>
+                    <span>{cleanWorkspaceCopy(row.role_summary || row.role)}</span>
                   </div>
                   <ToneBadge tone={contributorTone(row.role)}>{contributorRoleLabel(row.role)}</ToneBadge>
                 </article>
@@ -2122,12 +2122,11 @@ function DiversificationClockCard({
       </div>
 
       <div className={styles.diversificationClockCopy}>
-        <p className={styles.kicker}>Lectura phantom diversification</p>
+        <p className={styles.kicker}>Lectura de solapamiento</p>
         <h3>{structuralLabel} no significa 29 nombres; significa cuanta independencia queda bajo estres.</h3>
         <p>
-          La lectura sigue el paper de phantom diversification: primero mira la amplitud visible, despues corrige por
-          solapamiento y fragilidad. La diferencia es la parte que parece diversificar, pero puede desaparecer cuando
-          las posiciones se mueven juntas.
+          Primero mira la amplitud visible y despues corrige por solapamiento y fragilidad. La diferencia es la parte
+          que parece diversificar, pero puede desaparecer cuando las posiciones se mueven juntas.
         </p>
       </div>
 
@@ -2492,6 +2491,11 @@ function joinedActionText(item) {
 
 function cleanWorkspaceCopy(value) {
   return String(value || "")
+    .replace(/\bphantom diversification\b/gi, "solapamiento oculto")
+    .replace(/\bphantom breadth\b/gi, "amplitud no probada")
+    .replace(/\bphantom diversifier\b/gi, "posicion con proteccion fragil")
+    .replace(/\bphantom\b/gi, "oculto")
+    .replace(/\bfantasma\b/gi, "oculto")
     .replace(/\bballast\b/gi, "cash buffer")
     .replace(/\bkeep risk elevated\b/gi, "Risk-on, but selective")
     .replace(/\bbroad beta\b/gi, "exposicion amplia de mercado")
@@ -3267,7 +3271,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     { term: "Solapamiento de riesgo", def: "Cuando posiciones que se ven distintas reaccionan al mismo shock de mercado." },
                     { term: "Diversificacion visible", def: "Lo amplio que parece el portafolio al mirar pesos y cantidad de nombres." },
                     { term: "Diversificacion real", def: "La parte de esa amplitud que sigue funcionando cuando las posiciones empiezan a moverse juntas." },
-                    { term: "Brecha fantasma", def: "Diversificacion que parecia existir, pero no queda probada bajo estres." },
+                    { term: "Solapamiento oculto", def: "Diversificacion que parecia existir, pero no queda probada bajo estres." },
                     { term: "Movimientos preparados", def: "Acciones guardadas para revisar despues; no son operaciones ejecutadas." },
                   ].map(({ term, def }) => (
                     <div className={styles.glossaryEntry} key={term}>

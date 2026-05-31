@@ -347,6 +347,11 @@ export function LanguageLayer() {
   }, []);
 
   useEffect(() => {
+    if (path === "/") {
+      document.documentElement.lang = language;
+      return;
+    }
+
     let frame = 0;
     const run = () => {
       window.cancelAnimationFrame(frame);
