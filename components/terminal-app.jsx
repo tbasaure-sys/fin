@@ -2115,18 +2115,48 @@ function DiversificationClockCard({
   const visibleLabel = visibleScore === null ? "-" : String(visiblePercent);
   const structuralLabel = structuralScore === null ? "-" : String(structuralPercent);
   const topCarrier = safeList(xray?.carriers)[0]?.ticker || safeList(xray?.fragilityLoad)[0]?.ticker || null;
+  const visibleBarWidth = visibleScore === null ? 4 : Math.max(6, visiblePercent);
+  const structuralBarWidth = structuralScore === null ? 4 : Math.max(6, structuralPercent);
+  const gapBarWidth = realityGap === null ? 4 : Math.max(6, gapPercent);
 
   return (
     <div className={styles.diversificationClockCard}>
-      <div className={styles.diversificationClockVisual} aria-hidden="true">
-        <div className={styles.clockDial}>
-          <span className={styles.clockPiece} data-piece="visible" style={{ "--piece-strength": `${Math.max(8, visiblePercent)}%` }} />
-          <span className={styles.clockPiece} data-piece="tested" style={{ "--piece-strength": `${Math.max(8, structuralPercent)}%` }} />
-          <span className={styles.clockPiece} data-piece="gap" style={{ "--piece-strength": `${Math.max(8, gapPercent)}%` }} />
-          <span className={styles.clockHand} data-hand="visible" style={{ "--clock-rotation": `${visiblePercent * 1.8}deg` }} />
-          <span className={styles.clockHand} data-hand="tested" style={{ "--clock-rotation": `${structuralPercent * 1.8}deg` }} />
-          <strong>{structuralLabel}</strong>
-          <small>real</small>
+      <div
+        className={styles.diversificationClockVisual}
+        aria-label={`Amplitud visible ${visibleLabel}, amplitud real ${structuralLabel}, brecha ${realityGap === null ? "sin dato" : `${gapPercent}%`}.`}
+      >
+        <div className={styles.breadthFigure}>
+          <div className={styles.breadthFigureHead}>
+            <span>Lectura directa</span>
+            <strong>{visibleLabel} → {structuralLabel}</strong>
+          </div>
+
+          <div className={styles.breadthFigureRow} data-kind="visible">
+            <div>
+              <span>Visible</span>
+              <strong>{visibleLabel}</strong>
+            </div>
+            <i><b style={{ "--bar-width": `${visibleBarWidth}%` }} /></i>
+            <small>Lo que parece diversificado antes de ajustar.</small>
+          </div>
+
+          <div className={styles.breadthFigureRow} data-kind="real">
+            <div>
+              <span>Real</span>
+              <strong>{structuralLabel}</strong>
+            </div>
+            <i><b style={{ "--bar-width": `${structuralBarWidth}%` }} /></i>
+            <small>Lo que sigue independiente bajo estrés.</small>
+          </div>
+
+          <div className={styles.breadthFigureRow} data-kind="gap">
+            <div>
+              <span>Brecha</span>
+              <strong>{realityGap === null ? "-" : `${gapPercent}%`}</strong>
+            </div>
+            <i><b style={{ "--bar-width": `${gapBarWidth}%` }} /></i>
+            <small>Parte que parecía protección, pero no queda probada.</small>
+          </div>
         </div>
       </div>
 

@@ -489,7 +489,7 @@
 
 .diversificationClockCard {
   display: grid;
-  grid-template-columns: minmax(150px, 0.5fr) minmax(0, 1fr);
+  grid-template-columns: minmax(230px, 0.78fr) minmax(0, 1fr);
   gap: 1rem;
   align-items: center;
   min-height: 100%;
@@ -497,8 +497,92 @@
 
 .diversificationClockVisual {
   display: grid;
-  place-items: center;
+  align-items: stretch;
   min-height: 12.5rem;
+}
+
+.breadthFigure {
+  display: grid;
+  gap: 0.78rem;
+  width: 100%;
+  align-content: center;
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.breadthFigureHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.breadthFigureHead span,
+.breadthFigureRow span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.breadthFigureHead strong {
+  color: var(--text);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.breadthFigureRow {
+  display: grid;
+  grid-template-columns: minmax(4.7rem, auto) minmax(0, 1fr);
+  gap: 0.55rem 0.75rem;
+  align-items: center;
+}
+
+.breadthFigureRow > div {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.breadthFigureRow strong {
+  color: var(--text);
+  font-size: 1.32rem;
+  line-height: 1;
+}
+
+.breadthFigureRow i {
+  display: block;
+  height: 0.72rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.breadthFigureRow b {
+  display: block;
+  width: var(--bar-width);
+  height: 100%;
+  border-radius: inherit;
+}
+
+.breadthFigureRow[data-kind="visible"] b {
+  background: linear-gradient(90deg, rgba(248, 200, 111, 0.95), rgba(248, 200, 111, 0.58));
+}
+
+.breadthFigureRow[data-kind="real"] b {
+  background: linear-gradient(90deg, rgba(122, 210, 194, 0.95), rgba(122, 210, 194, 0.56));
+}
+
+.breadthFigureRow[data-kind="gap"] b {
+  background: linear-gradient(90deg, rgba(255, 124, 114, 0.92), rgba(255, 124, 114, 0.5));
+}
+
+.breadthFigureRow small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  line-height: 1.35;
 }
 
 .clockDial {
