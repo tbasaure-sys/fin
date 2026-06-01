@@ -14,7 +14,7 @@ const COPY = {
     languageAria: "Choose page language",
     nav: {
       product: "Product",
-      factorlab: "FactorLab",
+      factorlab: "Opportunities",
     },
     auth: {
       workspace: "Workspace",
@@ -141,7 +141,7 @@ const COPY = {
     languageAria: "Elegir idioma de la página",
     nav: {
       product: "Producto",
-      factorlab: "FactorLab",
+      factorlab: "Oportunidades",
     },
     auth: {
       workspace: "Espacio",
@@ -285,7 +285,7 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
   const [hasResolvedLanguage, setHasResolvedLanguage] = useState(false);
   const copy = COPY[language];
   const primaryHref = isAuthenticated ? "/app" : "/login";
-  const factorLabHref = isAuthenticated ? "/app#factorlab" : "/login?next=/app%23factorlab";
+  const factorLabHref = isAuthenticated ? "/app#opportunities" : "/login?next=/app%23opportunities";
   const primaryLabel = isAuthenticated ? copy.hero.primaryAuthed : copy.hero.primaryGuest;
 
   useEffect(() => {

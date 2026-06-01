@@ -3,6 +3,7 @@ import { requireServerAuthSession, buildAuthenticatedSessionPayload } from "@/li
 import { getServerConfig } from "@/lib/server/config";
 import { getWorkspaceDashboard } from "@/lib/server/dashboard-service";
 import { buildDecisionOsSections } from "@/lib/server/decision-os";
+import { buildDecisionPacket } from "@/lib/server/decision-packet";
 
 export const dynamic = "force-dynamic";
 
@@ -72,9 +73,13 @@ function buildWorkspacePageFallback(authSession, error) {
       },
     ],
   };
-  return {
+  const dashboard = {
     ...fallback,
     ...buildDecisionOsSections(fallback),
+  };
+  return {
+    ...dashboard,
+    decision_packet: buildDecisionPacket(dashboard),
   };
 }
 

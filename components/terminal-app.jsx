@@ -27,71 +27,105 @@ import EquityResearchPanel from "@/components/equity-research-panel";
 
 const RAW_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
 const DEFAULT_APP_NAME = /allocator workspace/i.test(RAW_APP_NAME) ? "BLS Prime" : RAW_APP_NAME;
-const WORKSPACE_NAV = [
+const WORKSPACE_PRIMARY_NAV = [
   {
     id: "today",
     href: "#today",
-    label: "Hoy",
-    priority: "Inicio",
-    detail: "Resumen y accion",
-    title: "Resumen actual y proximo movimiento",
-    body: "Parte por la lectura en vivo, las notas de soporte y el movimiento que hoy merece atencion.",
+    label: "Resumen de hoy",
+    priority: "Hoy",
+    detail: "Respuesta y siguiente paso",
+    title: "Que deberia hacer hoy",
+    body: "Empieza por la respuesta actual, lo que cambio y el siguiente paso mas claro.",
   },
   {
-    id: "cashflow",
-    href: "#cashflow",
-    label: "Plan de dinero",
-    priority: "Fondos",
-    detail: "Ingreso y caja invertible",
-    title: "Flujo mensual y margen invertible",
-    body: "Mantiene ingreso, costos fijos, gasto variable y aporte financiado en una sola vista operativa.",
+    id: "invest",
+    href: "#invest",
+    label: "Puedo invertir",
+    priority: "Dinero",
+    detail: "Caja, reserva y limite",
+    title: "Cuanto puedo poner a trabajar",
+    body: "Lee ingreso, gastos, reserva y aporte objetivo como permiso real para invertir.",
   },
   {
-    id: "portfolio",
-    href: "#portfolio",
-    label: "Portafolio",
-    priority: "Lectura",
-    detail: "Trayectoria y motores",
-    title: "Rendimiento, pesos y motores reales",
-    body: "Lee el portafolio por rendimiento, peso de posiciones y los nombres que realmente lo mueven.",
+    id: "risk",
+    href: "#risk",
+    label: "Mayor riesgo",
+    priority: "Riesgo",
+    detail: "Riesgo y diversificacion real",
+    title: "Que puede doler mas",
+    body: "Une concentracion, trayectoria, solapamiento y amplitud real en una sola lectura de riesgo.",
   },
   {
-    id: "diversification",
-    href: "#diversification",
-    label: "Solapamiento",
-    priority: "Auditar",
-    detail: "Amplitud estructural",
-    title: "Amplitud real y solapamiento bajo estrés",
-    body: "Revisa si el portafolio conserva apuestas independientes cuando aparece la concentración oculta.",
+    id: "opportunities",
+    href: "#opportunities",
+    label: "Oportunidades",
+    priority: "Ideas",
+    detail: "Que merece atencion",
+    title: "Que vale la pena investigar",
+    body: "Muestra candidatos, razones, dudas y evidencia antes de convertir una idea en accion.",
   },
   {
-    id: "research",
-    href: "#research",
-    label: "Investigación",
-    priority: "Explicar",
-    detail: "Informe de compañía",
-    title: "Análisis de compañía en formato breve",
-    body: "Abre el informe actual, el debate de valoración y las fuentes sin salir del espacio.",
-  },
-  {
-    id: "factorlab",
-    href: "#factorlab",
-    label: "FactorLab",
-    priority: "Filtrar",
-    detail: "Ideas con reglas",
-    title: "Filtros explicables para encontrar candidatos",
-    body: "Construye una lista de candidatos con reglas claras y rechaza cálculos que miren datos del futuro.",
-  },
-  {
-    id: "holdings",
-    href: "#holdings",
-    label: "Posiciones",
-    priority: "Actualizar",
-    detail: "Posiciones y ediciones",
-    title: "Edición directa y posiciones guardadas",
-    body: "Revisa lo conectado, agrega posiciones y guarda cambios de tamaño en la misma superficie.",
+    id: "decisions",
+    href: "#decisions",
+    label: "Decisiones",
+    priority: "Memoria",
+    detail: "Preparadas y aprendidas",
+    title: "Que quedo preparado o aprendido",
+    body: "Revisa acciones preparadas, decisiones rechazadas, resultados recientes y memoria.",
   },
 ];
+
+const WORKSPACE_UTILITY_NAV = [
+  {
+    id: "data",
+    href: "#data",
+    label: "Datos del portafolio",
+    priority: "Datos",
+    detail: "Posiciones y edicion",
+    title: "Posiciones y datos conectados",
+    body: "Actualiza holdings, precios y tamanos sin mezclar mantenimiento con la decision diaria.",
+  },
+  {
+    id: "rules",
+    href: "#rules",
+    label: "Reglas",
+    priority: "Politica",
+    detail: "Limites y mandato",
+    title: "Reglas que gobiernan las decisiones",
+    body: "Lee las reglas activas y los limites que abren o bloquean acciones.",
+  },
+  {
+    id: "advanced",
+    href: "#advanced",
+    label: "Avanzado",
+    priority: "Metodo",
+    detail: "Modelos y reglas",
+    title: "Herramientas avanzadas y diagnostico",
+    body: "Abre las capas tecnicas, reglas de filtro y metodologia solo cuando necesites inspeccionarlas.",
+  },
+];
+
+const ALL_WORKSPACE_SECTIONS = [...WORKSPACE_PRIMARY_NAV, ...WORKSPACE_UTILITY_NAV];
+const LEGACY_SECTION_ALIASES = {
+  cashflow: "invest",
+  money: "invest",
+  portfolio: "risk",
+  diversification: "risk",
+  overlap: "risk",
+  research: "opportunities",
+  factorlab: "opportunities",
+  holdings: "data",
+  positions: "data",
+  mandate: "rules",
+  policy: "rules",
+};
+
+function normalizeWorkspaceSectionId(value) {
+  const raw = String(value || "").replace(/^#/, "").split(":")[0].trim().toLowerCase();
+  if (!raw) return WORKSPACE_PRIMARY_NAV[0].id;
+  const candidate = LEGACY_SECTION_ALIASES[raw] || raw;
+  return ALL_WORKSPACE_SECTIONS.some((item) => item.id === candidate) ? candidate : WORKSPACE_PRIMARY_NAV[0].id;
+}
 
 function ToneBadge({ tone = "neutral", children }) {
   return (
@@ -1969,12 +2003,32 @@ function WorkspaceSidebar({
         <p className={styles.supportText}>Una sola superficie de decision. Abre solo la capa que necesitas.</p>
       </div>
 
-      <nav className={styles.workspaceSidebarNav} aria-label="Secciones del espacio">
-        {WORKSPACE_NAV.map((item, index) => (
+      <nav className={styles.workspaceSidebarNav} aria-label="Preguntas principales del espacio">
+        {WORKSPACE_PRIMARY_NAV.map((item, index) => (
           <button
             className={styles.workspaceSidebarLink}
             data-active={activeSection === item.id}
-            data-priority={index < 3 ? "primary" : "secondary"}
+            data-priority="primary"
+            key={item.id}
+            onClick={() => onSelectSection(item.id)}
+            type="button"
+          >
+            <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <span>{item.label}</span>
+              <small>{item.detail}</small>
+            </div>
+            <em>{item.priority}</em>
+          </button>
+        ))}
+      </nav>
+
+      <nav className={styles.workspaceSidebarNav} aria-label="Herramientas del espacio">
+        {WORKSPACE_UTILITY_NAV.map((item, index) => (
+          <button
+            className={styles.workspaceSidebarLink}
+            data-active={activeSection === item.id}
+            data-priority="secondary"
             key={item.id}
             onClick={() => onSelectSection(item.id)}
             type="button"
@@ -2233,13 +2287,13 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>FactorLab</p>
+          <p className={styles.kicker}>Avanzado</p>
           <h2>Encuentra candidatos con reglas que puedes revisar</h2>
           <p className={styles.supportText}>
-            FactorLab no decide por ti. Toma tus reglas, calcula una lista ordenada y rechaza cualquier cálculo que use información que todavía no existiría en esa fecha.
+            El motor avanzado no decide por ti. Toma tus reglas, calcula una lista ordenada y rechaza cualquier cálculo que use información que todavía no existiría en esa fecha.
           </p>
         </div>
-        <div className={styles.segmentedControl} role="tablist" aria-label="Modo de FactorLab">
+        <div className={styles.segmentedControl} role="tablist" aria-label="Modo del motor avanzado">
           <button data-active={mode === "ranked"} onClick={() => setMode("ranked")} type="button">Ranking</button>
           <button data-active={mode === "refusal"} onClick={() => setMode("refusal")} type="button">Rechazo</button>
         </div>
@@ -2294,7 +2348,7 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
               <p className={styles.kicker}>Rechazo útil</p>
               <h3>No se acepta un cálculo que mira el futuro.</h3>
               <p>
-                Ejemplo: una regla tipo <code>lead()</code> usa datos posteriores. FactorLab la bloquea para evitar una señal que se ve buena en prueba, pero no habría estado disponible al decidir.
+                Ejemplo: una regla tipo <code>lead()</code> usa datos posteriores. El motor la bloquea para evitar una señal que se ve buena en prueba, pero no habría estado disponible al decidir.
               </p>
             </div>
           )}
@@ -2377,6 +2431,220 @@ function RecoverabilityMapFigure({ items }) {
         })}
       </svg>
     </div>
+  );
+}
+
+function packetTargetToSection(target) {
+  const value = String(target || "").replace(/^#/, "").toLowerCase();
+  if (value.startsWith("invest")) return "invest";
+  if (value.startsWith("risk")) return "risk";
+  if (value.startsWith("opportunities")) return "opportunities";
+  if (value.startsWith("decisions")) return "decisions";
+  if (value.startsWith("data")) return "data";
+  return "today";
+}
+
+function TodayAnswerTile({ label, value, detail, tone = "neutral", target, onSelectSection }) {
+  const content = (
+    <>
+      <span>{label}</span>
+      <strong>{value || "-"}</strong>
+      {detail ? <small>{detail}</small> : null}
+    </>
+  );
+
+  if (!target) {
+    return (
+      <article className={styles.todayAnswerTile} data-tone={tone}>
+        {content}
+      </article>
+    );
+  }
+
+  return (
+    <button
+      className={styles.todayAnswerTile}
+      data-tone={tone}
+      onClick={() => onSelectSection(packetTargetToSection(target))}
+      type="button"
+    >
+      {content}
+    </button>
+  );
+}
+
+function TodaysBrief({
+  blockedAction,
+  dashboard,
+  onSelectSection,
+  primaryAction,
+  showChat,
+  stateSummary,
+  onToggleChat,
+}) {
+  const packet = dashboard?.decision_packet || {};
+  const answers = packet.answers || {};
+  const recommendation = packet.recommendation || {};
+  const headline = packet.headline || {};
+  const evidence = packet.evidence || {};
+  const changed = safeList(packet.changedSinceLastTime);
+  const staged = safeList(packet.actions?.staged);
+  const blocked = safeList(packet.actions?.blocked);
+  const opportunities = safeList(packet.opportunities);
+  const canInvest = answers.canInvest || {};
+  const biggestRisk = answers.biggestRisk || {};
+  const diversification = answers.diversification || {};
+  const wrongness = answers.wrongness || {};
+  const fallbackAction = primaryAction || blockedAction || null;
+  const decisionTitle = cleanWorkspaceCopy(headline.title || fallbackAction?.title || stateSummary?.stance || "Lectura de hoy");
+  const decisionCopy = cleanWorkspaceCopy(
+    headline.summary
+    || recommendation.body
+    || fallbackAction?.summary
+    || stateSummary?.decisionSummary
+    || "El resumen de hoy aparece cuando la evidencia queda ensamblada.",
+  );
+  const evidenceLabel = cleanWorkspaceCopy(evidence.strength || recommendation.confidence || "usable");
+  const dataLabel = dashboard?.workspace_summary?.market_data_label || dashboard?.workspace_summary?.last_updated_label || "Sin fecha de mercado";
+  const visibleBets = Number(diversification.visibleBets);
+  const realBets = Number(diversification.realBets);
+  const diversificationValue = Number.isFinite(visibleBets) && Number.isFinite(realBets)
+    ? `${visibleBets} visibles / ${realBets} reales`
+    : cleanWorkspaceCopy(diversification.title || "Pendiente");
+  const changeLead = changed[0] || {};
+  const nextLabel = cleanWorkspaceCopy(recommendation.primaryCta?.label || "Revisar decision");
+  const nextTarget = recommendation.primaryCta?.target || "#risk";
+  const suggestionPrompts = [
+    "Â¿CuÃ¡nto puedo invertir este mes?",
+    "Â¿CuÃ¡l es mi mayor riesgo?",
+    "Resume la lectura actual.",
+  ];
+
+  return (
+    <section className={styles.truthSurface}>
+      <div className={`${styles.answerWorkspace} ${styles.todayBrief}`}>
+        <div className={styles.answerWorkspaceHead}>
+          <div>
+            <p className={styles.kicker}>Resumen de hoy</p>
+            <h2>{decisionTitle}</h2>
+            <p className={styles.supportText}>{decisionCopy}</p>
+          </div>
+          <div className={styles.answerWorkspaceMeta}>
+            <ToneBadge tone={statusTone(headline.tone || recommendation.confidence || "neutral")}>{evidenceLabel}</ToneBadge>
+            <ToneBadge tone="neutral">{cleanWorkspaceCopy(dataLabel)}</ToneBadge>
+          </div>
+        </div>
+
+        <article className={styles.todayHeroCard}>
+          <div>
+            <p className={styles.answerCardTag}>Respuesta principal</p>
+            <h3>{decisionTitle}</h3>
+            <p>{decisionCopy}</p>
+          </div>
+          <div className={styles.todayHeroActions}>
+            <button
+              className={styles.primaryButton}
+              onClick={() => onSelectSection(packetTargetToSection(nextTarget))}
+              type="button"
+            >
+              {nextLabel}
+            </button>
+            <button className={styles.secondaryButton} onClick={onToggleChat} type="button">
+              {showChat ? "Ocultar explicaciÃ³n" : "Preguntar por quÃ©"}
+            </button>
+          </div>
+        </article>
+
+        <div className={styles.answerSuggestions}>
+          {suggestionPrompts.map((prompt) => (
+            <button className={styles.answerSuggestion} key={prompt} onClick={onToggleChat} type="button">
+              {prompt}
+            </button>
+          ))}
+        </div>
+
+        <div className={styles.todayAnswerGrid} aria-label="Preguntas principales del resumen de hoy">
+          <TodayAnswerTile
+            detail={cleanWorkspaceCopy(canInvest.summary || "Plan mensual y reserva.")}
+            label="Â¿Puedo invertir?"
+            onSelectSection={onSelectSection}
+            target={canInvest.target || "#invest"}
+            tone={canInvest.status === "allowed" || canInvest.status === "allowed_with_limits" ? "good" : "warn"}
+            value={cleanWorkspaceCopy(canInvest.title || "Definir plan")}
+          />
+          <TodayAnswerTile
+            detail={cleanWorkspaceCopy(biggestRisk.summary || "Riesgo principal pendiente.")}
+            label="Mayor riesgo"
+            onSelectSection={onSelectSection}
+            target={biggestRisk.target || "#risk"}
+            tone={biggestRisk.status === "setup_needed" ? "warn" : "neutral"}
+            value={cleanWorkspaceCopy(biggestRisk.title || "Pendiente")}
+          />
+          <TodayAnswerTile
+            detail={cleanWorkspaceCopy(diversification.plainSummary || "Prueba de amplitud real.")}
+            label="DiversificaciÃ³n real"
+            onSelectSection={onSelectSection}
+            target={diversification.target || "#risk:diversification"}
+            tone={diversification.status === "overstated" ? "warn" : diversification.status === "healthy" ? "good" : "neutral"}
+            value={diversificationValue}
+          />
+          <TodayAnswerTile
+            detail={cleanWorkspaceCopy(changeLead.summary || "Sin cambios materiales nuevos.")}
+            label="QuÃ© cambiÃ³"
+            onSelectSection={onSelectSection}
+            tone={changeLead.tone || "neutral"}
+            value={cleanWorkspaceCopy(changeLead.title || "Lectura actualizada")}
+          />
+          <TodayAnswerTile
+            detail={cleanWorkspaceCopy(recommendation.body || "Siguiente paso recomendado.")}
+            label="Siguiente paso"
+            onSelectSection={onSelectSection}
+            target={nextTarget}
+            tone={headline.tone || "neutral"}
+            value={nextLabel}
+          />
+        </div>
+
+        <div className={styles.todayBelowFold}>
+          <article className={styles.answerModule}>
+            <p className={styles.kicker}>Por quÃ© esta respuesta</p>
+            <h3>{cleanWorkspaceCopy(evidence.summary || "Evidencia usable")}</h3>
+            <InlineList
+              emptyLabel="La evidencia aparecerÃ¡ aquÃ­ cuando el paquete la tenga lista."
+              items={safeList(evidence.supports).map((item) => item.summary || item.title || item)}
+            />
+          </article>
+
+          <article className={styles.answerModule}>
+            <p className={styles.kicker}>QuÃ© podrÃ­a estar mal</p>
+            <h3>{cleanWorkspaceCopy(wrongness.title || "Supuesto principal pendiente")}</h3>
+            <p className={styles.supportText}>{cleanWorkspaceCopy(wrongness.couldBeWrongIf || "Revisar si cambia el dato que sostiene la decisiÃ³n.")}</p>
+            <InlineList
+              emptyLabel="Sin disparadores de revisiÃ³n todavÃ­a."
+              items={safeList(wrongness.watch)}
+            />
+          </article>
+
+          <article className={styles.answerModule}>
+            <p className={styles.kicker}>Acciones preparadas</p>
+            <h3>{staged.length ? `${staged.length} accion${staged.length === 1 ? "" : "es"} en espera` : "Nada preparado ahora"}</h3>
+            <InlineList
+              emptyLabel={blocked.length ? cleanWorkspaceCopy(blocked[0].reason) : "No hay acciones preparadas ni bloqueos importantes."}
+              items={staged.map((item) => item.title)}
+            />
+          </article>
+
+          <article className={styles.answerModule}>
+            <p className={styles.kicker}>Oportunidades</p>
+            <h3>{cleanWorkspaceCopy(answers.opportunities?.title || "Sin ideas listas")}</h3>
+            <InlineList
+              emptyLabel="Ninguna idea merece atenciÃ³n inmediata."
+              items={opportunities.slice(0, 3).map((item) => item.ticker || item.name)}
+            />
+          </article>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -2679,6 +2947,28 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bkeep risk elevated\b/gi, "Mantener riesgo alto, pero selectivo")
     .replace(/\bbroad beta\b/gi, "exposición amplia de mercado")
     .replace(/\bAvailable to invest\b/gi, "Disponible para invertir")
+    .replace(/\bavailable this month\b/gi, "disponibles este mes")
+    .replace(/\bReview biggest risk\b/gi, "Revisar mayor riesgo")
+    .replace(/\bAdd your money plan first\b/gi, "Define primero tu plan de dinero")
+    .replace(/\bAdd your money plan\b/gi, "Define tu plan de dinero")
+    .replace(/\bReview today's brief\b/gi, "Revisar resumen de hoy")
+    .replace(/\bWait before adding broad risk\b/gi, "Espera antes de agregar riesgo amplio")
+    .replace(/\bNo monthly room yet\b/gi, "AÃºn no hay margen mensual")
+    .replace(/\bMoney room is readable\b/gi, "El margen de dinero ya se puede leer")
+    .replace(/\bMoney plan is missing\b/gi, "Falta el plan de dinero")
+    .replace(/\bBiggest risk is identified\b/gi, "El mayor riesgo estÃ¡ identificado")
+    .replace(/\bRisk read needs positions\b/gi, "La lectura de riesgo necesita posiciones")
+    .replace(/\bDiversification may be overstated\b/gi, "La diversificaciÃ³n puede estar sobrestimada")
+    .replace(/\bThe portfolio looks broader than it behaves\b/gi, "El portafolio parece mÃ¡s amplio de lo que realmente se comporta")
+    .replace(/\bDiversification is holding up\b/gi, "La diversificaciÃ³n se mantiene")
+    .replace(/\bAdd positions to test real diversification\b/gi, "Agrega posiciones para probar la diversificaciÃ³n real")
+    .replace(/\bNo opportunity is cleared for attention right now\b/gi, "Ninguna oportunidad estÃ¡ despejada para atenciÃ³n ahora")
+    .replace(/\bideas deserve attention\b/gi, "ideas merecen atenciÃ³n")
+    .replace(/\bidea deserves attention\b/gi, "idea merece atenciÃ³n")
+    .replace(/\bMain assumption: today's constraint is still the right one\b/gi, "Supuesto principal: la restricciÃ³n de hoy sigue siendo la correcta")
+    .replace(/\bEvidence is usable for guidance, but still needs a clear recheck condition\b/gi, "La evidencia sirve para orientar, pero necesita una condiciÃ³n clara de revisiÃ³n")
+    .replace(/\bEvidence is thin; keep actions small or focus on setup\b/gi, "La evidencia es limitada; mantÃ©n acciones pequeÃ±as o completa la configuraciÃ³n")
+    .replace(/\bEvidence is strong enough to support a direct next step\b/gi, "La evidencia es suficientemente fuerte para sostener un siguiente paso directo")
     .replace(/\bMonthly income\b/gi, "Ingreso mensual")
     .replace(/\bFixed costs\b/gi, "Costos fijos")
     .replace(/\bFixed expenses\b/gi, "Gastos fijos")
@@ -2782,7 +3072,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [showWelcomeGuide, setShowWelcomeGuide] = useState(false);
   const [showGlossary, setShowGlossary] = useState(false);
   const [showChat, setShowChat] = useState(false);
-  const [activeWorkspaceSection, setActiveWorkspaceSection] = useState(WORKSPACE_NAV[0].id);
+  const [activeWorkspaceSection, setActiveWorkspaceSection] = useState(WORKSPACE_PRIMARY_NAV[0].id);
   const [portfolioRange, setPortfolioRange] = useState("1M");
   const [financeDraft, setFinanceDraft] = useState(() => financeDraftFromPlan(initialDashboard?.personal_finance));
   const [financeDraftDirty, setFinanceDraftDirty] = useState(false);
@@ -2830,7 +3120,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME,
   );
   const holdingsCount = safeList(portfolioModule?.holdings).length;
-  const activeSectionConfig = WORKSPACE_NAV.find((item) => item.id === activeWorkspaceSection) || WORKSPACE_NAV[0];
+  const activeSectionConfig = ALL_WORKSPACE_SECTIONS.find((item) => item.id === activeWorkspaceSection) || WORKSPACE_PRIMARY_NAV[0];
   const currentBriefPanel = (
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
@@ -2855,7 +3145,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
   let activeWorkspacePanels = null;
   switch (activeWorkspaceSection) {
-    case "cashflow":
+    case "invest":
       activeWorkspacePanels = (
         <PersonalFinancePanel
           draft={financeDraft}
@@ -2866,17 +3156,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         />
       );
       break;
-    case "portfolio":
+    case "risk":
       activeWorkspacePanels = (
-        <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
+        <>
+          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
+          <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
+        </>
       );
       break;
-    case "diversification":
-      activeWorkspacePanels = (
-        <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
-      );
-      break;
-    case "research":
+    case "opportunities":
       activeWorkspacePanels = (
         <>
           <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
@@ -2900,10 +3188,35 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </>
       );
       break;
-    case "factorlab":
+    case "rules":
+      activeWorkspacePanels = (
+        <section className={styles.panel}>
+          <div className={styles.panelHeader}>
+            <div>
+              <p className={styles.kicker}>Reglas</p>
+              <h2>{cleanWorkspaceCopy(dashboard?.mandate?.label || "Reglas activas")}</h2>
+              <p className={styles.supportText}>
+                Tus reglas dicen que acciones se pueden abrir, cuales quedan bloqueadas y que tendria que cambiar para reabrir el rango.
+              </p>
+            </div>
+            <ToneBadge tone="neutral">{cleanWorkspaceCopy(dashboard?.mandate?.source || "workspace")}</ToneBadge>
+          </div>
+          <InlineList
+            emptyLabel="Aun no hay reglas guardadas para este espacio."
+            items={[
+              dashboard?.mandate?.statement,
+              ...safeList(dashboard?.mandate?.guardrails),
+              dashboard?.frontier?.nextUnlockCondition ? `Reabre cuando: ${dashboard.frontier.nextUnlockCondition}` : null,
+              dashboard?.frontier?.closeCondition ? `Se cierra si: ${dashboard.frontier.closeCondition}` : null,
+            ].filter(Boolean)}
+          />
+        </section>
+      );
+      break;
+    case "advanced":
       activeWorkspacePanels = <FactorLabWorkspacePanel portfolioModule={portfolioModule} />;
       break;
-    case "holdings":
+    case "data":
       activeWorkspacePanels = (
         <>
           <HoldingsPanel
@@ -2955,8 +3268,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </>
       );
       break;
-    case "today":
-    default:
+    case "decisions":
       activeWorkspacePanels = (
         <>
           <AlertsPanel alerts={alerts} />
@@ -3028,14 +3340,22 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </>
       );
       break;
+    case "today":
+    default:
+      activeWorkspacePanels = (
+        <>
+          <AlertsPanel alerts={alerts} />
+          {currentBriefPanel}
+        </>
+      );
+      break;
   }
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
 
     function applyHashSection() {
-      const hashSection = window.location.hash.replace(/^#/, "");
-      if (!WORKSPACE_NAV.some((item) => item.id === hashSection)) return;
+      const hashSection = normalizeWorkspaceSectionId(window.location.hash);
       pendingSectionScrollRef.current = hashSection;
       setActiveWorkspaceSection(hashSection);
     }
@@ -3076,7 +3396,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   function selectWorkspaceSection(sectionId) {
-    const nextSection = WORKSPACE_NAV.find((item) => item.id === sectionId)?.id;
+    const nextSection = normalizeWorkspaceSectionId(sectionId);
     if (!nextSection) return;
 
     pendingSectionScrollRef.current = nextSection;
@@ -3444,7 +3764,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     <span className={styles.welcomeStepNum}>3</span>
                     <div>
                       <strong>Lee antes de actuar</strong>
-                      <p>Usa caja, solapamiento, FactorLab e investigación antes de preparar cualquier movimiento.</p>
+                      <p>Usa caja, mayor riesgo, oportunidades y decisiones antes de preparar cualquier movimiento.</p>
                     </div>
                   </li>
                 </ol>
@@ -3501,7 +3821,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     { term: "Diversificación visible", def: "Lo amplio que parece el portafolio al mirar pesos y cantidad de nombres." },
                     { term: "Diversificación real", def: "La parte de esa amplitud que sigue funcionando cuando las posiciones empiezan a moverse juntas." },
                     { term: "Solapamiento oculto", def: "Diversificación que parecía existir, pero no queda probada bajo estrés." },
-                    { term: "FactorLab", def: "Filtro de ideas con reglas revisables. Ordena candidatos y bloquea cálculos que miran datos del futuro." },
+                    { term: "Oportunidades", def: "Lista corta de ideas con razones, dudas y evidencia antes de convertirlas en acciones." },
                     { term: "Movimientos preparados", def: "Acciones guardadas para revisar después; no son operaciones ejecutadas." },
                   ].map(({ term, def }) => (
                     <div className={styles.glossaryEntry} key={term}>
@@ -3514,7 +3834,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
           )}
 
-          <TruthInterfacePanel
+          <TodaysBrief
             blockedAction={blockedAction}
             dashboard={dashboard}
             onSelectSection={selectWorkspaceSection}

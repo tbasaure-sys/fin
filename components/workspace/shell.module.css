@@ -371,6 +371,113 @@
   color: var(--text);
 }
 
+.todayBrief {
+  gap: 0.9rem;
+}
+
+.todayHeroCard {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border-radius: 8px;
+  border: 1px solid rgba(216, 173, 88, 0.18);
+  background:
+    linear-gradient(135deg, rgba(216, 173, 88, 0.095), rgba(255, 255, 255, 0.018) 42%),
+    linear-gradient(180deg, rgba(13, 18, 25, 0.98), rgba(6, 10, 15, 0.94));
+}
+
+.todayHeroCard h3 {
+  margin: 0;
+  max-width: 24ch;
+  font-size: clamp(1.55rem, 3vw, 2.3rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.todayHeroCard p:not(.answerCardTag) {
+  max-width: 70ch;
+  margin: 0.72rem 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.todayHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  min-width: max-content;
+}
+
+.todayAnswerGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.todayAnswerTile {
+  min-width: 0;
+  min-height: 8.5rem;
+  display: grid;
+  align-content: start;
+  gap: 0.36rem;
+  padding: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.todayAnswerTile {
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+button.todayAnswerTile:hover {
+  transform: translateY(-1px);
+  border-color: rgba(122, 210, 194, 0.22);
+  background: rgba(255, 255, 255, 0.042);
+}
+
+.todayAnswerTile[data-tone="good"] {
+  border-color: rgba(122, 210, 194, 0.18);
+}
+
+.todayAnswerTile[data-tone="warn"] {
+  border-color: rgba(248, 200, 111, 0.2);
+}
+
+.todayAnswerTile > span {
+  color: rgba(168, 184, 202, 0.82);
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.todayAnswerTile > strong {
+  color: var(--text);
+  font-size: clamp(1rem, 1.2vw, 1.22rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.todayAnswerTile > small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.todayBelowFold {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
 .answerGrid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.38fr);
@@ -5225,6 +5332,39 @@
 .welcomeStep,
 .glossaryPanel {
   border-radius: 8px;
+}
+
+@media (max-width: 1080px) {
+  .todayAnswerGrid,
+  .todayBelowFold {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .todayHeroCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .todayHeroActions {
+    justify-content: flex-start;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .todayAnswerGrid,
+  .todayBelowFold {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .todayAnswerTile {
+    min-height: 0;
+  }
+
+  .todayHeroActions,
+  .todayHeroActions > button {
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
