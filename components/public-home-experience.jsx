@@ -14,6 +14,7 @@ const COPY = {
     languageAria: "Choose page language",
     nav: {
       product: "Product",
+      macroBrain: "Macro Brain",
       factorlab: "FactorLab",
     },
     auth: {
@@ -141,6 +142,7 @@ const COPY = {
     languageAria: "Elegir idioma de la página",
     nav: {
       product: "Producto",
+      macroBrain: "Macro Brain",
       factorlab: "FactorLab",
     },
     auth: {
@@ -313,6 +315,9 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
           <a data-testid="public-nav-product" href="#workspace">
             {copy.nav.product}
           </a>
+          <Link data-testid="public-nav-macro-brain" href="/macro-brain">
+            {copy.nav.macroBrain}
+          </Link>
           <Link data-testid="public-nav-factorlab" href={factorLabHref}>
             {copy.nav.factorlab}
           </Link>
