@@ -31,6 +31,11 @@ export default function MacroBrainPage() {
   const openIdeas = snapshot.theses.filter((item) => item.state === "open").length;
   const watchedIdeas = snapshot.theses.filter((item) => item.state === "watch").length;
   const dataPointLabel = `${formatNumber(snapshot.observations)} data points`;
+  const pulseBars = snapshot.impulseChanges.slice(0, 6).map((item, index) => ({
+    ...item,
+    height: `${Math.max(22, Math.min(84, item.intensity * 34))}%`,
+    delay: `${index * 80}ms`,
+  }));
 
   return (
     <main className={styles.page}>
@@ -39,9 +44,8 @@ export default function MacroBrainPage() {
           BLS Prime
         </Link>
         <div className={styles.navLinks}>
-          <a href="#example">Example</a>
-          <a href="#features">What it does</a>
-          <a href="#record">Record</a>
+          <a href="#today">Today</a>
+          <a href="#record">Log</a>
         </div>
         <Link className={styles.navAction} href="/app">
           Workspace
@@ -51,48 +55,44 @@ export default function MacroBrainPage() {
       <section className={styles.hero}>
         <div className={styles.heroText}>
           <p className={styles.kicker}>Macro Brain</p>
-          <h1>A short morning note for macro ideas.</h1>
-          <p>
-            It shows what moved, which ideas need attention, what data matters next, and keeps a record of the call.
-          </p>
+          <h1>Macro Brain</h1>
+          <p>One morning page: what moved, what matters next, what gets saved.</p>
           <div className={styles.actions}>
-            <a className={styles.primaryButton} href="#example">
-              See the example
-            </a>
-            <a className={styles.secondaryButton} href="#features">
-              What it does
-            </a>
+            <Link className={styles.primaryButton} href="/app#macrobrain">
+              Open in workspace
+            </Link>
+            <a className={styles.secondaryButton} href="#today">See today</a>
           </div>
           <small>Research-only. Not financial advice. No trades placed.</small>
         </div>
 
-        <aside className={styles.note} aria-label="Macro Brain example note">
-          <div className={styles.noteHeader}>
-            <span>Example run</span>
-            <strong>{formatDate(snapshot.runDate)}</strong>
+        <div className={styles.heroVisual} aria-label="Macro Brain signal picture">
+          <div className={styles.visualHeader}>
+            <span>{formatDate(snapshot.runDate)}</span>
+            <strong>{snapshot.stability.status}</strong>
           </div>
-          <p>{snapshot.shortRead}</p>
-          <dl>
-            <div>
-              <dt>Signals</dt>
-              <dd>{snapshot.seriesCount}</dd>
-            </div>
-            <div>
-              <dt>Open</dt>
-              <dd>{openIdeas}</dd>
-            </div>
-            <div>
-              <dt>Watch</dt>
-              <dd>{watchedIdeas}</dd>
-            </div>
-          </dl>
-        </aside>
+          <div className={styles.pulseBars}>
+            {pulseBars.map((item) => (
+              <span
+                data-direction={item.direction}
+                key={item.label}
+                style={{ "--bar-height": item.height, "--bar-delay": item.delay }}
+                title={`${item.label}: ${item.plain}`}
+              />
+            ))}
+          </div>
+          <div className={styles.visualFacts}>
+            <span><strong>{snapshot.seriesCount}</strong> signals</span>
+            <span><strong>{openIdeas}</strong> open</span>
+            <span><strong>{watchedIdeas}</strong> watch</span>
+          </div>
+        </div>
       </section>
 
-      <section className={styles.example} id="example">
+      <section className={styles.example} id="today">
         <div className={styles.sectionIntro}>
-          <p className={styles.kicker}>Example</p>
-          <h2>One page. Four checks.</h2>
+          <p className={styles.kicker}>Today</p>
+          <h2>{snapshot.shortRead}</h2>
         </div>
 
         <div className={styles.grid}>
@@ -148,38 +148,33 @@ export default function MacroBrainPage() {
 
       <section className={styles.features} id="features">
         <div className={styles.sectionIntro}>
-          <p className={styles.kicker}>What it does</p>
-          <h2>Only the parts that exist now.</h2>
+          <p className={styles.kicker}>Functions</p>
+          <h2>Only what is active now.</h2>
         </div>
 
         <div className={styles.featureList}>
           <article>
             <span>01</span>
-            <strong>Shows the biggest market moves.</strong>
-            <p>No long dashboard. Just the changes worth reading first.</p>
+            <strong>Moves</strong>
           </article>
           <article>
             <span>02</span>
-            <strong>Tracks a few live ideas.</strong>
-            <p>Each idea says what supports it and what is pushing back.</p>
+            <strong>Ideas</strong>
           </article>
           <article>
             <span>03</span>
-            <strong>Ranks what to watch next.</strong>
-            <p>The calendar focuses on the releases that can actually change the ideas.</p>
+            <strong>Next data</strong>
           </article>
           <article>
             <span>04</span>
-            <strong>Keeps a dated record.</strong>
-            <p>Every call can be checked later instead of remembered generously.</p>
+            <strong>Dated log</strong>
           </article>
         </div>
       </section>
 
       <section className={styles.record} id="record">
-        <p className={styles.kicker}>Record</p>
+        <p className={styles.kicker}>Log</p>
         <h2>{snapshot.ledger.question}</h2>
-        <p>{snapshot.ledger.rule}</p>
         <div className={styles.meta}>
           <span>{dataPointLabel}</span>
           <span>{snapshot.ledger.liveTheses} ideas</span>

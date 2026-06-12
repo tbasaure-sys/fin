@@ -846,6 +846,171 @@
   color: rgba(248, 200, 111, 0.96);
 }
 
+.macroBrainPanel {
+  display: grid;
+  gap: 1rem;
+}
+
+.macroBrainLead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.macroBrainLead h2 {
+  margin: 0;
+  max-width: 12ch;
+}
+
+.macroBrainLead p {
+  max-width: 42rem;
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.macroBrainStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(80px, 1fr));
+  gap: 0.55rem;
+}
+
+.macroBrainStats span {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.028);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.macroBrainStats strong {
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.macroBrainVisual {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.45rem;
+  min-height: 8.5rem;
+  overflow: hidden;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 20% 100%,
+    linear-gradient(180deg, transparent 49%, rgba(255, 255, 255, 0.12) 50%, transparent 51%),
+    rgba(255, 255, 255, 0.02);
+}
+
+.macroBrainVisual span {
+  align-self: end;
+  min-height: var(--bar-height, 3rem);
+  border-radius: 999px 999px 0 0;
+  background: linear-gradient(180deg, rgba(248, 200, 111, 0.88), rgba(248, 200, 111, 0.12));
+  opacity: 0.88;
+  transform-origin: bottom;
+  animation: macroPulseIn 520ms ease both;
+  animation-delay: var(--macro-delay, 0ms);
+}
+
+.macroBrainVisual span[data-direction="down"] {
+  background: linear-gradient(180deg, rgba(122, 210, 194, 0.88), rgba(122, 210, 194, 0.12));
+}
+
+.macroBrainVisual span[data-direction="flat"] {
+  background: linear-gradient(180deg, rgba(247, 242, 232, 0.72), rgba(247, 242, 232, 0.1));
+}
+
+@keyframes macroPulseIn {
+  from {
+    opacity: 0;
+    transform: scaleY(0.3);
+  }
+  to {
+    opacity: 0.88;
+    transform: scaleY(1);
+  }
+}
+
+.macroBrainGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.macroBrainGrid article {
+  min-width: 0;
+  padding: 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.macroBrainGrid h3 {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+}
+
+.macroBrainGrid p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.macroBrainRow,
+.macroBrainIdea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.62rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.macroBrainRow:first-of-type,
+.macroBrainIdea:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.macroBrainRow span,
+.macroBrainIdea span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.macroBrainRow[data-direction="up"] span {
+  color: var(--good);
+}
+
+.macroBrainRow[data-direction="down"] span {
+  color: rgba(122, 210, 194, 0.92);
+}
+
+.macroBrainStatus {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.9rem;
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.macroBrainStatus span {
+  color: var(--good);
+  font-weight: 700;
+}
+
 .answerSourcesCard {
   gap: 0.85rem;
   align-content: start;
@@ -5072,8 +5237,24 @@
   .workspaceSidebarLinks,
   .answerGrid,
   .answerModuleGrid,
-  .decisionPillarGrid {
+  .decisionPillarGrid,
+  .macroBrainLead,
+  .macroBrainGrid {
     grid-template-columns: 1fr;
+  }
+
+  .macroBrainStats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .macroBrainRow,
+  .macroBrainIdea {
+    grid-template-columns: 1fr;
+  }
+
+  .macroBrainRow span,
+  .macroBrainIdea span {
+    text-align: left;
   }
 
   .workspaceSidebarTop {

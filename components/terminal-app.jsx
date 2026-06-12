@@ -24,6 +24,7 @@ import { parseResponse, useWorkspaceLiveData } from "@/components/workspace/live
 import styles from "@/components/workspace/shell.module.css";
 import PortfolioChat from "@/components/portfolio-chat";
 import EquityResearchPanel from "@/components/equity-research-panel";
+import { macroBrainSnapshot } from "@/lib/macro-brain-snapshot";
 
 const RAW_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
 const DEFAULT_APP_NAME = /allocator workspace/i.test(RAW_APP_NAME) ? "BLS Prime" : RAW_APP_NAME;
@@ -81,6 +82,15 @@ const WORKSPACE_NAV = [
     detail: "Ideas con reglas",
     title: "Filtros explicables para encontrar candidatos",
     body: "Construye una lista de candidatos con reglas claras y rechaza cálculos que miren datos del futuro.",
+  },
+  {
+    id: "macrobrain",
+    href: "#macrobrain",
+    label: "Macro Brain",
+    priority: "Macro",
+    detail: "Señales e ideas",
+    title: "Lectura macro breve",
+    body: "Una vista corta con lo que cambió, las ideas abiertas y los datos que vienen.",
   },
   {
     id: "holdings",
@@ -432,7 +442,7 @@ function PersonalFinancePanel({ financePlan, draft, pending, onChange, onSubmit 
           <p className={styles.kicker}>Plan mensual de dinero</p>
           <h2>Define qué está realmente disponible para invertir</h2>
           <p className={styles.supportText}>
-            Ingreso, cuentas fijas, gasto variable y reserva se convierten en un aporte mensual antes de decidir sobre el portafolio.
+            Ingreso, cuentas fijas y gasto variable muestran cuánto queda para invertir.
           </p>
         </div>
         <ToneBadge tone={plan.tone || metricTone}>{cleanWorkspaceCopy(plan.title || "Plan no definido")}</ToneBadge>
@@ -471,7 +481,7 @@ function PersonalFinancePanel({ financePlan, draft, pending, onChange, onSubmit 
             <FinancePlanField
               currency={currency}
               id="safety-buffer"
-              label="Reserva de caja"
+              label="Caja aparte"
               onChange={(value) => onChange("safetyBuffer", value)}
               value={draft.safetyBuffer}
             />
@@ -502,7 +512,7 @@ function PersonalFinancePanel({ financePlan, draft, pending, onChange, onSubmit 
         <div className={styles.financeReadout}>
           <div className={styles.financeMetricGrid}>
             <MetricTile
-              detail="Caja que entra antes de cuentas, gasto variable o reserva."
+              detail="Caja que entra antes de cuentas y gasto variable."
               label="Ingreso mensual"
               value={formatMoney(plan.inputs?.monthlyIncome, currency)}
             />
@@ -517,18 +527,18 @@ function PersonalFinancePanel({ financePlan, draft, pending, onChange, onSubmit 
               value={formatMoney(plan.inputs?.variableExpenses, currency)}
             />
             <MetricTile
-              detail="Caja que se deja intencionalmente fuera del mercado."
-              label="Reserva de caja"
+              detail="Caja que se deja fuera del mercado."
+              label="Caja aparte"
               value={formatMoney(plan.inputs?.safetyBuffer, currency)}
             />
             <MetricTile
-              detail="Ingreso menos costos fijos, gasto variable y reserva."
+              detail="Ingreso menos costos fijos, gasto variable y caja aparte."
               label="Disponible para invertir"
               tone={metricTone}
               value={formatMoney(metrics.monthlyInvestable, currency)}
             />
             <MetricTile
-              detail="Gastos fijos y variables antes de la reserva."
+              detail="Gastos fijos y variables."
               label="Gasto mensual"
               value={formatMoney(metrics.monthlyOutflow, currency)}
             />
@@ -579,7 +589,7 @@ function PersonalFinancePanel({ financePlan, draft, pending, onChange, onSubmit 
                 </div>
               </>
             ) : (
-              <p className={styles.emptyCopy}>Cuando ingreses el ingreso, esto se convierte en una barra de gasto, reserva y caja invertible.</p>
+              <p className={styles.emptyCopy}>Cuando ingreses el ingreso, esto se convierte en una barra de gasto, caja aparte y caja invertible.</p>
             )}
           </div>
         </div>
@@ -1588,7 +1598,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
             <small>Peso que puede reactivar fragilidad rapido.</small>
           </div>
           <div>
-            <span>Reserva</span>
+            <span>Protección</span>
             <strong>{concentration.ballast || "-"}</strong>
             <small>Protección dentro del portafolio actual.</small>
           </div>
@@ -2304,6 +2314,89 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
   );
 }
 
+function MacroBrainWorkspacePanel() {
+  const snapshot = macroBrainSnapshot;
+  const openIdeas = safeList(snapshot.theses).filter((item) => item.state === "open").length;
+  const watchedIdeas = safeList(snapshot.theses).filter((item) => item.state === "watch").length;
+  const visualBars = safeList(snapshot.impulseChanges).slice(0, 5).map((item, index) => {
+    const height = item.direction === "down" ? 6.2 - (index * 0.5) : item.direction === "flat" ? 3.5 : 2.4 + (index * 0.7);
+    return {
+      ...item,
+      height: `${Math.max(2.2, height).toFixed(1)}rem`,
+      delay: `${index * 70}ms`,
+    };
+  });
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.macroBrainPanel}>
+        <div className={styles.macroBrainLead}>
+          <p className={styles.kicker}>Macro Brain</p>
+          <h2>Mercado, en corto</h2>
+          <p>{snapshot.shortRead}</p>
+          <div className={styles.macroBrainStats}>
+            <span><strong>{snapshot.seriesCount}</strong> señales</span>
+            <span><strong>{openIdeas}</strong> abiertas</span>
+            <span><strong>{watchedIdeas}</strong> en revisión</span>
+          </div>
+        </div>
+
+        <div className={styles.macroBrainVisual} aria-label="Lectura visual de Macro Brain">
+          {visualBars.map((item) => (
+            <span
+              data-direction={item.direction}
+              key={`macro-pulse-${item.label}`}
+              style={{ "--bar-height": item.height, "--macro-delay": item.delay }}
+              title={`${item.label}: ${item.plain}`}
+            />
+          ))}
+        </div>
+
+        <div className={styles.macroBrainGrid}>
+          <article>
+            <h3>Qué cambió</h3>
+            {safeList(snapshot.impulseChanges).slice(0, 5).map((item) => (
+              <div className={styles.macroBrainRow} data-direction={item.direction} key={item.label}>
+                <strong>{item.label}</strong>
+                <span>{item.plain}</span>
+              </div>
+            ))}
+          </article>
+
+          <article>
+            <h3>Ideas</h3>
+            {safeList(snapshot.theses).map((item) => (
+              <div className={styles.macroBrainIdea} key={item.id}>
+                <strong>{item.title}</strong>
+                <span>{item.state === "open" ? "Sigue abierta" : "Mirar de cerca"}</span>
+              </div>
+            ))}
+          </article>
+
+          <article>
+            <h3>Próximos datos</h3>
+            {safeList(snapshot.nextChecks).slice(0, 4).map((item) => (
+              <div className={styles.macroBrainRow} key={item.event}>
+                <strong>{item.event}</strong>
+                <span>{item.timing}</span>
+              </div>
+            ))}
+          </article>
+
+          <article>
+            <h3>Estrés</h3>
+            <p>{snapshot.stability.read}</p>
+            <div className={styles.macroBrainStatus}>
+              <span>{snapshot.stability.status}</span>
+              <strong>{snapshot.stability.pressure}%</strong>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function RecoverabilityMapFigure({ items }) {
   const points = safeList(items).slice(0, 16);
   const width = 420;
@@ -2452,8 +2545,8 @@ function TruthInterfacePanel({
     {
       title: "Plan de dinero",
       detail: investableCash === null || investableCash === undefined
-        ? "Define ingreso, gastos y reserva para financiar el plan mensual."
-        : `${formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)} disponible después de gastos y reserva.`,
+        ? "Define ingreso y gastos para calcular el margen mensual."
+        : `${formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)} disponible después de gastos.`,
     },
     {
       title: "Foto de mercado",
@@ -2476,7 +2569,7 @@ function TruthInterfacePanel({
     || frontier?.subhead
     || "El espacio mostrará aquí la respuesta actual más clara.",
   );
-  const reserveCopy = cleanWorkspaceCopy(balanceSheet?.spendRule || "Mantén la reserva hasta que el escenario sea más limpio.");
+  const reserveCopy = cleanWorkspaceCopy(balanceSheet?.spendRule || "Espera una señal más clara antes de sumar riesgo.");
   const investableDisplay = formatMoney(investableCash, personalFinance?.inputs?.baseCurrency);
   const realIndependenceLabel = formatScoreValue(structuralScore);
   const visibleIndependenceLabel = formatScoreValue(visibleScore);
@@ -2525,7 +2618,7 @@ function TruthInterfacePanel({
                 <div>
                   <span>Disponible</span>
                   <strong>{investableDisplay}</strong>
-                  <small>Después de gastos y reserva.</small>
+                  <small>Después de gastos.</small>
                 </div>
                 <div>
                   <span>Independencia real</span>
@@ -2533,7 +2626,7 @@ function TruthInterfacePanel({
                   <small>Visible {visibleIndependenceLabel}; brecha {gapLabel}.</small>
                 </div>
                 <div>
-                  <span>Reserva</span>
+                  <span>Margen</span>
                   <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
                   <small>{reserveCopy}</small>
                 </div>
@@ -2560,7 +2653,7 @@ function TruthInterfacePanel({
                   <div>
                     <span>Caja invertible</span>
                     <strong>{investableDisplay}</strong>
-                    <small>Después de gastos y reserva.</small>
+                    <small>Después de gastos.</small>
                   </div>
                   <div>
                     <span>Cobertura objetivo</span>
@@ -2568,7 +2661,7 @@ function TruthInterfacePanel({
                     <small>Parte del aporte planificado que ya está financiada.</small>
                   </div>
                   <div>
-                    <span>Reserva de opcionalidad</span>
+                    <span>Margen flexible</span>
                     <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
                     <small>{reserveCopy}</small>
                   </div>
@@ -2667,15 +2760,14 @@ function cleanWorkspaceCopy(value) {
     .replace(/\brecoverability\b/gi, "recuperabilidad")
     .replace(/\bphantom\b/gi, "oculto")
     .replace(/\bfantasma\b/gi, "oculto")
-    .replace(/\bKeep\s+[A-Z0-9.-]+\s+as\s+(?:a\s+)?(?:cash buffer|reserva de caja)\b/gi, "Mantén esa parte como reserva de caja por ahora")
-    .replace(/\bkeep\s+uup(?:\s+as\s+(?:a\s+)?(?:cash buffer|reserva de caja))?\.?/gi, "Mantén esa parte como reserva de caja por ahora")
-    .replace(/\bMantener\s+[A-Z0-9.-]+\s+como\s+reserva de caja\b/gi, "Mantén esa parte como reserva de caja por ahora")
-    .replace(/\b[A-Z0-9.-]+\s+is the sleeve preserving room to act later\.?/gi, "Esa parte preserva margen para actuar después.")
+    .replace(/\bKeep\s+[A-Z0-9.-]+\s+as\s+(?:a\s+)?cash buffer\b/gi, "Mantén esa parte como caja aparte por ahora")
+    .replace(/\bkeep\s+uup(?:\s+as\s+(?:a\s+)?cash buffer)?\.?/gi, "Mantén esa parte como caja aparte por ahora")
+    .replace(/\b[A-Z0-9.-]+\s+is the sleeve keeping room to act later\.?/gi, "Esa parte mantiene margen para actuar después.")
     .replace(/\bReview again after healing velocity positive and budget recovers\.?/gi, "Revisar cuando mejore la tendencia y se recupere el presupuesto.")
     .replace(/\bremaining budget falls below ([0-9.]+%)\.?/gi, "el presupuesto restante cae bajo $1.")
-    .replace(/\bDo not spend optionality on broad risk adds right now\.?/gi, "No uses la reserva de opcionalidad para sumar riesgo amplio ahora.")
-    .replace(/\bdo not spend optionality\b/gi, "no usar la reserva de opcionalidad")
-    .replace(/\bballast\b/gi, "reserva de caja")
+    .replace(/\bDo not spend optionality on broad risk adds right now\.?/gi, "No uses el margen flexible para sumar riesgo amplio ahora.")
+    .replace(/\bdo not spend optionality\b/gi, "no usar el margen flexible")
+    .replace(/\bballast\b/gi, "caja aparte")
     .replace(/\bkeep risk elevated\b/gi, "Mantener riesgo alto, pero selectivo")
     .replace(/\bbroad beta\b/gi, "exposición amplia de mercado")
     .replace(/\bAvailable to invest\b/gi, "Disponible para invertir")
@@ -2684,13 +2776,13 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bFixed expenses\b/gi, "Gastos fijos")
     .replace(/\bVariable spending\b/gi, "Gasto variable")
     .replace(/\bVariable expenses\b/gi, "Gasto variable")
-    .replace(/\bCash buffer\b/gi, "Reserva de caja")
+    .replace(/\bCash buffer\b/gi, "Caja aparte")
     .replace(/\bTarget contribution\b/gi, "Aporte objetivo")
     .replace(/\bSavings rate\b/gi, "Tasa de ahorro")
     .replace(/\bTarget coverage\b/gi, "Cobertura objetivo")
-    .replace(/\bPreserve the reserve sleeve\b/gi, "Preservar la reserva")
-    .replace(/\bPreserve the reserve\b/gi, "Preservar la reserva")
-    .replace(/\bStay patient\b/gi, "Mantener paciencia")
+    .replace(/\bPreserve the reserve sleeve\b/gi, "Mantener caja aparte")
+    .replace(/\bPreserve the reserve\b/gi, "Mantener caja aparte")
+    .replace(/\bStay\s+patient\b/gi, "Esperar señal más clara")
     .replace(/\bLive read\b/gi, "Lectura en vivo")
     .replace(/\bUsable evidence\b/gi, "Evidencia usable")
     .replace(/\bStressed\b/gi, "Bajo estrés")
@@ -2836,7 +2928,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Resumen actual</p>
-          <h2>{cleanWorkspaceCopy(stateSummary?.stance || "Stay patient")}</h2>
+          <h2>{cleanWorkspaceCopy(stateSummary?.stance || "Esperar señal más clara")}</h2>
           <p className={styles.supportText}>La postura actual en lenguaje simple, junto con la evidencia que todavía la sostiene.</p>
         </div>
       </div>
@@ -2902,6 +2994,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       break;
     case "factorlab":
       activeWorkspacePanels = <FactorLabWorkspacePanel portfolioModule={portfolioModule} />;
+      break;
+    case "macrobrain":
+      activeWorkspacePanels = <MacroBrainWorkspacePanel />;
       break;
     case "holdings":
       activeWorkspacePanels = (
@@ -3430,7 +3525,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     <span className={styles.welcomeStepNum}>1</span>
                     <div>
                       <strong>Define el plan mensual</strong>
-                      <p>Ingresa ingreso, costos fijos, gasto variable, reserva y aporte objetivo.</p>
+                      <p>Ingresa ingreso, costos fijos, gasto variable, caja aparte y aporte objetivo.</p>
                     </div>
                   </li>
                   <li className={styles.welcomeStep}>
@@ -3496,7 +3591,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 <p className={styles.glossaryPanelSub}>Cada término raro que usa este espacio, explicado sin jerga.</p>
                 <dl className={styles.glossaryList}>
                   {[
-                    { term: "Plan mensual", def: "Ingreso menos gastos y reserva. El resultado es lo que el portafolio puede recibir." },
+                    { term: "Plan mensual", def: "Ingreso menos gastos. El resultado es lo que el portafolio puede recibir." },
                     { term: "Solapamiento de riesgo", def: "Cuando posiciones que se ven distintas reaccionan al mismo shock de mercado." },
                     { term: "Diversificación visible", def: "Lo amplio que parece el portafolio al mirar pesos y cantidad de nombres." },
                     { term: "Diversificación real", def: "La parte de esa amplitud que sigue funcionando cuando las posiciones empiezan a moverse juntas." },
@@ -3528,7 +3623,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
           <section className={styles.statusGrid}>
             <MetricTile
-              detail="Después de gastos y reserva."
+              detail="Después de gastos."
               label="Margen mensual"
               tone={financeMetricTone(personalFinance)}
               value={formatMoney(personalFinance?.metrics?.monthlyInvestable, personalFinance?.inputs?.baseCurrency)}
