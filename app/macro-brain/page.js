@@ -5,17 +5,8 @@ import { macroBrainSnapshot as snapshot } from "@/lib/macro-brain-snapshot";
 
 export const metadata = {
   title: "Macro Brain | BLS Prime",
-  description:
-    "A plain-language daily macro license: what changed, which thesis is still allowed, and what evidence can revoke it.",
+  description: "A short macro note that shows what changed, what to watch, and what was recorded.",
 };
-
-function pct(value) {
-  return `${Math.round(Number(value || 0))}%`;
-}
-
-function formatNumber(value) {
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
-}
 
 function formatDate(value) {
   return new Intl.DateTimeFormat("en-US", {
@@ -26,16 +17,20 @@ function formatDate(value) {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-function stateLabel(state) {
-  if (state === "licensed") return "Enough room";
-  if (state === "conditional") return "Watch closely";
-  return "No license";
+function formatNumber(value) {
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+}
+
+function ideaStatus(state) {
+  if (state === "open") return "Still open";
+  if (state === "watch") return "Needs watching";
+  return "Paused";
 }
 
 export default function MacroBrainPage() {
-  const licensed = snapshot.theses.filter((item) => item.state === "licensed").length;
-  const conditional = snapshot.theses.filter((item) => item.state === "conditional").length;
-  const topDefeater = snapshot.defeaters[0];
+  const openIdeas = snapshot.theses.filter((item) => item.state === "open").length;
+  const watchedIdeas = snapshot.theses.filter((item) => item.state === "watch").length;
+  const dataPointLabel = `${formatNumber(snapshot.observations)} data points`;
 
   return (
     <main className={styles.page}>
@@ -44,192 +39,151 @@ export default function MacroBrainPage() {
           BLS Prime
         </Link>
         <div className={styles.navLinks}>
-          <a href="#daily-read">Daily read</a>
-          <a href="#theses">Theses</a>
-          <a href="#ledger">Ledger</a>
+          <a href="#example">Example</a>
+          <a href="#features">What it does</a>
+          <a href="#record">Record</a>
         </div>
         <Link className={styles.navAction} href="/app">
-          Open workspace
+          Workspace
         </Link>
       </nav>
 
-      <section className={styles.hero} id="daily-read">
-        <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Macro Brain / {formatDate(snapshot.runDate)}</p>
-          <h1>A daily license for macro conviction.</h1>
-          <p className={styles.lede}>
-            Macro Brain does not ask whether an idea feels smart. It asks how much doubt the idea can absorb before it touches a boundary you already agreed is forbidden.
-          </p>
-          <div className={styles.heroActions}>
-            <a className={styles.primaryButton} href="#theses">
-              See today&apos;s licenses
-            </a>
-            <a className={styles.secondaryButton} href="#defeaters">
-              What can change my mind?
-            </a>
-          </div>
-        </div>
-
-        <div className={styles.decisionPlane} aria-label="Macro Brain daily state">
-          <div className={styles.planeTop}>
-            <span>Today&apos;s read</span>
-            <strong>{snapshot.seriesCount} live signals</strong>
-          </div>
-          <p>{snapshot.dailyRead}</p>
-          <div className={styles.planeStats}>
-            <div>
-              <span>Licensed</span>
-              <strong>{licensed}</strong>
-            </div>
-            <div>
-              <span>Conditional</span>
-              <strong>{conditional}</strong>
-            </div>
-            <div>
-              <span>Next defeater</span>
-              <strong>{topDefeater.event}</strong>
-            </div>
-          </div>
-          <div className={styles.capacityLine} aria-hidden="true">
-            <i style={{ width: `${100 - snapshot.stability.doubtUsed}%` }} />
-          </div>
-          <small>Regime room remaining: {pct(100 - snapshot.stability.doubtUsed)}</small>
-        </div>
-      </section>
-
-      <section className={styles.strip} aria-label="How Macro Brain works">
-        <div>
-          <span>1</span>
-          <strong>Watch the change in the change.</strong>
-          <p>Levels are background. Impulse is the first thing on the page.</p>
-        </div>
-        <div>
-          <span>2</span>
-          <strong>License the thesis, not the mood.</strong>
-          <p>Each idea gets tested against the evidence that could defeat it.</p>
-        </div>
-        <div>
-          <span>3</span>
-          <strong>Write it down before the outcome.</strong>
-          <p>The ledger turns judgment into something falsifiable.</p>
-        </div>
-      </section>
-
-      <section className={styles.section} id="impulse">
-        <div className={styles.sectionHeader}>
-          <p className={styles.eyebrow}>What changed</p>
-          <h2>The morning starts with movement, not opinion.</h2>
+      <section className={styles.hero}>
+        <div className={styles.heroText}>
+          <p className={styles.kicker}>Macro Brain</p>
+          <h1>A short morning note for macro ideas.</h1>
           <p>
-            The list below is the short version of the batch: which market pressures are accelerating, fading, or turning.
+            It shows what moved, which ideas need attention, what data matters next, and keeps a record of the call.
           </p>
+          <div className={styles.actions}>
+            <a className={styles.primaryButton} href="#example">
+              See the example
+            </a>
+            <a className={styles.secondaryButton} href="#features">
+              What it does
+            </a>
+          </div>
+          <small>Research-only. Not financial advice. No trades placed.</small>
         </div>
-        <div className={styles.impulseList}>
-          {snapshot.impulseChanges.map((item, index) => (
-            <article className={styles.impulseRow} data-direction={item.direction} key={`${item.label}-${item.plain}`}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{item.label}</strong>
-              <p>{item.plain}</p>
-              <em>{item.direction === "up" ? "Rising" : "Fading"}</em>
-            </article>
-          ))}
-        </div>
+
+        <aside className={styles.note} aria-label="Macro Brain example note">
+          <div className={styles.noteHeader}>
+            <span>Example run</span>
+            <strong>{formatDate(snapshot.runDate)}</strong>
+          </div>
+          <p>{snapshot.shortRead}</p>
+          <dl>
+            <div>
+              <dt>Signals</dt>
+              <dd>{snapshot.seriesCount}</dd>
+            </div>
+            <div>
+              <dt>Open</dt>
+              <dd>{openIdeas}</dd>
+            </div>
+            <div>
+              <dt>Watch</dt>
+              <dd>{watchedIdeas}</dd>
+            </div>
+          </dl>
+        </aside>
       </section>
 
-      <section className={styles.liquidityBand}>
-        <div>
-          <p className={styles.eyebrow}>Liquidity</p>
-          <h2>{snapshot.liquidity.status}</h2>
+      <section className={styles.example} id="example">
+        <div className={styles.sectionIntro}>
+          <p className={styles.kicker}>Example</p>
+          <h2>One page. Four checks.</h2>
         </div>
-        <p>{snapshot.liquidity.summary}</p>
-        <div className={styles.liquidityParts}>
-          {snapshot.liquidity.components.map((component) => (
-            <span key={component.label}>
-              <strong>{component.label}</strong>
-              {component.stance}
-            </span>
-          ))}
-        </div>
-      </section>
 
-      <section className={styles.section} id="theses">
-        <div className={styles.sectionHeader}>
-          <p className={styles.eyebrow}>Live theses</p>
-          <h2>Conviction gets a license, not a slogan.</h2>
-          <p>
-            A thesis is allowed only while the remaining margin is larger than the doubt it must honestly absorb.
-          </p>
-        </div>
-        <div className={styles.thesisStack}>
-          {snapshot.theses.map((thesis) => (
-            <article className={styles.thesisRow} data-state={thesis.state} key={thesis.id}>
-              <div className={styles.thesisMain}>
-                <span>{thesis.id} / {stateLabel(thesis.state)}</span>
-                <h3>{thesis.title}</h3>
-                <p>{thesis.why}</p>
-              </div>
-              <div className={styles.thesisGauge}>
-                <div>
-                  <span>Doubt used</span>
-                  <strong>{pct(thesis.doubtUsed)}</strong>
+        <div className={styles.grid}>
+          <section className={styles.panel}>
+            <h3>What changed</h3>
+            <div className={styles.signalList}>
+              {snapshot.impulseChanges.map((item) => (
+                <div className={styles.signalRow} data-direction={item.direction} key={item.label}>
+                  <strong>{item.label}</strong>
+                  <span>{item.plain}</span>
                 </div>
-                <i aria-hidden="true">
-                  <b style={{ width: pct(thesis.doubtUsed) }} />
-                </i>
-                <small>{thesis.confirmations} confirming / {thesis.contradictions} arguing back</small>
-              </div>
-              <div className={styles.thesisBreak}>
-                <span>Can break if</span>
-                <p>{thesis.canBreak}</p>
-              </div>
-            </article>
-          ))}
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.panel}>
+            <h3>Ideas</h3>
+            <div className={styles.ideaList}>
+              {snapshot.theses.map((idea) => (
+                <article key={idea.id}>
+                  <div>
+                    <strong>{idea.title}</strong>
+                    <span>{ideaStatus(idea.state)}</span>
+                  </div>
+                  <p>{idea.why}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.panel}>
+            <h3>Next checks</h3>
+            <div className={styles.checkList}>
+              {snapshot.nextChecks.slice(0, 4).map((item) => (
+                <div key={item.event}>
+                  <strong>{item.event}</strong>
+                  <span>{item.timing}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className={styles.panel}>
+            <h3>Stress</h3>
+            <p>{snapshot.stability.read}</p>
+            <div className={styles.statusLine}>
+              <span>{snapshot.stability.status}</span>
+              <strong>{snapshot.stability.pressure}%</strong>
+            </div>
+          </section>
         </div>
       </section>
 
-      <section className={styles.sectionSplit} id="defeaters">
-        <div className={styles.defeaterPanel}>
-          <p className={styles.eyebrow}>Calendar</p>
-          <h2>Only the releases that can change a live thesis matter today.</h2>
-          <div className={styles.defeaterList}>
-            {snapshot.defeaters.map((item, index) => (
-              <article key={item.event}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <strong>{item.event}</strong>
-                <p>{item.timing}</p>
-                <em>{item.value.toFixed(2)}</em>
-              </article>
-            ))}
-          </div>
+      <section className={styles.features} id="features">
+        <div className={styles.sectionIntro}>
+          <p className={styles.kicker}>What it does</p>
+          <h2>Only the parts that exist now.</h2>
         </div>
 
-        <div className={styles.stabilityPanel}>
-          <p className={styles.eyebrow}>Know when not to know</p>
-          <h2>{snapshot.stability.status}</h2>
-          <p>{snapshot.stability.read}</p>
-          <div className={styles.stabilityGauge}>
-            <span>Boundary pressure</span>
-            <strong>{pct(snapshot.stability.doubtUsed)}</strong>
-            <i>
-              <b style={{ width: pct(snapshot.stability.doubtUsed) }} />
-            </i>
-          </div>
-          <div className={styles.modeList}>
-            {snapshot.stability.fragileMode.map((item) => (
-              <span key={item}>{item}</span>
-            ))}
-          </div>
+        <div className={styles.featureList}>
+          <article>
+            <span>01</span>
+            <strong>Shows the biggest market moves.</strong>
+            <p>No long dashboard. Just the changes worth reading first.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <strong>Tracks a few live ideas.</strong>
+            <p>Each idea says what supports it and what is pushing back.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <strong>Ranks what to watch next.</strong>
+            <p>The calendar focuses on the releases that can actually change the ideas.</p>
+          </article>
+          <article>
+            <span>04</span>
+            <strong>Keeps a dated record.</strong>
+            <p>Every call can be checked later instead of remembered generously.</p>
+          </article>
         </div>
       </section>
 
-      <section className={styles.ledger} id="ledger">
-        <p className={styles.eyebrow}>Ledger</p>
-        <h2>The product is the record.</h2>
+      <section className={styles.record} id="record">
+        <p className={styles.kicker}>Record</p>
+        <h2>{snapshot.ledger.question}</h2>
         <p>{snapshot.ledger.rule}</p>
-        <blockquote>{snapshot.ledger.question}</blockquote>
-        <div className={styles.ledgerMeta}>
-          <span>{formatNumber(snapshot.observations)} observations in today&apos;s run</span>
-          <span>{snapshot.ledger.liveTheses} live theses</span>
-          <span>Research-only, no trades placed</span>
+        <div className={styles.meta}>
+          <span>{dataPointLabel}</span>
+          <span>{snapshot.ledger.liveTheses} ideas</span>
+          <span>Partial liquidity</span>
         </div>
       </section>
     </main>
