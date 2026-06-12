@@ -1354,6 +1354,120 @@
   background: rgba(255, 124, 114, 0.9);
 }
 
+.truthMapSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-block: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthMapSummary div {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.72rem 0.35rem 0.72rem 0;
+}
+
+.truthMapSummary div + div {
+  padding-left: 0.6rem;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthMapSummary strong {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.truthMapSummary span {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.truthMapRows {
+  display: grid;
+  gap: 0.52rem;
+}
+
+.truthMapRow {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.68rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.truthMapRow:last-child {
+  border-bottom: 0;
+}
+
+.truthMapRowHead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.truthMapRowHead strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.truthMapRowHead span {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.truthMapRow p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.truthMapBars {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.truthMapBars span {
+  display: grid;
+  grid-template-columns: 5.6rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.truthMapBars i {
+  height: 0.34rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.truthMapBars b {
+  display: block;
+  width: max(4%, var(--bar-width, 0%));
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(122, 210, 194, 0.92);
+}
+
+.truthMapBars span:last-child b {
+  background: rgba(255, 124, 114, 0.86);
+}
+
+.truthMapRow[data-filter="holdings"] .truthMapRowHead span {
+  color: rgba(248, 200, 111, 0.95);
+}
+
+.truthMapRow[data-filter="watch"] .truthMapRowHead span {
+  color: rgba(122, 210, 194, 0.95);
+}
+
+.truthMapRow[data-filter="blocked"] .truthMapRowHead span {
+  color: rgba(255, 124, 114, 0.92);
+}
+
 .truthMap {
   width: 100%;
   height: auto;

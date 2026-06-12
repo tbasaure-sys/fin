@@ -2395,77 +2395,75 @@ function MacroBrainWorkspacePanel() {
 }
 
 function RecoverabilityMapFigure({ items }) {
-  const points = safeList(items).slice(0, 16);
-  const width = 420;
-  const height = 248;
-  const paddingX = 36;
-  const paddingTop = 22;
-  const paddingBottom = 34;
-  const plotWidth = width - (paddingX * 2);
-  const plotHeight = height - paddingTop - paddingBottom;
+  const points = safeList(items).map((item, index) => {
+    const recovery = clampUnitInterval(item?.x);
+    const fragility = clampUnitInterval(item?.y);
+    const kind = mapFilterTone(item?.filter || item?.legitimacy || item?.kind);
+    return {
+      id: item?.id || `${item?.label || "item"}-${index}`,
+      label: item?.label || item?.ticker || `Fila ${index + 1}`,
+      meta: item?.meta || item?.quadrant || item?.kind || "Sin detalle",
+      kind,
+      recovery: recovery === null ? 0 : recovery,
+      fragility: fragility === null ? 0 : fragility,
+      priority: (fragility === null ? 0 : fragility) - (recovery === null ? 0 : recovery),
+    };
+  });
+  const counts = points.reduce((acc, item) => {
+    acc[item.kind] = (acc[item.kind] || 0) + 1;
+    return acc;
+  }, {});
+  const rows = [...points]
+    .sort((a, b) => (b.priority - a.priority) || (b.fragility - a.fragility) || a.label.localeCompare(b.label))
+    .slice(0, 6);
 
   if (!points.length) {
     return (
       <div className={styles.truthMapEmpty}>
-        <strong>Mapa estructural pendiente.</strong>
-        <p>Agrega posiciones o ideas en observación y el mapa mostrará qué parece ganado, frágil o bloqueado.</p>
+        <strong>Resumen pendiente.</strong>
+        <p>Agrega posiciones o ideas y aquí aparecerá qué está firme, qué vigilar y qué queda bloqueado.</p>
       </div>
     );
   }
 
   return (
     <div className={styles.truthMapShell}>
-      <div className={styles.truthMapLegend}>
-        <span><i data-filter="holdings" />Posiciones</span>
-        <span><i data-filter="watch" />Ideas</span>
-        <span><i data-filter="blocked" />Bloqueado</span>
+      <div className={styles.truthMapSummary} aria-label="Resumen estructural del portafolio">
+        <div>
+          <strong>{counts.holdings || 0}</strong>
+          <span>Posiciones</span>
+        </div>
+        <div>
+          <strong>{counts.watch || 0}</strong>
+          <span>Ideas</span>
+        </div>
+        <div>
+          <strong>{counts.blocked || 0}</strong>
+          <span>Bloqueado</span>
+        </div>
       </div>
 
-      <svg className={styles.truthMap} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Mapa de recuperabilidad">
-        <rect
-          className={styles.truthMapFrame}
-          height={plotHeight}
-          rx="14"
-          width={plotWidth}
-          x={paddingX}
-          y={paddingTop}
-        />
-        {[0.25, 0.5, 0.75].map((ratio) => {
-          const x = paddingX + (plotWidth * ratio);
-          const y = paddingTop + (plotHeight * ratio);
-          return (
-            <g key={`truth-map-grid-${ratio}`}>
-              <path className={styles.truthMapGrid} d={`M ${x.toFixed(1)} ${paddingTop} L ${x.toFixed(1)} ${paddingTop + plotHeight}`} />
-              <path className={styles.truthMapGrid} d={`M ${paddingX} ${y.toFixed(1)} L ${paddingX + plotWidth} ${y.toFixed(1)}`} />
-            </g>
-          );
-        })}
-        <text className={styles.truthMapAxisLabel} x={paddingX} y={height - 8}>Baja recuperacion</text>
-        <text className={styles.truthMapAxisLabel} textAnchor="end" x={paddingX + plotWidth} y={height - 8}>Alta recuperacion</text>
-        <text
-          className={styles.truthMapAxisLabel}
-          textAnchor="middle"
-          transform={`translate(14 ${(paddingTop + (plotHeight / 2)).toFixed(1)}) rotate(-90)`}
-        >
-          Fragilidad
-        </text>
-        <text className={styles.truthMapAxisLabel} x={paddingX + 10} y={paddingTop + 16}>Ganado</text>
-        <text className={styles.truthMapAxisLabel} textAnchor="end" x={paddingX + plotWidth - 10} y={paddingTop + plotHeight - 10}>Fragil</text>
-
-        {points.map((item, index) => {
-          const x = paddingX + ((clampUnitInterval(item?.x) || 0) * plotWidth);
-          const y = paddingTop + ((1 - (clampUnitInterval(item?.y) || 0)) * plotHeight);
-          const filterTone = mapFilterTone(item?.filter || item?.legitimacy || item?.kind);
-          const showLabel = index < 7;
-          return (
-            <g key={item.id || `${item.label}-${index}`} transform={`translate(${x.toFixed(1)} ${y.toFixed(1)})`}>
-              <title>{`${item.label}: ${item.meta || item.quadrant || item.kind || "Map point"}`}</title>
-              <circle className={styles.truthMapPoint} data-filter={filterTone} r={showLabel ? 7 : 5.5} />
-              {showLabel ? <text className={styles.truthMapLabel} x="10" y="4">{item.label}</text> : null}
-            </g>
-          );
-        })}
-      </svg>
+      <div className={styles.truthMapRows}>
+        {rows.map((item) => (
+          <article className={styles.truthMapRow} data-filter={item.kind} key={item.id}>
+            <div className={styles.truthMapRowHead}>
+              <strong>{item.label}</strong>
+              <span>{item.kind === "holdings" ? "Posición" : item.kind === "watch" ? "Idea" : "Bloqueado"}</span>
+            </div>
+            <p>{item.meta}</p>
+            <div className={styles.truthMapBars}>
+              <span>
+                Recuperación
+                <i><b style={{ "--bar-width": `${Math.round(item.recovery * 100)}%` }} /></i>
+              </span>
+              <span>
+                Fragilidad
+                <i><b style={{ "--bar-width": `${Math.round(item.fragility * 100)}%` }} /></i>
+              </span>
+            </div>
+          </article>
+        ))}
+      </div>
     </div>
   );
 }
