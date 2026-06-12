@@ -2172,11 +2172,8 @@ function DiversificationClockCard({
 
       <div className={styles.diversificationClockCopy}>
         <p className={styles.kicker}>Lectura de solapamiento</p>
-        <h3>{structuralLabel} mide la independencia que queda; no basta con contar {holdingsCount || "muchas"} posiciones.</h3>
-        <p>
-          Primero mira cuán amplio parece el portafolio. Después descuenta posiciones que se mueven juntas, fragilidad
-          y concentración. La brecha es la protección que parecía existir, pero no queda probada bajo estrés.
-        </p>
+        <h3>{structuralLabel}: independencia real</h3>
+        <p>Visible {visibleLabel}. Brecha {realityGap === null ? "-" : `${gapPercent}%`}.</p>
       </div>
 
       <div className={styles.diversificationClockMetrics}>
@@ -2582,7 +2579,7 @@ function TruthInterfacePanel({
           <div>
             <p className={styles.kicker}>Respuesta actual</p>
             <h2>{decisionTitle}</h2>
-            <p className={styles.supportText}>Una pantalla para decidir: cuánto capital está libre, cuánta independencia queda y qué revisar después.</p>
+            <p className={styles.supportText}>Caja, independencia y riesgo inmediato.</p>
           </div>
           <div className={styles.answerWorkspaceMeta}>
             <ToneBadge tone={truthTone(parseDisplayPercent(balanceSheet?.optionalityReserve))}>
@@ -2595,24 +2592,34 @@ function TruthInterfacePanel({
           </div>
         </div>
 
-        <button className={styles.answerComposer} onClick={onToggleChat} type="button">
-          {showChat ? "Seguir preguntando sobre caja, portafolio o una compañía" : "Preguntar sobre caja, portafolio o una compañía"}
-        </button>
+        <div className={styles.answerCommandRow}>
+          <button className={styles.answerComposer} onClick={onToggleChat} type="button">
+            {showChat ? "Ocultar preguntas" : "Preguntar"}
+          </button>
 
-        <div className={styles.answerSuggestions}>
-          {suggestionPrompts.map((prompt) => (
-            <button className={styles.answerSuggestion} key={prompt} onClick={onToggleChat} type="button">
-              {prompt}
-            </button>
-          ))}
+          <div className={styles.answerSuggestions}>
+            {suggestionPrompts.map((prompt) => (
+              <button className={styles.answerSuggestion} key={prompt} onClick={onToggleChat} type="button">
+                {prompt}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className={styles.answerGrid}>
           <div className={styles.answerMainColumn}>
             <article className={styles.answerCard}>
-              <p className={styles.answerCardTag}>Respuesta ejecutiva</p>
-              <h3>{decisionTitle}</h3>
-              <p>{decisionCopy}</p>
+              <div className={styles.answerCardTop}>
+                <div>
+                  <p className={styles.answerCardTag}>Lectura</p>
+                  <h3>{decisionTitle}</h3>
+                </div>
+                <div className={styles.answerCardSignal}>
+                  <span>Independencia</span>
+                  <strong>{realIndependenceLabel}</strong>
+                </div>
+              </div>
+              <p className={styles.answerDecisionLine}>{decisionCopy}</p>
 
               <div className={styles.decisionPillarGrid} aria-label="Lectura principal del workspace">
                 <div>
@@ -2633,14 +2640,14 @@ function TruthInterfacePanel({
               </div>
 
               <div className={styles.answerCardActions}>
-                <button className={styles.primaryButton} onClick={onToggleChat} type="button">
-                  {showChat ? "Ocultar explicación" : "Abrir explicación"}
-                </button>
                 <button className={styles.secondaryButton} onClick={() => onSelectSection("today")} type="button">
-                  Revisar decisión
+                  Decisión
                 </button>
                 <button className={styles.secondaryButton} onClick={() => onSelectSection("diversification")} type="button">
-                  Revisar solapamiento
+                  Solapamiento
+                </button>
+                <button className={styles.primaryButton} onClick={onToggleChat} type="button">
+                  {showChat ? "Cerrar" : "Explicar"}
                 </button>
               </div>
             </article>
@@ -2685,12 +2692,11 @@ function TruthInterfacePanel({
 
           <aside className={styles.answerSourcesCard}>
             <p className={styles.answerCardTag}>Fuentes</p>
-            <h3>De dónde sale la lectura</h3>
             <div className={styles.answerReferenceList}>
               {referenceItems.map((item) => (
                 <article className={styles.answerReferenceRow} key={item.title}>
                   <strong>{item.title}</strong>
-                  <p>{item.detail}</p>
+                  <p>{cleanWorkspaceCopy(item.detail)}</p>
                 </article>
               ))}
             </div>
@@ -2770,6 +2776,11 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bballast\b/gi, "caja aparte")
     .replace(/\bkeep risk elevated\b/gi, "Mantener riesgo alto, pero selectivo")
     .replace(/\bbroad beta\b/gi, "exposición amplia de mercado")
+    .replace(/\bKeep cash flexible\b/gi, "Mantener caja disponible")
+    .replace(/\bNo change is needed here unless a cleaner use for that capital appears\.?/gi, "Sin cambios hasta que aparezca un mejor uso para esa caja.")
+    .replace(/\bWait for a cleaner state before spending optionality on new risk\.?/gi, "Espera una señal más clara antes de sumar riesgo.")
+    .replace(/\bWait for a cleaner state\b/gi, "Esperar una señal más clara")
+    .replace(/\bCurrent session\b/gi, "Sesión actual")
     .replace(/\bAvailable to invest\b/gi, "Disponible para invertir")
     .replace(/\bMonthly income\b/gi, "Ingreso mensual")
     .replace(/\bFixed costs\b/gi, "Costos fijos")

@@ -292,6 +292,9 @@
 .answerWorkspaceMeta,
 .answerSuggestions,
 .answerCardActions,
+.answerCommandRow,
+.answerCardTop,
+.answerCardSignal,
 .answerMicroMeta,
 .answerTrackGroup {
   display: grid;
@@ -322,6 +325,12 @@
   align-items: start;
 }
 
+.answerCommandRow {
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  align-items: center;
+}
+
 .answerComposer,
 .answerSuggestion {
   font: inherit;
@@ -329,14 +338,13 @@
 }
 
 .answerComposer {
-  width: 100%;
-  min-height: 4rem;
-  padding: 1rem 1.15rem;
-  border-radius: 16px;
+  min-height: 2.45rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.035);
-  text-align: left;
-  font-size: 1rem;
+  text-align: center;
+  font-weight: 760;
   cursor: pointer;
   transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
 }
@@ -400,6 +408,31 @@
   text-transform: uppercase;
 }
 
+.answerCardTop {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: start;
+}
+
+.answerCardSignal {
+  justify-items: end;
+  gap: 0.2rem;
+  padding: 0.2rem 0 0;
+}
+
+.answerCardSignal span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.answerCardSignal strong {
+  font-size: clamp(1.6rem, 3vw, 2.35rem);
+  line-height: 0.9;
+}
+
 .answerCard h3,
 .answerModule h3,
 .answerSourcesCard h3 {
@@ -417,6 +450,10 @@
   margin: 0.7rem 0 0;
   color: var(--muted);
   line-height: 1.6;
+}
+
+.answerDecisionLine {
+  max-width: 54rem;
 }
 
 .answerCardActions {
@@ -4743,7 +4780,7 @@
 }
 
 .answerWorkspace {
-  gap: 0.8rem;
+  gap: 0.7rem;
 }
 
 .answerWorkspaceHead h2 {
@@ -4756,13 +4793,13 @@
 }
 
 .answerComposer {
-  min-height: 3.25rem;
-  border-radius: 8px;
+  min-height: 2.45rem;
+  border-radius: 999px;
   background: rgba(255, 255, 255, 0.026);
 }
 
 .answerGrid {
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.36fr);
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.3fr);
 }
 
 .answerCard,
@@ -4794,13 +4831,13 @@
 }
 
 .answerCard h3 {
-  max-width: 22ch;
+  max-width: 18ch;
   font-size: clamp(1.5rem, 2.8vw, 2.25rem);
   line-height: 1.02;
 }
 
 .answerCard > p:not(.answerCardTag) {
-  max-width: 64ch;
+  max-width: 54rem;
   font-size: 0.98rem;
 }
 
@@ -4842,7 +4879,7 @@
 }
 
 .answerModuleGrid {
-  grid-template-columns: minmax(230px, 0.68fr) minmax(0, 1.32fr);
+  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 0.58fr);
   gap: 0.8rem;
 }
 
@@ -4856,6 +4893,29 @@
 
 .answerMetricList strong {
   font-size: 1rem;
+}
+
+.diversificationClockCard {
+  grid-template-columns: minmax(0, 0.78fr) minmax(150px, 0.42fr);
+  gap: 0.8rem;
+  align-items: start;
+}
+
+.diversificationClockCopy {
+  gap: 0.4rem;
+}
+
+.diversificationClockCopy h3 {
+  font-size: clamp(1.05rem, 1.75vw, 1.55rem);
+  max-width: 12ch;
+}
+
+.diversificationClockCopy p:last-child {
+  font-size: 0.95rem;
+}
+
+.diversificationClockMetrics {
+  margin-top: 0.15rem;
 }
 
 .statusGrid {
@@ -5130,6 +5190,8 @@
   .answerGrid,
   .answerModuleGrid,
   .decisionPillarGrid,
+  .answerCommandRow,
+  .diversificationClockCard,
   .factorLabGrid,
   .truthHeroGrid,
   .truthScoreRail,
@@ -5147,6 +5209,10 @@
   .answerWorkspaceMeta {
     display: flex;
     flex-wrap: wrap;
+  }
+
+  .answerCardSignal {
+    justify-items: start;
   }
 
   .answerCardActions {
@@ -5189,6 +5255,7 @@
 
   .header,
   .answerWorkspaceHead,
+  .answerCardTop,
   .legalNotice {
     display: grid;
   }
