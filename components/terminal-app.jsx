@@ -2139,84 +2139,55 @@ function DiversificationClockCard({
   visibleScore,
   xray,
 }) {
-  const visiblePercent = visibleScore === null ? 0 : Math.round(clampUnitInterval(visibleScore) * 100);
-  const structuralPercent = structuralScore === null ? 0 : Math.round(clampUnitInterval(structuralScore) * 100);
-  const gapPercent = realityGap === null ? 0 : Math.round(clampUnitInterval(realityGap) * 100);
-  const visibleLabel = visibleScore === null ? "-" : String(visiblePercent);
-  const structuralLabel = structuralScore === null ? "-" : String(structuralPercent);
+  const visiblePct = visibleScore === null ? null : Math.round(clampUnitInterval(visibleScore) * 100);
+  const realPct = structuralScore === null ? null : Math.round(clampUnitInterval(structuralScore) * 100);
+  const gapPct = realityGap === null ? null : Math.round(clampUnitInterval(realityGap) * 100);
   const topCarrier = safeList(xray?.carriers)[0]?.ticker || safeList(xray?.fragilityLoad)[0]?.ticker || null;
-  const visibleBarWidth = visibleScore === null ? 4 : Math.max(6, visiblePercent);
-  const structuralBarWidth = structuralScore === null ? 4 : Math.max(6, structuralPercent);
-  const gapBarWidth = realityGap === null ? 4 : Math.max(6, gapPercent);
+
+  const W = 280;
+  const ROW_H = 22;
+  const ROW_GAP = 12;
+  const TRACK_X = 88;
+  const TRACK_W = W - TRACK_X;
+  const H = ROW_H * 3 + ROW_GAP * 2;
+
+  const rows = [
+    { label: "Visible", pct: visiblePct, fill: "rgba(248,200,111,0.72)", text: "rgba(248,200,111,1)" },
+    { label: "Real", pct: realPct, fill: "rgba(122,210,194,0.72)", text: "rgba(122,210,194,1)" },
+    { label: "Brecha", pct: gapPct, fill: "rgba(220,85,85,0.60)", text: "rgba(220,110,110,1)" },
+  ];
 
   return (
     <div className={styles.diversificationClockCard}>
-      <div
-        className={styles.diversificationClockVisual}
-        aria-label={`Amplitud visible ${visibleLabel}, amplitud real ${structuralLabel}, brecha ${realityGap === null ? "sin dato" : `${gapPercent}%`}.`}
+      <svg
+        className={styles.divClockSvg}
+        viewBox={`0 0 ${W} ${H}`}
+        aria-label={`Visible ${visiblePct ?? "—"} Real ${realPct ?? "—"} Brecha ${gapPct !== null ? `${gapPct}%` : "—"}`}
       >
-        <div className={styles.breadthFigure}>
-          <div className={styles.breadthFigureHead}>
-            <span>Lectura directa</span>
-            <strong>{visibleLabel} → {structuralLabel}</strong>
-          </div>
-
-          <div className={styles.breadthFigureRow} data-kind="visible">
-            <div>
-              <span>Visible</span>
-              <strong>{visibleLabel}</strong>
-            </div>
-            <i><b style={{ "--bar-width": `${visibleBarWidth}%` }} /></i>
-            <small>Lo que parece diversificado antes de ajustar.</small>
-          </div>
-
-          <div className={styles.breadthFigureRow} data-kind="real">
-            <div>
-              <span>Real</span>
-              <strong>{structuralLabel}</strong>
-            </div>
-            <i><b style={{ "--bar-width": `${structuralBarWidth}%` }} /></i>
-            <small>Lo que sigue independiente bajo estrés.</small>
-          </div>
-
-          <div className={styles.breadthFigureRow} data-kind="gap">
-            <div>
-              <span>Brecha</span>
-              <strong>{realityGap === null ? "-" : `${gapPercent}%`}</strong>
-            </div>
-            <i><b style={{ "--bar-width": `${gapBarWidth}%` }} /></i>
-            <small>Parte que parecía protección, pero no queda probada.</small>
-          </div>
-        </div>
-      </div>
+        {rows.map((row, i) => {
+          const y = i * (ROW_H + ROW_GAP);
+          const barW = row.pct === null ? 3 : Math.max(3, (row.pct / 100) * TRACK_W);
+          const numStr = row.pct === null ? "—" : `${row.pct}`;
+          return (
+            <g key={row.label}>
+              <text x={0} y={y + ROW_H - 5} fontSize={11} fill="rgba(255,255,255,0.38)" fontFamily="inherit">{row.label}</text>
+              <text x={TRACK_X - 6} y={y + ROW_H - 5} fontSize={14} fontWeight={700} fill={row.text} fontFamily="inherit" textAnchor="end">{numStr}</text>
+              <rect x={TRACK_X} y={y} width={TRACK_W} height={ROW_H} rx={3} fill="rgba(255,255,255,0.05)" />
+              <rect x={TRACK_X} y={y} width={barW} height={ROW_H} rx={3} fill={row.fill} />
+            </g>
+          );
+        })}
+      </svg>
 
       <div className={styles.diversificationClockCopy}>
-        <p className={styles.kicker}>Lectura de solapamiento</p>
-        <h3>{structuralLabel}: independencia real</h3>
-        <p>Visible {visibleLabel}. Brecha {realityGap === null ? "-" : `${gapPercent}%`}.</p>
-      </div>
-
-      <div className={styles.diversificationClockMetrics}>
-        <div>
-          <span>Visible</span>
-          <strong>{visibleLabel}</strong>
-          <small>{holdingsCount ? `${holdingsCount} posiciones; amplitud antes de ajustar.` : "Faltan posiciones."}</small>
-        </div>
-        <div>
-          <span>Real</span>
-          <strong>{structuralLabel}</strong>
-          <small>{diversificationStatusLabel(structuralScore)}: independencia que sigue en pie.</small>
-        </div>
-        <div>
-          <span>Brecha</span>
-          <strong>{realityGap === null ? "-" : `${gapPercent}%`}</strong>
-          <small>{topCarrier ? `${topCarrier} explica parte de la brecha.` : "Diferencia entre apariencia y soporte."}</small>
-        </div>
-        <div>
-          <span>Riesgo</span>
-          <strong>{structuralRiskLabel(actualStructuralRisk)}</strong>
-          <small>Recuperación: {recoveryShare || "-"}.</small>
-        </div>
+        <p className={styles.kicker}>Solapamiento real</p>
+        <h3>{realPct !== null ? realPct : "—"} de independencia real</h3>
+        <p>
+          {holdingsCount ? `${holdingsCount} posiciones` : "Sin posiciones"}
+          {topCarrier ? ` · ${topCarrier} explica parte de la brecha` : ""}
+          {" · "}
+          {structuralRiskLabel(actualStructuralRisk)} riesgo estructural
+        </p>
       </div>
     </div>
   );
@@ -2260,25 +2231,25 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>FactorLab</p>
-          <h2>Encuentra candidatos con reglas que puedes revisar</h2>
+          <p className={styles.kicker}>Candidatos</p>
+          <h2>¿Qué vale la pena considerar?</h2>
           <p className={styles.supportText}>
-            FactorLab no decide por ti. Toma tus reglas, calcula una lista ordenada y rechaza cualquier cálculo que use información que todavía no existiría en esa fecha.
+            Candidatos filtrados con reglas revisables. Descarta cálculos que usen datos posteriores a la fecha de decisión.
           </p>
         </div>
-        <div className={styles.segmentedControl} role="tablist" aria-label="Modo de FactorLab">
+        <div className={styles.segmentedControl} role="tablist" aria-label="Modo de candidatos">
           <button data-active={mode === "ranked"} onClick={() => setMode("ranked")} type="button">Ranking</button>
-          <button data-active={mode === "refusal"} onClick={() => setMode("refusal")} type="button">Rechazo</button>
+          <button data-active={mode === "refusal"} onClick={() => setMode("refusal")} type="button">Señales rechazadas</button>
         </div>
       </div>
 
       <div className={styles.factorLabGrid}>
         <aside className={styles.factorLabExplainer}>
-          <h3>Qué hace en simple</h3>
+          <h3>Cómo funciona</h3>
           <ol>
-            <li>Elige reglas de filtro.</li>
-            <li>Calcula candidatos solo con datos disponibles en la fecha elegida.</li>
-            <li>Muestra por qué algo sube, baja o queda rechazado.</li>
+            <li>Elige una señal de filtro.</li>
+            <li>Calcula candidatos solo con datos disponibles al momento de decidir.</li>
+            <li>Muestra por qué algo aparece, baja o queda descartado.</li>
           </ol>
         </aside>
 
@@ -2318,10 +2289,10 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
             </>
           ) : (
             <div className={styles.factorLabRefusal}>
-              <p className={styles.kicker}>Rechazo útil</p>
-              <h3>No se acepta un cálculo que mira el futuro.</h3>
+              <p className={styles.kicker}>Señal descartada</p>
+              <h3>No se acepta una señal que usa datos del futuro.</h3>
               <p>
-                Ejemplo: una regla tipo <code>lead()</code> usa datos posteriores. FactorLab la bloquea para evitar una señal que se ve buena en prueba, pero no habría estado disponible al decidir.
+                Ejemplo: una regla tipo <code>lead()</code> usa datos posteriores a la fecha de decisión. Se descarta para que el análisis sea honesto: la señal no habría estado disponible cuando decidiste.
               </p>
             </div>
           )}
@@ -2348,7 +2319,7 @@ function MacroBrainWorkspacePanel() {
     <section className={styles.panel}>
       <div className={styles.macroBrainPanel}>
         <div className={styles.macroBrainLead}>
-          <p className={styles.kicker}>Macro Brain</p>
+          <p className={styles.kicker}>Contexto macro</p>
           <h2>Mercado, en corto</h2>
           <p>{snapshot.shortRead}</p>
           <div className={styles.macroBrainStats}>

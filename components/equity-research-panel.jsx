@@ -6,7 +6,7 @@ import { formatCurrency, formatDateTime, formatPct, safeList, statusTone } from 
 import { parseResponse } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
 
-const RESEARCH_TABS = ["Memo", "Value", "Debate", "Changes", "Sources", "Audit"];
+const RESEARCH_TABS = ["Memo", "Valor", "Debate", "Cambios", "Fuentes", "Auditoría"];
 const AGENT_STAGES = [
   { key: "intake", label: "Collect", detail: "Sources", threshold: 0 },
   { key: "normalize", label: "Clean", detail: "Statements", threshold: 18 },
@@ -254,12 +254,12 @@ function downloadArtifact(artifact) {
 }
 
 function artifactLabel(filename) {
-  if (!filename) return "Download";
-  if (filename.endsWith(".xlsx")) return "Model";
-  if (filename.endsWith("_report.md")) return "Report";
-  if (filename.endsWith("_sources.json")) return "Sources";
-  if (filename.endsWith("_audit.json")) return "Audit";
-  if (filename.endsWith("_assumptions.yml")) return "Assumptions";
+  if (!filename) return "Descargar";
+  if (filename.endsWith(".xlsx")) return "Modelo";
+  if (filename.endsWith("_report.md")) return "Memo";
+  if (filename.endsWith("_sources.json")) return "Fuentes";
+  if (filename.endsWith("_audit.json")) return "Auditoría";
+  if (filename.endsWith("_assumptions.yml")) return "Supuestos";
   return filename;
 }
 
@@ -280,7 +280,7 @@ function renderMarkdownMemo(markdown) {
 
 function renderMemo(research) {
   if (!research) {
-    return <p className={styles.emptyCopy}>Run a ticker to generate a sourced memo, valuation, sources ledger, and audit file.</p>;
+    return <p className={styles.emptyCopy}>Ingresa un ticker y haz clic en Analizar para generar el memo, valoración y auditoría.</p>;
   }
   const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
   const findings = safeList(research?.audit?.findings);
@@ -289,7 +289,7 @@ function renderMemo(research) {
     <div className={styles.researchMemoReader} data-state={degraded ? "degraded" : "ready"}>
       {degraded ? (
         <div className={styles.researchAttentionCallout}>
-          <span>Needs source-backed statements</span>
+          <span>Faltan estados con fuente</span>
           <strong>{summarizeGaps(coverage.missing_expected_metrics, 3)}</strong>
           <p>{findings[0]?.message || coverage.statement_authority || "The run completed, but the evidence ledger is not strong enough for a valuation memo."}</p>
         </div>
@@ -305,11 +305,11 @@ function renderValuation(research) {
   const reverse = valuation.reverse_dcf || {};
 
   if (!research) {
-    return <p className={styles.emptyCopy}>The valuation tab will populate after a research run.</p>;
+    return <p className={styles.emptyCopy}>La valoración aparece después de analizar un ticker.</p>;
   }
 
   if (!valuation.available) {
-    return <p className={styles.emptyCopy}>{valuation.reason || "Valuation is unavailable because required inputs are missing."}</p>;
+    return <p className={styles.emptyCopy}>{valuation.reason || "Valoración no disponible: faltan datos de entrada."}</p>;
   }
 
   return (
@@ -355,7 +355,7 @@ function renderEvidence(research) {
   const missingMetrics = safeList(coverage.missing_expected_metrics);
 
   if (!research) {
-    return <p className={styles.emptyCopy}>Every number will appear here with source id, provider, endpoint, and claim tag.</p>;
+    return <p className={styles.emptyCopy}>Cada número aparece aquí con fuente, proveedor, endpoint y etiqueta.</p>;
   }
 
   return (
@@ -738,7 +738,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
     setError("");
     setRunSummary("");
     setRunProgress(6);
-    setStatusMessage("Starting research job...");
+    setStatusMessage("Iniciando análisis...");
     const startedAt = performance.now();
     try {
       const response = await fetch(`/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}`, {
@@ -748,9 +748,15 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         body: JSON.stringify({ mode }),
       });
       const startPayload = await parseResponse(response);
+      if (startPayload.run_id && startPayload.error && (startPayload.status === "queued" || !startPayload.backend_run_id)) {
+        setError("El servicio de análisis no está disponible en este momento. Verifica la configuración del backend.");
+        setRunProgress(100);
+        setRunSummary("Sin conexión al servicio de análisis.");
+        return;
+      }
       if (!startPayload.run_id) {
         if (startPayload.status === "failed" || startPayload.ok === false) {
-          throw new Error(startPayload.error || "Research job failed to start.");
+          throw new Error(startPayload.error || "No se pudo iniciar el análisis.");
         }
         setResearch(startPayload);
         setActiveTab("Memo");
@@ -763,7 +769,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
       setRunProgress(18);
       for (let attempt = 0; attempt < 90; attempt += 1) {
         setRunProgress(Math.min(92, 18 + (attempt + 1) * 3));
-        setStatusMessage(`Research job ${startPayload.status || "running"}...`);
+        setStatusMessage("Analizando...");
         await sleep(2000);
         const pollResponse = await fetch(
           `/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?runId=${encodeURIComponent(startPayload.run_id)}`,
@@ -771,6 +777,9 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         );
         const pollPayload = await parseResponse(pollResponse);
         if (pollPayload.status === "running" || pollPayload.status === "queued") {
+          if (pollPayload.error && attempt >= 3) {
+            throw new Error("El servicio de análisis no respondió después de varios intentos. Intenta de nuevo más tarde.");
+          }
           continue;
         }
         if (pollPayload.status === "failed" || pollPayload.ok === false) {
@@ -783,10 +792,10 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         setStatusMessage("");
         return;
       }
-      throw new Error("Research job is still running. Try again in a moment.");
+      throw new Error("El análisis sigue en proceso. Intenta de nuevo en un momento.");
     } catch (requestError) {
       setResearch(null);
-      setError(String(requestError?.message || requestError || "Research run failed."));
+      setError(String(requestError?.message || requestError || "El análisis no pudo completarse."));
       setRunProgress(100);
       setRunSummary("Run stopped before a verified bundle was returned.");
     } finally {
@@ -849,15 +858,15 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
     <section className={`${styles.panel} ${styles.researchPanel}`}>
       <div className={styles.researchCommandSurface}>
         <div className={styles.researchIdentity}>
-          <p className={styles.kicker}>Research desk</p>
-          <h2>{research?.ticker || ticker || "Ticker"} research desk</h2>
+          <p className={styles.kicker}>Investigación</p>
+          <h2>{research?.ticker || ticker || "Ticker"}</h2>
           <p className={styles.supportText}>
-            Run one company through statements, valuation, review debate, and audit. This should answer what the case is, what it is worth, and what is still unresolved.
+            Analiza una compañía: estados financieros, valoración, debate y auditoría.
           </p>
           <div className={styles.researchStatusLine}>
-            <span data-tone={pending ? "warn" : research ? "good" : "neutral"}>{pending ? "Running" : research ? "Ready" : "Ready to run"}</span>
-            <span>{mode === "full" ? "Full desk" : "Quick read"}</span>
-            <span>{storedRunCount ? `${storedRunCount} stored runs` : "No stored run yet"}</span>
+            <span data-tone={pending ? "warn" : research ? "good" : "neutral"}>{pending ? "Procesando" : research ? "Listo" : "Listo para analizar"}</span>
+            <span>{mode === "full" ? "Análisis completo" : "Vista rápida"}</span>
+            <span>{storedRunCount ? `${storedRunCount} análisis guardado${storedRunCount === 1 ? "" : "s"}` : "Sin análisis previo"}</span>
           </div>
         </div>
 
@@ -871,22 +880,30 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
               value={ticker}
             />
             <button className={styles.primaryButton} disabled={pending || !ticker} onClick={() => runResearch()} type="button">
-              {pending ? "Running..." : "Run analysis"}
+              {pending ? "Procesando..." : "Analizar"}
             </button>
           </div>
           <div className={styles.segmentedControl}>
-            {["quick", "full"].map((option) => (
-              <button
-                className={styles.segmentButton}
-                data-active={mode === option}
-                key={option}
-                onClick={() => setMode(option)}
-                type="button"
-                title={option === "full" ? "Run the complete analyst bundle" : "Run a fast memo and valuation pass"}
-              >
-                {option === "full" ? "Full desk" : "Quick read"}
-              </button>
-            ))}
+            <button
+              className={styles.segmentButton}
+              data-active={mode === "quick"}
+              key="quick"
+              onClick={() => setMode("quick")}
+              type="button"
+              title="Vista rápida: memo y valoración"
+            >
+              Rápido
+            </button>
+            <button
+              className={styles.segmentButton}
+              data-active={mode === "full"}
+              key="full"
+              onClick={() => setMode("full")}
+              type="button"
+              title="Análisis completo con auditoría"
+            >
+              Completo
+            </button>
           </div>
         </div>
       </div>
@@ -902,7 +919,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
           <div className={styles.researchProgressTrack} aria-hidden="true">
             <span style={{ width: progressWidth }} />
           </div>
-          <p>{statusMessage || runSummary || (research ? `Generated ${formatDateTime(research.generated_at)}` : "Waiting for a run.")}</p>
+          <p>{statusMessage || runSummary || (research ? `Generado ${formatDateTime(research.generated_at)}` : "Esperando análisis.")}</p>
         </div>
       ) : null}
 
@@ -1030,9 +1047,9 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
           >
             <span>{tab}</span>
             {tab === "Debate" && agentCount ? <small>{agentCount}</small> : null}
-            {tab === "Sources" && evidenceCount ? <small>{evidenceCount}</small> : null}
-            {tab === "Audit" && auditFindings.length ? <small>{auditFindings.length}</small> : null}
-            {tab === "Changes" && deltaChanges.length ? <small>{deltaChanges.length}</small> : null}
+            {tab === "Fuentes" && evidenceCount ? <small>{evidenceCount}</small> : null}
+            {tab === "Auditoría" && auditFindings.length ? <small>{auditFindings.length}</small> : null}
+            {tab === "Cambios" && deltaChanges.length ? <small>{deltaChanges.length}</small> : null}
           </button>
         ))}
       </div>
@@ -1064,11 +1081,11 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
           id={`equity-research-tabpanel-${activeTab.toLowerCase()}`}
         >
           {activeTab === "Memo" ? renderMemo(research) : null}
-          {activeTab === "Value" ? renderValuation(research) : null}
+          {activeTab === "Valor" ? renderValuation(research) : null}
           {activeTab === "Debate" ? renderAgents(research) : null}
-          {activeTab === "Changes" ? renderDelta(research) : null}
-          {activeTab === "Sources" ? renderEvidence(research) : null}
-          {activeTab === "Audit" ? renderAudit(research) : null}
+          {activeTab === "Cambios" ? renderDelta(research) : null}
+          {activeTab === "Fuentes" ? renderEvidence(research) : null}
+          {activeTab === "Auditoría" ? renderAudit(research) : null}
         </div>
       </div>
     </section>
