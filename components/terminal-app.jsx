@@ -32,76 +32,64 @@ const WORKSPACE_NAV = [
   {
     id: "today",
     href: "#today",
-    label: "Hoy",
+    label: "Resumen hoy",
     priority: "Inicio",
-    detail: "Resumen y accion",
-    title: "Resumen actual y proximo movimiento",
-    body: "Parte por la lectura en vivo, las notas de soporte y el movimiento que hoy merece atencion.",
+    detail: "Lectura y acción",
+    title: "¿Qué hago hoy?",
+    body: "La lectura en vivo y el movimiento que merece atención ahora.",
   },
   {
-    id: "cashflow",
-    href: "#cashflow",
-    label: "Plan de dinero",
-    priority: "Fondos",
-    detail: "Ingreso y caja invertible",
-    title: "Flujo mensual y margen invertible",
-    body: "Mantiene ingreso, costos fijos, gasto variable y aporte financiado en una sola vista operativa.",
-  },
-  {
-    id: "portfolio",
-    href: "#portfolio",
-    label: "Portafolio",
-    priority: "Lectura",
-    detail: "Trayectoria y motores",
-    title: "Rendimiento, pesos y motores reales",
-    body: "Lee el portafolio por rendimiento, peso de posiciones y los nombres que realmente lo mueven.",
-  },
-  {
-    id: "diversification",
-    href: "#diversification",
-    label: "Solapamiento",
+    id: "risk",
+    href: "#risk",
+    label: "Mi mayor riesgo",
     priority: "Auditar",
-    detail: "Amplitud estructural",
-    title: "Amplitud real y solapamiento bajo estrés",
-    body: "Revisa si el portafolio conserva apuestas independientes cuando aparece la concentración oculta.",
+    detail: "Portafolio y solapamiento",
+    title: "¿Qué domina mi portafolio?",
+    body: "Rendimiento, concentración y diversificación real bajo estrés.",
   },
   {
-    id: "research",
-    href: "#research",
-    label: "Investigación",
-    priority: "Explicar",
-    detail: "Informe de compañía",
-    title: "Análisis de compañía en formato breve",
-    body: "Abre el informe actual, el debate de valoración y las fuentes sin salir del espacio.",
+    id: "candidates",
+    href: "#candidates",
+    label: "Candidatos",
+    priority: "Explorar",
+    detail: "Filtros e investigación",
+    title: "¿Qué vale la pena considerar?",
+    body: "Candidatos filtrados, investigación de compañía y señales macro.",
   },
   {
-    id: "factorlab",
-    href: "#factorlab",
-    label: "FactorLab",
-    priority: "Filtrar",
-    detail: "Ideas con reglas",
-    title: "Filtros explicables para encontrar candidatos",
-    body: "Construye una lista de candidatos con reglas claras y rechaza cálculos que miren datos del futuro.",
+    id: "decisions",
+    href: "#decisions",
+    label: "Decisiones",
+    priority: "Registrar",
+    detail: "Historial y pendientes",
+    title: "¿Qué he decidido y por qué?",
+    body: "Acciones preparadas y decisiones registradas.",
   },
-  {
-    id: "macrobrain",
-    href: "#macrobrain",
-    label: "Macro Brain",
-    priority: "Macro",
-    detail: "Señales e ideas",
-    title: "Lectura macro breve",
-    body: "Una vista corta con lo que cambió, las ideas abiertas y los datos que vienen.",
-  },
+];
+
+const WORKSPACE_NAV_ADVANCED = [
   {
     id: "holdings",
     href: "#holdings",
     label: "Posiciones",
     priority: "Actualizar",
-    detail: "Posiciones y ediciones",
-    title: "Edición directa y posiciones guardadas",
-    body: "Revisa lo conectado, agrega posiciones y guarda cambios de tamaño en la misma superficie.",
+    detail: "Tabla de posiciones",
+    title: "Posiciones y edición directa",
+    body: "Revisa, agrega y edita posiciones conectadas al espacio.",
   },
 ];
+
+const ALL_NAV_IDS = [...WORKSPACE_NAV, ...WORKSPACE_NAV_ADVANCED].map((item) => item.id);
+
+const LEGACY_HASH_REDIRECT = {
+  cashflow: "today",
+  money: "today",
+  portfolio: "risk",
+  diversification: "risk",
+  research: "candidates",
+  factorlab: "candidates",
+  macrobrain: "candidates",
+};
 
 function ToneBadge({ tone = "neutral", children }) {
   return (
@@ -1969,6 +1957,8 @@ function WorkspaceSidebar({
   onOpenGuide,
   workspaceName,
 }) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   return (
     <section className={styles.workspaceSidebar} aria-label="Navegacion del espacio">
       <div className={styles.workspaceSidebarTop}>
@@ -1976,7 +1966,7 @@ function WorkspaceSidebar({
           <span className={styles.workspaceBrandMark} aria-hidden="true">B</span>
           <span>{workspaceName}</span>
         </Link>
-        <p className={styles.supportText}>Una sola superficie de decision. Abre solo la capa que necesitas.</p>
+        <p className={styles.supportText}>Espacio privado de decisión.</p>
       </div>
 
       <nav className={styles.workspaceSidebarNav} aria-label="Secciones del espacio">
@@ -1984,12 +1974,34 @@ function WorkspaceSidebar({
           <button
             className={styles.workspaceSidebarLink}
             data-active={activeSection === item.id}
-            data-priority={index < 3 ? "primary" : "secondary"}
+            data-priority="primary"
             key={item.id}
             onClick={() => onSelectSection(item.id)}
             type="button"
           >
             <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <span>{item.label}</span>
+              <small>{item.detail}</small>
+            </div>
+            {item.id === "decisions" && stagedCount > 0 ? (
+              <em data-tone="warn">{stagedCount}</em>
+            ) : (
+              <em>{item.priority}</em>
+            )}
+          </button>
+        ))}
+
+        {showAdvanced && WORKSPACE_NAV_ADVANCED.map((item) => (
+          <button
+            className={styles.workspaceSidebarLink}
+            data-active={activeSection === item.id}
+            data-priority="secondary"
+            key={item.id}
+            onClick={() => onSelectSection(item.id)}
+            type="button"
+          >
+            <span className={styles.workspaceSidebarIndex}>—</span>
             <div>
               <span>{item.label}</span>
               <small>{item.detail}</small>
@@ -2001,16 +2013,16 @@ function WorkspaceSidebar({
 
       <div className={styles.workspaceSidebarMeta}>
         <article className={styles.workspaceSidebarStat}>
-          <strong>{alertCount}</strong>
+          <strong>{alertCount || "—"}</strong>
           <span>Alertas</span>
         </article>
         <article className={styles.workspaceSidebarStat}>
-          <strong>{holdingsCount}</strong>
+          <strong>{holdingsCount || "—"}</strong>
           <span>Posiciones</span>
         </article>
         <article className={styles.workspaceSidebarStat}>
-          <strong>{stagedCount}</strong>
-          <span>Preparadas</span>
+          <strong>{stagedCount || "—"}</strong>
+          <span>En espera</span>
         </article>
       </div>
 
@@ -2024,6 +2036,14 @@ function WorkspaceSidebar({
           </button>
           <button className={styles.welcomeTrigger} onClick={onOpenGuide} type="button">
             Guía
+          </button>
+          <button
+            className={styles.glossaryTrigger}
+            data-active={showAdvanced}
+            onClick={() => setShowAdvanced((v) => !v)}
+            type="button"
+          >
+            {showAdvanced ? "Ocultar avanzado" : "Avanzado"}
           </button>
         </div>
         <div className={styles.workspaceSidebarLinks}>
@@ -2532,27 +2552,21 @@ function TruthInterfacePanel({
   const briefNotes = safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3);
   const referenceItems = [
     {
-      title: "Datos del portafolio",
+      title: "Portafolio",
       detail: holdingsCount
-        ? `${holdingsCount} posiciones conectadas${portfolioAnalytics.chartSource ? ` - ${portfolioAnalytics.chartSource}` : ""}.`
+        ? `${holdingsCount} posición${holdingsCount === 1 ? "" : "es"} conectada${holdingsCount === 1 ? "" : "s"}${portfolioAnalytics.chartSource ? ` · ${portfolioAnalytics.chartSource}` : ""}.`
         : "Agrega posiciones para desbloquear la lectura en vivo.",
-    },
-    {
-      title: "Plan de dinero",
-      detail: investableCash === null || investableCash === undefined
-        ? "Define ingreso y gastos para calcular el margen mensual."
-        : `${formatMoney(investableCash, personalFinance?.inputs?.baseCurrency)} disponible después de gastos.`,
     },
     {
       title: "Foto de mercado",
       detail: dashboard?.workspace_summary?.market_data_label || dashboard?.workspace_summary?.last_updated_label || "Sesión actual",
     },
     {
-      title: "Resumen actual",
+      title: "Lectura actual",
       detail: cleanWorkspaceCopy(
         briefNotes[0]
         || frontier?.subhead
-        || "La lectura actual aparece aquí cuando la evidencia queda ensamblada.",
+        || "La lectura aparece aquí cuando la evidencia queda ensamblada.",
       ),
     },
   ];
@@ -2621,14 +2635,14 @@ function TruthInterfacePanel({
 
               <div className={styles.decisionPillarGrid} aria-label="Lectura principal del workspace">
                 <div>
-                  <span>Disponible</span>
-                  <strong>{investableDisplay}</strong>
-                  <small>Después de gastos.</small>
-                </div>
-                <div>
                   <span>Independencia real</span>
                   <strong>{realIndependenceLabel}</strong>
                   <small>Visible {visibleIndependenceLabel}; brecha {gapLabel}.</small>
+                </div>
+                <div>
+                  <span>Riesgo dominante</span>
+                  <strong>{cleanWorkspaceCopy(riskCluster?.dominantLabel || "Sin dato")}</strong>
+                  <small>{structuralRiskLabel(actualStructuralRisk)} riesgo estructural.</small>
                 </div>
                 <div>
                   <span>Margen</span>
@@ -2638,11 +2652,11 @@ function TruthInterfacePanel({
               </div>
 
               <div className={styles.answerCardActions}>
-                <button className={styles.secondaryButton} onClick={() => onSelectSection("today")} type="button">
-                  Decisión
+                <button className={styles.secondaryButton} onClick={() => onSelectSection("decisions")} type="button">
+                  Decisiones
                 </button>
-                <button className={styles.secondaryButton} onClick={() => onSelectSection("diversification")} type="button">
-                  Solapamiento
+                <button className={styles.secondaryButton} onClick={() => onSelectSection("risk")} type="button">
+                  Mayor riesgo
                 </button>
                 <button className={styles.primaryButton} onClick={onToggleChat} type="button">
                   {showChat ? "Cerrar" : "Explicar"}
@@ -2652,21 +2666,21 @@ function TruthInterfacePanel({
 
             <div className={styles.answerModuleGrid}>
               <article className={styles.answerModule}>
-                <p className={styles.kicker}>Plan de dinero</p>
-                <h3>Disponible para invertir este mes</h3>
+                <p className={styles.kicker}>Estructura</p>
+                <h3>Independencia real del portafolio</h3>
                 <div className={styles.answerMetricList}>
                   <div>
-                    <span>Caja invertible</span>
-                    <strong>{investableDisplay}</strong>
-                    <small>Después de gastos.</small>
+                    <span>Amplitud visible</span>
+                    <strong>{visibleIndependenceLabel}</strong>
+                    <small>Pesos y cantidad de nombres.</small>
                   </div>
                   <div>
-                    <span>Cobertura objetivo</span>
-                    <strong>{targetCoverage === null || targetCoverage === undefined ? "Definir objetivo" : formatOptionalRatio(targetCoverage, 0)}</strong>
-                    <small>Parte del aporte planificado que ya está financiada.</small>
+                    <span>Amplitud real</span>
+                    <strong>{realIndependenceLabel}</strong>
+                    <small>La parte que resiste bajo estrés.</small>
                   </div>
                   <div>
-                    <span>Margen flexible</span>
+                    <span>Margen</span>
                     <strong>{balanceSheet?.optionalityReserve || balanceSheet?.spendingCapacity || "-"}</strong>
                     <small>{reserveCopy}</small>
                   </div>
@@ -2756,14 +2770,19 @@ function normalizeWorkspaceCopyInput(value) {
 
 function cleanWorkspaceCopy(value) {
   return normalizeWorkspaceCopyInput(value)
-    .replace(/\bphantom diversification\b/gi, "solapamiento oculto")
+    .replace(/\bphantom diversification\b/gi, "diversificación aparente")
     .replace(/\bphantom breadth\b/gi, "amplitud no probada")
     .replace(/\bphantom diversifier\b/gi, "posición con protección frágil")
     .replace(/\bdiversification\b/gi, "diversificación")
     .replace(/\bconcentration\b/gi, "concentración")
-    .replace(/\brecoverability\b/gi, "recuperabilidad")
+    .replace(/\brecoverability\b/gi, "capacidad de recuperación")
+    .replace(/\bhealing velocity\b/gi, "velocidad de recuperación")
     .replace(/\bphantom\b/gi, "oculto")
     .replace(/\bfantasma\b/gi, "oculto")
+    .replace(/\bFactorLab\b/g, "candidatos")
+    .replace(/\bMacro Brain\b/gi, "contexto macro")
+    .replace(/\blookahead bias\b/gi, "señal con datos inválidos")
+    .replace(/\blookahead\b/gi, "datos futuros inválidos")
     .replace(/\bKeep\s+[A-Z0-9.-]+\s+as\s+(?:a\s+)?cash buffer\b/gi, "Mantén esa parte como caja aparte por ahora")
     .replace(/\bkeep\s+uup(?:\s+as\s+(?:a\s+)?cash buffer)?\.?/gi, "Mantén esa parte como caja aparte por ahora")
     .replace(/\b[A-Z0-9.-]+\s+is the sleeve keeping room to act later\.?/gi, "Esa parte mantiene margen para actuar después.")
@@ -2931,7 +2950,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME,
   );
   const holdingsCount = safeList(portfolioModule?.holdings).length;
-  const activeSectionConfig = WORKSPACE_NAV.find((item) => item.id === activeWorkspaceSection) || WORKSPACE_NAV[0];
+  const activeSectionConfig = [...WORKSPACE_NAV, ...WORKSPACE_NAV_ADVANCED].find((item) => item.id === activeWorkspaceSection) || WORKSPACE_NAV[0];
   const currentBriefPanel = (
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
@@ -2954,58 +2973,97 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     </section>
   );
 
+  const escrowPanel = escrowItems.length ? (
+    <CompactActionPanel
+      emptyLabel=""
+      items={escrowItems}
+      kicker="En espera"
+      renderItem={(item) => (
+        <article className={styles.compactRow} key={item.id}>
+          <div>
+            <strong>{item.title}</strong>
+            <p>{item.summary || item.slot || "Listo cuando quieras."}</p>
+            <span>Expira {formatDate(item.expiresAt)}</span>
+          </div>
+          <div className={styles.compactActions}>
+            <button
+              className={styles.secondaryButton}
+              disabled={pendingKey !== null}
+              onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} confirmado.`)}
+              type="button"
+            >
+              {pendingKey === `execute:${item.id}` ? "Confirmando..." : "Confirmar"}
+            </button>
+            <button
+              className={styles.textButton}
+              disabled={pendingKey !== null}
+              onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelado.`)}
+              type="button"
+            >
+              {pendingKey === `cancel:${item.id}` ? "Actualizando..." : "Cancelar"}
+            </button>
+          </div>
+        </article>
+      )}
+      title={`${escrowItems.length} acción${escrowItems.length === 1 ? "" : "es"} guardada${escrowItems.length === 1 ? "" : "s"} para después`}
+    />
+  ) : null;
+
   let activeWorkspacePanels = null;
   switch (activeWorkspaceSection) {
-    case "cashflow":
-      activeWorkspacePanels = (
-        <PersonalFinancePanel
-          draft={financeDraft}
-          financePlan={personalFinance}
-          onChange={updateFinanceDraft}
-          onSubmit={submitFinanceDraft}
-          pending={pendingKey === "finance-plan"}
-        />
-      );
-      break;
-    case "portfolio":
-      activeWorkspacePanels = (
-        <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
-      );
-      break;
-    case "diversification":
-      activeWorkspacePanels = (
-        <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
-      );
-      break;
-    case "research":
+    case "risk":
       activeWorkspacePanels = (
         <>
+          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
+          <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
+        </>
+      );
+      break;
+    case "candidates":
+      activeWorkspacePanels = (
+        <>
+          <FactorLabWorkspacePanel portfolioModule={portfolioModule} />
           <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
-          {secondaryActions.length ? (
+          <MacroBrainWorkspacePanel />
+        </>
+      );
+      break;
+    case "decisions":
+      activeWorkspacePanels = (
+        <>
+          <AlertsPanel alerts={alerts} />
+          <TodayDecisionPanel
+            blockedAction={blockedAction}
+            onDefer={(action) => recordDecision(action, "deferred")}
+            onReject={(action) => recordDecision(action, "rejected")}
+            onStage={stageAction}
+            pendingKey={pendingKey}
+            primaryAction={primaryAction}
+            stateSummary={stateSummary}
+          />
+          {escrowPanel}
+          {ledgerItems.length ? (
             <CompactActionPanel
               emptyLabel=""
-              items={secondaryActions}
-              kicker="Cola de investigación"
-              renderItem={(action) => (
-                <article className={styles.compactRow} key={action.id}>
+              items={ledgerItems}
+              kicker="Actividad"
+              renderItem={(item) => (
+                <article className={styles.compactRow} key={item.id || item.title}>
                   <div>
-                    <strong>{action.ticker || action.title}</strong>
-                    <p>{action.summary || action.slot || "Observar"}</p>
+                    <strong>{item.title || "Decisión registrada"}</strong>
+                    <p>{item.summary || item.note || "El resultado todavía se está asentando."}</p>
+                    <span>{formatDateTime(item.occurredAt)}</span>
                   </div>
-                  <ToneBadge tone={actionTone(action)}>{action.sizeLabel || formatSize(action)}</ToneBadge>
+                  <ToneBadge tone={responseTone(item.userResponse || item.response || "noted")}>
+                    {item.resultLabel || capitalize(item.userResponse || item.response, "Registrado")}
+                  </ToneBadge>
                 </article>
               )}
-              title="Oportunidades en vivo"
+              title="Historial reciente"
             />
           ) : null}
         </>
       );
-      break;
-    case "factorlab":
-      activeWorkspacePanels = <FactorLabWorkspacePanel portfolioModule={portfolioModule} />;
-      break;
-    case "macrobrain":
-      activeWorkspacePanels = <MacroBrainWorkspacePanel />;
       break;
     case "holdings":
       activeWorkspacePanels = (
@@ -3021,41 +3079,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             tradeError={tradeError}
             tradeInstruction={tradeInstruction}
           />
-          {escrowItems.length ? (
-            <CompactActionPanel
-              emptyLabel=""
-              items={escrowItems}
-              kicker="Preparadas"
-              renderItem={(item) => (
-                <article className={styles.compactRow} key={item.id}>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.summary || item.slot || "Listo cuando quieras."}</p>
-                    <span>Expira {formatDate(item.expiresAt)}</span>
-                  </div>
-                  <div className={styles.compactActions}>
-                    <button
-                      className={styles.secondaryButton}
-                      disabled={pendingKey !== null}
-                      onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} ejecutado.`)}
-                      type="button"
-                    >
-                      {pendingKey === `execute:${item.id}` ? "Ejecutando..." : "Ejecutar"}
-                    </button>
-                    <button
-                      className={styles.textButton}
-                      disabled={pendingKey !== null}
-                      onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelado.`)}
-                      type="button"
-                    >
-                      {pendingKey === `cancel:${item.id}` ? "Actualizando..." : "Cancelar"}
-                    </button>
-                  </div>
-                </article>
-              )}
-              title={`${escrowItems.length} accion${escrowItems.length === 1 ? "" : "es"} preparada${escrowItems.length === 1 ? "" : "s"}`}
-            />
-          ) : null}
         </>
       );
       break;
@@ -3073,41 +3096,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             primaryAction={primaryAction}
             stateSummary={stateSummary}
           />
-          {escrowItems.length ? (
-            <CompactActionPanel
-              emptyLabel=""
-              items={escrowItems}
-              kicker="Preparadas"
-              renderItem={(item) => (
-                <article className={styles.compactRow} key={item.id}>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.summary || item.slot || "Listo cuando quieras."}</p>
-                    <span>Expira {formatDate(item.expiresAt)}</span>
-                  </div>
-                  <div className={styles.compactActions}>
-                    <button
-                      className={styles.secondaryButton}
-                      disabled={pendingKey !== null}
-                      onClick={() => patchEscrow(item, { action: "execute" }, `${item.title} ejecutado.`)}
-                      type="button"
-                    >
-                      {pendingKey === `execute:${item.id}` ? "Ejecutando..." : "Ejecutar"}
-                    </button>
-                    <button
-                      className={styles.textButton}
-                      disabled={pendingKey !== null}
-                      onClick={() => patchEscrow(item, { action: "cancel" }, `${item.title} cancelado.`)}
-                      type="button"
-                    >
-                      {pendingKey === `cancel:${item.id}` ? "Actualizando..." : "Cancelar"}
-                    </button>
-                  </div>
-                </article>
-              )}
-              title={`${escrowItems.length} accion${escrowItems.length === 1 ? "" : "es"} preparada${escrowItems.length === 1 ? "" : "s"}`}
-            />
-          ) : null}
+          {escrowPanel}
           {currentBriefPanel}
           {ledgerItems.length ? (
             <CompactActionPanel
@@ -3138,8 +3127,12 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     if (typeof window === "undefined") return undefined;
 
     function applyHashSection() {
-      const hashSection = window.location.hash.replace(/^#/, "");
-      if (!WORKSPACE_NAV.some((item) => item.id === hashSection)) return;
+      const raw = window.location.hash.replace(/^#/, "");
+      const hashSection = LEGACY_HASH_REDIRECT[raw] || raw;
+      if (!ALL_NAV_IDS.includes(hashSection)) return;
+      if (hashSection !== raw) {
+        window.history.replaceState(null, "", `#${hashSection}`);
+      }
       pendingSectionScrollRef.current = hashSection;
       setActiveWorkspaceSection(hashSection);
     }
@@ -3180,7 +3173,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   }
 
   function selectWorkspaceSection(sectionId) {
-    const nextSection = WORKSPACE_NAV.find((item) => item.id === sectionId)?.id;
+    const nextSection = ALL_NAV_IDS.includes(sectionId) ? sectionId : null;
     if (!nextSection) return;
 
     pendingSectionScrollRef.current = nextSection;
@@ -3482,7 +3475,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <div>
               <p className={styles.eyebrow}>Espacio privado</p>
               <h1>{workspaceName}</h1>
-              <p className={styles.subtitle}>Plan de caja, estructura del portafolio y memoria de investigación en un solo lugar.</p>
+              <p className={styles.subtitle}>Lectura clara. Una decisión a la vez.</p>
             </div>
 
             <div className={styles.headerActions}>
@@ -3525,30 +3518,30 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     Cerrar
                   </button>
                 </div>
-                <h2 className={styles.welcomeGuideTitle}>Bienvenido a tu espacio</h2>
+                <h2 className={styles.welcomeGuideTitle}>Tu espacio de decisión</h2>
                 <p className={styles.welcomeGuideSubtitle}>
-                  Tres pasos para que la herramienta lea tu capital sin pedirte conocimiento técnico.
+                  Tres pasos para recibir una lectura clara sin conocimiento técnico.
                 </p>
                 <ol className={styles.welcomeSteps}>
                   <li className={styles.welcomeStep}>
                     <span className={styles.welcomeStepNum}>1</span>
-                    <div>
-                      <strong>Define el plan mensual</strong>
-                      <p>Ingresa ingreso, costos fijos, gasto variable, caja aparte y aporte objetivo.</p>
-                    </div>
-                  </li>
-                  <li className={styles.welcomeStep}>
-                    <span className={styles.welcomeStepNum}>2</span>
                     <div>
                       <strong>Agrega tus posiciones</strong>
                       <p>Dos o tres posiciones bastan para desbloquear la lectura en vivo.</p>
                     </div>
                   </li>
                   <li className={styles.welcomeStep}>
+                    <span className={styles.welcomeStepNum}>2</span>
+                    <div>
+                      <strong>Lee el resumen de hoy</strong>
+                      <p>La lectura en vivo responde qué domina tu portafolio y qué merece atención ahora.</p>
+                    </div>
+                  </li>
+                  <li className={styles.welcomeStep}>
                     <span className={styles.welcomeStepNum}>3</span>
                     <div>
-                      <strong>Lee antes de actuar</strong>
-                      <p>Usa caja, solapamiento, FactorLab e investigación antes de preparar cualquier movimiento.</p>
+                      <strong>Registra tus decisiones</strong>
+                      <p>Guarda lo que decidiste y por qué. Revísalo después para aprender del resultado.</p>
                     </div>
                   </li>
                 </ol>
@@ -3600,13 +3593,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 <p className={styles.glossaryPanelSub}>Cada término raro que usa este espacio, explicado sin jerga.</p>
                 <dl className={styles.glossaryList}>
                   {[
-                    { term: "Plan mensual", def: "Ingreso menos gastos. El resultado es lo que el portafolio puede recibir." },
                     { term: "Solapamiento de riesgo", def: "Cuando posiciones que se ven distintas reaccionan al mismo shock de mercado." },
                     { term: "Diversificación visible", def: "Lo amplio que parece el portafolio al mirar pesos y cantidad de nombres." },
                     { term: "Diversificación real", def: "La parte de esa amplitud que sigue funcionando cuando las posiciones empiezan a moverse juntas." },
                     { term: "Solapamiento oculto", def: "Diversificación que parecía existir, pero no queda probada bajo estrés." },
-                    { term: "FactorLab", def: "Filtro de ideas con reglas revisables. Ordena candidatos y bloquea cálculos que miran datos del futuro." },
-                    { term: "Movimientos preparados", def: "Acciones guardadas para revisar después; no son operaciones ejecutadas." },
+                    { term: "Candidatos", def: "Ideas filtradas con reglas revisables. Ordenadas por señal más fuerte; descarta cálculos que usen datos del futuro." },
+                    { term: "Señal rechazada", def: "Un filtro que usaría información posterior a la fecha de decisión. Se descarta para mantener el análisis honesto." },
+                    { term: "Acciones en espera", def: "Decisiones guardadas para revisar después; no son operaciones ejecutadas." },
                   ].map(({ term, def }) => (
                     <div className={styles.glossaryEntry} key={term}>
                       <dt className={styles.glossaryTerm}>{term}</dt>
@@ -3632,28 +3625,28 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
           <section className={styles.statusGrid}>
             <MetricTile
-              detail="Después de gastos."
-              label="Margen mensual"
-              tone={financeMetricTone(personalFinance)}
-              value={formatMoney(personalFinance?.metrics?.monthlyInvestable, personalFinance?.inputs?.baseCurrency)}
-            />
-            <MetricTile
               detail={holdingsCount ? "Conectadas a este espacio." : "Agrega posiciones para desbloquear la lectura."}
               label="Posiciones"
               tone={holdingsCount ? "good" : "warn"}
-              value={holdingsCount ? `${holdingsCount} nombre${holdingsCount === 1 ? "" : "s"}` : "No conectadas"}
+              value={holdingsCount ? `${holdingsCount} nombre${holdingsCount === 1 ? "" : "s"}` : "Sin posiciones"}
             />
             <MetricTile
               detail="Última fecha de mercado cargada."
-              label="Foto"
+              label="Foto de mercado"
               tone="neutral"
-              value={dashboard?.workspace_summary?.market_data_label || "Sin fecha de mercado"}
+              value={dashboard?.workspace_summary?.market_data_label || "Sin fecha"}
             />
             <MetricTile
               detail={cleanWorkspaceCopy(stateSummary?.decisionSummary || connection.detail || "Listo para la próxima decisión.")}
               label="Postura"
               tone={statusTone(primaryAction?.status || connection.status || "neutral")}
-              value={cleanWorkspaceCopy(stateSummary?.stance || connection.label || "Espacio en vivo")}
+              value={cleanWorkspaceCopy(stateSummary?.stance || connection.label || "En vivo")}
+            />
+            <MetricTile
+              detail={escrowItems.length ? "Guardadas para después." : "Sin acciones en espera."}
+              label="En espera"
+              tone={escrowItems.length ? "warn" : "neutral"}
+              value={escrowItems.length ? `${escrowItems.length} acción${escrowItems.length === 1 ? "" : "es"}` : "—"}
             />
           </section>
 
