@@ -8,11 +8,11 @@ import styles from "@/components/workspace/shell.module.css";
 
 const RESEARCH_TABS = ["Memo", "Valor", "Debate", "Cambios", "Fuentes", "Auditoría"];
 const AGENT_STAGES = [
-  { key: "intake", label: "Collect", detail: "Sources", threshold: 0 },
-  { key: "normalize", label: "Clean", detail: "Statements", threshold: 18 },
-  { key: "valuation", label: "Value", detail: "DCF / reverse", threshold: 40 },
-  { key: "red_team", label: "Challenge", detail: "Risks", threshold: 62 },
-  { key: "audit", label: "Verify", detail: "Ledger", threshold: 82 },
+  { key: "intake", label: "Obtener", detail: "Fuentes", threshold: 0 },
+  { key: "normalize", label: "Limpiar", detail: "Estados", threshold: 18 },
+  { key: "valuation", label: "Valorar", detail: "DCF / inverso", threshold: 40 },
+  { key: "red_team", label: "Cuestionar", detail: "Riesgos", threshold: 62 },
+  { key: "audit", label: "Verificar", detail: "Registro", threshold: 82 },
 ];
 
 function sleep(ms) {
@@ -60,16 +60,16 @@ function humanizeToken(value) {
 
 function humanizeMetric(value) {
   const labels = {
-    latest_revenue: "revenue",
-    latest_diluted_shares: "diluted shares",
-    latest_free_cash_flow: "free cash flow",
-    revenue_cagr_5y: "5y revenue CAGR",
-    gross_margin: "gross margin",
-    operating_margin: "operating margin",
-    fcf_margin: "FCF margin",
-    base_intrinsic_value_per_share: "base value/share",
-    reverse_dcf_implied_revenue_cagr: "reverse DCF growth",
-    latest_sec_filing: "latest SEC filing",
+    latest_revenue: "ingresos",
+    latest_diluted_shares: "acciones diluidas",
+    latest_free_cash_flow: "flujo libre de caja",
+    revenue_cagr_5y: "CAGR ingresos 5a",
+    gross_margin: "margen bruto",
+    operating_margin: "margen operativo",
+    fcf_margin: "margen FCF",
+    base_intrinsic_value_per_share: "valor base/acción",
+    reverse_dcf_implied_revenue_cagr: "crecimiento DCF inverso",
+    latest_sec_filing: "último filing SEC",
   };
   return labels[value] || String(value || "").replace(/[_\-]+/g, " ");
 }
@@ -100,19 +100,19 @@ function finalAnalysisFrom(orchestrator) {
 }
 
 const AGENT_DISPLAY_NAMES = {
-  orchestrator: "Run coordinator",
-  orchestrator_agent: "Run coordinator",
-  company_profile_agent: "Business profile review",
-  financial_quality_agent: "Financial quality review",
-  valuation_agent: "Valuation review",
-  risk_agent: "Risk review",
-  catalyst_agent: "Filing and catalyst review",
-  red_team_agent: "Red-team challenge",
-  editor_auditor_agent: "Editor and audit gate",
+  orchestrator: "Coordinador",
+  orchestrator_agent: "Coordinador",
+  company_profile_agent: "Perfil de negocio",
+  financial_quality_agent: "Calidad financiera",
+  valuation_agent: "Valoración",
+  risk_agent: "Riesgos",
+  catalyst_agent: "Archivos y catalizadores",
+  red_team_agent: "Cuestionamiento",
+  editor_auditor_agent: "Edición y auditoría",
 };
 
 function agentDisplayName(agent) {
-  const fallback = firstUsefulText(agent?.name, "Analyst review").replace(/\s+Agent$/i, " review");
+  const fallback = firstUsefulText(agent?.name, "Revisión analítica").replace(/\s+Agent$/i, " revisión");
   return AGENT_DISPLAY_NAMES[agent?.id] || fallback;
 }
 
@@ -137,13 +137,13 @@ function finalEditorMarkdownFromAnalysis(value) {
   const analysis = finalAnalysisFrom({ analysis: value });
   const judgment = firstUsefulText(analysis.executive_judgment, analysis.memo_patch);
   const sections = [
-    ["What supports the case:", analysisItems(analysis.strongest_points)],
-    ["What could break the case:", analysisItems(analysis.red_team)],
-    ["Open checks:", analysisItems(analysis.open_questions)],
+    ["Qué lo sustenta:", analysisItems(analysis.strongest_points)],
+    ["Qué podría fallar:", analysisItems(analysis.red_team)],
+    ["Pendientes:", analysisItems(analysis.open_questions)],
   ];
   const lines = [
-    "## Final editor synthesis",
-    "One final editor call reads only the finished audit bundle. Specialist review roles challenge the case, but Python remains the calculation layer.",
+    "## Síntesis final",
+    "Una llamada final de edición lee solo el paquete de auditoría terminado. Los roles de revisión cuestionan el caso, pero Python sigue siendo la capa de cálculo.",
   ];
   if (judgment) {
     lines.push("", `Executive judgment: ${judgment}`);
@@ -156,7 +156,7 @@ function finalEditorMarkdownFromAnalysis(value) {
 }
 
 function cleanReportMarkdown(markdown) {
-  let text = String(markdown || "No report text was returned.");
+  let text = String(markdown || "No se generó texto de reporte.");
   text = text.replace(
     /(?:^|\n)-?\s*Final LLM orchestrator:\s*```(?:json)?\s*([\s\S]*?)```/gi,
     (_match, body) => `\n${finalEditorMarkdownFromAnalysis(body)}`,
@@ -165,10 +165,10 @@ function cleanReportMarkdown(markdown) {
     /(?:^|\n)-?\s*Final LLM orchestrator:\s*(\{[\s\S]*?\})(?=\n\n##|\n##|$)/gi,
     (_match, body) => `\n${finalEditorMarkdownFromAnalysis(body)}`,
   );
-  text = text.replace(/## Agent research desk/gi, "## Analyst desk");
+  text = text.replace(/## Agent research desk/gi, "## Escritorio de análisis");
   text = text.replace(
     /^Agent layer:.*$/gim,
-    "How to read this: Python pulls the data and calculates the metrics. The analyst desk is a set of reproducible review roles that read audited outputs, challenge the case, and point to open checks.",
+    "Cómo leerlo: Python extrae los datos y calcula las métricas. El escritorio de análisis es un conjunto de roles reproducibles que leen los resultados auditados, cuestionan el caso y señalan los pendientes.",
   );
   text = text.replace(
     /^-\s*([^:\n]+(?:Agent|Orchestrator))\s*\[([^\]]+)\]:\s*/gim,
@@ -183,7 +183,7 @@ function firstUsefulText(...values) {
 
 function summarizeGaps(metrics, limit = 4) {
   const list = safeList(metrics).map(humanizeMetric);
-  if (!list.length) return "No required evidence gaps.";
+  if (!list.length) return "Sin brechas de evidencia requeridas.";
   const visible = list.slice(0, limit).join(", ");
   const remaining = list.length - limit;
   return remaining > 0 ? `${visible}, +${remaining} more` : visible;
@@ -291,7 +291,7 @@ function renderMemo(research) {
         <div className={styles.researchAttentionCallout}>
           <span>Faltan estados con fuente</span>
           <strong>{summarizeGaps(coverage.missing_expected_metrics, 3)}</strong>
-          <p>{findings[0]?.message || coverage.statement_authority || "The run completed, but the evidence ledger is not strong enough for a valuation memo."}</p>
+          <p>{findings[0]?.message || coverage.statement_authority || "El análisis se completó, pero el registro de evidencia no es suficiente para un memo de valoración."}</p>
         </div>
       ) : null}
       {renderMarkdownMemo(research.report_markdown)}
@@ -320,7 +320,7 @@ function renderValuation(research) {
             <span>{scenario.name}</span>
             <strong>{compactCurrency(scenario.intrinsic_value_per_share)}</strong>
             <small>
-              Growth {formatPct(scenario.assumptions?.revenue_growth)} / margin {formatPct(scenario.assumptions?.terminal_fcf_margin)}
+              Crecimiento {formatPct(scenario.assumptions?.revenue_growth)} / margen {formatPct(scenario.assumptions?.terminal_fcf_margin)}
             </small>
           </article>
         ))}
@@ -328,18 +328,18 @@ function renderValuation(research) {
 
       <div className={styles.researchDetailGrid}>
         <ResearchMetric
-          detail={reverse.status || reverse.reason || "Current price solved against the base DCF structure."}
-          label="Implied revenue CAGR"
+          detail={reverse.status || reverse.reason || "Precio actual resuelto contra la estructura DCF base."}
+          label="CAGR implícito de ingresos"
           tone={reverse.available ? "warn" : "neutral"}
           value={reverse.available ? formatPct(reverse.implied_revenue_cagr) : "-"}
         />
         <ResearchMetric
-          detail="Enterprise value divided by latest sourced revenue."
-          label="EV / sales"
+          detail="Valor empresa dividido entre los ingresos más recientes."
+          label="EV / ventas"
           value={Number.isFinite(Number(valuation.multiples?.ev_to_sales)) ? `${Number(valuation.multiples.ev_to_sales).toFixed(1)}x` : "-"}
         />
         <ResearchMetric
-          detail="Market cap divided by latest deterministic FCF."
+          detail="Capitalización dividida entre el FCF determinístico más reciente."
           label="P / FCF"
           value={Number.isFinite(Number(valuation.multiples?.price_to_fcf)) ? `${Number(valuation.multiples.price_to_fcf).toFixed(1)}x` : "-"}
         />
@@ -362,19 +362,19 @@ function renderEvidence(research) {
     <div className={styles.researchStack}>
       <div className={styles.researchCoverageSummary}>
         <div>
-          <span>Coverage</span>
+          <span>Cobertura</span>
           <strong>{formatCoverageScore(coverage.score)}</strong>
           <small>
-            {coverage.covered_expected_metrics ?? 0}/{coverage.expected_metrics ?? 0} required metrics covered
+            {coverage.covered_expected_metrics ?? 0}/{coverage.expected_metrics ?? 0} métricas requeridas cubiertas
           </small>
         </div>
         <div>
-          <span>Statement authority</span>
+          <span>Autoridad de estados</span>
           <strong>{coverage.statement_source_provider || "-"}</strong>
-          <small>{coverage.statement_authority || "No source authority assessment returned."}</small>
+          <small>{coverage.statement_authority || "Sin evaluación de autoridad de fuente."}</small>
         </div>
         <div>
-          <span>Gaps</span>
+          <span>Brechas</span>
           <strong>{missingMetrics.length}</strong>
           <small>{summarizeGaps(missingMetrics, 3)}</small>
         </div>
@@ -382,10 +382,10 @@ function renderEvidence(research) {
 
       <div className={styles.researchTable}>
         <div className={styles.researchTableHeader}>
-          <span>Source</span>
-          <span>Provider</span>
-          <span>Status</span>
-          <span>Rows</span>
+          <span>Fuente</span>
+          <span>Proveedor</span>
+          <span>Estado</span>
+          <span>Filas</span>
         </div>
         {records.map((source) => (
           <div className={styles.researchTableRow} key={source.source_id}>
@@ -399,10 +399,10 @@ function renderEvidence(research) {
 
       <div className={styles.researchTable}>
         <div className={styles.researchTableHeader}>
-          <span>Metric</span>
-          <span>Tag</span>
-          <span>Source</span>
-          <span>Value</span>
+          <span>Métrica</span>
+          <span>Etiqueta</span>
+          <span>Fuente</span>
+          <span>Valor</span>
         </div>
         {points.map((point) => (
           <div className={styles.researchTableRow} key={`${point.metric}-${point.claim_tag}`}>
@@ -432,8 +432,8 @@ function renderAgents(research) {
   const auditStatus = research?.audit?.status || "pending";
   const valuationReady = Boolean(research?.valuation?.available);
   const finalCallText = finalOrchestrator.enabled
-    ? `${finalOrchestrator.call_budget?.actual_calls || 0}/${finalOrchestrator.call_budget?.max_calls || 1} final editor call`
-    : "Final editor skipped";
+    ? `${finalOrchestrator.call_budget?.actual_calls || 0}/${finalOrchestrator.call_budget?.max_calls || 1} llamada al editor final`
+    : "Editor final omitido";
   const processTone = auditStatus === "pass" ? "good" : auditStatus === "needs_attention" ? "warn" : "neutral";
   const finalTone =
     finalOrchestrator.status === "ok"
@@ -443,47 +443,47 @@ function renderAgents(research) {
         : "neutral";
 
   if (!research) {
-    return <p className={styles.emptyCopy}>The review debate appears after a run, with each specialist check preserved for reproducibility.</p>;
+    return <p className={styles.emptyCopy}>El debate aparece después del análisis, con cada verificación preservada para reproducibilidad.</p>;
   }
 
   if (!agents.length) {
-    return <p className={styles.emptyCopy}>No analyst review trace was emitted for this bundle.</p>;
+    return <p className={styles.emptyCopy}>No se emitió traza de revisión para este paquete.</p>;
   }
 
   const processSteps = [
     {
       key: "sources",
-      label: "Sources gathered",
-      detail: sourceErrors.length ? `${sourceErrors.length} source issue${sourceErrors.length === 1 ? "" : "s"}` : `${sourceRecords.filter((source) => source.status === "ok").length} live sources`,
+      label: "Fuentes recopiladas",
+      detail: sourceErrors.length ? `${sourceErrors.length} problema${sourceErrors.length === 1 ? "" : "s"} de fuente` : `${sourceRecords.filter((source) => source.status === "ok").length} fuentes activas`,
       state: sourceErrors.length && !statementProvider ? "bad" : sourceErrors.length ? "warn" : "done",
     },
     {
       key: "statements",
-      label: "Statements normalized",
-      detail: statementProvider ? `${statementProvider.toUpperCase()} statement spine` : "Waiting for source-backed statements",
+      label: "Estados normalizados",
+      detail: statementProvider ? `${statementProvider.toUpperCase()} como base` : "Esperando estados con respaldo de fuente",
       state: statementProvider ? "done" : "bad",
     },
     {
       key: "valuation",
-      label: "Valuation calculated",
-      detail: valuationReady ? "DCF, reverse DCF, multiples" : "Blocked by missing inputs",
+      label: "Valoración calculada",
+      detail: valuationReady ? "DCF, DCF inverso, múltiplos" : "Bloqueado por datos faltantes",
       state: valuationReady ? "done" : "bad",
     },
     {
       key: "challenge",
-      label: "Thesis challenged",
-      detail: `${agents.length} specialist review roles`,
+      label: "Tesis cuestionada",
+      detail: `${agents.length} roles de revisión especializados`,
       state: "done",
     },
     {
       key: "audit",
-      label: "Audit packaged",
-      detail: `${formatCoverageScore(coverage.score)} coverage`,
+      label: "Auditoría empaquetada",
+      detail: `${formatCoverageScore(coverage.score)} cobertura`,
       state: auditStatus === "pass" ? "done" : "warn",
     },
     {
       key: "editor",
-      label: "Final editor",
+      label: "Editor final",
       detail: finalCallText,
       state: finalOrchestrator.status === "ok" ? "done" : finalOrchestrator.enabled ? "warn" : "idle",
     },
@@ -493,21 +493,21 @@ function renderAgents(research) {
     finalAnalysis.executive_judgment,
     finalAnalysis.memo_patch,
     auditStatus === "pass"
-      ? "The report is ready for review. The deterministic engine produced source-backed statements, valuation, audit, and downloadable artifacts."
-      : "The report is reproducible, but the audit still has open issues that should be resolved before relying on the memo.",
+      ? "El reporte está listo. El motor determinístico generó estados con respaldo, valoración, auditoría y archivos descargables."
+      : "El reporte es reproducible, pero la auditoría tiene pendientes que deben resolverse antes de confiar en el memo.",
   );
 
   return (
     <div className={styles.researchStack}>
       <div className={styles.researchProcessHero} data-tone={processTone}>
         <div>
-          <span>Review debate</span>
-          <strong>{auditStatus === "pass" ? "The case was challenged against the ledger" : "The review found open evidence gaps"}</strong>
-          <p>These review roles do not invent numbers. They read the finished audited bundle, challenge the case, and surface what still needs proof.</p>
+          <span>Debate de revisión</span>
+          <strong>{auditStatus === "pass" ? "El caso fue cuestionado contra el registro" : "La revisión encontró brechas de evidencia abiertas"}</strong>
+          <p>Estos roles no inventan números. Leen el paquete auditado terminado, cuestionan el caso y señalan lo que aún necesita evidencia.</p>
         </div>
         <div>
           <span>{formatCoverageScore(coverage.score)}</span>
-          <small>{agents.length} review roles</small>
+          <small>{agents.length} roles de revisión</small>
         </div>
       </div>
 
@@ -524,29 +524,29 @@ function renderAgents(research) {
       <article className={styles.researchOrchestratorCard} data-tone={finalTone}>
         <div className={styles.researchAgentCardTop}>
           <div>
-            <span>Final synthesis</span>
-            <strong>{finalOrchestrator.status === "ok" ? "One synthesis call complete" : "Deterministic desk only"}</strong>
+            <span>Síntesis final</span>
+            <strong>{finalOrchestrator.status === "ok" ? "Llamada de síntesis completada" : "Solo escritorio determinístico"}</strong>
           </div>
-          <small>{humanizeToken(finalOrchestrator.status || "deterministic")}</small>
+          <small>{humanizeToken(finalOrchestrator.status || "determinístico")}</small>
         </div>
         {finalOrchestrator.status === "ok" ? (
           <>
             <p>{judgment}</p>
             <div className={styles.researchOrchestratorColumns}>
               <div>
-                <span>What supports it</span>
+                <span>Qué lo sustenta</span>
                 {strongestPoints.slice(0, 3).map((item, index) => (
                   <p key={`strong-${index}`}>{item}</p>
                 ))}
               </div>
               <div>
-                <span>What could break</span>
+                <span>Qué podría fallar</span>
                 {redTeam.slice(0, 3).map((item, index) => (
                   <p key={`red-team-${index}`}>{item}</p>
                 ))}
               </div>
               <div>
-                <span>Next checks</span>
+                <span>Pendientes</span>
                 {openQuestions.slice(0, 3).map((item, index) => (
                   <p key={`open-${index}`}>{item}</p>
                 ))}
@@ -556,28 +556,28 @@ function renderAgents(research) {
         ) : (
           <p>
             {finalOrchestrator.enabled
-              ? finalOrchestrator.error || "The one-call final orchestrator was enabled but did not return a synthesis."
-              : "No final editor synthesis was added. The deterministic analyst desk still ran from audited outputs."}
+              ? finalOrchestrator.error || "El orquestador final fue activado pero no devolvió una síntesis."
+              : "No se añadió síntesis de editor final. El escritorio determinístico ejecutó a partir de los resultados auditados."}
           </p>
         )}
       </article>
 
       <details className={styles.researchTechnicalTrace}>
-        <summary>Show reproducibility details</summary>
+        <summary>Ver detalles de reproducibilidad</summary>
         <div className={styles.researchTraceGrid}>
           <div>
-            <span>Agent layer</span>
+            <span>Capa de agentes</span>
             <strong>{agentPayload.version || "v1"}</strong>
             <small>{humanizeToken(agentPayload.mode)}</small>
           </div>
           <div>
-            <span>Calculation rule</span>
-            <strong>Python only</strong>
-            <small>{agentPayload.execution?.specialist_llm_calls ?? 0} specialist LLM calls</small>
+            <span>Regla de cálculo</span>
+            <strong>Solo Python</strong>
+            <small>{agentPayload.execution?.specialist_llm_calls ?? 0} llamadas LLM especializadas</small>
           </div>
           <div>
-            <span>Final editor</span>
-            <strong>{finalOrchestrator.model || "Disabled"}</strong>
+            <span>Editor final</span>
+            <strong>{finalOrchestrator.model || "Desactivado"}</strong>
             <small>{finalCallText}</small>
           </div>
         </div>
@@ -613,31 +613,31 @@ function renderDelta(research) {
   const changes = safeList(delta.changes);
 
   if (!research) {
-    return <p className={styles.emptyCopy}>After the second run for a ticker, this tab will show what changed since the prior stored report.</p>;
+    return <p className={styles.emptyCopy}>Tras el segundo análisis de un ticker, esta pestaña mostrará los cambios respecto al reporte anterior.</p>;
   }
 
   if (!delta.available) {
-    return <p className={styles.emptyCopy}>{delta.reason || "No prior stored run is available yet."}</p>;
+    return <p className={styles.emptyCopy}>{delta.reason || "Aún no hay análisis previo almacenado."}</p>;
   }
 
   return (
     <div className={styles.researchStack}>
       <div className={styles.researchDetailGrid}>
         <ResearchMetric
-          detail={delta.previous_run_at ? `Previous run ${formatDateTime(delta.previous_run_at)}` : "Previous run timestamp unavailable."}
-          label="Stored runs"
+          detail={delta.previous_run_at ? `Análisis anterior ${formatDateTime(delta.previous_run_at)}` : "Marca de tiempo del análisis anterior no disponible."}
+          label="Análisis guardados"
           tone="good"
           value={String(research.history?.run_count || 1)}
         />
         <ResearchMetric
-          detail={delta.period_changed ? `${delta.previous_period} -> ${delta.current_period}` : "Latest fiscal period is unchanged."}
-          label="Period"
+          detail={delta.period_changed ? `${delta.previous_period} → ${delta.current_period}` : "El período fiscal más reciente no ha cambiado."}
+          label="Período"
           tone={delta.period_changed ? "warn" : "neutral"}
           value={delta.current_period || "-"}
         />
         <ResearchMetric
-          detail={delta.audit_changed ? `Was ${delta.previous_audit_status}` : "Audit status is unchanged."}
-          label="Audit delta"
+          detail={delta.audit_changed ? `Era ${delta.previous_audit_status}` : "El estado de auditoría no ha cambiado."}
+          label="Cambio en auditoría"
           tone={delta.audit_changed ? "warn" : "good"}
           value={delta.current_audit_status || "-"}
         />
@@ -645,10 +645,10 @@ function renderDelta(research) {
 
       <div className={styles.researchTable}>
         <div className={styles.researchTableHeader}>
-          <span>Metric</span>
-          <span>Current</span>
-          <span>Previous</span>
-          <span>Change</span>
+          <span>Métrica</span>
+          <span>Actual</span>
+          <span>Anterior</span>
+          <span>Cambio</span>
         </div>
         {changes.map((change) => (
           <div className={styles.researchTableRow} key={change.key}>
@@ -673,32 +673,32 @@ function renderAudit(research) {
   const formulaGaps = safeList(coverage.calculated_points_missing_formula);
 
   if (!research) {
-    return <p className={styles.emptyCopy}>The audit will flag missing sources, provider errors, weak valuation inputs, and accounting quality issues.</p>;
+    return <p className={styles.emptyCopy}>La auditoría señalará fuentes faltantes, errores de proveedor, datos de valoración débiles y problemas de calidad contable.</p>;
   }
 
   return (
     <div className={styles.researchStack}>
       <div className={styles.researchAuditBar}>
         <div>
-          <span>Coverage score</span>
+          <span>Puntaje de cobertura</span>
           <strong>{formatCoverageScore(coverage.score)}</strong>
         </div>
         <div>
-          <span>Source-backed</span>
+          <span>Con respaldo de fuente</span>
           <strong>{coverage.source_backed_points ?? 0}</strong>
         </div>
         <div>
-          <span>Formula gaps</span>
+          <span>Brechas de fórmula</span>
           <strong>{formulaGaps.length}</strong>
         </div>
         <div>
-          <span>Source gaps</span>
+          <span>Brechas de fuente</span>
           <strong>{sourceGaps.length}</strong>
         </div>
       </div>
 
       <div className={styles.researchFindingList}>
-        {(findings.length ? findings : [{ severity: "info", message: "No audit findings." }]).map((finding, index) => (
+        {(findings.length ? findings : [{ severity: "info", message: "Sin hallazgos de auditoría." }]).map((finding, index) => (
           <article className={styles.researchFinding} data-tone={statusTone(finding.severity)} key={`${finding.code || "finding"}-${index}`}>
             <strong>{finding.code || finding.severity || "audit"}</strong>
             <p>{finding.message}</p>
@@ -707,10 +707,10 @@ function renderAudit(research) {
       </div>
 
       <div className={styles.researchFindingList}>
-        {(flags.length ? flags : [{ severity: "info", title: "No accounting quality flags were triggered." }]).map((flag, index) => (
+        {(flags.length ? flags : [{ severity: "info", title: "No se activaron alertas de calidad contable." }]).map((flag, index) => (
           <article className={styles.researchFinding} data-tone={statusTone(flag.severity)} key={`${flag.title}-${index}`}>
             <strong>{flag.title}</strong>
-            <p>{Number.isFinite(Number(flag.metric)) ? formatPct(flag.metric) : "No metric value returned."}</p>
+            <p>{Number.isFinite(Number(flag.metric)) ? formatPct(flag.metric) : "Sin valor de métrica."}</p>
           </article>
         ))}
       </div>
@@ -761,7 +761,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         setResearch(startPayload);
         setActiveTab("Memo");
         setRunProgress(100);
-        setRunSummary("Completed from synchronous backend response.");
+        setRunSummary("Completado desde respuesta sincrónica del backend.");
         setStatusMessage("");
         return;
       }
@@ -788,7 +788,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         setResearch(pollPayload);
         setActiveTab("Memo");
         setRunProgress(100);
-        setRunSummary(`Completed in ${Math.max(1, Math.round((performance.now() - startedAt) / 1000))}s.`);
+        setRunSummary(`Completado en ${Math.max(1, Math.round((performance.now() - startedAt) / 1000))}s.`);
         setStatusMessage("");
         return;
       }
@@ -797,7 +797,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
       setResearch(null);
       setError(String(requestError?.message || requestError || "El análisis no pudo completarse."));
       setRunProgress(100);
-      setRunSummary("Run stopped before a verified bundle was returned.");
+      setRunSummary("Análisis detenido antes de obtener un paquete verificado.");
     } finally {
       setPending(false);
       setStatusMessage("");
@@ -831,18 +831,18 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
   const finalAnalysis = finalAnalysisFrom(finalOrchestrator);
   const executiveJudgment = firstUsefulText(finalAnalysis.executive_judgment, finalAnalysis.memo_patch);
   const researchStateLabel = !research
-    ? "Waiting for run"
+    ? "En espera"
     : research?.audit?.status === "pass"
-      ? "Ready for review"
+      ? "Listo para revisar"
       : research?.audit?.status === "needs_attention"
-        ? "Evidence gaps open"
-        : "Partially reviewed";
+        ? "Brechas de evidencia abiertas"
+        : "Revisión parcial";
   const openIssueLabel = missingRequiredMetrics.length
     ? summarizeGaps(missingRequiredMetrics, 3)
-    : auditFindings[0]?.code || "No required gaps";
+    : auditFindings[0]?.code || "Sin brechas requeridas";
   const openIssueDetail = missingRequiredMetrics.length
-    ? "These required metrics still need source-backed support."
-    : auditFindings[0]?.message || coverage.statement_authority || "Required metrics are covered for the current run.";
+    ? "Estas métricas aún necesitan respaldo de fuente."
+    : auditFindings[0]?.message || coverage.statement_authority || "Las métricas requeridas están cubiertas.";
 
   function stageState(stage, index) {
     const next = AGENT_STAGES[index + 1];
@@ -908,7 +908,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         </div>
       </div>
 
-      <div className={styles.researchStageRail} aria-label="Research run pipeline">
+      <div className={styles.researchStageRail} aria-label="Proceso de análisis">
         {AGENT_STAGES.map((stage, index) => (
           <ResearchStage key={stage.key} stage={stage} state={stageState(stage, index)} />
         ))}
@@ -937,61 +937,61 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
 
       <div className={styles.researchMetricGrid}>
         <ResearchMetric
-          detail={research?.company_profile?.industry || "Profile loads from FMP via the Railway backend."}
-          label="Business"
+          detail={research?.company_profile?.industry || "Perfil cargado desde FMP vía backend Railway."}
+          label="Empresa"
           tone={research ? "good" : "neutral"}
-          value={research?.company_profile?.name || "No run yet"}
+          value={research?.company_profile?.name || "Sin análisis"}
         />
         <ResearchMetric
-          detail="Latest annual statement row."
-          label="Latest revenue"
+          detail="Última fila del estado financiero anual."
+          label="Ingresos recientes"
           value={compactCurrency(ratios.latest_revenue)}
         />
         <ResearchMetric
-          detail="Base case deterministic DCF."
-          label="Base value/share"
+          detail="DCF determinístico, caso base."
+          label="Valor base/acción"
           tone={baseScenario ? "warn" : "neutral"}
           value={compactCurrency(baseScenario?.intrinsic_value_per_share)}
         />
         <ResearchMetric
-          detail={`${coverageDetail}, ${auditFindings.length} audit finding${auditFindings.length === 1 ? "" : "s"}.`}
-          label="Audit state"
+          detail={`${coverageDetail}, ${auditFindings.length} hallazgo${auditFindings.length === 1 ? "" : "s"} de auditoría.`}
+          label="Estado de auditoría"
           tone={auditTone(research?.audit?.status, coverage)}
-          value={research ? humanizeToken(research?.audit?.status) : "Waiting"}
+          value={research ? humanizeToken(research?.audit?.status) : "Esperando"}
         />
       </div>
 
       {research ? (
         <div className={styles.researchCoverageRail} data-tone={coverageTone(coverage)}>
           <div>
-            <span>Evidence coverage</span>
+            <span>Cobertura de evidencia</span>
             <strong>{formatCoverageScore(coverage.score)}</strong>
           </div>
           <div className={styles.researchCoverageTrack} aria-hidden="true">
             <span style={{ width: coverageWidth }} />
           </div>
-          <p>{missingRequiredMetrics.length ? `Open gaps: ${summarizeGaps(missingRequiredMetrics, 4)}` : coverage.statement_authority || "Ledger coverage is complete for required metrics."}</p>
+          <p>{missingRequiredMetrics.length ? `Brechas abiertas: ${summarizeGaps(missingRequiredMetrics, 4)}` : coverage.statement_authority || "La cobertura del registro es completa para las métricas requeridas."}</p>
         </div>
       ) : null}
 
       {research ? (
         <div className={styles.researchCoverageSummary}>
           <div>
-            <span>Current answer</span>
+            <span>Estado actual</span>
             <strong>{researchStateLabel}</strong>
-            <small>{executiveJudgment || "The run is assembling the memo, valuation, and audit bundle."}</small>
+            <small>{executiveJudgment || "El análisis está ensamblando el memo, la valoración y la auditoría."}</small>
           </div>
           <div>
-            <span>Best supported value</span>
+            <span>Mejor valor respaldado</span>
             <strong>{compactCurrency(baseScenario?.intrinsic_value_per_share)}</strong>
             <small>
               {research?.valuation?.available
-                ? `Reverse DCF implied growth ${formatPct(research?.valuation?.reverse_dcf?.implied_revenue_cagr)}.`
-                : research?.valuation?.reason || "Valuation is waiting on missing inputs."}
+                ? `Crecimiento implícito DCF inverso ${formatPct(research?.valuation?.reverse_dcf?.implied_revenue_cagr)}.`
+                : research?.valuation?.reason || "La valoración espera datos faltantes."}
             </small>
           </div>
           <div>
-            <span>What still needs work</span>
+            <span>Pendientes</span>
             <strong>{openIssueLabel}</strong>
             <small>{openIssueDetail}</small>
           </div>
@@ -1000,25 +1000,25 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
 
       <div className={styles.researchSignalGrid}>
         <div>
-          <span>Coverage</span>
-          <strong>{research ? formatCoverageScore(coverage.score) : "Waiting"}</strong>
+          <span>Cobertura</span>
+          <strong>{research ? formatCoverageScore(coverage.score) : "Esperando"}</strong>
         </div>
         <div>
-          <span>Statement source</span>
+          <span>Fuente de estados</span>
           <strong>{sourceSpineLabel}</strong>
         </div>
         <div>
-          <span>Prior changes</span>
-          <strong>{deltaChanges.length ? `${deltaChanges.length} changes` : "No prior change"}</strong>
+          <span>Cambios anteriores</span>
+          <strong>{deltaChanges.length ? `${deltaChanges.length} cambio${deltaChanges.length === 1 ? "" : "s"}` : "Sin cambios anteriores"}</strong>
         </div>
         <div>
-          <span>Downloads</span>
-          <strong>{hasXlsx ? "Model ready" : "Not emitted"}</strong>
+          <span>Descargas</span>
+          <strong>{hasXlsx ? "Modelo listo" : "No disponible"}</strong>
         </div>
       </div>
 
       {downloads.length ? (
-        <div className={styles.researchDownloadBar} aria-label="Research artifact downloads">
+        <div className={styles.researchDownloadBar} aria-label="Descargas del análisis">
           {downloads.map((artifact) => (
             <button
               className={styles.secondaryButton}
@@ -1032,7 +1032,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         </div>
       ) : null}
 
-      <div className={styles.researchTabs} role="tablist" aria-label="Research output tabs">
+      <div className={styles.researchTabs} role="tablist" aria-label="Pestañas de resultados">
         {RESEARCH_TABS.map((tab) => (
           <button
             className={styles.rangeButton}
@@ -1056,21 +1056,21 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
 
       <div className={styles.researchOutputShell}>
         <aside className={styles.researchEvidenceSpine}>
-          <span>Run receipt</span>
-          <strong>{research?.ticker || cleanTicker(ticker) || "No ticker"}</strong>
-          <p>{research ? `${coverageDetail}; ${evidenceCount} ledger entries are kept for reproducibility.` : "Run a ticker to assemble a reproducible research pack."}</p>
+          <span>Resumen del análisis</span>
+          <strong>{research?.ticker || cleanTicker(ticker) || "Sin ticker"}</strong>
+          <p>{research ? `${coverageDetail}; ${evidenceCount} entradas de registro para reproducibilidad.` : "Analiza un ticker para ensamblar un paquete de investigación reproducible."}</p>
           <dl>
             <div>
-              <dt>Statements</dt>
+              <dt>Estados</dt>
               <dd>{statementProvider ? statementProvider.toUpperCase() : "-"}</dd>
             </div>
             <div>
-              <dt>Filings</dt>
-              <dd>{coverage.sec_metadata_available ? "SEC metadata" : "-"}</dd>
+              <dt>Archivos SEC</dt>
+              <dd>{coverage.sec_metadata_available ? "Metadatos SEC" : "-"}</dd>
             </div>
             <div>
-              <dt>Artifacts</dt>
-              <dd>{hasXlsx ? "model + ledgers" : downloads.length ? "ledgers" : "-"}</dd>
+              <dt>Archivos</dt>
+              <dd>{hasXlsx ? "modelo + registros" : downloads.length ? "registros" : "-"}</dd>
             </div>
           </dl>
         </aside>

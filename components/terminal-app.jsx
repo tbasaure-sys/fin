@@ -2352,7 +2352,7 @@ function MacroBrainWorkspacePanel() {
           </article>
 
           <article>
-            <h3>Ideas</h3>
+            <h3>Tesis</h3>
             {safeList(snapshot.theses).map((item) => (
               <div className={styles.macroBrainIdea} key={item.id}>
                 <strong>{item.title}</strong>
@@ -2426,7 +2426,7 @@ function RecoverabilityMapFigure({ items }) {
         </div>
         <div>
           <strong>{counts.watch || 0}</strong>
-          <span>Ideas</span>
+          <span>En revisión</span>
         </div>
         <div>
           <strong>{counts.blocked || 0}</strong>
@@ -2439,7 +2439,7 @@ function RecoverabilityMapFigure({ items }) {
           <article className={styles.truthMapRow} data-filter={item.kind} key={item.id}>
             <div className={styles.truthMapRowHead}>
               <strong>{item.label}</strong>
-              <span>{item.kind === "holdings" ? "Posición" : item.kind === "watch" ? "Idea" : "Bloqueado"}</span>
+              <span>{item.kind === "holdings" ? "Posición" : item.kind === "watch" ? "En revisión" : "Bloqueado"}</span>
             </div>
             <p>{item.meta}</p>
             <div className={styles.truthMapBars}>
