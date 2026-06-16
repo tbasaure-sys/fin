@@ -71,6 +71,81 @@ test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quo
   assert.equal(dashboard.workspace_summary.primary_stance, "Stay measured");
 });
 
+test("normalizeWorkspaceDashboard preserves portfolio manager fields for the workspace", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      generated_at: "2026-06-16T12:00:00.000Z",
+      overview: {},
+      portfolio: {
+        holdings_source: "local_overlay",
+        analytics: {
+          "Total return incl. dividends": 0.319,
+          "Total P&L incl. realized/dividends": 1967.74,
+          "Active cost basis": 6167.95,
+        },
+        holdings: [
+          {
+            ticker: "NBIS",
+            google_finance_ticker: "NASDAQ:NBIS",
+            company: "Nebius Group",
+            theme: "AI infrastructure / cloud",
+            sector: "Technology",
+            region: "Europe / global",
+            currency: "USD",
+            quantity: 2.05,
+            avg_cost_usd: 83.55,
+            dividends_received_usd: 0,
+            broker_value_usd: 475.76,
+            broker_total_gain_usd: 303.75,
+            broker_day_gain_usd: 4.25,
+            broker_day_pct: 0.009,
+            quality_score: 3,
+            risk_score: 5,
+            analyst_thesis: "High-beta AI infrastructure exposure.",
+            current_action: "Watch sizing",
+            weight: 0.059,
+          },
+        ],
+        transactions: [
+          {
+            source: "Trade confirmation",
+            trade_date: "2026-06-10",
+            ticker: "NBIS",
+            action: "Buy",
+            shares: 2.05,
+            price: 83.55,
+            amount_usd: 171.28,
+            notes: "Statement baseline.",
+          },
+        ],
+      },
+      screener: { rows: [] },
+      status: { warnings: [], panels: [] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  const holding = dashboard.modules.portfolio.holdings[0];
+  assert.equal(holding.company, "Nebius Group");
+  assert.equal(holding.googleFinanceTicker, "NASDAQ:NBIS");
+  assert.equal(holding.theme, "AI infrastructure / cloud");
+  assert.equal(holding.region, "Europe / global");
+  assert.equal(holding.qualityScore, 3);
+  assert.equal(holding.riskScore, 5);
+  assert.equal(holding.currentAction, "Watch sizing");
+  assert.equal(holding.thesis, "High-beta AI infrastructure exposure.");
+  assert.equal(holding.dayReturnLabel, "+0.9%");
+  assert.equal(dashboard.modules.portfolio.transactions[0].action, "Buy");
+  assert.equal(dashboard.modules.portfolio.analytics.totalReturnInclDividends, 0.319);
+});
+
 test("normalizeWorkspaceDashboard builds live next best moves from screener and portfolio data", () => {
   const dashboard = normalizeWorkspaceDashboard({
     workspaceId: "alpha-retail",
