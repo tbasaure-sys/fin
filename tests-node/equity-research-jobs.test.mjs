@@ -146,6 +146,39 @@ test("equity research job start timeout remains queued and retries with same cli
   }
 });
 
+test("equity research direct path returns a visible degraded memo when backend is unavailable", async () => {
+  const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
+  const previousBackendUrl = process.env.BLS_PRIME_BACKEND_URL;
+  const previousFetch = globalThis.fetch;
+  process.env.BLS_PRIME_STORAGE_BACKEND = "memory";
+  process.env.BLS_PRIME_BACKEND_URL = "https://research-backend.example";
+
+  globalThis.fetch = async () => {
+    throw new Error("simulated backend outage");
+  };
+
+  try {
+    const bundle = await getWorkspaceEquityResearch("direct-fallback-ws", "unh", { mode: "quick" });
+    assert.equal(bundle.ok, true);
+    assert.equal(bundle.ticker, "UNH");
+    assert.equal(bundle.audit.status, "needs_attention");
+    assert.match(bundle.report_markdown, /did not return source-backed data/i);
+    assert.match(bundle.sources.records[0].error, /simulated backend outage/i);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousBackend === undefined) {
+      delete process.env.BLS_PRIME_STORAGE_BACKEND;
+    } else {
+      process.env.BLS_PRIME_STORAGE_BACKEND = previousBackend;
+    }
+    if (previousBackendUrl === undefined) {
+      delete process.env.BLS_PRIME_BACKEND_URL;
+    } else {
+      process.env.BLS_PRIME_BACKEND_URL = previousBackendUrl;
+    }
+  }
+});
+
 test("equity research adds one Vercel final orchestrator call when backend skips it", async () => {
   const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
   const previousBackendUrl = process.env.BLS_PRIME_BACKEND_URL;
