@@ -202,11 +202,11 @@ test("normalizeWorkspaceDashboard builds live next best moves from screener and 
   });
 
   assert.equal(dashboard.modules.actions.actions[0].ticker, "TSM");
-  assert.equal(dashboard.modules.actions.actions[0].sourceLabel, "Live research");
+  assert.equal(dashboard.modules.actions.actions[0].sourceLabel, "Filtro vivo");
   assert.match(dashboard.modules.actions.actions[0].funding, /TLT|SGOV/);
   assert.equal(dashboard.modules.actions.actions[1].ticker, "ASTS");
   assert.equal(dashboard.modules.actions.actions[2].ticker, "TLT");
-  assert.match(dashboard.modules.actions.actions[0].whyNow, /Portfolio risk is/);
+  assert.match(dashboard.modules.actions.actions[0].whyNow, /riesgo de la cartera/i);
   assert.ok(dashboard.modules.actions.actions[0].invalidation);
   assert.ok(dashboard.modules.command.decisionRights);
   assert.ok(dashboard.modules.command.stepDownTrials.length === 3);
@@ -503,7 +503,7 @@ test("normalizeWorkspaceDashboard prefers canonical BLS contract data when prese
   assert.equal(dashboard.modules.risk.reboundConfidence.state, "Conditional");
   assert.equal(dashboard.modules.spectral.reboundQuality.state, "Palliative");
   assert.equal(dashboard.modules.command.protocolLabel, "Observe Mode");
-  assert.equal(dashboard.modules.actions.actions[0].sourceLabel, "Live rules");
+  assert.equal(dashboard.modules.actions.actions[0].sourceLabel, "Reglas vivas");
 });
 
 test("normalizeWorkspaceDashboard derives escrow readiness and memory events for the simplified workspace", () => {
@@ -602,7 +602,7 @@ test("normalizeWorkspaceDashboard derives escrow readiness and memory events for
   assert.equal(dashboard.escrow.items.length, 1);
   assert.equal(dashboard.escrow.items[0].status, "ready");
   assert.ok(dashboard.escrow.items[0].readiness > 0.9);
-  assert.equal(dashboard.memory.recentEvents[0].response, "Staged");
+  assert.equal(dashboard.memory.recentEvents[0].response, "Guardada");
   assert.equal(dashboard.memory.stats.staged, 1);
   assert.equal(dashboard.memory.stats.deferred, 1);
   assert.ok(dashboard.memory.weeklyBrief.some((line) => /watch for/i.test(line)));

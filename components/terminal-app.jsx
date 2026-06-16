@@ -125,7 +125,7 @@ function InlineList({ items, emptyLabel }) {
 
 function RangeTabs({ value, onChange }) {
   return (
-    <div className={styles.rangeTabs} role="tablist" aria-label="Portfolio range">
+    <div className={styles.rangeTabs} role="tablist" aria-label="Rango de cartera">
       {PORTFOLIO_RANGES.map((option) => (
         <button
           key={option}
@@ -429,14 +429,14 @@ function scoreTone(value, inverse = false) {
 }
 
 function holdingName(holding) {
-  return holding?.company || holding?.sector || holding?.assetType || "Posicion";
+  return holding?.company || holding?.sector || holding?.assetType || "Posición";
 }
 
 function holdingActionLabel(holding) {
   if (holding?.currentAction) return cleanWorkspaceCopy(holding.currentAction);
   const risk = Number(holding?.riskScore);
   const weight = holdingWeightValue(holding);
-  if (Number.isFinite(risk) && risk >= 4 && weight >= 0.035) return "Revisar tamano";
+  if (Number.isFinite(risk) && risk >= 4 && weight >= 0.035) return "Revisar tamaño";
   if (weight >= 0.055) return "Revisar peso";
   return "Mantener";
 }
@@ -445,7 +445,7 @@ function holdingReviewReason(holding) {
   if (holding?.nextReviewTrigger) return cleanWorkspaceCopy(holding.nextReviewTrigger);
   if (holding?.thesis) return cleanWorkspaceCopy(holding.thesis);
   const risk = Number(holding?.riskScore);
-  if (Number.isFinite(risk) && risk >= 4) return "Riesgo alto para su tamano.";
+  if (Number.isFinite(risk) && risk >= 4) return "Riesgo alto para su tamaño.";
   return holding?.theme || holding?.sector || "Sin nota cargada.";
 }
 
@@ -508,7 +508,7 @@ function buildPortfolioHorizonRows(analytics, returns, holdings) {
     { label: "Hoy", value: weightedDay ? formatSignedPct(weightedDay) : "-", tone: weightedDay < 0 ? "bad" : weightedDay > 0 ? "good" : "neutral" },
     { label: "1 semana", value: "-", tone: "neutral" },
     { label: "1 mes", value: "-", tone: "neutral" },
-    { label: "Ano", value: "-", tone: "neutral" },
+    { label: "Año", value: "-", tone: "neutral" },
     {
       label: "Desde inicio",
       value: analytics?.totalReturnInclDividends !== null && analytics?.totalReturnInclDividends !== undefined
@@ -517,6 +517,140 @@ function buildPortfolioHorizonRows(analytics, returns, holdings) {
       tone: "neutral",
     },
   ];
+}
+
+const PORTFOLIO_DONUT_COLORS = [
+  "rgba(248, 200, 111, 0.95)",
+  "rgba(122, 210, 194, 0.92)",
+  "rgba(118, 169, 255, 0.88)",
+  "rgba(245, 145, 120, 0.9)",
+  "rgba(178, 142, 255, 0.86)",
+  "rgba(129, 206, 134, 0.88)",
+  "rgba(231, 165, 90, 0.88)",
+  "rgba(156, 186, 210, 0.84)",
+];
+
+function numericValue(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function signedMoneyTone(value) {
+  const parsed = numericValue(value);
+  if (parsed === null) return "neutral";
+  if (parsed < 0) return "bad";
+  if (parsed > 0) return "good";
+  return "neutral";
+}
+
+function buildPortfolioDonut(holdings) {
+  const rows = [...safeList(holdings)]
+    .map((holding) => ({
+      ticker: holding?.ticker || "-",
+      weight: Math.max(0, holdingWeightValue(holding)),
+    }))
+    .filter((row) => row.weight > 0)
+    .sort((left, right) => right.weight - left.weight);
+
+  if (!rows.length) {
+    return {
+      background: "rgba(255, 255, 255, 0.06)",
+      rows: [],
+    };
+  }
+
+  const top = rows.slice(0, 7);
+  const otherWeight = rows.slice(7).reduce((sum, row) => sum + row.weight, 0);
+  const segments = otherWeight > 0 ? [...top, { ticker: "Otros", weight: otherWeight }] : top;
+  const total = segments.reduce((sum, row) => sum + row.weight, 0) || 1;
+  let cursor = 0;
+  const gradientStops = segments.map((row, index) => {
+    const start = cursor;
+    const span = (row.weight / total) * 100;
+    cursor += span;
+    const color = PORTFOLIO_DONUT_COLORS[index % PORTFOLIO_DONUT_COLORS.length];
+    return `${color} ${start.toFixed(2)}% ${cursor.toFixed(2)}%`;
+  });
+
+  return {
+    background: `conic-gradient(${gradientStops.join(", ")})`,
+    rows: segments.map((row, index) => ({
+      ...row,
+      color: PORTFOLIO_DONUT_COLORS[index % PORTFOLIO_DONUT_COLORS.length],
+      label: compactPercent(row.weight),
+    })),
+  };
+}
+
+function PortfolioDonutPanel({ holdings, topHolding }) {
+  const donut = buildPortfolioDonut(holdings);
+  return (
+    <section className={styles.portfolioDonutPanel}>
+      <div className={styles.portfolioDonutWrap}>
+        <div className={styles.portfolioDonut} style={{ background: donut.background }}>
+          <div>
+            <span>Mayor peso</span>
+            <strong>{topHolding?.ticker || "-"}</strong>
+            <small>{topHolding ? topHolding.weight || compactPercent(holdingWeightValue(topHolding)) : "-"}</small>
+          </div>
+        </div>
+      </div>
+      <div className={styles.portfolioDonutLegend}>
+        {donut.rows.length ? donut.rows.map((row) => (
+          <span key={`donut-${row.ticker}`}>
+            <i style={{ background: row.color }} />
+            {row.ticker} {row.label}
+          </span>
+        )) : <p className={styles.emptyCopy}>Sin pesos cargados.</p>}
+      </div>
+    </section>
+  );
+}
+
+function PortfolioPositionTable({ holdings }) {
+  const rows = [...safeList(holdings)]
+    .sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left))
+    .slice(0, 14);
+
+  return (
+    <section className={styles.portfolioTablePanel}>
+      <div className={styles.portfolioSectionHead}>
+        <div>
+          <p className={styles.kicker}>Posiciones</p>
+          <h3>{holdings.length ? `${holdings.length} conectadas` : "Sin posiciones"}</h3>
+        </div>
+      </div>
+      {rows.length ? (
+        <div className={styles.portfolioMatrix}>
+          <div className={styles.portfolioMatrixHead}>
+            <span>Nombre</span>
+            <span>Tema</span>
+            <span>Peso</span>
+            <span>Valor</span>
+            <span>Ganancia</span>
+            <span>Acción</span>
+          </div>
+          {rows.map((holding) => (
+            <article className={styles.portfolioMatrixRow} key={`portfolio-matrix-${holding.ticker}`}>
+              <div>
+                <strong>{holding.ticker}</strong>
+                <span>{holdingName(holding)}</span>
+              </div>
+              <span>{holding.theme || holding.sector || holding.region || "-"}</span>
+              <strong>{holding.weight || compactPercent(holdingWeightValue(holding))}</strong>
+              <strong>{compactCurrency(holding.marketValueUsd)}</strong>
+              <strong data-tone={signedMoneyTone(holding.unrealizedPnlUsd)}>
+                {compactCurrency(holding.unrealizedPnlUsd)}
+              </strong>
+              <span>{holdingActionLabel(holding)}</span>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className={styles.emptyCopy}>Agrega posiciones para ver pesos, valor y revisión.</p>
+      )}
+    </section>
+  );
 }
 
 function PortfolioHorizonPanel({ analytics, holdings, returns }) {
@@ -640,7 +774,7 @@ function PortfolioReviewPanel({ holdings }) {
           ))}
         </div>
       ) : (
-        <p className={styles.emptyCopy}>La lista aparece cuando cada posicion tenga notas de revision.</p>
+        <p className={styles.emptyCopy}>La lista aparece cuando cada posición tenga notas de revisión.</p>
       )}
     </section>
   );
@@ -704,7 +838,7 @@ function PortfolioTransactionsPanel({ transactions }) {
           ))}
         </div>
       ) : (
-        <p className={styles.emptyCopy}>Sin bitacora conectada.</p>
+        <p className={styles.emptyCopy}>Sin bitácora conectada.</p>
       )}
     </section>
   );
@@ -1299,7 +1433,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
           <div className={styles.phantomDraftHeader}>
             <div>
               <p className={styles.kicker}>Mezcla editable</p>
-              <h3>Posiciones editables y proxies de respaldo</h3>
+              <h3>Posiciones editables y precios de respaldo</h3>
             </div>
             <ToneBadge tone={Math.abs(totalWeight - 100) <= 0.5 ? "good" : "warn"}>
               {formatWeightEditorValue(totalWeight)}% ingresado
@@ -1554,7 +1688,7 @@ function phantomSimpleGuidance(current) {
   }
   return {
     tone: "warn",
-    title: "Ejecutar el chequeo antes de aumentar tamano",
+    title: "Ejecutar el chequeo antes de aumentar tamaño",
     body: "La prueba usa las posiciones actuales y una ventana móvil de covarianza de 63 sesiones.",
   };
 }
@@ -2095,81 +2229,72 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Portafolio</p>
+          <p className={styles.kicker}>Mi cartera</p>
           <h2>{hasHoldings ? totalValueLabel : "Sin posiciones"}</h2>
           <p className={styles.supportText}>
-            {hasHoldings ? `${holdings.length} posiciones conectadas.` : "Agrega posiciones para ver valor, exposicion y revision."}
+            {hasHoldings ? `${holdings.length} posiciones. Valor, pesos, exposición y revisión en una sola vista.` : "Agrega posiciones para ver valor, pesos y revisión."}
           </p>
         </div>
         <div className={styles.headerMeta}>
-          <ToneBadge tone={hasHoldings ? "good" : "warn"}>{hasHoldings ? "Activo" : "Vacio"}</ToneBadge>
-          <ToneBadge tone="neutral">{portfolio.holdingsSource?.label || portfolio.chartSource || "Portfolio"}</ToneBadge>
+          <ToneBadge tone={hasHoldings ? "good" : "warn"}>{hasHoldings ? "Activo" : "Vacío"}</ToneBadge>
+          <ToneBadge tone="neutral">{portfolio.holdingsSource?.label || portfolio.chartSource || "Cartera"}</ToneBadge>
         </div>
       </div>
 
-      <div className={styles.metricsGrid}>
+      <div className={styles.portfolioSummaryRail}>
+        <MetricTile detail="Suma de posiciones." label="Valor" value={totalValueLabel} />
         <MetricTile
-          detail="Suma de posiciones conectadas."
-          label="Valor"
-          value={totalValueLabel}
-        />
-        <MetricTile
-          detail={activeCostBasisLabel !== "-" ? `Base: ${activeCostBasisLabel}` : "Falta costo base en algunas posiciones."}
-          label="Ganancia"
-          tone={String(totalPnlLabel).startsWith("-") ? "bad" : "good"}
+          detail={activeCostBasisLabel !== "-" ? `Base ${activeCostBasisLabel}` : "Falta costo base."}
+          label="Resultado"
+          tone={signedMoneyTone(analytics.totalPnlInclRealizedDividendsUsd)}
           value={totalPnlLabel}
         />
         <MetricTile
-          detail={hasDayPnl ? "Movimiento diario cargado." : "Esperando precio vivo."}
+          detail={hasDayPnl ? "Precio diario cargado." : "Sin precio diario."}
           label="Hoy"
           tone={dayPnl < 0 ? "bad" : dayPnl > 0 ? "good" : "neutral"}
           value={hasDayPnl ? formatCurrency(dayPnl) : "-"}
         />
         <MetricTile
-          detail={topHolding ? `${topHolding.ticker} ${topHolding.weight || compactPercent(holdingWeightValue(topHolding))}` : "Sin concentracion visible."}
+          detail={topHolding ? holdingName(topHolding) : "Sin dato."}
           label="Mayor peso"
-          value={topHolding?.ticker || "-"}
+          value={topHolding ? `${topHolding.ticker} ${topHolding.weight || compactPercent(holdingWeightValue(topHolding))}` : "-"}
         />
       </div>
 
-      <div className={styles.portfolioWorkGrid}>
-        <PortfolioHoldingsPanel holdings={holdings} />
-        <PortfolioHorizonPanel analytics={analytics} holdings={holdings} returns={returnBreakdown} />
-        <PortfolioMoversPanel holdings={holdings} />
-      </div>
-
-      <div className={styles.portfolioMainGrid}>
+      <div className={styles.portfolioDeskGrid}>
         <section className={styles.chartPanel}>
           <div className={styles.portfolioSectionHead}>
             <div>
               <p className={styles.kicker}>Historial</p>
-              <h3>Portafolio vs {analytics.benchmarkSymbol || "SPY"}</h3>
+              <h3>Cartera vs {analytics.benchmarkSymbol || "SPY"}</h3>
             </div>
             <RangeTabs onChange={onRangeChange} value={range} />
           </div>
           <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
-          <div className={styles.returnDistributionShell}>
-            <div>
-              <p className={styles.kicker}>Ganadores y lastres</p>
-              <h3>Desde costo base</h3>
-            </div>
-            <HoldingsReturnBreakdown returns={returnBreakdown} />
-          </div>
         </section>
 
+        <PortfolioDonutPanel holdings={holdings} topHolding={topHolding} />
+      </div>
+
+      <PortfolioPositionTable holdings={holdings} />
+
+      <div className={styles.portfolioTriageGrid}>
         <PortfolioExposurePanel holdings={holdings} />
+        <PortfolioReviewPanel holdings={holdings} />
       </div>
 
       <div className={styles.portfolioLowerGrid}>
-        <PortfolioReviewPanel holdings={holdings} />
+        <PortfolioHorizonPanel analytics={analytics} holdings={holdings} returns={returnBreakdown} />
+        <PortfolioMoversPanel holdings={holdings} />
         <PortfolioTransactionsPanel transactions={transactions} />
       </div>
 
       {hasHoldings ? (
         <div className={styles.portfolioFooterStrip}>
           <span>Top 5: {concentration.topFive || "-"}</span>
-          <span>Recuperable: {portfolioXray.recoveryShare || "-"}</span>
-          <span>Fragil: {portfolioXray.fragileShare || "-"}</span>
+          <span>Recuperación: {portfolioXray.recoveryShare || "-"}</span>
+          <span>Fragilidad: {portfolioXray.fragileShare || "-"}</span>
           <span>Riesgo alto: {highRiskCount || "-"}</span>
         </div>
       ) : null}
@@ -2218,14 +2343,14 @@ function HoldingsPanel({
             <span>Tema</span>
             <span>Peso</span>
             <span>Valor</span>
-            <span>Accion</span>
+            <span>Acción</span>
           </div>
           <div className={styles.tableBody}>
             {holdings.map((holding) => (
               <article className={styles.tableRow} key={`holding-row-${holding.ticker}`} role="row">
                 <div className={styles.tablePrimary}>
                   <strong>{holding.ticker}</strong>
-                  <span>{holding.company || holding.sector || holding.assetType || "Posicion"}</span>
+                  <span>{holding.company || holding.sector || holding.assetType || "Posición"}</span>
                 </div>
                 <span>{holding.theme || holding.thesisBucket || holding.industry || holding.region || "Sin tema"}</span>
                 <strong>{holding.weight || "-"}</strong>
@@ -3412,8 +3537,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "risk":
       activeWorkspacePanels = (
         <>
-          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
           <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
+          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
         </>
       );
       break;
