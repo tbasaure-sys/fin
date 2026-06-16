@@ -749,9 +749,20 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
       });
       const startPayload = await parseResponse(response);
       if (startPayload.run_id && startPayload.error && (startPayload.status === "queued" || !startPayload.backend_run_id)) {
-        setError("El servicio de análisis no está disponible en este momento. Verifica la configuración del backend.");
+        setStatusMessage("Usando modo directo...");
+        const fallbackResponse = await fetch(
+          `/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?mode=${encodeURIComponent(mode)}`,
+          { cache: "no-store" },
+        );
+        const fallbackPayload = await parseResponse(fallbackResponse);
+        if (fallbackPayload?.ok === false) {
+          throw new Error(fallbackPayload.error || "No se pudo cargar el analisis.");
+        }
+        setResearch(fallbackPayload);
+        setActiveTab("Memo");
         setRunProgress(100);
-        setRunSummary("Sin conexión al servicio de análisis.");
+        setRunSummary("Servicio async no disponible; se mostro el resultado directo.");
+        setStatusMessage("");
         return;
       }
       if (!startPayload.run_id) {
