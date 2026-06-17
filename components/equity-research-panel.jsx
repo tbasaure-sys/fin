@@ -19,6 +19,20 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 15000) {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return await parseResponse(response);
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 function cleanTicker(value) {
   return String(value || "")
     .toUpperCase()
@@ -39,6 +53,60 @@ function formatCoverageScore(score) {
   const number = Number(score);
   if (!Number.isFinite(number)) return "-";
   return `${Math.round(number)}%`;
+}
+
+function buildClientUnavailableResearch(ticker, mode, reason) {
+  const generatedAt = new Date().toISOString();
+  const message = String(reason?.name === "AbortError"
+    ? "El análisis directo tardó demasiado. Intenta de nuevo en un momento."
+    : reason?.message || reason || "El análisis no respondió a tiempo.");
+  return {
+    ok: true,
+    ticker,
+    mode,
+    generated_at: generatedAt,
+    company_profile: { name: ticker, industry: "Sin fuente todavía" },
+    financials: {
+      annual: [],
+      ratios: {},
+      quality_flags: [],
+    },
+    valuation: {
+      available: false,
+      reason: message,
+      scenarios: [],
+      reverse_dcf: { available: false, reason: message },
+      multiples: {},
+    },
+    report_markdown: [
+      `# ${ticker}`,
+      "",
+      "## Estado",
+      "El análisis no pudo completar la lectura con fuentes en esta sesión.",
+      "",
+      "## Qué falta",
+      message,
+      "",
+      "No se generaron estados financieros, valoración ni tesis nuevas.",
+    ].join("\n"),
+    sources: {
+      coverage: { score: 0, status: "needs_attention" },
+      records: [{ source_id: "workspace:research-timeout", provider: "workspace", status: "error", error: message, retrieved_at: generatedAt }],
+      data_points: [],
+    },
+    audit: {
+      generated_at: generatedAt,
+      status: "needs_attention",
+      findings: [{ severity: "high", code: "research_timeout", message }],
+    },
+    downloads: [],
+    artifacts: {
+      report_md: true,
+      model_xlsx: false,
+      sources_json: false,
+      audit_json: true,
+    },
+  };
 }
 
 function coverageTone(coverage) {
@@ -735,13 +803,19 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
     if (!workspaceId || !symbol) return;
     async function loadDirectResearch(summary = "Servicio async no disponible; se mostró el resultado directo.") {
       setStatusMessage("Usando modo directo...");
-      const fallbackResponse = await fetch(
-        `/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?mode=${encodeURIComponent(mode)}`,
-        { cache: "no-store" },
-      );
-      const fallbackPayload = await parseResponse(fallbackResponse);
-      if (fallbackPayload?.ok === false) {
-        throw new Error(fallbackPayload.error || "No se pudo cargar el análisis.");
+      let fallbackPayload;
+      try {
+        fallbackPayload = await fetchJsonWithTimeout(
+          `/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?mode=${encodeURIComponent(mode)}`,
+          { cache: "no-store" },
+          15000,
+        );
+        if (fallbackPayload?.ok === false) {
+          throw new Error(fallbackPayload.error || "No se pudo cargar el análisis.");
+        }
+      } catch (directError) {
+        fallbackPayload = buildClientUnavailableResearch(symbol, mode, directError);
+        summary = "La lectura directa no respondió; se mostró una ficha de estado.";
       }
       setResearch(fallbackPayload);
       setActiveTab("Memo");
