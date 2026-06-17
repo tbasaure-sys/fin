@@ -3331,6 +3331,7 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bNo change is needed here unless a cleaner use for that capital appears\.?/gi, "Sin cambios hasta que aparezca un mejor uso para esa caja.")
     .replace(/\bWait for a cleaner state before spending optionality on new risk\.?/gi, "Sin cambios hasta que el riesgo sea más claro.")
     .replace(/\bWait for a cleaner state\b/gi, "Sin cambios por ahora")
+    .replace(/\bEspera una señal más clara antes de sumar riesgo\.?/gi, "Sin cambios por ahora.")
     .replace(/\bCurrent session\b/gi, "Sesión actual")
     .replace(/\bAvailable to invest\b/gi, "Disponible para invertir")
     .replace(/\bMonthly income\b/gi, "Ingreso mensual")
