@@ -176,9 +176,10 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   }
 
   const normalizeSeries = (points, key) => {
-    const first = Number(points[0]?.[key]);
+    const validPoints = points.filter((point) => Number(point?.[key]) > 0);
+    const first = Number(validPoints[0]?.[key]);
     if (!Number.isFinite(first) || first <= 0) return [];
-    return points.map((point) => ({
+    return validPoints.map((point) => ({
       ...point,
       display: (Number(point[key]) / first) - 1,
     }));
@@ -428,8 +429,14 @@ function scoreTone(value, inverse = false) {
   return "neutral";
 }
 
+function cleanPortfolioLabel(value, fallback = "Sin clasificar") {
+  const raw = String(value || "").trim();
+  if (!raw || /^(unknown|n\/a|na|null|undefined)$/i.test(raw)) return fallback;
+  return cleanWorkspaceCopy(raw);
+}
+
 function holdingName(holding) {
-  return holding?.company || holding?.sector || holding?.assetType || "Posición";
+  return cleanPortfolioLabel(holding?.company || holding?.sector || holding?.assetType, "Posición");
 }
 
 function holdingActionLabel(holding) {
@@ -446,13 +453,13 @@ function holdingReviewReason(holding) {
   if (holding?.thesis) return cleanWorkspaceCopy(holding.thesis);
   const risk = Number(holding?.riskScore);
   if (Number.isFinite(risk) && risk >= 4) return "Riesgo alto para su tamaño.";
-  return holding?.theme || holding?.sector || "Sin nota cargada.";
+  return cleanPortfolioLabel(holding?.theme || holding?.sector, "Sin nota cargada.");
 }
 
 function buildPortfolioExposures(holdings, key) {
   const groups = new Map();
   for (const holding of safeList(holdings)) {
-    const label = String(holding?.[key] || "Sin clasificar").trim() || "Sin clasificar";
+    const label = cleanPortfolioLabel(holding?.[key], "Sin clasificar");
     const value = Number(holding?.marketValueUsd);
     const weight = holdingWeightValue(holding);
     const current = groups.get(label) || { label, value: 0, weight: 0, count: 0 };
@@ -636,7 +643,7 @@ function PortfolioPositionTable({ holdings }) {
                 <strong>{holding.ticker}</strong>
                 <span>{holdingName(holding)}</span>
               </div>
-              <span>{holding.theme || holding.sector || holding.region || "-"}</span>
+              <span>{cleanPortfolioLabel(holding.theme || holding.sector || holding.region, "-")}</span>
               <strong>{holding.weight || compactPercent(holdingWeightValue(holding))}</strong>
               <strong>{compactCurrency(holding.marketValueUsd)}</strong>
               <strong data-tone={signedMoneyTone(holding.unrealizedPnlUsd)}>
@@ -760,7 +767,7 @@ function PortfolioReviewPanel({ holdings }) {
             <article className={styles.portfolioReviewRow} key={`review-${holding.ticker}`}>
               <div className={styles.portfolioReviewName}>
                 <strong>{holding.ticker}</strong>
-                <span>{holding.theme || holdingName(holding)}</span>
+                <span>{cleanPortfolioLabel(holding.theme, holdingName(holding))}</span>
               </div>
               <div className={styles.portfolioScoreStrip}>
                 <ToneBadge tone={scoreTone(holding.qualityScore)}>Calidad {scoreLabel(holding.qualityScore)}</ToneBadge>
@@ -2102,7 +2109,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                 <article className={styles.holdingRow} key={`hero-${holding.ticker}`}>
                   <div>
                     <strong>{holding.ticker}</strong>
-                    <span>{holding.sector || "Posición"}</span>
+                    <span>{cleanPortfolioLabel(holding.sector, "Posición")}</span>
                   </div>
                   <div>
                     <strong>{holding.weight || "-"}</strong>
@@ -2130,7 +2137,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                   <article key={`carrier-${item.ticker}`}>
                     <div>
                       <strong>{item.ticker}</strong>
-                      <small>{item.role || item.sector || "Motor"}</small>
+                      <small>{cleanPortfolioLabel(item.role || item.sector, "Motor")}</small>
                     </div>
                     <div>
                       <strong>{item.weight || "-"}</strong>
@@ -2155,7 +2162,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                   <article key={`fragility-${item.ticker}`}>
                     <div>
                       <strong>{item.ticker}</strong>
-                      <small>{item.role || "Posición"}</small>
+                      <small>{cleanPortfolioLabel(item.role, "Posición")}</small>
                     </div>
                     <div>
                       <strong>{item.load || "-"}</strong>
@@ -2180,7 +2187,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                   <article key={`recovery-${item.ticker}`}>
                     <div>
                       <strong>{item.ticker}</strong>
-                      <small>{item.role || "Posición"}</small>
+                      <small>{cleanPortfolioLabel(item.role, "Posición")}</small>
                     </div>
                     <div>
                       <strong>{item.contribution || "-"}</strong>
@@ -2237,7 +2244,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
         </div>
         <div className={styles.headerMeta}>
           <ToneBadge tone={hasHoldings ? "good" : "warn"}>{hasHoldings ? "Activo" : "Vacío"}</ToneBadge>
-          <ToneBadge tone="neutral">{portfolio.holdingsSource?.label || portfolio.chartSource || "Cartera"}</ToneBadge>
+          <ToneBadge tone="neutral">{cleanPortfolioLabel(portfolio.holdingsSource?.label || portfolio.chartSource, "Cartera")}</ToneBadge>
         </div>
       </div>
 
@@ -2350,9 +2357,9 @@ function HoldingsPanel({
               <article className={styles.tableRow} key={`holding-row-${holding.ticker}`} role="row">
                 <div className={styles.tablePrimary}>
                   <strong>{holding.ticker}</strong>
-                  <span>{holding.company || holding.sector || holding.assetType || "Posición"}</span>
+                  <span>{holdingName(holding)}</span>
                 </div>
-                <span>{holding.theme || holding.thesisBucket || holding.industry || holding.region || "Sin tema"}</span>
+                <span>{cleanPortfolioLabel(holding.theme || holding.thesisBucket || holding.industry || holding.region, "Sin tema")}</span>
                 <strong>{holding.weight || "-"}</strong>
                 <strong>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "-"}</strong>
                 <span>{holdingActionLabel(holding)}</span>
@@ -3105,7 +3112,7 @@ function TruthInterfacePanel({
     || frontier?.subhead
     || "El espacio mostrará aquí la respuesta actual más clara.",
   );
-  const reserveCopy = cleanWorkspaceCopy(balanceSheet?.spendRule || "Espera una señal más clara antes de sumar riesgo.");
+  const reserveCopy = cleanWorkspaceCopy(balanceSheet?.spendRule || "Sin cambios hasta que el riesgo sea más claro.");
   const investableDisplay = formatMoney(investableCash, personalFinance?.inputs?.baseCurrency);
   const realIndependenceLabel = formatScoreValue(structuralScore);
   const visibleIndependenceLabel = formatScoreValue(visibleScore);
@@ -3322,8 +3329,8 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bbroad beta\b/gi, "exposición amplia de mercado")
     .replace(/\bKeep cash flexible\b/gi, "Mantener caja disponible")
     .replace(/\bNo change is needed here unless a cleaner use for that capital appears\.?/gi, "Sin cambios hasta que aparezca un mejor uso para esa caja.")
-    .replace(/\bWait for a cleaner state before spending optionality on new risk\.?/gi, "Espera una señal más clara antes de sumar riesgo.")
-    .replace(/\bWait for a cleaner state\b/gi, "Esperar una señal más clara")
+    .replace(/\bWait for a cleaner state before spending optionality on new risk\.?/gi, "Sin cambios hasta que el riesgo sea más claro.")
+    .replace(/\bWait for a cleaner state\b/gi, "Sin cambios por ahora")
     .replace(/\bCurrent session\b/gi, "Sesión actual")
     .replace(/\bAvailable to invest\b/gi, "Disponible para invertir")
     .replace(/\bMonthly income\b/gi, "Ingreso mensual")
@@ -3337,7 +3344,19 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bTarget coverage\b/gi, "Cobertura objetivo")
     .replace(/\bPreserve the reserve sleeve\b/gi, "Mantener caja aparte")
     .replace(/\bPreserve the reserve\b/gi, "Mantener caja aparte")
-    .replace(/\bStay\s+patient\b/gi, "Esperar señal más clara")
+    .replace(/\bStay\s+patient\b/gi, "Sin cambios por ahora")
+    .replace(/\bStay defensive\b/gi, "No sumar riesgo")
+    .replace(/\bStay measured\b/gi, "Riesgo acotado")
+    .replace(/\bAdd selectively\b/gi, "Agregar selectivamente")
+    .replace(/\bRisk-on, but selective\b/gi, "Riesgo alto, selectivo")
+    .replace(/\bTake moderate risk\b/gi, "Riesgo acotado")
+    .replace(/\bLean into opportunities\b/gi, "Oportunidades puntuales")
+    .replace(/\bTake higher risk\b/gi, "Riesgo alto, selectivo")
+    .replace(/\bDo not add risk yet\b/gi, "No sumar riesgo")
+    .replace(/\bNo valid repair is open\b/gi, "No hay ajuste claro abierto")
+    .replace(/\bWatch for confirmation before adding risk\b/gi, "Esperar confirmación antes de sumar riesgo")
+    .replace(/\bStart small and keep changes funded\b/gi, "Empezar chico y financiado")
+    .replace(/\bRisk can be added selectively\b/gi, "Se puede agregar riesgo de forma selectiva")
     .replace(/\bLive read\b/gi, "Lectura en vivo")
     .replace(/\bUsable evidence\b/gi, "Evidencia usable")
     .replace(/\bStressed\b/gi, "Bajo estrés")
@@ -3355,6 +3374,7 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bnone material\b/gi, "nada material")
     .replace(/\bCounterfactual ledger\b/gi, "Registro contrafactual")
     .replace(/\bSaved to Neon\b/gi, "Guardado")
+    .replace(/\bPrivate workspace\b/gi, "Espacio privado")
     .replace(/\bConnecting live data\b/gi, "Conectando datos")
     .replace(/\bLive sync paused\b/gi, "Sincronización pausada")
     .replace(/\bAwaiting refresh\b/gi, "Esperando actualización")
