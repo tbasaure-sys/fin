@@ -2749,10 +2749,14 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
   const [mode, setMode] = useState("ranked");
   const [selectedRule, setSelectedRule] = useState("momentum");
   const holdings = safeList(portfolioModule?.holdings).slice(0, 5);
+  const cleanSector = (sector) => {
+    const value = String(sector || "").trim();
+    return value && !["unknown", "sin dato", "n/a", "na"].includes(value.toLowerCase()) ? value : "";
+  };
   const candidates = holdings.length
     ? holdings.map((holding, index) => ({
       ticker: holding.ticker || `Activo ${index + 1}`,
-      reason: holding.sector ? `Se compara contra ${holding.sector}.` : "Se compara contra el resto del portafolio.",
+      reason: cleanSector(holding.sector) ? `Se compara contra ${cleanSector(holding.sector)}.` : "Se compara contra el resto del portafolio.",
       score: `${Math.max(42, 84 - index * 9)}%`,
     }))
     : [
@@ -2790,8 +2794,8 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
           </p>
         </div>
         <div className={styles.segmentedControl} role="tablist" aria-label="Modo de candidatos">
-          <button data-active={mode === "ranked"} onClick={() => setMode("ranked")} type="button">Ranking</button>
-          <button data-active={mode === "refusal"} onClick={() => setMode("refusal")} type="button">Señales rechazadas</button>
+          <button aria-selected={mode === "ranked"} data-active={mode === "ranked"} onClick={() => setMode("ranked")} role="tab" type="button">Ranking</button>
+          <button aria-selected={mode === "refusal"} data-active={mode === "refusal"} onClick={() => setMode("refusal")} role="tab" type="button">Señales rechazadas</button>
         </div>
       </div>
 
@@ -2819,7 +2823,7 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
           ))}
         </div>
 
-        <section className={styles.factorLabResult}>
+        <section className={styles.factorLabResult} data-mode={mode}>
           {mode === "ranked" ? (
             <>
               <div>

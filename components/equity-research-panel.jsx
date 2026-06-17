@@ -733,6 +733,22 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
   async function runResearch(nextTicker = ticker) {
     const symbol = cleanTicker(nextTicker);
     if (!workspaceId || !symbol) return;
+    async function loadDirectResearch(summary = "Servicio async no disponible; se mostró el resultado directo.") {
+      setStatusMessage("Usando modo directo...");
+      const fallbackResponse = await fetch(
+        `/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?mode=${encodeURIComponent(mode)}`,
+        { cache: "no-store" },
+      );
+      const fallbackPayload = await parseResponse(fallbackResponse);
+      if (fallbackPayload?.ok === false) {
+        throw new Error(fallbackPayload.error || "No se pudo cargar el análisis.");
+      }
+      setResearch(fallbackPayload);
+      setActiveTab("Memo");
+      setRunProgress(100);
+      setRunSummary(summary);
+      setStatusMessage("");
+    }
     setTicker(symbol);
     setPending(true);
     setError("");
@@ -749,20 +765,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
       });
       const startPayload = await parseResponse(response);
       if (startPayload.run_id && startPayload.error && (startPayload.status === "queued" || !startPayload.backend_run_id)) {
-        setStatusMessage("Usando modo directo...");
-        const fallbackResponse = await fetch(
-          `/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?mode=${encodeURIComponent(mode)}`,
-          { cache: "no-store" },
-        );
-        const fallbackPayload = await parseResponse(fallbackResponse);
-        if (fallbackPayload?.ok === false) {
-          throw new Error(fallbackPayload.error || "No se pudo cargar el analisis.");
-        }
-        setResearch(fallbackPayload);
-        setActiveTab("Memo");
-        setRunProgress(100);
-        setRunSummary("Servicio async no disponible; se mostro el resultado directo.");
-        setStatusMessage("");
+        await loadDirectResearch();
         return;
       }
       if (!startPayload.run_id) {
@@ -788,8 +791,10 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         );
         const pollPayload = await parseResponse(pollResponse);
         if (pollPayload.status === "running" || pollPayload.status === "queued") {
-          if (pollPayload.error && attempt >= 3) {
-            throw new Error("El servicio de análisis no respondió después de varios intentos. Intenta de nuevo más tarde.");
+          const pollError = pollPayload.error || pollPayload.last_error;
+          if (pollError && attempt >= 2) {
+            await loadDirectResearch("El servicio async no respondió; se mostró el resultado directo.");
+            return;
           }
           continue;
         }
@@ -831,13 +836,13 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
   const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
   const hasStatementRows = annualRows.length > 0 && Number.isFinite(Number(ratios.latest_revenue));
   const statementProvider = hasStatementRows ? coverage.statement_source_provider || "fmp" : null;
-  const sourceSpineLabel = statementProvider || (activeSource?.provider ? `${activeSource.provider} profile only` : "No source yet");
+  const sourceSpineLabel = statementProvider || (activeSource?.provider ? `Solo perfil de ${activeSource.provider}` : "Sin fuente todavía");
   const coverageWidth = `${Math.max(0, Math.min(100, Number(coverage.score) || 0))}%`;
   const missingRequiredMetrics = safeList(coverage.missing_expected_metrics);
   const coverageDetail =
     coverage.expected_metrics
       ? `${coverage.covered_expected_metrics}/${coverage.expected_metrics} required metrics`
-      : `${evidenceCount} ledger points`;
+      : `${evidenceCount} puntos de registro`;
   const finalOrchestrator = research?.agents?.final_orchestrator || research?.sources?.agent_outputs?.final_orchestrator || {};
   const finalAnalysis = finalAnalysisFrom(finalOrchestrator);
   const executiveJudgment = firstUsefulText(finalAnalysis.executive_judgment, finalAnalysis.memo_patch);

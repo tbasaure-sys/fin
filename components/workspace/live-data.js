@@ -31,8 +31,8 @@ export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
   const [dashboard, setDashboard] = useState(initialDashboard);
   const [connection, setConnection] = useState({
     status: "connecting",
-    label: "Connecting live data",
-    detail: "Opening the live workspace channel.",
+    label: "Conectando datos",
+    detail: "Abriendo el canal del espacio.",
   });
   const lastEventRef = useRef(Date.now());
 
@@ -97,18 +97,18 @@ export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
           if (payload?.message) {
             detail = sanitizeLiveDetail(
               payload.message,
-              "The latest market session is still catching up. Using the last completed snapshot for now.",
+              "La última sesión de mercado todavía se está cargando. Por ahora se usa la sesión completa anterior.",
             );
           }
         } catch {
           // Ignore malformed event payloads.
         }
-        setLive("warn", "Using last completed session", detail);
+        setLive("warn", "Usando sesión anterior", detail);
       });
 
       stream.onerror = () => {
         if (!isActive) return;
-        setLive("polling", "Live sync paused", "The live channel dropped. Keeping the workspace updated with periodic checks.");
+        setLive("polling", "Sincronización pausada", "El canal en vivo se cortó. El espacio seguirá revisando cambios periódicamente.");
         stream?.close();
         stream = null;
       };

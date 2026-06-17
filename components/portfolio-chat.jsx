@@ -34,10 +34,10 @@ function AssistantMessage({ content, streaming }) {
   );
 }
 
-function UserMessage({ content }) {
+function UserMessage({ content, language }) {
   return (
     <div className={styles.message} data-role="user">
-      <span className={styles.messageRole}>You</span>
+      <span className={styles.messageRole}>{language === "es" ? "Tú" : "You"}</span>
       <div className={styles.messageBody}>{content}</div>
     </div>
   );
@@ -140,7 +140,7 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
       );
     } catch (err) {
       if (err.name === "AbortError") return;
-      setError(err.message || "Something went wrong. Try again.");
+      setError(err.message || (language === "es" ? "No se pudo responder. Intenta de nuevo." : "Something went wrong. Try again."));
       // Remove the streaming placeholder
       setHistory((h) => h.filter((m) => !m._streaming));
     } finally {
@@ -167,9 +167,11 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
     <div className={styles.drawer} role="dialog" aria-label="Portfolio chat">
       <div className={styles.drawerHead}>
         <div className={styles.drawerHeadLeft}>
-          <span className={styles.drawerBadge}>Ask your portfolio</span>
+          <span className={styles.drawerBadge}>{language === "es" ? "Preguntar al portafolio" : "Ask your portfolio"}</span>
           <p className={styles.drawerSub}>
-            Powered by {process.env.NEXT_PUBLIC_CHAT_MODEL_LABEL || "GPT-4o"} with your live workspace data
+            {language === "es"
+              ? "Usa los datos vivos de tu espacio"
+              : `Powered by ${process.env.NEXT_PUBLIC_CHAT_MODEL_LABEL || "GPT-4o"} with your live workspace data`}
           </p>
         </div>
         <button
@@ -178,17 +180,18 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
           onClick={onClose}
           type="button"
         >
-          Close
+          {language === "es" ? "Cerrar" : "Close"}
         </button>
       </div>
 
       <div className={styles.messages}>
         {isEmpty && (
           <div className={styles.emptyState}>
-            <p className={styles.emptyTitle}>Ask anything about your portfolio</p>
+            <p className={styles.emptyTitle}>{language === "es" ? "Pregunta sobre tu portafolio" : "Ask anything about your portfolio"}</p>
             <p className={styles.emptySub}>
-              I have full context of your holdings, market state, risk metrics,
-              and alerts. Ask me in plain English - no jargon needed.
+              {language === "es"
+                ? "Tengo tus posiciones, mercado, riesgo y alertas. Pregunta en simple."
+                : "I have full context of your holdings, market state, risk metrics, and alerts. Ask me in plain English - no jargon needed."}
             </p>
             <div className={styles.starters}>
               {STARTER_QUESTIONS.map((q) => (
@@ -207,7 +210,7 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
 
         {history.map((msg, i) =>
           msg.role === "user" ? (
-            <UserMessage content={msg.content} key={i} />
+            <UserMessage content={msg.content} key={i} language={language} />
           ) : (
             <AssistantMessage
               content={msg.content}
@@ -229,7 +232,7 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
               }}
               type="button"
             >
-              Retry
+              {language === "es" ? "Reintentar" : "Retry"}
             </button>
           </div>
         )}
@@ -243,14 +246,14 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
           disabled={streaming}
           onKeyDown={handleKeyDown}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about your portfolio, any position, or any metric..."
+          placeholder={language === "es" ? "Pregunta por tu portafolio, una posición o una métrica..." : "Ask about your portfolio, any position, or any metric..."}
           ref={inputRef}
           rows={2}
           value={input}
         />
         {streaming ? (
           <button className={styles.stopBtn} onClick={stopStream} type="button">
-            Stop
+            {language === "es" ? "Detener" : "Stop"}
           </button>
         ) : (
           <button
@@ -259,14 +262,15 @@ export default function PortfolioChat({ workspaceId, dashboard, onClose }) {
             onClick={() => sendMessage()}
             type="button"
           >
-            Send
+            {language === "es" ? "Enviar" : "Send"}
           </button>
         )}
       </div>
 
       <p className={styles.disclaimer}>
-        Answers are grounded in your workspace data but are not financial advice.
-        Always verify before acting.
+        {language === "es"
+          ? "Respuestas basadas en tu espacio. No son asesoría financiera."
+          : "Answers are grounded in your workspace data but are not financial advice. Always verify before acting."}
       </p>
     </div>
   );
