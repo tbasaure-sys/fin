@@ -73,25 +73,25 @@ export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
       stream = new EventSource(`/api/v1/workspaces/${workspaceId}/stream`);
 
       stream.addEventListener("open", () => {
-        setLive("live", "Live sync on", "Listening for fresh market and workspace updates.");
+        setLive("live", "Sincronización activa", "Escuchando cambios de mercado y del espacio.");
       });
 
       for (const eventName of ["workspace_snapshot", "refresh_completed", "freshness_changed"]) {
         stream.addEventListener(eventName, () => {
           lastEventRef.current = Date.now();
-          setLive("live", "Syncing latest session", "A newer market session was detected. Updating the workspace.");
+          setLive("live", "Actualizando sesión", "Se detectó una sesión de mercado más reciente.");
           void triggerRefresh();
         });
       }
 
       stream.addEventListener("refresh_started", () => {
         lastEventRef.current = Date.now();
-        setLive("polling", "Refreshing live data", "Pulling the newest market session into the workspace.");
+        setLive("polling", "Actualizando datos", "Trayendo la sesión de mercado más reciente.");
       });
 
       stream.addEventListener("refresh_failed", (event) => {
         lastEventRef.current = Date.now();
-        let detail = "The latest market session is still catching up. Using the last completed snapshot for now.";
+        let detail = "La última sesión de mercado todavía se está cargando. Por ahora se usa la sesión completa anterior.";
         try {
           const payload = JSON.parse(event.data);
           if (payload?.message) {

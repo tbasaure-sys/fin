@@ -3077,7 +3077,7 @@ function TruthInterfacePanel({
     {
       title: "Portafolio",
       detail: holdingsCount
-        ? `${holdingsCount} posición${holdingsCount === 1 ? "" : "es"} conectada${holdingsCount === 1 ? "" : "s"}${portfolioAnalytics.chartSource ? ` · ${portfolioAnalytics.chartSource}` : ""}.`
+        ? `${holdingsCount} ${holdingsCount === 1 ? "posición conectada" : "posiciones conectadas"}${portfolioAnalytics.chartSource ? ` · ${portfolioAnalytics.chartSource}` : ""}.`
         : "Agrega posiciones para desbloquear la lectura en vivo.",
     },
     {
