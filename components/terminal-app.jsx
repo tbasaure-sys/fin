@@ -1860,17 +1860,17 @@ function AlertsPanel({ alerts }) {
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Alertas</p>
-          <h2>Que necesita atencion ahora</h2>
+          <h2>Qué necesita atención ahora</h2>
         </div>
       </div>
 
       <div className={styles.alertStack}>
         {values.map((alert) => (
           <article className={styles.alertRow} key={alert.id}>
-            <ToneBadge tone={statusTone(alert.severity)}>{capitalize(alert.severity)}</ToneBadge>
+            <ToneBadge tone={statusTone(alert.severity)}>{cleanWorkspaceCopy(capitalize(alert.severity))}</ToneBadge>
             <div>
-              <strong>{alert.title}</strong>
-              <p>{alert.body}</p>
+              <strong>{cleanWorkspaceCopy(alert.title)}</strong>
+              <p>{friendlyWorkspaceMessage(alert.body, "La sesión de mercado todavía se está actualizando.")}</p>
             </div>
           </article>
         ))}
@@ -3355,6 +3355,7 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bnone material\b/gi, "nada material")
     .replace(/\bCounterfactual ledger\b/gi, "Registro contrafactual")
     .replace(/\bSaved to Neon\b/gi, "Guardado")
+    .replace(/\bConnecting live data\b/gi, "Conectando datos")
     .replace(/\bLive sync paused\b/gi, "Sincronización pausada")
     .replace(/\bAwaiting refresh\b/gi, "Esperando actualización")
     .replace(/\bLive\b/gi, "En vivo")
