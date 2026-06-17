@@ -225,6 +225,7 @@ function finalEditorMarkdownFromAnalysis(value) {
 
 function cleanReportMarkdown(markdown) {
   let text = String(markdown || "No se generó texto de reporte.");
+  text = text.replace(/^#\s+(.+?)\s+research OS memo\s*$/gim, "# $1");
   text = text.replace(
     /(?:^|\n)-?\s*Final LLM orchestrator:\s*```(?:json)?\s*([\s\S]*?)```/gi,
     (_match, body) => `\n${finalEditorMarkdownFromAnalysis(body)}`,
@@ -242,6 +243,15 @@ function cleanReportMarkdown(markdown) {
     /^-\s*([^:\n]+(?:Agent|Orchestrator))\s*\[([^\]]+)\]:\s*/gim,
     (_match, name, status) => `- ${agentFriendlyNameFromText(name)} (${humanizeToken(status)}): `,
   );
+  text = text
+    .split(/\r?\n/)
+    .filter((line) => !/one-call final editor|returned error|too many requests|client error|api\.openai|sources\.json|provider endpoints|row counts|coverage gaps/i.test(line))
+    .join("\n");
+  text = text
+    .replace(/^Company:\s*/gim, "Compañía: ")
+    .replace(/\bFinancial quality review\b/gi, "Revisión financiera")
+    .replace(/\bLatest FCF margin\b/gi, "Margen FCF reciente")
+    .replace(/\baccounting flags were triggered\b/gi, "alertas contables activas");
   return text;
 }
 
