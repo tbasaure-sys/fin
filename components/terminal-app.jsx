@@ -25,6 +25,7 @@ import styles from "@/components/workspace/shell.module.css";
 import PortfolioChat from "@/components/portfolio-chat";
 import EquityResearchPanel from "@/components/equity-research-panel";
 import { macroBrainSnapshot } from "@/lib/macro-brain-snapshot";
+import { mosaicObservatorySnapshot } from "@/lib/mosaic-observatory-snapshot";
 
 const RAW_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
 const DEFAULT_APP_NAME = /allocator workspace/i.test(RAW_APP_NAME) ? "BLS Prime" : RAW_APP_NAME;
@@ -46,6 +47,15 @@ const WORKSPACE_NAV = [
     detail: "Portafolio y solapamiento",
     title: "¿Qué domina mi portafolio?",
     body: "Rendimiento, concentración y diversificación real bajo estrés.",
+  },
+  {
+    id: "macro",
+    href: "#macro",
+    label: "Macro",
+    priority: "Contexto",
+    detail: "MOSAIC y tesis",
+    title: "¿Qué está cambiando afuera?",
+    body: "Presiones globales, datos macro y tesis que pueden tocar el portafolio.",
   },
   {
     id: "candidates",
@@ -88,7 +98,8 @@ const LEGACY_HASH_REDIRECT = {
   diversification: "risk",
   research: "candidates",
   factorlab: "candidates",
-  macrobrain: "candidates",
+  macrobrain: "macro",
+  mosaic: "macro",
 };
 
 function ToneBadge({ tone = "neutral", children }) {
@@ -2948,6 +2959,96 @@ function MacroBrainWorkspacePanel() {
   );
 }
 
+function mosaicTone(score) {
+  const value = Number(score);
+  if (!Number.isFinite(value)) return "neutral";
+  if (value >= 55) return "bad";
+  if (value >= 30 || value <= -30) return "warn";
+  return "neutral";
+}
+
+function mosaicScoreLabel(score) {
+  const value = Number(score);
+  if (!Number.isFinite(value)) return "-";
+  return value > 0 ? `+${Math.round(value)}` : `${Math.round(value)}`;
+}
+
+function MosaicObservatoryPanel() {
+  const snapshot = mosaicObservatorySnapshot;
+  const topMarkets = safeList(snapshot.markets).slice(0, 5);
+  const softMarkets = safeList(snapshot.markets).filter((item) => Number(item.score) < 0).slice(0, 3);
+  const providerText = safeList(snapshot.providers)
+    .slice(0, 4)
+    .map((item) => `${item.name} ${item.used}`)
+    .join(" / ");
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.mosaicPanel}>
+        <div className={styles.mosaicLead}>
+          <div>
+            <p className={styles.kicker}>MOSAIC</p>
+            <h2>Presiones globales</h2>
+            <p>{snapshot.headline}</p>
+          </div>
+          <div className={styles.mosaicDial} aria-label={`Indice MOSAIC ${snapshot.index}`}>
+            <strong>{snapshot.index}</strong>
+            <span>global</span>
+          </div>
+        </div>
+
+        <div className={styles.mosaicSummary}>
+          <span>{snapshot.sourceLine}</span>
+          <span>{snapshot.freshness}</span>
+          <span>{providerText}</span>
+        </div>
+
+        <div className={styles.mosaicLayout}>
+          <article className={styles.mosaicMain}>
+            <h3>Presión arriba</h3>
+            <div className={styles.mosaicRows}>
+              {topMarkets.map((item) => (
+                <div className={styles.mosaicRow} data-tone={mosaicTone(item.score)} key={item.id}>
+                  <div>
+                    <strong>{item.name}</strong>
+                    <span>{item.why}</span>
+                  </div>
+                  <div>
+                    <strong>{mosaicScoreLabel(item.score)}</strong>
+                    <span>{item.reading}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <aside className={styles.mosaicSide}>
+            <div>
+              <h3>Demanda floja</h3>
+              {softMarkets.map((item) => (
+                <div className={styles.mosaicMiniRow} key={item.id}>
+                  <span>{item.name}</span>
+                  <strong>{mosaicScoreLabel(item.score)}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <h3>Falta mejorar</h3>
+              {safeList(snapshot.gaps).map((item) => (
+                <div className={styles.mosaicGap} key={item.market}>
+                  <strong>{item.market}</strong>
+                  <span>{item.missing}</span>
+                </div>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function RecoverabilityMapFigure({ items }) {
   const points = safeList(items).map((item, index) => {
     const recovery = clampUnitInterval(item?.x);
@@ -3573,6 +3674,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <>
           <FactorLabWorkspacePanel portfolioModule={portfolioModule} />
           <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
+        </>
+      );
+      break;
+    case "macro":
+      activeWorkspacePanels = (
+        <>
+          <MosaicObservatoryPanel />
           <MacroBrainWorkspacePanel />
         </>
       );

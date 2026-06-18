@@ -1058,6 +1058,170 @@
   font-weight: 700;
 }
 
+.mosaicPanel {
+  display: grid;
+  gap: 1rem;
+}
+
+.mosaicLead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mosaicLead h2 {
+  margin: 0;
+  max-width: 12ch;
+}
+
+.mosaicLead p {
+  max-width: 42rem;
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.mosaicDial {
+  display: grid;
+  place-items: center;
+  width: clamp(6rem, 13vw, 8rem);
+  aspect-ratio: 1;
+  border: 1px solid rgba(248, 200, 111, 0.24);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(248, 200, 111, 0.18), transparent 58%),
+    rgba(255, 255, 255, 0.026);
+}
+
+.mosaicDial strong {
+  font-size: clamp(2rem, 5vw, 3.3rem);
+  line-height: 0.95;
+}
+
+.mosaicDial span {
+  margin-top: -1.25rem;
+  color: var(--muted);
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mosaicSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.mosaicSummary span {
+  min-width: 0;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.028);
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.mosaicLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(260px, 0.75fr);
+  gap: 0.85rem;
+}
+
+.mosaicMain,
+.mosaicSide {
+  min-width: 0;
+  padding: 0.95rem;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.mosaicMain h3,
+.mosaicSide h3 {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+}
+
+.mosaicRows,
+.mosaicSide {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.mosaicSide > div + div {
+  padding-top: 0.8rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.mosaicRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, auto);
+  gap: 1rem;
+  align-items: center;
+  padding: 0.72rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mosaicRow:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.mosaicRow > div {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.mosaicRow > div:last-child {
+  justify-items: end;
+  text-align: right;
+}
+
+.mosaicRow span,
+.mosaicMiniRow span,
+.mosaicGap span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.mosaicRow[data-tone="bad"] > div:last-child strong {
+  color: var(--bad);
+}
+
+.mosaicRow[data-tone="warn"] > div:last-child strong {
+  color: var(--warn);
+}
+
+.mosaicMiniRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mosaicMiniRow:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.mosaicGap {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mosaicGap:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
 .answerSourcesCard {
   gap: 0.85rem;
   align-content: start;
@@ -5745,6 +5909,7 @@
   .answerCommandRow,
   .diversificationClockCard,
   .factorLabGrid,
+  .mosaicLayout,
   .truthHeroGrid,
   .truthScoreRail,
   .truthClusterGrid,
@@ -5857,6 +6022,9 @@
   .answerGrid,
   .answerModuleGrid,
   .decisionPillarGrid,
+  .mosaicLead,
+  .mosaicLayout,
+  .mosaicSummary,
   .macroBrainLead,
   .macroBrainGrid {
     grid-template-columns: 1fr;
