@@ -2880,6 +2880,10 @@ function MacroBrainWorkspacePanel() {
   const snapshot = macroBrainSnapshot;
   const openIdeas = safeList(snapshot.theses).filter((item) => item.state === "open").length;
   const watchedIdeas = safeList(snapshot.theses).filter((item) => item.state === "watch").length;
+  const observationLabel = Number.isFinite(Number(snapshot.observations))
+    ? Number(snapshot.observations).toLocaleString("es-CL")
+    : "-";
+  const runLabel = snapshot.runDate ? formatDate(snapshot.runDate) : "Fecha guardada";
   const visualBars = safeList(snapshot.impulseChanges).slice(0, 5).map((item, index) => {
     const height = item.direction === "down" ? 6.2 - (index * 0.5) : item.direction === "flat" ? 3.5 : 2.4 + (index * 0.7);
     return {
@@ -2893,11 +2897,19 @@ function MacroBrainWorkspacePanel() {
     <section className={styles.panel}>
       <div className={styles.macroBrainPanel}>
         <div className={styles.macroBrainLead}>
-          <p className={styles.kicker}>Contexto macro</p>
-          <h2>Mercado, en corto</h2>
-          <p>{snapshot.shortRead}</p>
+          <div>
+            <p className={styles.kicker}>Macro Brain</p>
+            <h2>Última lectura macro</h2>
+            <p>{snapshot.shortRead}</p>
+            <div className={styles.macroBrainSource}>
+              <strong>{snapshot.sourceLabel}</strong>
+              <span>{snapshot.freshnessLabel || runLabel}</span>
+              <small>{snapshot.dataStatus}</small>
+            </div>
+          </div>
           <div className={styles.macroBrainStats}>
-            <span><strong>{snapshot.seriesCount}</strong> señales</span>
+            <span><strong>{snapshot.seriesCount}</strong> series</span>
+            <span><strong>{observationLabel}</strong> datos</span>
             <span><strong>{openIdeas}</strong> abiertas</span>
             <span><strong>{watchedIdeas}</strong> en revisión</span>
           </div>
@@ -2962,7 +2974,7 @@ function MacroBrainWorkspacePanel() {
 function mosaicTone(score) {
   const value = Number(score);
   if (!Number.isFinite(value)) return "neutral";
-  if (value >= 55) return "bad";
+  if (value >= 75) return "bad";
   if (value >= 30 || value <= -30) return "warn";
   return "neutral";
 }
@@ -2977,6 +2989,7 @@ function MosaicObservatoryPanel() {
   const snapshot = mosaicObservatorySnapshot;
   const topMarkets = safeList(snapshot.markets).slice(0, 5);
   const softMarkets = safeList(snapshot.markets).filter((item) => Number(item.score) < 0).slice(0, 3);
+  const scoreGuide = safeList(snapshot.scoreGuide);
   const providerText = safeList(snapshot.providers)
     .slice(0, 4)
     .map((item) => `${item.name} ${item.used}`)
@@ -3002,6 +3015,23 @@ function MosaicObservatoryPanel() {
           <span>{snapshot.freshness}</span>
           <span>{providerText}</span>
         </div>
+
+        <div className={styles.mosaicPlainNote}>
+          <strong>Qué significa la primera alerta</strong>
+          <span>{snapshot.glossary?.gridEquipment}</span>
+        </div>
+
+        <div className={styles.mosaicGuide} aria-label="Guía de puntajes MOSAIC">
+          {scoreGuide.map((item) => (
+            <div className={styles.mosaicGuideItem} key={item.range}>
+              <strong>{item.range}</strong>
+              <span>{item.label}</span>
+              <small>{item.meaning}</small>
+            </div>
+          ))}
+        </div>
+
+        <p className={styles.mosaicScoreNote}>{snapshot.scoreExample}</p>
 
         <div className={styles.mosaicLayout}>
           <article className={styles.mosaicMain}>
