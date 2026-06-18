@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import {
   PORTFOLIO_RANGES,
@@ -2876,8 +2876,52 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
   );
 }
 
+function useMacroBrainLiveSnapshot() {
+  const [state, setState] = useState({
+    snapshot: macroBrainSnapshot,
+    loading: true,
+    error: "",
+  });
+
+  const refresh = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setState((current) => ({ ...current, loading: true, error: "" }));
+    }
+
+    try {
+      const response = await fetch(`/api/macro-brain?ts=${Date.now()}`, { cache: "no-store" });
+      const payload = await parseResponse(response);
+      setState({
+        snapshot: { ...macroBrainSnapshot, ...payload },
+        loading: false,
+        error: "",
+      });
+    } catch (requestError) {
+      setState((current) => ({
+        ...current,
+        loading: false,
+        error: friendlyWorkspaceMessage(
+          requestError?.message || requestError,
+          "No pude leer Macro Brain en vivo. Se usa la última foto guardada.",
+        ),
+      }));
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+    const interval = window.setInterval(() => {
+      void refresh({ silent: true });
+    }, 60000);
+
+    return () => window.clearInterval(interval);
+  }, [refresh]);
+
+  return { ...state, refresh };
+}
+
 function MacroBrainWorkspacePanel() {
-  const snapshot = macroBrainSnapshot;
+  const { snapshot, loading, error, refresh } = useMacroBrainLiveSnapshot();
   const openIdeas = safeList(snapshot.theses).filter((item) => item.state === "open").length;
   const watchedIdeas = safeList(snapshot.theses).filter((item) => item.state === "watch").length;
   const observationLabel = Number.isFinite(Number(snapshot.observations))
@@ -2904,8 +2948,17 @@ function MacroBrainWorkspacePanel() {
             <div className={styles.macroBrainSource}>
               <strong>{snapshot.sourceLabel}</strong>
               <span>{snapshot.freshnessLabel || runLabel}</span>
-              <small>{snapshot.dataStatus}</small>
+              <small>{loading ? "Actualizando..." : snapshot.dataStatus}</small>
+              <button
+                className={styles.macroBrainRefresh}
+                disabled={loading}
+                onClick={() => refresh()}
+                type="button"
+              >
+                {loading ? "Actualizando" : "Actualizar"}
+              </button>
             </div>
+            {error ? <p className={styles.macroBrainError}>{error}</p> : null}
           </div>
           <div className={styles.macroBrainStats}>
             <span><strong>{snapshot.seriesCount}</strong> series</span>
