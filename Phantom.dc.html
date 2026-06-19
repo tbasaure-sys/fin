@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Instrument+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { margin: 0; background: #0c0b10; }
+  @keyframes ph-pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: .35; transform: scale(.85);} }
+  @keyframes ph-breathe { 0%,100% { opacity: .5; } 50% { opacity: .9; } }
+  @keyframes ph-fade { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
+  @keyframes ph-dash { to { stroke-dashoffset: -1000; } }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+</style>
+</helmet>
+<div style="font-family: 'Instrument Sans', system-ui, sans-serif; background: #0c0b10; color: #ECEAE3; min-height: 100vh; overflow-x: hidden;">
+
+  <!-- ambient glow -->
+  <div style="position: fixed; top: -200px; left: 50%; transform: translateX(-50%); width: 900px; height: 500px; background: radial-gradient(ellipse at center, rgba(240,169,59,0.07), transparent 70%); pointer-events: none; animation: ph-breathe 6s ease-in-out infinite; z-index: 0;"></div>
+
+  <!-- HEADER -->
+  <div style="position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: 18px 32px; border-bottom: 1px solid rgba(255,255,255,0.07); backdrop-filter: blur(8px);">
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div style="width: 9px; height: 9px; border-radius: 50%; background: #F0756B; box-shadow: 0 0 12px rgba(240,117,107,0.7); animation: ph-pulse 2.4s ease-in-out infinite;"></div>
+        <span style="font-size: 19px; font-weight: 700; letter-spacing: 0.18em; color: #C9A86A;">BLS PRIME</span>
+      </div>
+      <span style="font-size: 11px; color: #66646f; letter-spacing: 0.14em; text-transform: uppercase; padding-top: 2px;">Lectura de cartera</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <div style="display: inline-flex; align-items: center; gap: 7px; padding: 5px 13px; border-radius: 100px; background: rgba(240,117,107,0.1); border: 1px solid rgba(240,117,107,0.25);">
+        <span style="width: 6px; height: 6px; border-radius: 50%; background: #F0756B; animation: ph-pulse 2.4s ease-in-out infinite;"></span>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #F0756B; text-transform: uppercase;">{{ regimeLabel }}</span>
+      </div>
+      <span style="font-size: 12px; color: #66646f; font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.02em;">{{ clock }}</span>
+      <div style="display: flex; padding: 3px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 100px;">
+        <button onClick="{{ setPlain }}" style="{{ plainBtnStyle }}">Simple</button>
+        <button onClick="{{ setPro }}" style="{{ proBtnStyle }}">Detalle</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div style="position: relative; z-index: 2; display: flex; gap: 4px; padding: 0 28px; border-bottom: 1px solid rgba(255,255,255,0.07);">
+    <sc-for list="{{ navItems }}" as="nav" hint-placeholder-count="4">
+      <button onClick="{{ nav.onClick }}" style="{{ nav.style }}">{{ nav.label }}</button>
+    </sc-for>
+  </div>
+
+  <!-- CONTENT -->
+  <div style="position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 28px 32px 60px;">
+
+    <!-- =================== TODAY =================== -->
+    <sc-if value="{{ isToday }}" hint-placeholder-val="{{ true }}">
+    <div style="display: flex; flex-direction: column; gap: 18px; ">
+
+      <!-- HERO -->
+      <div style="display: flex; gap: 18px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 540px; background: linear-gradient(160deg, #16151d, #110f15); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 32px; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: -120px; right: -80px; width: 360px; height: 360px; background: radial-gradient(circle, {{ arcGlow }}, transparent 65%); pointer-events: none; animation: ph-breathe 5s ease-in-out infinite;"></div>
+          <div style="position: relative; display: flex; gap: 36px; align-items: center; flex-wrap: wrap;">
+            <!-- GAUGE -->
+            <div style="position: relative; width: 244px; height: 244px; flex: none;">
+              <svg viewBox="0 0 240 240" style="width: 100%; height: 100%; overflow: visible;">
+                <path d="M49.29 190.71 A100 100 0 1 1 190.71 190.71" pathLength="100" fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="14" strokeLinecap="round"></path>
+                <path d="M49.29 190.71 A100 100 0 1 1 190.71 190.71" pathLength="100" fill="none" stroke="{{ arcColor }}" strokeWidth="14" strokeLinecap="round" strokeDasharray="100" strokeDashoffset="{{ arcOffset }}" style="filter: drop-shadow(0 0 8px {{ arcGlow }});"></path>
+              </svg>
+              <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size: 11px; color: #66646f; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 2px;">En acciones</div>
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 62px; font-weight: 600; color: {{ arcColor }}; line-height: 1;">{{ dispExposure }}<span style="font-size: 26px; font-weight: 500;">%</span></div>
+                <div style="display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 12px; color: #9a98a4;">
+                  <span style="color: #F0756B; font-weight: 600;">15 pts menos</span> que la semana pasada
+                </div>
+              </div>
+            </div>
+            <!-- VERDICT -->
+            <div style="flex: 1; min-width: 240px;">
+              <div style="font-size: 11px; color: #C9A86A; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 12px;">{{ todayTag }}</div>
+              <div style="font-family: 'Newsreader', serif; font-size: 34px; font-weight: 500; line-height: 1.1; color: #ECEAE3; margin-bottom: 14px; letter-spacing: -0.01em;">{{ verdictHeadline }}</div>
+              <div style="font-size: 15px; line-height: 1.6; color: #b8b6bf; text-wrap: pretty;">{{ verdictBody }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- THREE TILES -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+        <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px 22px;">
+          <div style="font-size: 11px; color: #66646f; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;">{{ tile1Label }}</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; color: #ECEAE3;">{{ tile1Value }}</div>
+          <div style="font-size: 12.5px; color: #9a98a4; margin-top: 6px;">{{ tile1Sub }}</div>
+        </div>
+        <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px 22px;">
+          <div style="font-size: 11px; color: #66646f; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;">{{ tile2Label }}</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; color: #2dd4bf;">{{ tile2Value }}</div>
+          <div style="font-size: 12.5px; color: #9a98a4; margin-top: 6px;">{{ tile2Sub }}</div>
+        </div>
+        <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 20px 22px;">
+          <div style="font-size: 11px; color: #66646f; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 12px;">{{ tile3Label }}</div>
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; color: #5CD68A;">{{ dispConv }}<span style="font-size: 18px;">%</span></div>
+          <div style="font-size: 12.5px; color: #9a98a4; margin-top: 6px;">{{ tile3Sub }}</div>
+        </div>
+      </div>
+
+      <!-- WHAT CHANGED + SEE WHAT OTHERS MISS -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+        <!-- changed -->
+        <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+            <span style="font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: #ECEAE3;">Que cambio hoy</span>
+            <span style="font-size: 11px; color: #66646f;">desde el cierre anterior</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <sc-for list="{{ changes }}" as="c" hint-placeholder-count="4">
+              <div style="display: flex; gap: 14px; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div style="width: 30px; height: 30px; flex: none; border-radius: 9px; background: {{ c.bg }}; display: flex; align-items: center; justify-content: center; font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: {{ c.color }};">{{ c.mark }}</div>
+                <div style="font-size: 13.5px; line-height: 1.45; color: #c9c7d0; padding-top: 1px;">{{ c.text }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- reveal -->
+        <div style="background: linear-gradient(150deg, #18141a, #110f15); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+          <div style="font-size: 13px; font-weight: 600; letter-spacing: 0.04em; color: #ECEAE3; margin-bottom: 18px;">La lectura, en simple</div>
+          <div style="display: flex; align-items: stretch; gap: 0;">
+            <div style="flex: 1; text-align: center; padding: 8px 6px;">
+              <div style="font-size: 10.5px; color: #66646f; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px;">Lo que se ve</div>
+              <div style="font-family: 'Newsreader', serif; font-size: 30px; color: #5CD68A; line-height: 1; margin-bottom: 6px;">Calma</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9a98a4;">mercado tranquilo</div>
+            </div>
+            <div style="width: 1px; background: rgba(255,255,255,0.1); position: relative;">
+              <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #15131a; padding: 4px 6px; font-size: 10px; color: #66646f; font-style: italic; font-family: 'Newsreader', serif;">vs</span>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 8px 6px;">
+              <div style="font-size: 10.5px; color: #66646f; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px;">Lo que revisamos</div>
+              <div style="font-family: 'Newsreader', serif; font-size: 30px; color: #F0756B; line-height: 1; margin-bottom: 6px;">Fragil</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #9a98a4;">{{ revealRight }}</div>
+            </div>
+          </div>
+          <div style="margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 13px; line-height: 1.55; color: #b8b6bf; text-wrap: pretty;">{{ revealNote }}</div>
+        </div>
+      </div>
+
+      <!-- PRO spectral panel -->
+      <sc-if value="{{ isPro }}" hint-placeholder-val="{{ true }}">
+      <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;">
+          <span style="font-size: 13px; font-weight: 600; color: #ECEAE3;">Que esta moviendo la cartera</span>
+          <span style="font-size: 11px; color: #66646f; font-family: 'IBM Plex Mono', monospace;">motor principal: {{ lambda1 }}%</span>
+        </div>
+        <div style="display: flex; gap: 28px; align-items: flex-end;">
+          <div style="display: flex; align-items: flex-end; gap: 8px; height: 150px; flex: 1;">
+            <sc-for list="{{ eigen }}" as="e" hint-placeholder-count="8">
+              <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end;">
+                <div style="width: 100%; height: {{ e.h }}; background: {{ e.color }}; border-radius: 4px 4px 0 0;"></div>
+                <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #66646f;">{{ e.label }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="width: 260px; flex: none; font-size: 12.5px; line-height: 1.6; color: #9a98a4; font-family: 'IBM Plex Mono', monospace;">
+            <div style="color: #F0756B; margin-bottom: 8px;">Un motor pesa {{ lambda1 }}%</div>
+            Mas de la mitad del movimiento viene hoy de una sola fuerza. Cuando eso pasa, la diversificacion real se achica aunque por fuera parezca suficiente.
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+    </sc-if>
+
+    <!-- =================== MARKETS =================== -->
+    <sc-if value="{{ isMarkets }}" hint-placeholder-val="{{ true }}">
+    <div style="">
+      <div style="margin-bottom: 22px;">
+        <div style="font-family: 'Newsreader', serif; font-size: 28px; font-weight: 500; color: #ECEAE3; letter-spacing: -0.01em;">Donde conviene mirar con mas cuidado</div>
+        <div style="font-size: 14px; color: #9a98a4; margin-top: 6px;">{{ marketsSub }}</div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1.6fr 1fr; gap: 18px; align-items: start;">
+        <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 12px;">
+          <sc-for list="{{ sectors }}" as="s" hint-placeholder-count="11">
+            <div onClick="{{ s.onClick }}" style="{{ s.rowStyle }}">
+              <div style="display: flex; flex-direction: column; gap: 1px; width: 130px; flex: none;">
+                <span style="font-size: 13.5px; font-weight: 600; color: #ECEAE3;">{{ s.name }}</span>
+                <span style="font-size: 10.5px; color: #66646f; font-family: 'IBM Plex Mono', monospace;">{{ s.ticker }}</span>
+              </div>
+              <div style="flex: 1; height: 7px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                <div style="width: {{ s.barW }}; height: 100%; background: {{ s.color }}; border-radius: 4px;"></div>
+              </div>
+              <span style="width: 70px; flex: none; text-align: right; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{ s.color }};">{{ s.word }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="background: linear-gradient(150deg, #16151d, #110f15); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px; position: sticky; top: 20px;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-family: 'Newsreader', serif; font-size: 24px; color: #ECEAE3;">{{ selName }}</span>
+            <span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: #66646f;">{{ selTicker }}</span>
+          </div>
+          <div style="display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px; border-radius: 100px; background: {{ selBg }}; margin-bottom: 20px;">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: {{ selColor }};">{{ selWord }}</span>
+          </div>
+          <div style="display: flex; gap: 22px; margin-bottom: 20px;">
+            <div>
+              <div style="font-size: 10.5px; color: #66646f; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">{{ selMetricLabel }}</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; color: {{ selColor }};">{{ selFragility }}<span style="font-size: 16px;">%</span></div>
+            </div>
+            <div>
+              <div style="font-size: 10.5px; color: #66646f; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;">Movimiento</div>
+              <div style="font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 600; color: #9a98a4;">{{ selVol }}</div>
+            </div>
+          </div>
+          <div style="font-size: 14px; line-height: 1.6; color: #b8b6bf; text-wrap: pretty;">{{ selNote }}</div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- =================== THE EDGE =================== -->
+    <sc-if value="{{ isEdge }}" hint-placeholder-val="{{ true }}">
+    <div style=" display: flex; flex-direction: column; gap: 18px;">
+      <div style="background: linear-gradient(150deg, #16151d, #110f15); border: 1px solid rgba(255,255,255,0.08); border-radius: 18px; padding: 36px;">
+        <div style="font-size: 11px; color: #C9A86A; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 14px;">Por que sirve</div>
+        <div style="font-family: 'Newsreader', serif; font-size: 30px; font-weight: 500; line-height: 1.25; color: #ECEAE3; max-width: 760px; letter-spacing: -0.01em; text-wrap: pretty;">{{ edgeHeadline }}</div>
+        <div style="font-size: 15px; line-height: 1.65; color: #b8b6bf; max-width: 720px; margin-top: 16px; text-wrap: pretty;">{{ edgeBody }}</div>
+      </div>
+
+      <!-- calm vs real chart -->
+      <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+          <span style="font-size: 13px; font-weight: 600; color: #ECEAE3;">Calma visible vs. fragilidad real</span>
+          <div style="display: flex; gap: 18px;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #9a98a4;"><span style="width: 14px; height: 2px; background: #5CD68A; display: inline-block;"></span>Lo que se ve</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: #9a98a4;"><span style="width: 14px; height: 2px; background: #F0756B; display: inline-block;"></span>Lo que vemos debajo</span>
+          </div>
+        </div>
+        <svg viewBox="0 0 620 200" style="width: 100%; height: 220px; overflow: visible;">
+          <line x1="8" y1="100" x2="612" y2="100" stroke="rgba(255,255,255,0.05)" strokeWidth="1"></line>
+          <polygon points="{{ fragArea }}" fill="rgba(240,117,107,0.08)"></polygon>
+          <polyline points="{{ calmPoints }}" fill="none" stroke="#5CD68A" strokeWidth="2" strokeLinejoin="round"></polyline>
+          <polyline points="{{ fragPoints }}" fill="none" stroke="#F0756B" strokeWidth="2.5" strokeLinejoin="round"></polyline>
+        </svg>
+        <div style="font-size: 13px; line-height: 1.55; color: #9a98a4; margin-top: 8px; text-wrap: pretty;">La linea verde casi no se mueve y da sensacion de calma. La roja viene subiendo y muestra que cada vez mas activos responden al mismo riesgo. Cuando esa brecha se abre, el margen de error se achica.</div>
+      </div>
+
+      <!-- track record -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+        <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 22px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 600; color: #5CD68A;">-10%</div>
+          <div style="font-size: 13px; color: #b8b6bf; margin-top: 8px; line-height: 1.45;">Caida maxima en periodos de calma enganosa <span style="color: #66646f;">vs. -27% quedandose igual</span></div>
+        </div>
+        <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 22px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 600; color: #C9A86A;">5</div>
+          <div style="font-size: 13px; color: #b8b6bf; margin-top: 8px; line-height: 1.45;">Alertas tempranas desde 2011 <span style="color: #66646f;">antes de que el problema fuera evidente</span></div>
+        </div>
+        <div style="background: #141319; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 22px;">
+          <div style="font-family: 'IBM Plex Mono', monospace; font-size: 32px; font-weight: 600; color: #6FA8FF;">1.63</div>
+          <div style="font-size: 13px; color: #b8b6bf; margin-top: 8px; line-height: 1.45;">Retorno por unidad de riesgo <span style="color: #66646f;">casi el doble de una postura pasiva</span></div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- =================== SHELTER =================== -->
+    <sc-if value="{{ isShields }}" hint-placeholder-val="{{ true }}">
+    <div style="">
+      <div style="margin-bottom: 22px;">
+        <div style="font-family: 'Newsreader', serif; font-size: 28px; font-weight: 500; color: #ECEAE3; letter-spacing: -0.01em;">Que ha resistido mejor en episodios de estres</div>
+        <div style="font-size: 14px; color: #9a98a4; margin-top: 6px;">Ordenado por como se han comportado estas alternativas cuando el mercado se complica. Es una guia para leer defensas posibles, no una recomendacion.</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <sc-for list="{{ hedges }}" as="h" hint-placeholder-count="6">
+          <div style="{{ h.cardStyle }}">
+            <div style="display: flex; align-items: center; gap: 18px;">
+              <div style="width: 64px; flex: none; text-align: center;">
+                <div style="font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; color: #ECEAE3;">{{ h.asset }}</div>
+                <div style="font-size: 10px; color: #66646f; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px;">{{ h.statusWord }}</div>
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 14.5px; font-weight: 600; color: #ECEAE3; margin-bottom: 3px;">{{ h.plainName }}</div>
+                <div style="font-size: 13px; color: #9a98a4; line-height: 1.45; text-wrap: pretty;">{{ h.note }}</div>
+              </div>
+              <div style="width: 150px; flex: none;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px;">
+                  <span style="font-size: 10px; color: #66646f; text-transform: uppercase; letter-spacing: 0.08em;">Proteccion</span>
+                  <span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; font-weight: 600; color: {{ h.color }};">{{ h.score }}</span>
+                </div>
+                <div style="height: 6px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                  <div style="width: {{ h.barW }}; height: 100%; background: {{ h.color }}; border-radius: 4px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- DISCLAIMER -->
+    <div style="margin-top: 40px; padding-top: 22px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; gap: 14px; align-items: flex-start;">
+      <div style="width: 22px; height: 22px; flex: none; border-radius: 50%; border: 1px solid rgba(201,168,106,0.4); display: flex; align-items: center; justify-content: center; font-family: 'Newsreader', serif; font-style: italic; font-size: 13px; color: #C9A86A; margin-top: 1px;">i</div>
+      <div style="font-size: 12.5px; line-height: 1.6; color: #66646f; max-width: 760px; text-wrap: pretty;">
+        <span style="color: #9a98a4; font-weight: 600;">Esta es una lectura de mercado de BLS Prime, no asesoria financiera.</span> La idea es ayudarte a ver si el riesgo real esta subiendo, cuanto espacio parece haber para invertir y que tipo de defensa ha funcionado mejor antes. Nada de esto reemplaza tu situacion, tus objetivos, tus restricciones ni tus impuestos. La decision final sigue siendo tuya.
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startMode&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;plain&quot;, &quot;pro&quot;], &quot;default&quot;: &quot;plain&quot;, &quot;tsType&quot;: &quot;string&quot;}, &quot;targetExposure&quot;: {&quot;editor&quot;: &quot;int&quot;, &quot;default&quot;: 25, &quot;min&quot;: 0, &quot;max&quot;: 100, &quot;tsType&quot;: &quot;number&quot;}}">
+class Component extends DCLogic {
+  state = { view: "today", mode: "plain", sel: "XLF", disp: 0, conv: 0, frag: 0, clock: "" };
+
+  componentDidMount() {
+    if (this.props.startMode === "pro") this.setState({ mode: "pro" });
+    this.tick();
+    this._timer = setInterval(() => this.tick(), 1000);
+    this.animate();
+  }
+  componentWillUnmount() { clearInterval(this._timer); cancelAnimationFrame(this._raf); }
+
+  tick() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, "0");
+    this.setState({ clock: `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}` });
+  }
+  animate() {
+    const target = this.props.targetExposure ?? 25;
+    const t0 = performance.now(), dur = 1200;
+    const ease = (t) => 1 - Math.pow(1 - t, 3);
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur), e = ease(p);
+      this.setState({ disp: target * e, conv: 70 * e, frag: 87 * e });
+      if (p < 1) this._raf = requestAnimationFrame(step);
+    };
+    this._raf = requestAnimationFrame(step);
+  }
+
+  fragMeta(f) {
+    if (f >= 70) return { word: "Fragil", color: "#F0756B", bg: "rgba(240,117,107,0.12)" };
+    if (f >= 50) return { word: "Vigilar", color: "#F0A93B", bg: "rgba(240,169,59,0.12)" };
+    return { word: "Firme", color: "#5CD68A", bg: "rgba(92,214,138,0.12)" };
+  }
+
+  renderVals() {
+    const { view, mode, sel, disp, conv, frag, clock } = this.state;
+    const pro = mode === "pro";
+    const target = this.props.targetExposure ?? 25;
+
+    // --- sectors ---
+    const RAW = [
+      { name: "Financieras", ticker: "XLF", f: 85, vol: 22.1 },
+      { name: "Inmobiliario", ticker: "XLRE", f: 78, vol: 20.5 },
+      { name: "Tecnologia", ticker: "XLK", f: 72, vol: 18.2 },
+      { name: "Consumo discrecional", ticker: "XLY", f: 67, vol: 19.8 },
+      { name: "Materiales", ticker: "XLB", f: 61, vol: 21.3 },
+      { name: "Energia", ticker: "XLE", f: 58, vol: 28.7 },
+      { name: "Comunicacion", ticker: "XLC", f: 55, vol: 17.9 },
+      { name: "Industriales", ticker: "XLI", f: 44, vol: 16.5 },
+      { name: "Salud", ticker: "XLV", f: 31, vol: 14.3 },
+      { name: "Servicios basicos", ticker: "XLU", f: 22, vol: 12.1 },
+      { name: "Consumo basico", ticker: "XLP", f: 18, vol: 11.2 },
+    ];
+    const sectors = RAW.map((s) => {
+      const m = this.fragMeta(s.f);
+      const active = sel === s.ticker;
+      return {
+        name: s.name, ticker: s.ticker, word: m.word, color: m.color,
+        barW: s.f + "%",
+        onClick: () => this.setState({ sel: s.ticker }),
+        rowStyle: {
+          display: "flex", alignItems: "center", gap: "16px", padding: "13px 14px",
+          borderRadius: "10px", cursor: "pointer", transition: "background 0.15s ease",
+          background: active ? "rgba(201,168,106,0.07)" : "transparent",
+          border: active ? "1px solid rgba(201,168,106,0.25)" : "1px solid transparent",
+        },
+      };
+    });
+    const selRaw = RAW.find((s) => s.ticker === sel) || RAW[0];
+    const selM = this.fragMeta(selRaw.f);
+    const selNote = selRaw.f >= 70
+      ? `${selRaw.name} se ve tranquilo, pero gran parte de su movimiento ya depende de la misma fuerza que mueve al resto del mercado. Si ese motor cambia, este sector ofrece poco colchon. La diversificacion interna hoy ayuda menos de lo que parece.`
+      : selRaw.f >= 50
+      ? `${selRaw.name} esta empezando a moverse demasiado cerca del mercado general. Todavia no es una senal de quiebre, pero el apoyo propio del sector se esta debilitando. Conviene mirarlo de cerca.`
+      : `${selRaw.name} todavia conserva motores distintos al del mercado general. Eso le da mas aguante si el resto se complica. Por ahora se ve relativamente firme.`;
+
+    // --- hedges ---
+    const HEDGE = [
+      { asset: "SHY", plainName: "Bonos del Tesoro de corto plazo", score: 87, status: "Mejor defensa", color: "#2dd4bf", note: "Se comporta casi como caja, pero sigue pagando. En episodios de caida ha sido de las alternativas mas estables mientras se espera una senal mejor." },
+      { asset: "BIL", plainName: "Letras del Tesoro a 1-3 meses", score: 72, status: "Bastante estable", color: "#5CD68A", note: "Muy cerca de caja pura. Poco movimiento y un rendimiento que ayuda a no quedar inmovil mientras el riesgo sigue incierto." },
+      { asset: "GLD", plainName: "Oro", score: 68, status: "Mixto", color: "#C9A86A", note: "Suele responder cuando sube el miedo, pero no entrega flujo mientras esperas. Sirve como defensa parcial, no como refugio perfecto." },
+      { asset: "IEF", plainName: "Bonos del Tesoro a 7-10 anos", score: 54, status: "Irregular", color: "#F0A93B", note: "A veces amortigua bien, pero tambien puede sufrir si la tasa larga se mueve en contra. No siempre protege igual." },
+      { asset: "TLT", plainName: "Bonos del Tesoro a 20+ anos", score: 38, status: "Debil", color: "#F0756B", note: "Tiene movimientos amplios. En escenarios como el actual puede sumar volatilidad en vez de quitarla." },
+      { asset: "UUP", plainName: "Dolar estadounidense", score: 31, status: "Debil", color: "#F0756B", note: "Ha servido como apoyo menor en episodios de tension, pero aqui aparece por debajo de otras defensas mas claras." },
+    ];
+    const hedges = HEDGE.map((h) => ({
+      asset: h.asset, plainName: h.plainName, note: h.note, score: h.score, statusWord: h.status, color: h.color,
+      barW: h.score + "%",
+      cardStyle: {
+        background: h.status === "Mejor defensa" ? "rgba(45,212,191,0.05)" : "#141319",
+        border: h.status === "Mejor defensa" ? "1px solid rgba(45,212,191,0.3)" : "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "14px", padding: "18px 22px",
+      },
+    }));
+
+    // --- eigenvalues (pro) ---
+    const EV = [0.52, 0.18, 0.11, 0.07, 0.05, 0.03, 0.02, 0.02];
+    const eigen = EV.map((v, i) => ({
+      label: "L" + (i + 1), h: (v / 0.52 * 100) + "%",
+      color: i === 0 ? "#F0756B" : i < 3 ? "#F0A93B" : "rgba(255,255,255,0.18)",
+    }));
+
+    // --- calm vs fragility chart ---
+    const W = 620, H = 200, n = 26;
+    const yOf = (v) => H - 14 - (v / 100) * (H - 28);
+    const xOf = (i) => 10 + (W - 20) * i / (n - 1);
+    let calmPts = [], fragPts = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1);
+      const calm = 22 + 3 * Math.sin(i * 0.8) + (i > 21 ? (i - 21) * 0.6 : 0);
+      const fr = Math.min(90, 30 + t * 56 + 3 * Math.sin(i * 0.6) + (i > 18 ? (i - 18) * 1.4 : 0));
+      calmPts.push(xOf(i).toFixed(1) + "," + yOf(calm).toFixed(1));
+      fragPts.push(xOf(i).toFixed(1) + "," + yOf(fr).toFixed(1));
+    }
+    const fragArea = fragPts.join(" ") + " " + xOf(n - 1).toFixed(1) + "," + (H - 14) + " " + xOf(0).toFixed(1) + "," + (H - 14);
+
+    // --- nav ---
+    const VIEWS = [
+      { id: "today", label: "Hoy" },
+      { id: "markets", label: "Sectores" },
+      { id: "edge", label: "Lectura" },
+      { id: "shields", label: "Refugios" },
+    ];
+    const navItems = VIEWS.map((v) => ({
+      label: v.label,
+      onClick: () => this.setState({ view: v.id }),
+      style: {
+        padding: "14px 18px", background: "transparent", border: "none",
+        borderBottom: view === v.id ? "2px solid #C9A86A" : "2px solid transparent",
+        color: view === v.id ? "#ECEAE3" : "#66646f",
+        fontSize: "13.5px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+        letterSpacing: "0.01em", transition: "color 0.15s ease",
+      },
+    }));
+
+    const tabBtn = (on) => ({
+      padding: "5px 16px", borderRadius: "100px", border: "none", cursor: "pointer",
+      fontFamily: "inherit", fontSize: "12px", fontWeight: 600, letterSpacing: "0.02em",
+      background: on ? "#C9A86A" : "transparent", color: on ? "#161318" : "#9a98a4",
+      transition: "all 0.15s ease",
+    });
+
+    return {
+      isToday: view === "today", isMarkets: view === "markets", isEdge: view === "edge", isShields: view === "shields",
+      isPro: pro, clock,
+      regimeLabel: pro ? "Riesgo concentrado" : "Calma enganosa",
+      setPlain: () => this.setState({ mode: "plain" }),
+      setPro: () => this.setState({ mode: "pro" }),
+      plainBtnStyle: tabBtn(!pro), proBtnStyle: tabBtn(pro),
+      navItems,
+
+      // gauge
+      dispExposure: Math.round(disp),
+      arcOffset: 100 - disp,
+      arcColor: "#F0A93B", arcGlow: "rgba(240,169,59,0.4)",
+
+      // verdict
+      todayTag: pro ? "Lectura interna" : "Lectura de hoy",
+      verdictHeadline: pro ? "El mercado esta mas apretado de lo que parece." : "La calma puede estar escondiendo riesgo.",
+      verdictBody: pro
+        ? "Aunque la volatilidad siga baja, muchas acciones se estan moviendo por la misma fuerza. Cuando eso pasa, la diversificacion pierde valor justo cuando deberia proteger. Nuestra lectura favorece menos riesgo amplio y mas peso en defensas cortas y liquidas."
+        : "A simple vista el mercado se ve tranquilo: poca volatilidad y sin senales estridentes. Pero por debajo se esta moviendo cada vez mas junto. Cuando esa calma es tan pareja, suele haber menos proteccion real de la que parece. Por eso la lectura apunta a una posicion mas liviana en acciones y a dejar el resto en instrumentos defensivos.",
+
+      // tiles
+      tile1Label: pro ? "Riesgo sugerido" : "Renta variable sugerida",
+      tile1Value: Math.round(disp) + "%",
+      tile1Sub: pro ? "Perfil bajo | antes 40%" : "Mas bajo | antes 40%",
+      tile2Label: pro ? "Defensa principal" : "Donde podria descansar el resto",
+      tile2Value: pro ? "SHY" : "Letras US",
+      tile2Sub: pro ? "Puntaje 87 / 100" : "Liquido | con rendimiento",
+      tile3Label: pro ? "Fuerza de la senal" : "Que tan clara se ve la lectura",
+      dispConv: Math.round(conv),
+      tile3Sub: pro ? "Senal alta" : "Lectura alta",
+
+      // reveal
+      revealRight: "Riesgo oculto " + Math.round(frag) + "%",
+      revealNote: pro
+        ? "Los indicadores mas mirados siguen tranquilos, pero la estructura interna ya no se ve sana. Esa distancia entre calma visible y riesgo real es lo que esta marcando BLS Prime."
+        : "Por debajo, demasiados activos se estan moviendo al mismo ritmo. Justamente por eso la calma aparente puede ser enganosa.",
+
+      // pro spectral
+      dEff: "1.74", lambda1: 52, eigen,
+
+      // markets
+      marketsSub: pro
+        ? "Lectura por sector. Un puntaje alto indica que depende demasiado del mismo impulso que mueve al resto del mercado."
+        : "Muestra que tan expuesto esta cada sector a perder diversificacion real. Fragil aqui significa menos independencia de la que parece.",
+      sectors,
+      selName: selRaw.name, selTicker: selRaw.ticker,
+      selWord: selM.word, selColor: selM.color, selBg: selM.bg,
+      selFragility: selRaw.f, selVol: selRaw.vol.toFixed(1) + "%",
+      selMetricLabel: pro ? "Puntaje interno" : "Fragilidad",
+      selNote,
+
+      // edge
+      edgeHeadline: "A veces el mercado parece sano solo porque todavia no mostro el golpe. BLS Prime busca esa diferencia antes.",
+      edgeBody: "La mayoria mira solo volatilidad. Si el precio no salta mucho, asume calma. Pero hay otra senal: si cada vez mas activos se estan moviendo por la misma razon, el mercado pierde amortiguacion aunque por fuera se vea ordenado. BLS Prime pone esa capa sobre la mesa para ayudarte a decidir si conviene actuar, esperar o bajar riesgo.",
+      calmPoints: calmPts.join(" "), fragPoints: fragPts.join(" "), fragArea,
+
+      hedges,
+    };
+  }
+}
+</script>
+</body>
+</html>
