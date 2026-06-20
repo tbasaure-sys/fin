@@ -138,7 +138,7 @@ const COPY = {
   es: {
     languageName: "Español",
     navAria: "Principal",
-    workspaceNavAria: "Navegación del espacio",
+    workspaceNavAria: "Navegación del espacio de trabajo",
     languageAria: "Elegir idioma de la página",
     nav: {
       product: "Producto",
@@ -146,120 +146,124 @@ const COPY = {
       factorlab: "FactorLab",
     },
     auth: {
-      workspace: "Espacio",
+      workspace: "Workspace",
       signOut: "Cerrar sesión",
       logIn: "Iniciar sesión",
       getStarted: "Empezar",
-      openWorkspace: "Abrir espacio",
+      openWorkspace: "Abrir workspace",
     },
     hero: {
-      eyebrow: "Decisiones de portafolio, explicadas",
-      titleStart: "Ten claro qué hacer con tu dinero",
-      titleAccent: "antes de actuar.",
+      eyebrow: "Lectura de cartera, sin ruido",
+      titleStart: "Ve el riesgo real",
+      titleAccent: "antes de moverte.",
       body:
-        "BLS Prime convierte caja, posiciones, mercado e investigación en un próximo paso claro: actuar, esperar o rechazar.",
-      primaryAuthed: "Abrir espacio",
+        "BLS Prime revisa tu cartera, el mercado y las señales de riesgo para decirte, en simple, si conviene actuar, esperar o bajar exposición.",
+      primaryAuthed: "Abrir workspace",
       primaryGuest: "Empezar",
-      secondary: "Ver el espacio",
+      secondary: "Ver la lectura",
     },
     workflow: {
       tag: "Qué recibes",
-      title: "Una lectura tranquila antes de moverte.",
+      title: "Una lectura clara antes de decidir.",
       body:
-        "El espacio muestra qué cambió, qué puede salir mal y qué acción permiten tus propias reglas.",
+        "La plataforma muestra qué cambió, dónde se concentra el riesgo, qué sectores conviene mirar y qué defensas han resistido mejor en episodios difíciles.",
     },
     research: {
       tag: "Mesa de investigación",
       title: "La respuesta viene con razones, no con misterio.",
       body:
-        "Para cada decisión, BLS Prime muestra los datos usados, los riesgos encontrados, el desacuerdo entre señales y la razón por la que ganó la respuesta final.",
-      primary: "Explorar el espacio",
+        "Cada lectura deja visible la evidencia: mercado, cartera, concentración, señales internas y el motivo por el que la decisión final tiene sentido.",
+      primary: "Explorar el workspace",
       secondary: "Empezar con tu portafolio",
     },
     cta: {
       tag: "BLS Prime",
-      title: "Muévete solo cuando la evidencia sea suficientemente clara.",
+      title: "Actúa solo cuando la lectura sea suficientemente clara.",
       body:
-        "Define tus reglas una vez, revisa cada decisión en lenguaje simple y guarda por qué actuaste, esperaste o rechazaste una idea.",
-      secondary: "Ver cómo funciona",
+        "Define tus reglas, revisa cada decisión en lenguaje simple y deja registro de por qué actuaste, esperaste o rechazaste una idea.",
+      secondary: "Ver cómo se lee",
     },
     footer: {
-      text: "Inteligencia de portafolio multicapa. No es asesoría financiera.",
+      text: "Lectura de mercado y cartera. No es asesoría financiera.",
       terms: "Términos de Servicio",
     },
     preview: {
-      sidebarHint: "Espacio de decisión",
-      sidebarMeta: ["Caja", "Portafolio", "Investigación"],
+      sidebarHint: "Lectura de cartera",
+      sidebarMeta: ["Caja", "Cartera", "Mercado"],
       items: [
-        { label: "Entradas", target: "inputs" },
-        { label: "Lo importante", target: "attention" },
+        { label: "Datos", target: "inputs" },
+        { label: "Riesgo real", target: "attention" },
         { label: "Chequeos", target: "layers" },
-        { label: "Tensiones", target: "consensus" },
+        { label: "Lectura", target: "consensus" },
         { label: "Decisión", target: "decision" },
       ],
       tabs: [
         { label: "Resumen", target: "decision" },
         { label: "Chequeos", target: "layers" },
-        { label: "Tensiones", target: "consensus" },
+        { label: "Lectura", target: "consensus" },
       ],
-      topLabel: "Motor de decisión",
-      topTitle: "Revisión de portafolio en lenguaje claro",
-      topDate: "Ejemplo en vivo",
-      topStatus: "Toca una sección para explorarla",
-      ask: "Pregunta: ¿qué cambió la decisión?",
-      leadTag: "Decisión final",
-      leadTitle: "Espera antes de agregar más riesgo.",
+      topLabel: "Motor de lectura",
+      topTitle: "Revisión de cartera en lenguaje claro",
+      topDate: "Ejemplo activo",
+      topStatus: "Toca una sección para revisar el detalle",
+      ask: "Pregunta: ¿qué está moviendo la cartera?",
+      leadTag: "Lectura de hoy",
+      leadTitle: "La calma puede estar escondiendo riesgo.",
       leadBody:
-        "Algunos activos se ven atractivos, pero el portafolio todavía depende demasiado de pocos riesgos. El sistema prepara una acción menor en vez de aumentar exposición de forma amplia.",
+        "La volatilidad se ve baja, pero muchas posiciones empiezan a moverse por la misma fuerza. La lectura sugiere mantener menos riesgo amplio y esperar una señal más limpia.",
       leadStats: [
-        { label: "Decisión final", value: "Esperar" },
-        { label: "Confianza", value: "72%" },
-        { label: "Estado", value: "En revisión" },
+        { label: "Acción", value: "Esperar" },
+        { label: "Claridad", value: "70%" },
+        { label: "Riesgo", value: "Concentrado" },
       ],
-      inputsTag: "1. Entradas",
-      inputsTitle: "La revisión empieza con cinco fuentes simples.",
+      inputsTag: "1. Datos",
+      inputsTitle: "La lectura parte con fuentes simples.",
       inputs: [
         { title: "Datos de mercado", detail: "Precio, volumen, volatilidad" },
-        { title: "Fundamentos", detail: "Flujo de caja, deuda, márgenes" },
-        { title: "Noticias y sentimiento", detail: "Cambio narrativo en tiempo real" },
-        { title: "Tu portafolio", detail: "Posiciones, límites, exposiciones" },
+        { title: "Cartera", detail: "Posiciones, caja, límites" },
+        { title: "Sectores", detail: "Dónde se concentra el movimiento" },
+        { title: "Defensas", detail: "Qué ha resistido mejor antes" },
         { title: "Tus reglas", detail: "Qué acciones están permitidas" },
       ],
-      attentionTag: "2. Lo importante",
-      attentionTitle: "La app encuentra qué cambió la decisión.",
+      attentionTag: "2. Riesgo real",
+      attentionTitle: "La app busca lo que no se ve a simple vista.",
       attentionBody:
-        "En simple: presta menos atención al ruido y más atención a los pocos hechos que realmente cambian lo que deberías hacer.",
+        "En simple: no basta con mirar si el mercado está tranquilo. También importa si la cartera perdió independencia por debajo.",
       layerTag: "3. Chequeos",
-      layerTitle: "Cada movimiento propuesto se prueba desde varios ángulos.",
+      layerTitle: "Cada decisión se mira desde varios ángulos.",
       layerRows: [
-        { label: "Chequeo de valor", detail: "¿El precio es razonable?", stance: "Apoya", value: "78%" },
-        { label: "Chequeo de riesgo", detail: "¿Qué puede romperse primero?", stance: "Advierte", value: "62%" },
-        { label: "Contexto de mercado", detail: "¿El mercado ayuda?", stance: "Neutral", value: "55%" },
-        { label: "Chequeo de solapamiento", detail: "¿Hay demasiadas apuestas parecidas?", stance: "Advierte", value: "71%" },
+        { label: "Riesgo visible", detail: "¿La volatilidad parece controlada?", stance: "Apoya", value: "78%" },
+        { label: "Riesgo oculto", detail: "¿Muchas posiciones dependen de lo mismo?", stance: "Advierte", value: "71%" },
+        { label: "Sectores", detail: "¿Dónde conviene mirar con más cuidado?", stance: "Neutral", value: "55%" },
+        { label: "Defensas", detail: "¿Qué refugios han funcionado mejor?", stance: "Apoya", value: "87%" },
       ],
-      consensusTag: "4. Tensiones",
-      consensusTitle: "La respuesta final pesa recompensa contra lo que puede salir mal.",
-      consensusRows: ["Valor", "Riesgo", "Mercado", "Solapamiento"],
-      actionTag: "5. Plan de acción",
-      actionTitle: "Cómo llega la decisión al portafolio real.",
+      consensusTag: "4. Lectura",
+      consensusTitle: "La respuesta final separa calma visible de fragilidad real.",
+      consensusRows: ["Calma", "Concentración", "Defensa", "Espacio"],
+      actionTag: "5. Plan",
+      actionTitle: "Qué hacer con la cartera real.",
       actions: [
-        { label: "Mantener", detail: "No cambiar tamaño por ahora", value: "Sin cambio" },
-        { label: "Esperar", detail: "No aumentar riesgo amplio todavía", value: "24h" },
-        { label: "Revisar", detail: "Recalcular cuando mejoren los riesgos", value: "Sig." },
+        { label: "Mantener", detail: "No aumentar exposición todavía", value: "Ahora" },
+        { label: "Esperar", detail: "Revisar cuando baje la concentración", value: "24h" },
+        { label: "Defender", detail: "Dejar caja o instrumentos líquidos", value: "Activo" },
       ],
     },
     support: [
       {
-        title: "Una primera lectura clara",
-        body: "Parte por lo único que el portafolio te está diciendo hoy.",
+        title: "Lectura diaria",
+        body: "Empieza por lo que la cartera y el mercado están diciendo hoy.",
       },
       {
-        title: "Riesgos en lenguaje simple",
-        body: "Ve qué podría dañar el portafolio sin tener que descifrar jerga de mercado.",
+        title: "Riesgo oculto",
+        body: "Muestra cuándo la calma visible puede estar escondiendo concentración.",
       },
       {
-        title: "Razones que puedes revisar",
-        body: "Cada respuesta muestra los chequeos y la evidencia que cambiaron la decisión.",
+        title: "Sectores y defensas",
+        body: "Ordena dónde mirar con más cuidado y qué refugios han resistido mejor.",
+      },
+      {
+        title: "Razones revisables",
+        body: "Cada lectura deja claro por qué conviene actuar, esperar o rechazar.",
       },
     ],
   },
@@ -279,11 +283,11 @@ function getInitialLanguage() {
     return stored;
   }
 
-  return window.navigator.language?.toLowerCase().startsWith("es") ? "es" : "en";
+  return window.navigator.language?.toLowerCase().startsWith("en") ? "en" : "es";
 }
 
 export function PublicHomeExperience({ brand, isAuthenticated }) {
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState("es");
   const [hasResolvedLanguage, setHasResolvedLanguage] = useState(false);
   const copy = COPY[language];
   const primaryHref = isAuthenticated ? "/app" : "/login";
