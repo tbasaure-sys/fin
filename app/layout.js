@@ -3,7 +3,7 @@ import { LanguageLayer } from "@/components/language-layer";
 
 const rawAppName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
 const appName = /allocator workspace/i.test(rawAppName) ? "BLS Prime" : rawAppName;
-const cacheRecoveryVersion = "2026-04-03-v1";
+const cacheRecoveryVersion = "2026-06-21-public-home-v1";
 const appDescription =
   "A private personal finance and investing workspace that connects monthly cashflow, portfolio risk, equity research, and decision memory.";
 
