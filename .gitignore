@@ -3,6 +3,7 @@ output/
 cache/
 tmp/
 .pytest_cache/
+.pytest_tmp/
 _local_data/
 
 # local data and notebooks
@@ -34,6 +35,8 @@ node_modules/
 /mobile/
 devserver.stdout.log
 devserver.stderr.log
+devserver.goal.stdout.log
+devserver.goal.stderr.log
 
 # local repo copies
 /clean-repo/
