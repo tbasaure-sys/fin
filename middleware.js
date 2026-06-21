@@ -23,7 +23,13 @@ export function middleware(request) {
   }
 
   const cookieName = (process.env.BLS_PRIME_SESSION_COOKIE_NAME || "bls_prime_session").trim() || "bls_prime_session";
-  const hasSession = Boolean(request.cookies.get(cookieName)?.value);
+  const bypassValue = String(process.env.BLS_PRIME_E2E_AUTH_BYPASS || "").trim().toLowerCase();
+  const hasE2EBypass = process.env.NODE_ENV !== "production" && (
+    bypassValue === "1" ||
+    bypassValue === "true" ||
+    bypassValue === "yes"
+  );
+  const hasSession = hasE2EBypass || Boolean(request.cookies.get(cookieName)?.value);
 
   if (pathname === "/access") {
     return NextResponse.redirect(new URL("/login", request.url));
