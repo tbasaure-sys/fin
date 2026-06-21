@@ -3836,6 +3836,13 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             primaryAction={primaryAction}
             stateSummary={stateSummary}
           />
+          <PersonalFinancePanel
+            draft={financeDraft}
+            financePlan={personalFinance}
+            onChange={updateFinanceDraft}
+            onSubmit={submitFinanceDraft}
+            pending={pendingKey === "finance-plan"}
+          />
           {escrowPanel}
           {currentBriefPanel}
           {ledgerItems.length ? (

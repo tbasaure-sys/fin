@@ -6,6 +6,47 @@ export const runtime = "nodejs";
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 const MODEL = process.env.OPENAI_MODEL || "gpt-4o";
 
+function streamTextMessage(message) {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(`data: ${JSON.stringify({ delta: message })}\n\n`));
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-store",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}
+
+function buildLocalFallbackMessage(dashboard = {}, language = "en", reason = "provider_unavailable") {
+  const state = dashboard?.state_summary || {};
+  const portfolio = dashboard?.modules?.portfolio || {};
+  const holdings = Array.isArray(portfolio?.holdings) ? portfolio.holdings : [];
+  const stance = state.stance || "not set";
+  const decision = state.decisionSummary || "the workspace does not have a precise live answer yet";
+  const risk = state.mainRisk || dashboard?.risk_cluster?.dominantLabel || "risk is still loading";
+
+  if (language === "es") {
+    const reasonCopy = reason === "rate_limited"
+      ? "El modelo externo esta ocupado ahora mismo."
+      : "El modelo externo no esta disponible ahora mismo.";
+    return `${reasonCopy} Con lo que ya aparece en tu espacio: la postura es "${stance}", la lectura dice "${decision}", hay ${holdings.length} posicion${holdings.length === 1 ? "" : "es"} registrada${holdings.length === 1 ? "" : "s"} y el riesgo principal es "${risk}". Usa esta respuesta como lectura local y vuelve a intentar la pregunta en unos minutos.`;
+  }
+
+  const reasonCopy = reason === "rate_limited"
+    ? "The external model is rate-limited right now."
+    : "The external model is not available right now.";
+  return `${reasonCopy} From the workspace data already loaded: the stance is "${stance}", the current read is "${decision}", ${holdings.length} holding${holdings.length === 1 ? "" : "s"} are recorded, and the main risk is "${risk}". Treat this as a local fallback and try the question again in a few minutes.`;
+}
+
 function buildSystemPrompt(workspaceName, dashboard, language = "en") {
   const state = dashboard?.state_summary || {};
   const portfolio = dashboard?.modules?.portfolio || null;
@@ -88,14 +129,6 @@ export async function POST(request, { params }) {
   const auth = await requireApiWorkspaceSession(request, params.workspaceId);
   if (auth instanceof Response) return auth;
 
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return Response.json(
-      { error: "OPENAI_API_KEY is not configured. Add it to your .env file to enable portfolio chat." },
-      { status: 503 },
-    );
-  }
-
   let body;
   try {
     body = await request.json();
@@ -107,6 +140,11 @@ export async function POST(request, { params }) {
 
   if (!message || typeof message !== "string" || !message.trim()) {
     return Response.json({ error: "Message is required." }, { status: 400 });
+  }
+
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return streamTextMessage(buildLocalFallbackMessage(dashboard, language === "es" ? "es" : "en"));
   }
 
   const workspaceName =
@@ -144,22 +182,16 @@ export async function POST(request, { params }) {
       }),
     });
   } catch (fetchError) {
-    return Response.json(
-      { error: "Could not reach OpenAI. Check your internet connection." },
-      { status: 502 },
-    );
+    return streamTextMessage(buildLocalFallbackMessage(dashboard, language === "es" ? "es" : "en"));
   }
 
   if (!openaiResponse.ok) {
-    const errText = await openaiResponse.text().catch(() => "");
     const status = openaiResponse.status;
-    if (status === 401) {
-      return Response.json({ error: "Invalid OPENAI_API_KEY. Check your .env file." }, { status: 401 });
-    }
-    if (status === 429) {
-      return Response.json({ error: "OpenAI rate limit reached. Try again in a moment." }, { status: 429 });
-    }
-    return Response.json({ error: `OpenAI error ${status}: ${errText.slice(0, 200)}` }, { status: 502 });
+    return streamTextMessage(buildLocalFallbackMessage(
+      dashboard,
+      language === "es" ? "es" : "en",
+      status === 429 ? "rate_limited" : "provider_unavailable",
+    ));
   }
 
   // Pipe the OpenAI SSE stream straight through as text/event-stream
