@@ -1,8 +1,8 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-06-22T03:33:39.772868+00:00",
+  "generated_at": "2026-06-22T05:11:46.937220+00:00",
   "source_mode": "live_fred",
-  "offline": false,
+  "offline": true,
   "fred_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\fred",
     "files": 44,
@@ -12,7 +12,7 @@
   "public_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
-    "newest_cached_at": "2026-06-22T03:33:39.771094+00:00",
+    "newest_cached_at": "2026-06-22T05:08:25.801477+00:00",
     "oldest_cached_at": "2026-06-18T16:47:34.412498+00:00"
   },
   "global_disequilibrium_index": 35,
@@ -20,7 +20,7 @@
   "plain_summary": {
     "headline": "Top imbalance: grid transformers (shortage probable).",
     "pressure": "Pressure to inspect first: grid transformers at score 72.",
-    "break": "Weakest demand read: property at score -33.",
+    "break": "Weakest demand read: uranium enrichment at score 6.",
     "warning": "No source errors."
   },
   "source_summary": {
@@ -106,7 +106,7 @@
       },
       {
         "market": "property",
-        "score": -33,
+        "score": -24,
         "missing_layer": "City-level inventory and developer balance-sheet detail",
         "next_connector": "City inventory releases / developer financing mix / listed developer disclosures"
       }
@@ -129,51 +129,27 @@
     "oldest_age_days": 113
   },
   "history_delta": {
-    "previous_gdi": 30,
+    "previous_gdi": 35,
     "current_gdi": 35,
-    "delta": 5,
-    "direction": "up"
+    "delta": 0,
+    "direction": "flat"
   },
   "market_movers": [
     {
-      "market_id": "global_power_transformers",
-      "item": "grid transformers",
-      "score": 72,
-      "delta": 53,
-      "direction": "up",
-      "reading": "Shortage probable"
-    },
-    {
-      "market_id": "eu_energy_gas",
-      "item": "natural gas",
-      "score": 41,
-      "delta": 22,
-      "direction": "up",
-      "reading": "Bottleneck emerging"
-    },
-    {
       "market_id": "china_property",
       "item": "property",
-      "score": -33,
-      "delta": 21,
-      "direction": "up",
-      "reading": "Loosening"
-    },
-    {
-      "market_id": "global_uranium",
-      "item": "uranium enrichment",
-      "score": 4,
-      "delta": 17,
+      "score": -24,
+      "delta": 9,
       "direction": "up",
       "reading": "Mixed"
     },
     {
-      "market_id": "latam_ag_fertilizer",
-      "item": "fertilizer and shipping",
-      "score": 43,
-      "delta": 3,
+      "market_id": "global_uranium",
+      "item": "uranium enrichment",
+      "score": 6,
+      "delta": 2,
       "direction": "up",
-      "reading": "Bottleneck emerging"
+      "reading": "Mixed"
     }
   ],
   "markets": [
@@ -205,11 +181,11 @@
         "margin_compression": -5
       },
       "market_delta": {
-        "previous_score": 19,
+        "previous_score": 72,
         "current_score": 72,
-        "delta": 53,
-        "direction": "up",
-        "previous_reading": "Bottleneck emerging"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Shortage probable"
       },
       "research_angle": "Electrical equipment, copper, utilities capex.",
       "source_series": [
@@ -335,10 +311,10 @@
         "margin_compression": -19
       },
       "market_delta": {
-        "previous_score": 40,
+        "previous_score": 43,
         "current_score": 43,
-        "delta": 3,
-        "direction": "up",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Food inflation, farm margins, EM import bills.",
@@ -401,11 +377,11 @@
         "margin_compression": -8
       },
       "market_delta": {
-        "previous_score": 19,
+        "previous_score": 41,
         "current_score": 41,
-        "delta": 22,
-        "direction": "up",
-        "previous_reading": "Mixed"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
       "source_series": [
@@ -507,32 +483,32 @@
       "sector": "construction",
       "link": "final demand",
       "item": "property",
-      "score": -33,
-      "reading": "Loosening",
-      "state": "loosening",
+      "score": -24,
+      "reading": "Mixed",
+      "state": "mixed",
       "conflict": "mixed",
       "data_quality": 97,
       "data_note": "Live public sources are current enough for screening.",
       "use_with_caution": false,
-      "why": "demand is slowing; partly offset by delivery friction is rising.",
-      "top_positive_driver": "delivery_stress",
+      "why": "demand is slowing; partly offset by prices are moving faster.",
+      "top_positive_driver": "price_acceleration",
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
-        "price_acceleration": 13,
-        "inventory_drawdown": 1,
+        "price_acceleration": 17,
+        "inventory_drawdown": 2,
         "delivery_stress": 14,
         "capacity_tightness": 2,
         "trade_stress": 8,
-        "demand_slowdown": -37,
-        "inventory_buildup": -17,
-        "margin_compression": -17
+        "demand_slowdown": -35,
+        "inventory_buildup": -16,
+        "margin_compression": -16
       },
       "market_delta": {
-        "previous_score": -54,
-        "current_score": -33,
-        "delta": 21,
+        "previous_score": -33,
+        "current_score": -24,
+        "delta": 9,
         "direction": "up",
-        "previous_reading": "Inventory overhang"
+        "previous_reading": "Loosening"
       },
       "research_angle": "Iron ore, steel, banks, local government finance.",
       "source_series": [
@@ -592,10 +568,10 @@
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 21,
+        "previous_score": 19,
         "current_score": 19,
-        "delta": -2,
-        "direction": "down",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Mixed"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
@@ -696,7 +672,7 @@
       "sector": "energy",
       "link": "upstream",
       "item": "uranium enrichment",
-      "score": 4,
+      "score": 6,
       "reading": "Mixed",
       "state": "mixed",
       "conflict": "mixed",
@@ -712,16 +688,16 @@
         "delivery_stress": 10,
         "capacity_tightness": 20,
         "trade_stress": 6,
-        "demand_slowdown": -40,
+        "demand_slowdown": -38,
         "inventory_buildup": -4,
         "margin_compression": -6
       },
       "market_delta": {
-        "previous_score": -13,
-        "current_score": 4,
-        "delta": 17,
+        "previous_score": 4,
+        "current_score": 6,
+        "delta": 2,
         "direction": "up",
-        "previous_reading": "Hidden shortage risk"
+        "previous_reading": "Mixed"
       },
       "research_angle": "Miners, enrichers, utilities fuel contracts.",
       "source_series": [
@@ -756,13 +732,6 @@
       "priority": "high"
     },
     {
-      "kind": "risk_check",
-      "market_id": "china_property",
-      "title": "Check demand risk in property",
-      "reason": "demand is slowing; partly offset by delivery friction is rising.",
-      "priority": "medium"
-    },
-    {
       "kind": "connector",
       "market_id": "global_power_transformers",
       "title": "Refine data for grid transformers",
@@ -774,6 +743,13 @@
       "market_id": "asia_europe_shipping",
       "title": "Refine data for container shipping",
       "reason": "Current values are captured; score use waits until enough local observations exist.",
+      "priority": "medium"
+    },
+    {
+      "kind": "connector",
+      "market_id": "latam_ag_fertilizer",
+      "title": "Refine data for fertilizer and shipping",
+      "reason": "Fertilizer nutrient, import-price and freight pressure are connected; the remaining gap is physical import volume and local availability.",
       "priority": "medium"
     }
   ]

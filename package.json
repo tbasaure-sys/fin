@@ -21,6 +21,9 @@
     "db:holdings:bootstrap": "node scripts/bootstrap-neon-holdings.mjs",
     "db:runtime:seed": "node scripts/runtime-store-seed.mjs",
     "db:runtime:seed:full": "python3 scripts/runtime_store_seed.py",
+    "snapshots:refresh": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/refresh-live-snapshots.ps1",
+    "snapshots:refresh:dry": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/refresh-live-snapshots.ps1 -SkipGit",
+    "snapshots:task:register": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-live-snapshot-task.ps1",
     "snapshots:sync": "node scripts/sync-live-snapshots.mjs",
     "test:web": "node --conditions=react-server --test tests-node/*.test.mjs"
   }
