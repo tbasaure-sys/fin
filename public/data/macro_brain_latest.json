@@ -1,0 +1,479 @@
+{
+  "generated_on": "2026-06-22T03:31:51.628261+00:00",
+  "run_date": "2026-06-18",
+  "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+  "observations": 143191,
+  "series_count": 25,
+  "impulse_changes": [
+    {
+      "series_id": "EEM",
+      "date": "2026-06-18T00:00:00",
+      "value": 70.79000091552734,
+      "transformed": 0.03200852203935334,
+      "momentum": 0.8657077272940263,
+      "impulse": 0.6703637636938353,
+      "momentum_z": 2.321437142527653,
+      "impulse_z": 2.882463566422065,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Emerging markets ETF"
+    },
+    {
+      "series_id": "T10YIE",
+      "date": "2026-06-18T00:00:00",
+      "value": 2.25,
+      "transformed": -0.009999999999999787,
+      "momentum": -0.08000000000000007,
+      "impulse": -0.2400000000000002,
+      "momentum_z": -0.7419398354242595,
+      "impulse_z": -1.939160933495224,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y breakeven"
+    },
+    {
+      "series_id": "GC=F",
+      "date": "2026-06-11T00:00:00",
+      "value": 4165.39990234375,
+      "transformed": 0.01382726206310636,
+      "momentum": -0.7256996235177198,
+      "impulse": -0.45867885583040646,
+      "momentum_z": -3.067612103668522,
+      "impulse_z": -1.8775456140955324,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Gold futures"
+    },
+    {
+      "series_id": "COP=X",
+      "date": "2026-06-11T00:00:00",
+      "value": 3487.330078125,
+      "transformed": -0.02481195355601784,
+      "momentum": -0.1698576316225271,
+      "impulse": -0.29678632232860735,
+      "momentum_z": -0.52124194184817,
+      "impulse_z": -1.7855601584680858,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "USDCOP"
+    },
+    {
+      "series_id": "DGS10",
+      "date": "2026-06-17T00:00:00",
+      "value": 4.49,
+      "transformed": 0.0600000000000005,
+      "momentum": 0.10000000000000053,
+      "impulse": -0.4899999999999993,
+      "momentum_z": 0.07564382349270296,
+      "impulse_z": -1.4988683543924282,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y nominal yield"
+    },
+    {
+      "series_id": "BAMLH0A0HYM2",
+      "date": "2026-06-17T00:00:00",
+      "value": 2.63,
+      "transformed": -0.08000000000000007,
+      "momentum": -0.6100000000000003,
+      "impulse": -0.5900000000000003,
+      "momentum_z": -1.495609944926364,
+      "impulse_z": -1.4694262974311558,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US HY OAS"
+    },
+    {
+      "series_id": "LQD",
+      "date": "2026-06-11T00:00:00",
+      "value": 108.8949966430664,
+      "transformed": 0.0065875751110393566,
+      "momentum": 0.05472218125476047,
+      "impulse": 0.1168339851433089,
+      "momentum_z": 0.3076550613592345,
+      "impulse_z": 1.18010686553927,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Investment grade ETF"
+    },
+    {
+      "series_id": "WALCL",
+      "date": "2026-06-17T00:00:00",
+      "value": 6736424.0,
+      "transformed": 6736424.0,
+      "momentum": 80485.0,
+      "impulse": -34622.0,
+      "momentum_z": 1.1083521882260714,
+      "impulse_z": -1.1280588673797318,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Fed balance sheet"
+    },
+    {
+      "series_id": "QQQ",
+      "date": "2026-06-18T00:00:00",
+      "value": 740.6199951171875,
+      "transformed": 0.024756392415480555,
+      "momentum": 0.9230428750174262,
+      "impulse": 0.2852602463354579,
+      "momentum_z": 2.3261231734745302,
+      "impulse_z": 1.126348823779797,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Nasdaq 100 ETF"
+    },
+    {
+      "series_id": "CLP=X",
+      "date": "2026-06-10T00:00:00",
+      "value": 916.4299926757812,
+      "transformed": -0.007056859492275969,
+      "momentum": 0.0031874616121427835,
+      "impulse": -0.19363625594583667,
+      "momentum_z": -0.12759792960186328,
+      "impulse_z": -1.1067606054780252,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "USDCLP"
+    },
+    {
+      "series_id": "BRL=X",
+      "date": "2026-06-10T00:00:00",
+      "value": 5.190100193023682,
+      "transformed": -0.002501639096067043,
+      "momentum": -0.041249841607780446,
+      "impulse": 0.19022243076012746,
+      "momentum_z": -0.09798633326594751,
+      "impulse_z": 1.0901641535490683,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "USDBRL"
+    },
+    {
+      "series_id": "HYG",
+      "date": "2026-06-11T00:00:00",
+      "value": 79.79000091552734,
+      "transformed": 0.0035783165760703284,
+      "momentum": 0.07776285573235242,
+      "impulse": 0.06471011558061335,
+      "momentum_z": 0.13630878605070315,
+      "impulse_z": 1.0873102455267296,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "High yield ETF"
+    }
+  ],
+  "liquidity": {
+    "status": "available",
+    "summary": "US net liquidity impulse is negative.",
+    "components": {
+      "us_net_liquidity": {
+        "latest": 5855704.172,
+        "momentum": 52817.99399999995,
+        "impulse": -136419.72699999996,
+        "impulse_direction": "negative"
+      },
+      "WALCL": {
+        "label": "Fed balance sheet",
+        "impulse": -34622.0,
+        "impulse_z": -1.1280588673797318
+      },
+      "WTREGEN": {
+        "label": "Treasury General Account",
+        "impulse": 101804.0,
+        "impulse_z": 0.7403507586211042
+      },
+      "RRPONTSYD": {
+        "label": "Overnight reverse repo",
+        "impulse": -24.977000000000004,
+        "impulse_z": -0.34044720166543674
+      }
+    }
+  },
+  "theses": [
+    {
+      "thesis_id": "T1",
+      "title": "USD fuerte vs LatAm FX",
+      "status": "live",
+      "confidence": 0.62,
+      "amb_display": 0.6,
+      "confirmations": 2,
+      "neutrals": 0,
+      "contradictions": 3,
+      "license_state": "CONDITIONAL",
+      "details": [
+        {
+          "series_id": "DXY",
+          "expected_sign": 1,
+          "label": "DXY confirms",
+          "observed_sign": -1,
+          "state": "contradicting"
+        },
+        {
+          "series_id": "DFII10",
+          "expected_sign": 1,
+          "label": "US real yields confirm",
+          "observed_sign": -1,
+          "state": "contradicting"
+        },
+        {
+          "series_id": "CLP=X",
+          "expected_sign": 1,
+          "label": "USDCLP confirms",
+          "observed_sign": -1,
+          "state": "contradicting"
+        },
+        {
+          "series_id": "BRL=X",
+          "expected_sign": 1,
+          "label": "USDBRL confirms",
+          "observed_sign": 1,
+          "state": "confirming"
+        },
+        {
+          "series_id": "HG=F",
+          "expected_sign": -1,
+          "label": "Copper pressure confirms",
+          "observed_sign": -1,
+          "state": "confirming"
+        }
+      ],
+      "invalidation": [
+        "US real-yield impulse turns negative for five sessions",
+        "DXY fails to confirm while LatAm FX strengthens",
+        "AMB >= 1 on the thesis confirmation set"
+      ],
+      "market_expression": "Long DXY / long USDCLP-USDBRL basket",
+      "asymmetry": 1.8
+    },
+    {
+      "thesis_id": "T2",
+      "title": "Cobre piso estructural",
+      "status": "live",
+      "confidence": 0.5,
+      "amb_display": 0.375,
+      "confirmations": 2,
+      "neutrals": 1,
+      "contradictions": 1,
+      "license_state": "CONDITIONAL",
+      "details": [
+        {
+          "series_id": "HG=F",
+          "expected_sign": 1,
+          "label": "Copper confirms",
+          "observed_sign": -1,
+          "state": "contradicting"
+        },
+        {
+          "series_id": "CLP=X",
+          "expected_sign": -1,
+          "label": "CLP confirms",
+          "observed_sign": -1,
+          "state": "confirming"
+        },
+        {
+          "series_id": "DXY",
+          "expected_sign": -1,
+          "label": "DXY not hostile",
+          "observed_sign": -1,
+          "state": "confirming"
+        },
+        {
+          "series_id": "GC=F",
+          "expected_sign": 0,
+          "label": "Gold neutral",
+          "observed_sign": -1,
+          "state": "neutral"
+        }
+      ],
+      "invalidation": [
+        "China impulse deteriorates for six weeks",
+        "Copper impulse remains negative for five sessions",
+        "USDCLP rises despite copper stabilization"
+      ],
+      "market_expression": "Long copper / long Chile-linked beta",
+      "asymmetry": 2.0
+    },
+    {
+      "thesis_id": "T3",
+      "title": "BCCh corta antes de Fed",
+      "status": "live",
+      "confidence": 0.56,
+      "amb_display": 0.8333333333333334,
+      "confirmations": 0,
+      "neutrals": 1,
+      "contradictions": 2,
+      "license_state": "CONDITIONAL",
+      "details": [
+        {
+          "series_id": "CLP=X",
+          "expected_sign": 0,
+          "label": "FX stress not dominant",
+          "observed_sign": -1,
+          "state": "neutral"
+        },
+        {
+          "series_id": "DGS2",
+          "expected_sign": 1,
+          "label": "US front-end still restrictive",
+          "observed_sign": -1,
+          "state": "contradicting"
+        },
+        {
+          "series_id": "DFII10",
+          "expected_sign": 1,
+          "label": "Real-yield backdrop restrictive",
+          "observed_sign": -1,
+          "state": "contradicting"
+        }
+      ],
+      "invalidation": [
+        "Chile inflation impulse reaccelerates",
+        "Fed real-yield impulse collapses before BCCh moves",
+        "USDCLP stress makes easing impractical"
+      ],
+      "market_expression": "Chile rates lower relative to US front-end",
+      "asymmetry": 1.5
+    }
+  ],
+  "defeater_calendar": [
+    {
+      "release": "US CPI",
+      "timing": "next release",
+      "affected_theses": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "license_value": 4.817
+    },
+    {
+      "release": "China trade / credit impulse",
+      "timing": "next release",
+      "affected_theses": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "license_value": 4.583
+    },
+    {
+      "release": "US payrolls",
+      "timing": "Friday",
+      "affected_theses": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "license_value": 4.242
+    },
+    {
+      "release": "Chile CPI / BCCh",
+      "timing": "next release",
+      "affected_theses": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "license_value": 3.442
+    },
+    {
+      "release": "CFTC positioning",
+      "timing": "Friday lag",
+      "affected_theses": [
+        "T1",
+        "T2"
+      ],
+      "license_value": 3.325
+    }
+  ],
+  "psm": {
+    "generated_on": "2026-06-11T23:11:56",
+    "model_version": "PSM_v0.1_RESEARCH_2026_06_11",
+    "research_only": true,
+    "product_promotion_allowed": false,
+    "promotion_rule": "Require H1 and H2 PASS plus full placebo battery before insertion as an active blsprime-fin product module.",
+    "latest_date": "2026-06-11",
+    "status": "NO_PSM_ALERT",
+    "metrics": {
+      "rho_q50": 0.35291842733341733,
+      "rho_q05": 0.3100155169743984,
+      "rho_q95": 0.39582133769243627,
+      "half_life_days": 0.6655160631694041,
+      "psi": -0.39889988998899883,
+      "amb_upper": 0.06630216679207651,
+      "amb_two_sided_display": 0.13260433358415302,
+      "reactivity": 0.3917851901215745,
+      "henrici_departure": 0.7789085609870002,
+      "stability_radius": 0.5527011551193672,
+      "unit_root_gap_z1": 0.6872561817129982,
+      "leave_one_out_max_rho_delta": 0.10032097678086638
+    },
+    "visual_mapping": {
+      "globe_color_temperature": 0.29409868944451445,
+      "epistemic_defocus": 0.033151083396038256,
+      "pulse": false,
+      "map_failed": false
+    },
+    "dominant_mode": {
+      "us_2y_yield_delta_bps": -0.16507910853678678,
+      "us_10y_real_yield_delta_bps": -0.04234004721029631,
+      "dxy_log_return": -0.2257112701754726,
+      "copper_log_return": 0.4349436834838731,
+      "gold_log_return": 0.36738072540625355,
+      "usdclp_log_return": 0.6638869793318144,
+      "usdbrl_log_return": 0.30600534311289634,
+      "latam_fx_basket_log_return": -0.2272080336108292,
+      "chile_stress_proxy": -0.09928415665602289
+    },
+    "gates": {
+      "data_layer": "PASS",
+      "spectral_engine": "PASS",
+      "H1_fragility_content": "PASS",
+      "H2_amb_content": "PASS",
+      "H3_non_normality_content": "WARN",
+      "defeater_leave_one_out_stability": "WARN",
+      "placebo_dynamics_destroyed": "PASS"
+    },
+    "invalidation": [
+      "PSI falls below alert threshold for five consecutive sessions.",
+      "AMB_upper remains above 1, in which case the monitor is too ambiguous to license the claim.",
+      "Leave-one-out rho delta exceeds 0.10, indicating the state is one-series driven.",
+      "H1 or H2 validation fails in the frozen protocol."
+    ],
+    "source_notes": {
+      "model_version": "PSM_v0.1_RESEARCH_2026_06_11",
+      "state_columns": [
+        "us_2y_yield_delta_bps",
+        "us_10y_real_yield_delta_bps",
+        "dxy_log_return",
+        "copper_log_return",
+        "gold_log_return",
+        "usdclp_log_return",
+        "usdbrl_log_return",
+        "latam_fx_basket_log_return",
+        "chile_stress_proxy"
+      ],
+      "start_date": "2007-11-21",
+      "end_date": "2026-06-11",
+      "rows": 4825,
+      "notes": [
+        "Daily changes are standardized with EWMA volatility using only information through t-1.",
+        "DGS2/DFII10 are official FRED feeds when available; yfinance proxies are used only as fallback.",
+        "Chile CDS/EMBI is represented by an inverse ECH ETF stress proxy in this MVP when no paid CDS feed is available."
+      ]
+    }
+  },
+  "question_of_day": "Where are you confusing a level with an impulse?"
+}
