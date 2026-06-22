@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 import styles from "./macro-brain.module.css";
-import { macroBrainSnapshot as snapshot } from "@/lib/macro-brain-snapshot";
+import { loadMacroBrainSnapshot } from "@/lib/server/macro-brain";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export const metadata = {
   title: "Macro Brain | BLS Prime",
@@ -27,7 +30,8 @@ function ideaStatus(state) {
   return "Paused";
 }
 
-export default function MacroBrainPage() {
+export default async function MacroBrainPage() {
+  const snapshot = await loadMacroBrainSnapshot();
   const openIdeas = snapshot.theses.filter((item) => item.state === "open").length;
   const watchedIdeas = snapshot.theses.filter((item) => item.state === "watch").length;
   const dataPointLabel = `${formatNumber(snapshot.observations)} data points`;

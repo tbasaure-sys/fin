@@ -3038,8 +3038,52 @@ function mosaicScoreLabel(score) {
   return value > 0 ? `+${Math.round(value)}` : `${Math.round(value)}`;
 }
 
+function useMosaicLiveSnapshot() {
+  const [state, setState] = useState({
+    snapshot: mosaicObservatorySnapshot,
+    loading: true,
+    error: "",
+  });
+
+  const refresh = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setState((current) => ({ ...current, loading: true, error: "" }));
+    }
+
+    try {
+      const response = await fetch(`/api/mosaic?ts=${Date.now()}`, { cache: "no-store" });
+      const payload = await parseResponse(response);
+      setState({
+        snapshot: { ...mosaicObservatorySnapshot, ...payload },
+        loading: false,
+        error: "",
+      });
+    } catch (requestError) {
+      setState((current) => ({
+        ...current,
+        loading: false,
+        error: friendlyWorkspaceMessage(
+          requestError?.message || requestError,
+          "No pude leer MOSAIC en vivo. Se usa la última foto guardada.",
+        ),
+      }));
+    }
+  }, []);
+
+  useEffect(() => {
+    void refresh();
+    const interval = window.setInterval(() => {
+      void refresh({ silent: true });
+    }, 120000);
+
+    return () => window.clearInterval(interval);
+  }, [refresh]);
+
+  return { ...state, refresh };
+}
+
 function MosaicObservatoryPanel() {
-  const snapshot = mosaicObservatorySnapshot;
+  const { snapshot, loading, error, refresh } = useMosaicLiveSnapshot();
   const topMarkets = safeList(snapshot.markets).slice(0, 5);
   const softMarkets = safeList(snapshot.markets).filter((item) => Number(item.score) < 0).slice(0, 3);
   const scoreGuide = safeList(snapshot.scoreGuide);
@@ -3067,7 +3111,20 @@ function MosaicObservatoryPanel() {
           <span>{snapshot.sourceLine}</span>
           <span>{snapshot.freshness}</span>
           <span>{providerText}</span>
+          <span>
+            {loading ? "Actualizando..." : snapshot.dataStatus || "Live"}
+            <button
+              className={styles.macroBrainRefresh}
+              disabled={loading}
+              onClick={() => refresh()}
+              type="button"
+            >
+              {loading ? "Actualizando" : "Actualizar"}
+            </button>
+          </span>
         </div>
+
+        {error ? <p className={styles.macroBrainError}>{error}</p> : null}
 
         <div className={styles.mosaicPlainNote}>
           <strong>Qué significa la primera alerta</strong>

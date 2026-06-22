@@ -179,6 +179,48 @@ test("equity research direct path returns a visible degraded memo when backend i
   }
 });
 
+test("equity research rate limit waits before retrying backend start", async () => {
+  const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
+  const previousBackendUrl = process.env.BLS_PRIME_BACKEND_URL;
+  const previousCooldown = process.env.EQUITY_RESEARCH_RATE_LIMIT_COOLDOWN_MS;
+  const previousFetch = globalThis.fetch;
+  process.env.BLS_PRIME_STORAGE_BACKEND = "memory";
+  process.env.BLS_PRIME_BACKEND_URL = "https://research-backend.example";
+  process.env.EQUITY_RESEARCH_RATE_LIMIT_COOLDOWN_MS = "60000";
+
+  const calls = [];
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), body: JSON.parse(String(options.body || "{}")) });
+    return new Response(JSON.stringify({ error: "Too many API requests" }), {
+      status: 429,
+      headers: { "content-type": "application/json" },
+    });
+  };
+
+  try {
+    const started = await startWorkspaceEquityResearch("rate-limit-ws", "unh", { mode: "full" });
+    assert.equal(started.ok, true);
+    assert.equal(started.status, "queued");
+    assert.ok(started.retry_after_ms > 0);
+    assert.equal(calls.length, 1);
+
+    const polled = await getWorkspaceEquityResearchJob("rate-limit-ws", "UNH", started.run_id);
+    assert.equal(polled.ok, true);
+    assert.equal(polled.status, "queued");
+    assert.ok(polled.retry_after_ms > 0);
+    assert.match(polled.last_error, /429|Too many API requests/i);
+    assert.equal(calls.length, 1);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousBackend === undefined) delete process.env.BLS_PRIME_STORAGE_BACKEND;
+    else process.env.BLS_PRIME_STORAGE_BACKEND = previousBackend;
+    if (previousBackendUrl === undefined) delete process.env.BLS_PRIME_BACKEND_URL;
+    else process.env.BLS_PRIME_BACKEND_URL = previousBackendUrl;
+    if (previousCooldown === undefined) delete process.env.EQUITY_RESEARCH_RATE_LIMIT_COOLDOWN_MS;
+    else process.env.EQUITY_RESEARCH_RATE_LIMIT_COOLDOWN_MS = previousCooldown;
+  }
+});
+
 test("equity research adds one Vercel final orchestrator call when backend skips it", async () => {
   const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
   const previousBackendUrl = process.env.BLS_PRIME_BACKEND_URL;

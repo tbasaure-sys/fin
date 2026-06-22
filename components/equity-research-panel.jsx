@@ -15,6 +15,10 @@ const AGENT_STAGES = [
   { key: "audit", label: "Verificar", detail: "Registro", threshold: 82 },
 ];
 
+function isRateLimitMessage(value) {
+  return /429|rate[\s_-]*limit|too many requests|too many api request|límite|limitado/i.test(String(value || ""));
+}
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -849,8 +853,12 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
       });
       const startPayload = await parseResponse(response);
       if (startPayload.run_id && startPayload.error && (startPayload.status === "queued" || !startPayload.backend_run_id)) {
-        await loadDirectResearch();
-        return;
+        const waitSeconds = Math.ceil(Number(startPayload.retry_after_ms || 0) / 1000);
+        setRunSummary(
+          isRateLimitMessage(startPayload.error)
+            ? `El servicio está limitado. Reintento automático${waitSeconds ? ` en ${waitSeconds}s` : " en cola"}.`
+            : "El servicio está en cola. Intentando enganchar el job async.",
+        );
       }
       if (!startPayload.run_id) {
         if (startPayload.status === "failed" || startPayload.ok === false) {
@@ -865,10 +873,11 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
       }
 
       setRunProgress(18);
-      for (let attempt = 0; attempt < 90; attempt += 1) {
+      let pollDelayMs = 3000;
+      for (let attempt = 0; attempt < 36; attempt += 1) {
         setRunProgress(Math.min(92, 18 + (attempt + 1) * 3));
         setStatusMessage("Analizando...");
-        await sleep(2000);
+        await sleep(pollDelayMs);
         const pollResponse = await fetch(
           `/api/v1/workspaces/${workspaceId}/research/${encodeURIComponent(symbol)}?runId=${encodeURIComponent(startPayload.run_id)}`,
           { cache: "no-store" },
@@ -876,10 +885,18 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
         const pollPayload = await parseResponse(pollResponse);
         if (pollPayload.status === "running" || pollPayload.status === "queued") {
           const pollError = pollPayload.error || pollPayload.last_error;
-          if (pollError && attempt >= 2) {
+          const retryAfterMs = Number(pollPayload.retry_after_ms || 0);
+          if (retryAfterMs > 0 || isRateLimitMessage(pollError)) {
+            const waitSeconds = Math.ceil(Math.max(retryAfterMs, pollDelayMs) / 1000);
+            setRunSummary(`Servicio ocupado; próximo intento en ${waitSeconds}s.`);
+            pollDelayMs = Math.min(15000, Math.max(5000, retryAfterMs || pollDelayMs + 1500));
+            continue;
+          }
+          if (pollError && attempt >= 5) {
             await loadDirectResearch("El servicio async no respondió; se mostró el resultado directo.");
             return;
           }
+          pollDelayMs = Math.min(8000, pollDelayMs + 500);
           continue;
         }
         if (pollPayload.status === "failed" || pollPayload.ok === false) {
