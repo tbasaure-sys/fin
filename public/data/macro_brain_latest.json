@@ -1,19 +1,19 @@
 {
-  "generated_on": "2026-06-22T05:11:37.550234+00:00",
-  "run_date": "2026-06-18",
+  "generated_on": "2026-06-22T13:57:23.472818+00:00",
+  "run_date": "2026-06-22",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143191,
+  "observations": 143193,
   "series_count": 25,
   "impulse_changes": [
     {
       "series_id": "EEM",
-      "date": "2026-06-18T00:00:00",
-      "value": 70.79000091552734,
-      "transformed": 0.03200852203935334,
-      "momentum": 0.8657077272940263,
-      "impulse": 0.6703637636938353,
-      "momentum_z": 2.3214325592512752,
-      "impulse_z": 2.8824735716088123,
+      "date": "2026-06-22T00:00:00",
+      "value": 71.4000015258789,
+      "transformed": 0.00858012999729052,
+      "momentum": 0.8923582586208241,
+      "impulse": 0.6893578419875759,
+      "momentum_z": 2.412560601430582,
+      "impulse_z": 2.9674423390051845,
       "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -118,20 +118,6 @@
       "label": "Fed balance sheet"
     },
     {
-      "series_id": "QQQ",
-      "date": "2026-06-18T00:00:00",
-      "value": 740.6199951171875,
-      "transformed": 0.024756392415480555,
-      "momentum": 0.9230428750174262,
-      "impulse": 0.2852602463354579,
-      "momentum_z": 2.326115043118603,
-      "impulse_z": 1.1263450340126455,
-      "impulse_sign": 1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Nasdaq 100 ETF"
-    },
-    {
       "series_id": "CLP=X",
       "date": "2026-06-10T00:00:00",
       "value": 916.4299926757812,
@@ -172,6 +158,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "High yield ETF"
+    },
+    {
+      "series_id": "QQQ",
+      "date": "2026-06-22T00:00:00",
+      "value": 743.9398803710938,
+      "transformed": 0.004472558962300255,
+      "momentum": 0.9421577382828374,
+      "impulse": 0.2736467660501063,
+      "momentum_z": 2.3914868152321245,
+      "impulse_z": 1.0783460513430712,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Nasdaq 100 ETF"
     }
   ],
   "liquidity": {
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "Where are you confusing a level with an impulse?"
+  "question_of_day": "Which market internal is disagreeing with your favorite macro story?"
 }
