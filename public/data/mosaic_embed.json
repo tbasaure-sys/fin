@@ -1,6 +1,6 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-06-22T13:57:26.593051+00:00",
+  "generated_at": "2026-06-23T11:50:46.148548+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
@@ -12,7 +12,7 @@
   "public_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
-    "newest_cached_at": "2026-06-22T05:08:25.801477+00:00",
+    "newest_cached_at": "2026-06-23T11:48:06.546148+00:00",
     "oldest_cached_at": "2026-06-18T16:47:34.412498+00:00"
   },
   "global_disequilibrium_index": 35,
@@ -26,7 +26,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "53 series used, 0 manual, 2 warming, 11 watch errors.",
-    "freshness": "Newest 2026-06-17; oldest used source age 264 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-06-17; oldest used source age 265 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 2 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -68,7 +68,7 @@
         "url": "https://www.freightos.com/",
         "used_series": 0,
         "warming_series": 2,
-        "latest_date": "2026-06-22"
+        "latest_date": "2026-06-23"
       }
     ],
     "open_gaps": [
@@ -130,7 +130,7 @@
     ],
     "manual_series": 0,
     "newest_date": "2026-06-17",
-    "oldest_age_days": 264
+    "oldest_age_days": 265
   },
   "history_delta": {
     "previous_gdi": 35,
@@ -138,40 +138,7 @@
     "delta": 0,
     "direction": "flat"
   },
-  "market_movers": [
-    {
-      "market_id": "china_property",
-      "item": "property",
-      "score": -37,
-      "delta": -13,
-      "direction": "down",
-      "reading": "Loosening"
-    },
-    {
-      "market_id": "global_power_transformers",
-      "item": "grid transformers",
-      "score": 68,
-      "delta": -4,
-      "direction": "down",
-      "reading": "Shortage probable"
-    },
-    {
-      "market_id": "china_industrials_copper",
-      "item": "refined copper",
-      "score": 15,
-      "delta": -4,
-      "direction": "down",
-      "reading": "Mixed"
-    },
-    {
-      "market_id": "global_uranium",
-      "item": "uranium enrichment",
-      "score": 2,
-      "delta": -4,
-      "direction": "down",
-      "reading": "Mixed"
-    }
-  ],
+  "market_movers": [],
   "markets": [
     {
       "market_id": "global_power_transformers",
@@ -201,10 +168,10 @@
         "margin_compression": -5
       },
       "market_delta": {
-        "previous_score": 72,
+        "previous_score": 68,
         "current_score": 68,
-        "delta": -4,
-        "direction": "down",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Shortage probable"
       },
       "research_angle": "Electrical equipment, copper, utilities capex.",
@@ -461,11 +428,11 @@
         "margin_compression": -16
       },
       "market_delta": {
-        "previous_score": -24,
+        "previous_score": -37,
         "current_score": -37,
-        "delta": -13,
-        "direction": "down",
-        "previous_reading": "Mixed"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Loosening"
       },
       "research_angle": "Iron ore, steel, banks, local government finance.",
       "source_series": [
@@ -578,10 +545,10 @@
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 19,
+        "previous_score": 15,
         "current_score": 15,
-        "delta": -4,
-        "direction": "down",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Mixed"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
@@ -700,10 +667,10 @@
         "margin_compression": -6
       },
       "market_delta": {
-        "previous_score": 6,
+        "previous_score": 2,
         "current_score": 2,
-        "delta": -4,
-        "direction": "down",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Mixed"
       },
       "research_angle": "Miners, enrichers, utilities fuel contracts.",
