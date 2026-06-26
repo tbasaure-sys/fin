@@ -1996,6 +1996,59 @@
   padding-top: 0.85rem;
 }
 
+.valuationOsLaunch {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.62rem;
+  padding: 0.78rem 0.76rem;
+  border: 1px solid rgba(216, 173, 88, 0.34);
+  border-radius: 8px;
+  background:
+    linear-gradient(90deg, rgba(216, 173, 88, 0.16), rgba(255, 255, 255, 0.035)),
+    rgba(255, 255, 255, 0.026);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.valuationOsLaunch:hover,
+.valuationOsLaunch:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(248, 200, 111, 0.72);
+  outline: none;
+}
+
+.valuationOsLaunchIndex {
+  color: rgba(216, 173, 88, 0.92);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.valuationOsLaunch strong {
+  display: block;
+  font-size: 0.95rem;
+  line-height: 1.15;
+}
+
+.valuationOsLaunch small {
+  display: block;
+  margin-top: 0.18rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.valuationOsLaunch em {
+  color: rgba(248, 200, 111, 0.92);
+  font-size: 0.66rem;
+  font-style: normal;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .workspaceSidebarLink {
   display: grid;
   gap: 0.16rem;
@@ -5870,7 +5923,7 @@
 }
 
 .workspaceSidebarMeta {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.45rem;
 }
 
@@ -6068,11 +6121,11 @@
   }
 
   .workspaceContent {
-    order: 1;
+    order: 2;
   }
 
   .sideColumn {
-    order: 2;
+    order: 1;
   }
 
   .header,
@@ -6174,6 +6227,15 @@
     line-height: 1.2;
   }
 
+  .valuationOsLaunch {
+    grid-template-columns: 1.55rem minmax(0, 1fr);
+    padding: 0.76rem 0.68rem;
+  }
+
+  .valuationOsLaunch em {
+    display: none;
+  }
+
   .workspaceSidebarLink {
     grid-template-columns: 1.55rem minmax(0, 1fr);
     padding: 0.68rem;
@@ -6184,7 +6246,7 @@
   }
 
   .workspaceSidebarMeta {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .workspaceSidebarStat {

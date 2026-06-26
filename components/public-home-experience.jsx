@@ -30,7 +30,7 @@ const COPY = {
       titleAccent: "before you act.",
       body:
         "BLS Prime turns cash, holdings, market context, and research into one clear next step: act, wait, or reject.",
-      primaryAuthed: "Open workspace",
+      primaryAuthed: "Open Valuation OS",
       primaryGuest: "Get started",
       secondary: "See the workspace",
     },
@@ -61,7 +61,7 @@ const COPY = {
     },
     preview: {
       sidebarHint: "Decision workspace",
-      sidebarMeta: ["Cash", "Portfolio", "Research"],
+      sidebarMeta: ["Valuation OS", "Portfolio", "Research"],
       items: [
         { label: "Inputs", target: "inputs" },
         { label: "What matters", target: "attention" },
@@ -158,7 +158,7 @@ const COPY = {
       titleAccent: "antes de moverte.",
       body:
         "BLS Prime revisa tu cartera, el mercado y las señales de riesgo para decirte, en simple, si conviene actuar, esperar o bajar exposición.",
-      primaryAuthed: "Abrir workspace",
+      primaryAuthed: "Abrir Valuation OS",
       primaryGuest: "Empezar",
       secondary: "Ver la lectura",
     },
@@ -189,7 +189,7 @@ const COPY = {
     },
     preview: {
       sidebarHint: "Lectura de cartera",
-      sidebarMeta: ["Caja", "Cartera", "Mercado"],
+      sidebarMeta: ["Valuation OS", "Cartera", "Mercado"],
       items: [
         { label: "Datos", target: "inputs" },
         { label: "Riesgo real", target: "attention" },
@@ -290,7 +290,7 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
   const [language, setLanguage] = useState("es");
   const [hasResolvedLanguage, setHasResolvedLanguage] = useState(false);
   const copy = COPY[language];
-  const primaryHref = isAuthenticated ? "/app" : "/login";
+  const primaryHref = isAuthenticated ? "/valuation-os-lab" : "/login?next=/valuation-os-lab";
   const factorLabHref = isAuthenticated ? "/app#factorlab" : "/login?next=/app%23factorlab";
   const primaryLabel = isAuthenticated ? copy.hero.primaryAuthed : copy.hero.primaryGuest;
 

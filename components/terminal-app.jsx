@@ -2517,7 +2517,6 @@ function CompactActionPanel({ title, kicker, emptyLabel, items, renderItem }) {
 
 function WorkspaceSidebar({
   activeSection,
-  alertCount,
   holdingsCount,
   onSelectSection,
   stagedCount,
@@ -2539,6 +2538,15 @@ function WorkspaceSidebar({
         <p className={styles.supportText}>Espacio privado de decisión.</p>
       </div>
 
+      <Link className={styles.valuationOsLaunch} href="/valuation-os-lab">
+        <span className={styles.valuationOsLaunchIndex}>01</span>
+        <div>
+          <strong>Valuation OS</strong>
+          <small>Reverse DCF, ROIC fade y tesis</small>
+        </div>
+        <em>Principal</em>
+      </Link>
+
       <nav className={styles.workspaceSidebarNav} aria-label="Secciones del espacio">
         {WORKSPACE_NAV.map((item, index) => (
           <button
@@ -2549,7 +2557,7 @@ function WorkspaceSidebar({
             onClick={() => onSelectSection(item.id)}
             type="button"
           >
-            <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
+            <span className={styles.workspaceSidebarIndex}>{String(index + 2).padStart(2, "0")}</span>
             <div>
               <span>{item.label}</span>
               <small>{item.detail}</small>
@@ -2582,10 +2590,6 @@ function WorkspaceSidebar({
       </nav>
 
       <div className={styles.workspaceSidebarMeta}>
-        <article className={styles.workspaceSidebarStat}>
-          <strong>{alertCount || "—"}</strong>
-          <span>Alertas</span>
-        </article>
         <article className={styles.workspaceSidebarStat}>
           <strong>{holdingsCount || "—"}</strong>
           <span>Posiciones</span>
@@ -3694,8 +3698,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [showChat, setShowChat] = useState(false);
   const [activeWorkspaceSection, setActiveWorkspaceSection] = useState(WORKSPACE_NAV[0].id);
   const [portfolioRange, setPortfolioRange] = useState("1M");
-  const [financeDraft, setFinanceDraft] = useState(() => financeDraftFromPlan(initialDashboard?.personal_finance));
-  const [financeDraftDirty, setFinanceDraftDirty] = useState(false);
   const [holdingDraft, setHoldingDraft] = useState({
     ticker: "",
     sizing: "shares",
@@ -3735,7 +3737,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const blockedAction = dashboard?.blocked_action || null;
   const escrowItems = safeList(dashboard?.escrow?.items).filter(isActiveEscrowItem).slice(0, 4);
   const ledgerItems = safeList(dashboard?.counterfactual_ledger?.items).filter(isSettledLedgerItem).slice(0, 4);
-  const alerts = safeList(dashboard?.decision_workspace?.alerts || dashboard?.alerts).slice(0, 3);
   const workspaceName = normalizeWorkspaceName(
     dashboard?.workspace_summary?.name || initialSession?.workspace?.name || DEFAULT_APP_NAME,
   );
@@ -3828,7 +3829,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "decisions":
       activeWorkspacePanels = (
         <>
-          <AlertsPanel alerts={alerts} />
           <TodayDecisionPanel
             blockedAction={blockedAction}
             onDefer={(action) => recordDecision(action, "deferred")}
@@ -3883,7 +3883,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     default:
       activeWorkspacePanels = (
         <>
-          <AlertsPanel alerts={alerts} />
           <TodayDecisionPanel
             blockedAction={blockedAction}
             onDefer={(action) => recordDecision(action, "deferred")}
@@ -3892,13 +3891,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             pendingKey={pendingKey}
             primaryAction={primaryAction}
             stateSummary={stateSummary}
-          />
-          <PersonalFinancePanel
-            draft={financeDraft}
-            financePlan={personalFinance}
-            onChange={updateFinanceDraft}
-            onSubmit={submitFinanceDraft}
-            pending={pendingKey === "finance-plan"}
           />
           {escrowPanel}
           {currentBriefPanel}
@@ -3951,19 +3943,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     pendingSectionScrollRef.current = null;
     scrollWorkspaceSection(activeWorkspaceSection);
   }, [activeWorkspaceSection]);
-
-  useEffect(() => {
-    if (financeDraftDirty) return;
-    setFinanceDraft(financeDraftFromPlan(personalFinance));
-  }, [
-    personalFinance?.inputs?.updatedAt,
-    personalFinance?.inputs?.monthlyIncome,
-    personalFinance?.inputs?.fixedExpenses,
-    personalFinance?.inputs?.variableExpenses,
-    personalFinance?.inputs?.safetyBuffer,
-    personalFinance?.inputs?.targetMonthlyInvestment,
-    personalFinance?.inputs?.baseCurrency,
-  ]);
 
   function scrollWorkspaceSection(sectionId) {
     if (typeof window === "undefined") return;
@@ -4066,43 +4045,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     dashboard?.workspace_summary?.market_data_as_of,
     workspaceId,
   ]);
-
-  function updateFinanceDraft(field, value) {
-    setFinanceDraftDirty(true);
-    setFinanceDraft((current) => ({
-      ...current,
-      [field]: field === "baseCurrency" ? sanitizeCurrencyInput(value) : sanitizeDecimalInput(value),
-    }));
-  }
-
-  async function submitFinanceDraft() {
-    if (!workspaceId) return;
-
-    setPendingKey("finance-plan");
-    setError("");
-
-    try {
-      const response = await fetch(`/api/v1/workspaces/${workspaceId}/finance-plan`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          monthlyIncome: draftMoney(financeDraft.monthlyIncome),
-          fixedExpenses: draftMoney(financeDraft.fixedExpenses),
-          variableExpenses: draftMoney(financeDraft.variableExpenses),
-          safetyBuffer: draftMoney(financeDraft.safetyBuffer),
-          targetMonthlyInvestment: draftMoney(financeDraft.targetMonthlyInvestment),
-          baseCurrency: financeDraft.baseCurrency || "USD",
-        }),
-      });
-      const payload = await parseResponse(response);
-      await applyWorkspacePayload(payload, "Plan mensual guardado.");
-      setFinanceDraftDirty(false);
-    } catch (requestError) {
-      setError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar el plan de dinero."));
-    } finally {
-      setPendingKey(null);
-    }
-  }
 
   function updateHoldingDraft(field, value) {
     setHoldingDraft((current) => {
@@ -4262,7 +4204,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         <aside className={styles.sideColumn}>
           <WorkspaceSidebar
             activeSection={activeWorkspaceSection}
-            alertCount={alerts.length}
             holdingsCount={holdingsCount}
             onOpenChat={() => setShowChat(true)}
             onOpenGlossary={() => setShowGlossary(true)}
