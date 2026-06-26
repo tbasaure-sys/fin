@@ -63,26 +63,56 @@ async function findTicker(ticker) {
 }
 
 function factUnits(facts, concept, unit = "USD") {
-  const item = facts?.facts?.["us-gaap"]?.[concept];
+  const item =
+    facts?.facts?.["us-gaap"]?.[concept]
+    || facts?.facts?.["ifrs-full"]?.[concept]
+    || facts?.facts?.dei?.[concept];
   if (!item?.units) return [];
   if (item.units[unit]) return item.units[unit];
   const first = Object.values(item.units).find((values) => Array.isArray(values));
   return first || [];
 }
 
+function isAnnualFiling(form) {
+  return /^(10-K|20-F|40-F)(\/A)?$/i.test(String(form || "").trim());
+}
+
+function yearFromDate(value) {
+  const match = /^(\d{4})-\d{2}-\d{2}$/.exec(String(value || ""));
+  return match ? Number(match[1]) : null;
+}
+
+function effectiveFiscalYear(row) {
+  const frameMatch = /^CY(\d{4})$/i.exec(String(row?.frame || ""));
+  if (frameMatch) return Number(frameMatch[1]);
+  return yearFromDate(row?.end) || Number(row?.fy);
+}
+
+function annualDurationDays(row) {
+  const start = Date.parse(row?.start || "");
+  const end = Date.parse(row?.end || "");
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+  return (end - start) / 86400000;
+}
+
 function annualFacts(facts, concepts, unit = "USD") {
   return concepts.flatMap((concept) =>
     factUnits(facts, concept, unit)
-      .filter((row) => /^10-K/.test(String(row.form || "")) && row.fy && Number.isFinite(Number(row.val)))
+      .filter((row) => {
+        if (!isAnnualFiling(row.form) || !Number.isFinite(Number(row.val))) return false;
+        const duration = annualDurationDays(row);
+        return duration === null || duration >= 300;
+      })
       .map((row) => ({
         concept,
-        fy: Number(row.fy),
+        fy: effectiveFiscalYear(row),
         fp: row.fp,
         filed: row.filed,
         end: row.end,
         value: Number(row.val),
         accn: row.accn,
-      })),
+      }))
+      .filter((row) => Number.isFinite(row.fy)),
   );
 }
 
@@ -97,7 +127,13 @@ function annualSeries(facts, concepts, unit = "USD") {
   const byYear = new Map();
   for (const row of annualFacts(facts, concepts, unit)) {
     const prior = byYear.get(row.fy);
-    if (!prior || String(row.filed || "") > String(prior.filed || "")) byYear.set(row.fy, row);
+    if (
+      !prior
+      || String(row.filed || "") > String(prior.filed || "")
+      || (String(row.filed || "") === String(prior.filed || "") && String(row.end || "") > String(prior.end || ""))
+    ) {
+      byYear.set(row.fy, row);
+    }
   }
   return [...byYear.values()].sort((a, b) => a.fy - b.fy);
 }
@@ -171,32 +207,61 @@ async function fetchRiskFreeRate() {
 function deriveDrivers(facts, quote, riskFree) {
   const revenueSeries = annualSeries(facts, [
     "Revenues",
+    "Revenue",
     "RevenueFromContractWithCustomerExcludingAssessedTax",
+    "RevenueFromContractsWithCustomers",
     "SalesRevenueNet",
   ]);
   const revenue = revenueSeries.at(-1) || null;
   const revenueStart = revenueSeries.length >= 4 ? revenueSeries.at(-4) : revenueSeries.at(0);
-  const operatingIncome = latestAnnual(facts, ["OperatingIncomeLoss", "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest"]);
-  const netIncome = latestAnnual(facts, ["NetIncomeLoss", "ProfitLoss"]);
+  const operatingIncome = latestAnnual(facts, [
+    "OperatingIncomeLoss",
+    "ProfitLossFromOperatingActivities",
+    "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
+  ]);
+  const netIncome = latestAnnual(facts, ["NetIncomeLoss", "ProfitLoss", "ProfitLossAttributableToOwnersOfParent"]);
   const assets = latestAnnual(facts, ["Assets"]);
   const liabilities = latestAnnual(facts, ["Liabilities"]);
-  const equity = latestAnnual(facts, ["StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"]);
-  const cfo = latestAnnual(facts, ["NetCashProvidedByUsedInOperatingActivities"]);
-  const capex = latestAnnual(facts, ["PaymentsToAcquirePropertyPlantAndEquipment"]);
-  const shares = latestAnnual(facts, ["WeightedAverageNumberOfDilutedSharesOutstanding", "WeightedAverageNumberOfSharesOutstandingDiluted"], "shares");
+  const equity = latestAnnual(facts, [
+    "StockholdersEquity",
+    "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest",
+    "Equity",
+    "EquityAttributableToOwnersOfParent",
+  ]);
+  const cfo = latestAnnual(facts, [
+    "NetCashProvidedByUsedInOperatingActivities",
+    "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+    "CashFlowsFromUsedInOperatingActivities",
+    "CashFlowsFromUsedInOperatingActivitiesContinuingOperations",
+  ]);
+  const capex = latestAnnual(facts, [
+    "PaymentsToAcquirePropertyPlantAndEquipment",
+    "PaymentsToAcquireProductiveAssets",
+    "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+    "PurchaseOfPropertyPlantAndEquipmentIntangibleAssetsOtherThanGoodwillInvestmentPropertyAndOtherNoncurrentAssets",
+  ]);
+  const shares = latestAnnual(facts, [
+    "WeightedAverageNumberOfDilutedSharesOutstanding",
+    "WeightedAverageNumberOfSharesOutstandingDiluted",
+    "AdjustedWeightedAverageShares",
+    "WeightedAverageNumberOfOrdinarySharesOutstanding",
+    "NumberOfSharesOutstanding",
+    "EntityCommonStockSharesOutstanding",
+  ], "shares");
 
   const revenueCagr =
     revenue && revenueStart && revenue.fy > revenueStart.fy && revenueStart.value > 0
       ? Math.pow(revenue.value / revenueStart.value, 1 / (revenue.fy - revenueStart.fy)) - 1
       : null;
   const margin = safeRatio(operatingIncome?.value, revenue?.value);
-  const fcf = Number(cfo?.value || 0) - Number(capex?.value || 0);
+  const capexValue = Math.abs(Number(capex?.value || 0));
+  const fcf = Number(cfo?.value || 0) - capexValue;
   const dilutedShares = Number(shares?.value || 0);
   const baseFcf = dilutedShares > 0 ? fcf / dilutedShares : null;
   const capitalBase = Number(equity?.value || 0) || Number(assets?.value || 0) - Number(liabilities?.value || 0);
   const nopat = Number(operatingIncome?.value || netIncome?.value || 0) * 0.79;
   const roic = safeRatio(nopat, Math.abs(capitalBase));
-  const capexToRevenue = safeRatio(capex?.value, revenue?.value);
+  const capexToRevenue = safeRatio(capexValue, revenue?.value);
   const riskFreeRate = riskFree?.value || 0.042;
   const wacc = clamp(riskFreeRate + 0.047 + Math.max(0, 0.12 - Number(roic || 0)) * 0.08, 0.065, 0.14);
   const terminalRoic = clamp((roic || 0.12) * 0.76 + wacc * 0.24, 0.06, 0.24);
