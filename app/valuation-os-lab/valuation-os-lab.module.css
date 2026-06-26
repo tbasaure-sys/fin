@@ -313,6 +313,228 @@
   gap: 1rem;
 }
 
+.engineConsole {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(7, 16, 26, 0.92);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.2);
+}
+
+.engineConsoleTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.engineConsoleTop span,
+.debateHeader span,
+.agentCard span,
+.orchestratorCard span {
+  color: var(--amber);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.engineConsoleTop h2,
+.debateHeader h3 {
+  margin: 0.2rem 0 0;
+  line-height: 1.05;
+}
+
+.engineConsoleTop p,
+.engineCard p,
+.agentCard p,
+.orchestratorCard p {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.debateActions {
+  flex: 0 0 min(20rem, 100%);
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+}
+
+.debateActions button {
+  min-height: 2.55rem;
+  width: min(17rem, 100%);
+  border: 1px solid rgba(240, 189, 98, 0.48);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f6d56f, #d99a31);
+  color: #07101a;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.debateActions button:disabled {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+.debateActions small {
+  color: var(--dim);
+  text-align: right;
+}
+
+.engineMetrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 1rem;
+}
+
+.engineMetric {
+  min-height: 4.8rem;
+  display: grid;
+  align-content: center;
+  gap: 0.3rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel-soft);
+}
+
+.engineMetric span,
+.agentVotes span {
+  color: var(--dim);
+  font-size: 0.74rem;
+}
+
+.engineMetric strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.engineMetric[data-tone="good"] strong {
+  color: var(--green);
+}
+
+.engineMetric[data-tone="warn"] strong {
+  color: var(--amber);
+}
+
+.engineMetric[data-tone="bad"] strong {
+  color: var(--red);
+}
+
+.engineGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.engineCard,
+.agentCard,
+.orchestratorCard {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.85rem;
+}
+
+.engineCard strong,
+.orchestratorCard strong {
+  display: block;
+  color: var(--text);
+}
+
+.bulletList {
+  display: grid;
+  gap: 0.38rem;
+  margin: 0.55rem 0 0;
+  padding-left: 1rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.agentVotes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.65rem;
+}
+
+.agentVotes span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.26rem 0.46rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.agentVotes span[data-vote="constructive"] {
+  color: var(--green);
+}
+
+.agentVotes span[data-vote="reject"] {
+  color: var(--red);
+}
+
+.debatePanel {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.debateHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+  margin-bottom: 0.8rem;
+}
+
+.debateHeader mark {
+  flex: 0 0 auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(6, 12, 20, 0.88);
+  color: var(--teal);
+  padding: 0.43rem 0.65rem;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.agentGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.agentCard {
+  min-height: 9.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.agentCard strong {
+  color: var(--text);
+}
+
+.agentCard[data-vote="constructive"] {
+  border-color: rgba(105, 212, 159, 0.32);
+}
+
+.agentCard[data-vote="reject"] {
+  border-color: rgba(239, 125, 105, 0.34);
+}
+
+.orchestratorCard {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
 .surfacePanel,
 .ledgerPanel,
 .metricPanel,
@@ -802,6 +1024,8 @@
   }
 
   .topbar,
+  .engineConsoleTop,
+  .debateHeader,
   .panelHead {
     flex-direction: column;
     align-items: stretch;
@@ -827,6 +1051,9 @@
   }
 
   .engineNav,
+  .engineMetrics,
+  .engineGrid,
+  .agentGrid,
   .metricsGrid,
   .outputStrip {
     grid-template-columns: 1fr;

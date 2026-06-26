@@ -350,6 +350,291 @@ function RangeBar({ value, low, high }) {
   );
 }
 
+function fmtOptional(value, formatter) {
+  return isFiniteNumber(value) ? formatter(value) : "Missing";
+}
+
+function factMoney(value) {
+  if (!isFiniteNumber(value)) return "Missing";
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}b`;
+  if (abs >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}m`;
+  return fmtMoney(value);
+}
+
+function statusCopy(status) {
+  if (status === "ok") return "Final editor complete";
+  if (status === "rate_limited") return "Local verdict active; final editor cooling down";
+  if (status === "error") return "Local verdict active; final editor failed";
+  if (status === "unavailable") return "Local verdict active; no LLM key needed";
+  return "Local verdict active";
+}
+
+function EngineMetric({ label, value, tone }) {
+  return (
+    <div className={styles.engineMetric} data-tone={tone || "neutral"}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+function BulletList({ items }) {
+  const visibleItems = items.filter(Boolean).slice(0, 5);
+  if (!visibleItems.length) return null;
+  return (
+    <ul className={styles.bulletList}>
+      {visibleItems.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+}
+
+function EngineConsole({
+  activeEngine,
+  adjustedDrivers,
+  distribution,
+  expectedIrr,
+  feasibility,
+  impliedCagr,
+  liveSnapshot,
+  missingDrivers,
+  mode,
+  onRunDebate,
+  quality,
+  tripwires,
+  upside,
+  valuation,
+  debate,
+  debateStatus,
+}) {
+  const coverage = liveSnapshot?.coverage || {};
+  const facts = liveSnapshot?.facts || {};
+  const fiscalYear = liveSnapshot?.company?.fiscalYear || "latest";
+  const activeFalsifiers = tripwires.map((item) => item.falsifier || item.label);
+  const panels = {
+    truth: {
+      eyebrow: "Source ledger",
+      title: "Data Truth",
+      copy:
+        missingDrivers.length > 0
+          ? "Live inputs are loaded, but the valuation is not decision-ready until the missing drivers are filled."
+          : "The current stack has enough live facts to run a source-aware valuation pass.",
+      metrics: [
+        ["SEC filing", `${liveSnapshot?.company?.form || "Kernel"} / FY${fiscalYear}`],
+        ["Quote", coverage.quoteSource || "Missing"],
+        ["Data quality", fmtPct(quality, 0), quality >= 0.65 ? "good" : "warn"],
+        ["Missing drivers", String(missingDrivers.length), missingDrivers.length ? "bad" : "good"],
+      ],
+      bullets: [
+        liveSnapshot
+          ? `Companyfacts status: ${coverage.secCompanyFacts ? "loaded" : "not loaded"}`
+          : "Using local thesis kernel until a SEC snapshot is loaded.",
+        coverage.fredConfigured ? "Risk-free rate source is configured." : "Risk-free rate source is not configured.",
+        coverage.quoteSource ? `Market quote source is available: ${coverage.quoteSource}.` : "Market quote provider is missing or unavailable.",
+        isFiniteNumber(facts.revenue) ? `Revenue fact: ${factMoney(facts.revenue)}` : null,
+        missingDrivers.length ? `Missing: ${missingDrivers.join(", ")}` : null,
+      ],
+    },
+    accounting: {
+      eyebrow: "Economic bridge",
+      title: "Accounting",
+      copy:
+        "This checks whether revenue, FCF, reinvestment, and ROIC line up before the model is allowed to tell a valuation story.",
+      metrics: [
+        ["FCF / share", fmtMoney(adjustedDrivers.baseFcf)],
+        ["Revenue CAGR", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
+        ["Margin", fmtOptional(adjustedDrivers.margin, fmtPct)],
+        ["ROIC - WACC", fmtOptional(adjustedDrivers.roic - adjustedDrivers.wacc, fmtPct), adjustedDrivers.roic >= adjustedDrivers.wacc ? "good" : "bad"],
+      ],
+      bullets: [
+        `Reinvestment rate: ${fmtOptional(adjustedDrivers.reinvestment, fmtPct)}.`,
+        `Terminal growth: ${fmtOptional(adjustedDrivers.terminalGrowth, fmtPct)}.`,
+        isFiniteNumber(adjustedDrivers.roic) && isFiniteNumber(adjustedDrivers.wacc) && adjustedDrivers.roic < adjustedDrivers.wacc
+          ? "Accounting warning: ROIC does not clear WACC."
+          : "Accounting bridge clears the basic ROIC hurdle.",
+        isFiniteNumber(facts.operatingCashFlow) ? `Operating cash flow fact: ${factMoney(facts.operatingCashFlow)}.` : null,
+        isFiniteNumber(facts.capex) ? `Capex fact: ${factMoney(facts.capex)}.` : null,
+      ],
+    },
+    twin: {
+      eyebrow: "Driver graph",
+      title: "Business Twin",
+      copy:
+        "The twin turns the thesis into linked drivers: growth, reinvestment, ROIC fade, moat half-life, and explicit tripwires.",
+      metrics: [
+        ["Scenario", mode],
+        ["Moat half-life", isFiniteNumber(adjustedDrivers.moatHalfLife) ? `${adjustedDrivers.moatHalfLife.toFixed(1)}y` : "Missing"],
+        ["Terminal ROIC", fmtOptional(adjustedDrivers.terminalRoic, fmtPct)],
+        ["Tripwires", String(tripwires.length), tripwires.length > 3 ? "warn" : "neutral"],
+      ],
+      bullets: [
+        `Current value path: ${fmtMoney(valuation)} versus price ${fmtMoney(adjustedDrivers.price)}.`,
+        `Fade anchor: terminal ROIC ${fmtOptional(adjustedDrivers.terminalRoic, fmtPct)} and WACC ${fmtOptional(adjustedDrivers.wacc, fmtPct)}.`,
+        activeFalsifiers[0] || "No boundary falsifier is currently at the edge of its range.",
+        activeFalsifiers[1] || null,
+      ],
+    },
+    bayes: {
+      eyebrow: "Posterior discipline",
+      title: "Bayesian",
+      copy:
+        "This layer compares the thesis to what the market already implies and lowers confidence when model risk or missing data widens the posterior.",
+      metrics: [
+        ["Feasibility", fmtPct(feasibility, 0), feasibility >= 0.55 ? "good" : "warn"],
+        ["Above price", fmtPct(distribution.probAbovePrice, 0)],
+        ["Implied CAGR", fmtPct(impliedCagr)],
+        ["Model risk", fmtPct(adjustedDrivers.modelRisk, 0), adjustedDrivers.modelRisk > 0.4 ? "bad" : "neutral"],
+      ],
+      bullets: [
+        `Expected 5Y IRR: ${fmtPct(expectedIrr)}.`,
+        `Upside/downside: ${fmtPct(upside)}.`,
+        isFiniteNumber(impliedCagr) && isFiniteNumber(adjustedDrivers.revenueCagr) && impliedCagr > adjustedDrivers.revenueCagr
+          ? "Market-implied growth is above the current thesis input."
+          : "Thesis growth is not below market-implied growth.",
+        missingDrivers.length ? "Posterior should stay wide because live data is incomplete." : null,
+      ],
+    },
+    value: {
+      eyebrow: "Intrinsic ensemble",
+      title: "Valuation",
+      copy: "A DCF-led estimate is compared with price, expected IRR, and model disagreement.",
+      metrics: [
+        ["Value / share", fmtMoney(valuation)],
+        ["Market price", fmtMoney(adjustedDrivers.price)],
+        ["Upside", fmtPct(upside), upside >= 0 ? "good" : "bad"],
+        ["Expected IRR", fmtPct(expectedIrr)],
+      ],
+      bullets: [
+        "Fade DCF remains the primary lens; residual income and APV are used as disagreement checks.",
+        `Probability above price: ${fmtPct(distribution.probAbovePrice, 0)}.`,
+      ],
+    },
+    expect: {
+      eyebrow: "Reverse DCF",
+      title: "Expectations",
+      copy: "The active surface asks which growth and ROIC combinations justify today's price.",
+      metrics: [
+        ["Implied CAGR", fmtPct(impliedCagr)],
+        ["Thesis CAGR", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
+        ["Feasibility", fmtPct(feasibility, 0)],
+        ["Falsifiers", String(tripwires.length)],
+      ],
+      bullets: [
+        "Use the surface below to see where market expectations become plausible or fragile.",
+        activeFalsifiers[0] || null,
+      ],
+    },
+    flows: {
+      eyebrow: "Reflexivity gate",
+      title: "Price Formation",
+      copy: "This separates intrinsic value from flows, float, buybacks, short pressure, and liquidity support.",
+      metrics: [
+        ["Beta", isFiniteNumber(adjustedDrivers.beta) ? adjustedDrivers.beta.toFixed(2) : "N/A"],
+        ["Buyback proxy", adjustedDrivers.dilution < 0 ? "Supportive" : "Dilutive"],
+        ["Net dilution", fmtOptional(adjustedDrivers.dilution, fmtPct)],
+        ["Price gap", fmtPct(upside)],
+      ],
+      bullets: [
+        "A good business can still be a bad entry if flow support is already exhausted.",
+        "Flow checks are deliberately kept separate from intrinsic value.",
+      ],
+    },
+    calibration: {
+      eyebrow: "Walk-forward",
+      title: "Calibration",
+      copy: "Calibration asks whether this model family has earned permission to speak with confidence.",
+      metrics: [
+        ["Data quality", fmtPct(quality, 0)],
+        ["Model risk", fmtPct(adjustedDrivers.modelRisk, 0)],
+        ["Feasibility", fmtPct(feasibility, 0)],
+        ["Final checks", debate?.agents?.length ? "Debated" : "Pending"],
+      ],
+      bullets: [
+        "Model risk penalizes confidence even when the point estimate looks attractive.",
+        debate?.final_orchestrator ? statusCopy(debate.final_orchestrator.status) : "Run the debate to add the final orchestrator layer.",
+      ],
+    },
+  };
+  const panel = panels[activeEngine] || panels.expect;
+  const final = debate?.final_orchestrator;
+  const finalAnalysis = final?.analysis || debate?.deterministic_verdict;
+  const engineIndex = engines.findIndex(([key]) => key === activeEngine);
+
+  return (
+    <section className={styles.engineConsole} aria-label="Valuation engine console">
+      <div className={styles.engineConsoleTop}>
+        <div>
+          <span>{panel.eyebrow}</span>
+          <h2>
+            {String(engineIndex + 1).padStart(2, "0")} {panel.title}
+          </h2>
+          <p>{panel.copy}</p>
+        </div>
+        <div className={styles.debateActions}>
+          <button type="button" onClick={onRunDebate} disabled={debateStatus.state === "loading"}>
+            {debateStatus.state === "loading" ? "Running debate" : "Run valuation debate"}
+          </button>
+          <small>0 specialist LLM calls / 1 final call max</small>
+        </div>
+      </div>
+      <div className={styles.engineMetrics}>
+        {panel.metrics.map(([label, value, tone]) => (
+          <EngineMetric key={label} label={label} value={value} tone={tone} />
+        ))}
+      </div>
+      <div className={styles.engineGrid}>
+        <div className={styles.engineCard}>
+          <strong>Current read</strong>
+          <BulletList items={panel.bullets} />
+        </div>
+        <div className={styles.engineCard}>
+          <strong>Debate status</strong>
+          <p>{debateStatus.message || "Run the valuation debate to restore the specialist panel and final verdict."}</p>
+          {debate?.agents?.length ? (
+            <div className={styles.agentVotes}>
+              {debate.agents.slice(0, 5).map((item) => (
+                <span key={item.id} data-vote={item.vote}>
+                  {item.label.replace(/^\d+\s*/, "")}: {item.vote}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+      {debate?.agents?.length ? (
+        <div className={styles.debatePanel}>
+          <div className={styles.debateHeader}>
+            <div>
+              <span>Multiagent valuation desk</span>
+              <h3>{finalAnalysis?.decision || "Final verdict"}</h3>
+            </div>
+            <mark>{final ? statusCopy(final.status) : "Local verdict"}</mark>
+          </div>
+          <div className={styles.agentGrid}>
+            {debate.agents.map((item) => (
+              <article key={item.id} className={styles.agentCard} data-vote={item.vote}>
+                <span>{item.label}</span>
+                <strong>{item.stance}</strong>
+                <p>{item.summary}</p>
+              </article>
+            ))}
+          </div>
+          <article className={styles.orchestratorCard}>
+            <span>Orchestrator verdict</span>
+            <p>{finalAnalysis?.executive_judgment}</p>
+            <div>
+              <strong>Red team</strong>
+              <BulletList items={finalAnalysis?.red_team || []} />
+            </div>
+          </article>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export default function ValuationOsLabPage() {
   const [companyKey, setCompanyKey] = useState("compounder");
   const [liveCompany, setLiveCompany] = useState(null);
@@ -357,6 +642,8 @@ export default function ValuationOsLabPage() {
   const [tickerInput, setTickerInput] = useState("AAPL");
   const [liveSnapshot, setLiveSnapshot] = useState(null);
   const [liveStatus, setLiveStatus] = useState({ state: "idle", message: "" });
+  const [debate, setDebate] = useState(null);
+  const [debateStatus, setDebateStatus] = useState({ state: "idle", message: "" });
   const [activeEngine, setActiveEngine] = useState("expect");
   const [mode, setMode] = useState("base");
   const [drivers, setDrivers] = useState(companies.compounder);
@@ -448,6 +735,8 @@ export default function ValuationOsLabPage() {
 
   function updateDriver(key, nextValue) {
     setDrivers((current) => ({ ...current, [key]: Number(nextValue) }));
+    setDebate(null);
+    setDebateStatus({ state: "idle", message: "Driver changed; rerun the debate for a fresh verdict." });
   }
 
   async function loadLiveSnapshot(event) {
@@ -476,7 +765,9 @@ export default function ValuationOsLabPage() {
         ...companies.compounder,
         ticker: payload.company?.ticker || ticker,
         name: payload.company?.entityName || payload.company?.name || ticker,
-        sector: `Latest SEC snapshot FY${payload.company?.fiscalYear || "latest"}`,
+        sector: payload.company?.fiscalYear
+          ? `Latest SEC snapshot FY${payload.company.fiscalYear}`
+          : "Latest SEC snapshot",
         price: payload.drivers?.price,
         baseFcf: payload.drivers?.baseFcf,
         revenueCagr: payload.drivers?.revenueCagr,
@@ -498,6 +789,8 @@ export default function ValuationOsLabPage() {
       setDrivers(nextCompany);
       setLiveSnapshot(payload);
       setMissingDrivers(payload.missingDrivers || []);
+      setDebate(null);
+      setDebateStatus({ state: "idle", message: "Live snapshot loaded; run the debate for a final verdict." });
       setLiveStatus({
         state: "ready",
         message: `${nextCompany.ticker} loaded: latest SEC ${payload.company?.fiscalYear || "snapshot"}${
@@ -510,6 +803,52 @@ export default function ValuationOsLabPage() {
       setLiveStatus({
         state: "error",
         message: error instanceof Error ? error.message : "Snapshot load failed.",
+      });
+    }
+  }
+
+  async function runValuationDebate() {
+    setDebateStatus({ state: "loading", message: "Running local specialists and final orchestrator..." });
+    try {
+      const response = await fetch("/valuation-os-lab/api/debate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          ticker: adjustedDrivers.ticker,
+          mode,
+          drivers: adjustedDrivers,
+          snapshot: liveSnapshot,
+          missingDrivers,
+          tripwires: tripwires.map((item) => ({
+            key: item.key,
+            label: item.label,
+            falsifier: item.falsifier,
+          })),
+          valuation,
+          upside,
+          expectedIrr,
+          impliedCagr,
+          feasibility,
+          quality,
+          probabilityAbovePrice: distribution.probAbovePrice,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.ok) {
+        throw new Error(payload.error || "Valuation debate failed.");
+      }
+      setDebate(payload.debate);
+      setDebateStatus({
+        state: "ready",
+        message: `${payload.ticker} debate ready: ${statusCopy(payload.debate.final_orchestrator?.status)}${
+          payload.cached ? " (cached)" : ""
+        }.`,
+      });
+    } catch (error) {
+      setDebateStatus({
+        state: "error",
+        message: error instanceof Error ? error.message : "Valuation debate failed.",
       });
     }
   }
@@ -612,6 +951,25 @@ export default function ValuationOsLabPage() {
             ) : null}
           </div>
         </header>
+
+        <EngineConsole
+          activeEngine={activeEngine}
+          adjustedDrivers={adjustedDrivers}
+          distribution={distribution}
+          expectedIrr={expectedIrr}
+          feasibility={feasibility}
+          impliedCagr={impliedCagr}
+          liveSnapshot={liveSnapshot}
+          missingDrivers={missingDrivers}
+          mode={mode}
+          onRunDebate={runValuationDebate}
+          quality={quality}
+          tripwires={tripwires}
+          upside={upside}
+          valuation={valuation}
+          debate={debate}
+          debateStatus={debateStatus}
+        />
 
         <section className={styles.heroGrid}>
           <article className={styles.surfacePanel}>
