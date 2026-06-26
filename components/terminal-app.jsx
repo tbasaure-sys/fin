@@ -862,197 +862,6 @@ function PortfolioTransactionsPanel({ transactions }) {
   );
 }
 
-function FinancePlanField({ id, label, value, onChange, currency, inputMode = "decimal" }) {
-  return (
-    <label className={styles.financeField} htmlFor={id}>
-      <span>{label}</span>
-      <div className={styles.financeInputWrap}>
-        {currency ? <small>{currency}</small> : null}
-        <input
-          className={styles.textInput}
-          id={id}
-          inputMode={inputMode}
-          onChange={(event) => onChange(event.target.value)}
-          value={value}
-        />
-      </div>
-    </label>
-  );
-}
-
-function PersonalFinancePanel({ financePlan, draft, pending, onChange, onSubmit }) {
-  const plan = financePlan || {};
-  const metrics = plan.metrics || {};
-  const allocation = safeList(plan.allocation);
-  const currency = sanitizeCurrencyInput(draft.baseCurrency) || sanitizeCurrencyInput(plan.inputs?.baseCurrency) || "USD";
-  const hasIncome = draftMoney(plan.inputs?.monthlyIncome) > 0;
-  const metricTone = financeMetricTone(plan);
-  const allocationTotal = allocation.reduce((sum, item) => sum + Math.max(0, Number(item?.value) || 0), 0);
-  const showAllocation = hasIncome && allocationTotal > 0;
-
-  return (
-    <section className={styles.panel}>
-      <div className={styles.panelHeader}>
-        <div>
-          <p className={styles.kicker}>Plan mensual de dinero</p>
-          <h2>Define qué está realmente disponible para invertir</h2>
-          <p className={styles.supportText}>
-            Ingreso, cuentas fijas y gasto variable muestran cuánto queda para invertir.
-          </p>
-        </div>
-        <ToneBadge tone={plan.tone || metricTone}>{cleanWorkspaceCopy(plan.title || "Plan no definido")}</ToneBadge>
-      </div>
-
-      <div className={styles.financePanelGrid}>
-        <form
-          className={styles.financeForm}
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSubmit();
-          }}
-        >
-          <div className={styles.financeInputGrid}>
-            <FinancePlanField
-              currency={currency}
-              id="monthly-income"
-              label="Ingreso mensual"
-              onChange={(value) => onChange("monthlyIncome", value)}
-              value={draft.monthlyIncome}
-            />
-            <FinancePlanField
-              currency={currency}
-              id="fixed-expenses"
-              label="Gastos fijos"
-              onChange={(value) => onChange("fixedExpenses", value)}
-              value={draft.fixedExpenses}
-            />
-            <FinancePlanField
-              currency={currency}
-              id="variable-expenses"
-              label="Gasto variable"
-              onChange={(value) => onChange("variableExpenses", value)}
-              value={draft.variableExpenses}
-            />
-            <FinancePlanField
-              currency={currency}
-              id="safety-buffer"
-              label="Caja aparte"
-              onChange={(value) => onChange("safetyBuffer", value)}
-              value={draft.safetyBuffer}
-            />
-            <FinancePlanField
-              currency={currency}
-              id="target-investment"
-              label="Aporte objetivo"
-              onChange={(value) => onChange("targetMonthlyInvestment", value)}
-              value={draft.targetMonthlyInvestment}
-            />
-            <FinancePlanField
-              id="base-currency"
-              inputMode="text"
-              label="Moneda"
-              onChange={(value) => onChange("baseCurrency", value)}
-              value={draft.baseCurrency}
-            />
-          </div>
-
-          <div className={styles.financeFormFooter}>
-            <p>{cleanWorkspaceCopy(plan.body || "Guarda el plan para conectar flujo de caja personal con asignación de portafolio.")}</p>
-            <button className={styles.primaryButton} disabled={pending} type="submit">
-              {pending ? "Guardando..." : "Guardar plan"}
-            </button>
-          </div>
-        </form>
-
-        <div className={styles.financeReadout}>
-          <div className={styles.financeMetricGrid}>
-            <MetricTile
-              detail="Caja que entra antes de cuentas y gasto variable."
-              label="Ingreso mensual"
-              value={formatMoney(plan.inputs?.monthlyIncome, currency)}
-            />
-            <MetricTile
-              detail="Cuentas recurrentes y costos mensuales comprometidos."
-              label="Costos fijos"
-              value={formatMoney(plan.inputs?.fixedExpenses, currency)}
-            />
-            <MetricTile
-              detail="Gasto flexible que todavía debe financiarse."
-              label="Gasto variable"
-              value={formatMoney(plan.inputs?.variableExpenses, currency)}
-            />
-            <MetricTile
-              detail="Caja que se deja fuera del mercado."
-              label="Caja aparte"
-              value={formatMoney(plan.inputs?.safetyBuffer, currency)}
-            />
-            <MetricTile
-              detail="Ingreso menos costos fijos, gasto variable y caja aparte."
-              label="Disponible para invertir"
-              tone={metricTone}
-              value={formatMoney(metrics.monthlyInvestable, currency)}
-            />
-            <MetricTile
-              detail="Gastos fijos y variables."
-              label="Gasto mensual"
-              value={formatMoney(metrics.monthlyOutflow, currency)}
-            />
-            <MetricTile
-              detail="Caja invertible dividida por ingreso mensual."
-              label="Tasa de ahorro"
-              tone={metricTone}
-              value={formatOptionalRatio(metrics.savingsRate, 0)}
-            />
-            <MetricTile
-              detail="Aporte disponible frente a tu objetivo."
-              label="Cobertura objetivo"
-              tone={metricTone}
-              value={metrics.targetCoverage === null ? "Definir objetivo" : formatOptionalRatio(metrics.targetCoverage, 0)}
-            />
-          </div>
-
-          <div className={styles.financeAllocation}>
-            <div className={styles.financeAllocationHead}>
-              <div>
-                <p className={styles.kicker}>Asignación mensual</p>
-                <h3>{showAllocation ? "Dónde va el ingreso" : "Agrega ingreso para dibujar el plan"}</h3>
-              </div>
-              {Number.isFinite(Number(metrics.annualContributionRate)) ? (
-                <ToneBadge tone="neutral">{formatOptionalRatio(metrics.annualContributionRate, 1)} del portafolio/año</ToneBadge>
-              ) : null}
-            </div>
-
-            {showAllocation ? (
-              <>
-                <div className={styles.financeAllocationBar} aria-label="Asignación del ingreso mensual">
-                  {allocation.map((item) => (
-                    <span
-                      data-segment={item.id}
-                      key={item.id}
-                      style={{ width: `${Math.max(4, Math.round((Number(item.ratio) || 0) * 100))}%` }}
-                      title={`${item.label}: ${formatMoney(item.value, currency)}`}
-                    />
-                  ))}
-                </div>
-                <div className={styles.financeLegend}>
-                  {allocation.map((item) => (
-                    <span key={`legend-${item.id}`}>
-                      <i data-segment={item.id} />
-                      {item.label}: {formatMoney(item.value, currency)}
-                    </span>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className={styles.emptyCopy}>Cuando ingreses el ingreso, esto se convierte en una barra de gasto, caja aparte y caja invertible.</p>
-            )}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function formatBreadth(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "-";
@@ -1077,29 +886,6 @@ function sanitizeCurrencyInput(value) {
   return String(value || "").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 3);
 }
 
-function formatFinanceInputValue(value) {
-  const numeric = Number(value);
-  if (!Number.isFinite(numeric) || numeric === 0) return "";
-  return String(numeric).replace(/\.0+$/, "");
-}
-
-function financeDraftFromPlan(financePlan) {
-  const inputs = financePlan?.inputs || {};
-  return {
-    monthlyIncome: formatFinanceInputValue(inputs.monthlyIncome),
-    fixedExpenses: formatFinanceInputValue(inputs.fixedExpenses),
-    variableExpenses: formatFinanceInputValue(inputs.variableExpenses),
-    safetyBuffer: formatFinanceInputValue(inputs.safetyBuffer),
-    targetMonthlyInvestment: formatFinanceInputValue(inputs.targetMonthlyInvestment),
-    baseCurrency: sanitizeCurrencyInput(inputs.baseCurrency || "USD") || "USD",
-  };
-}
-
-function draftMoney(value) {
-  const numeric = Number(value);
-  return Number.isFinite(numeric) ? Math.max(0, numeric) : 0;
-}
-
 function formatMoney(value, currency = "USD") {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "-";
@@ -1116,13 +902,6 @@ function formatMoney(value, currency = "USD") {
 
 function formatOptionalRatio(value, digits = 0) {
   return Number.isFinite(Number(value)) ? formatPct(Number(value), digits) : "-";
-}
-
-function financeMetricTone(financePlan) {
-  const status = String(financePlan?.status || "");
-  if (status === "target_funded" || status === "investable_ready") return "good";
-  if (status === "cashflow_blocked") return "bad";
-  return "warn";
 }
 
 const PHANTOM_MAX_HOLDINGS = 24;
@@ -1864,34 +1643,6 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} posición${draftDefaults.excludedCount === 1 ? "" : "es"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"}.` : ""}
           </p>
         </aside>
-      </div>
-    </section>
-  );
-}
-
-function AlertsPanel({ alerts }) {
-  const values = safeList(alerts);
-  if (!values.length) return null;
-
-  return (
-    <section className={styles.panel}>
-      <div className={styles.panelHeader}>
-        <div>
-          <p className={styles.kicker}>Alertas</p>
-          <h2>Qué necesita atención ahora</h2>
-        </div>
-      </div>
-
-      <div className={styles.alertStack}>
-        {values.map((alert) => (
-          <article className={styles.alertRow} key={alert.id}>
-            <ToneBadge tone={statusTone(alert.severity)}>{cleanWorkspaceCopy(capitalize(alert.severity))}</ToneBadge>
-            <div>
-              <strong>{cleanWorkspaceCopy(alert.title)}</strong>
-              <p>{friendlyWorkspaceMessage(alert.body, "La sesión de mercado todavía se está actualizando.")}</p>
-            </div>
-          </article>
-        ))}
       </div>
     </section>
   );
@@ -3584,12 +3335,12 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bFixed expenses\b/gi, "Gastos fijos")
     .replace(/\bVariable spending\b/gi, "Gasto variable")
     .replace(/\bVariable expenses\b/gi, "Gasto variable")
-    .replace(/\bCash buffer\b/gi, "Caja aparte")
+    .replace(/\bCash buffer\b/gi, "Reserva disponible")
     .replace(/\bTarget contribution\b/gi, "Aporte objetivo")
-    .replace(/\bSavings rate\b/gi, "Tasa de ahorro")
+    .replace(/\bSavings rate\b/gi, "Ritmo de inversión")
     .replace(/\bTarget coverage\b/gi, "Cobertura objetivo")
-    .replace(/\bPreserve the reserve sleeve\b/gi, "Mantener caja aparte")
-    .replace(/\bPreserve the reserve\b/gi, "Mantener caja aparte")
+    .replace(/\bPreserve the reserve sleeve\b/gi, "Mantener reserva disponible")
+    .replace(/\bPreserve the reserve\b/gi, "Mantener reserva disponible")
     .replace(/\bStay\s+patient\b/gi, "Sin cambios por ahora")
     .replace(/\bStay defensive\b/gi, "No sumar riesgo")
     .replace(/\bStay measured\b/gi, "Riesgo acotado")

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function LoginPage({ searchParams }) {
   const config = getServerConfig();
-  const next = typeof searchParams?.next === "string" ? searchParams.next : "/app";
+  const next = typeof searchParams?.next === "string" ? searchParams.next : "/valuation-os-lab";
   const error = typeof searchParams?.error === "string" ? searchParams.error : "";
   const session = await getServerAuthSession();
 
@@ -42,7 +42,7 @@ export default async function LoginPage({ searchParams }) {
           </h1>
 
           <p className={styles.lead}>
-            Sign in once, then return to the same money plan, portfolio,
+            Sign in once, then return to the same valuation OS, portfolio,
             research desk, and decision memory from web or mobile.
           </p>
 
@@ -58,7 +58,7 @@ export default async function LoginPage({ searchParams }) {
               <div className={styles.benefitIcon}>GO</div>
               <div className={styles.benefitBody}>
                 <strong>One private workspace</strong>
-                <p>Your finance plan, holdings, research, and staged decisions all come back after login.</p>
+                <p>Your valuation workspace, holdings, research, and staged decisions all come back after login.</p>
               </div>
             </div>
             <div className={styles.benefit}>

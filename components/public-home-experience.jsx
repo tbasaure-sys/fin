@@ -346,7 +346,7 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
               <Link className={styles.btnGhost} href="/login">
                 {copy.auth.logIn}
               </Link>
-              <Link className={styles.btnSecondary} href="/login">
+              <Link className={styles.btnSecondary} href="/login?next=/valuation-os-lab">
                 {copy.auth.getStarted}
               </Link>
             </>
