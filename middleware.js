@@ -32,13 +32,11 @@ export function middleware(request) {
   const hasSession = hasE2EBypass || Boolean(request.cookies.get(cookieName)?.value);
 
   if (pathname === "/access") {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/valuation-os-lab", request.url));
   }
 
   if ((pathname === "/app" || pathname.startsWith("/app/") || pathname === "/legacy") && !hasSession) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/valuation-os-lab", request.url));
   }
 
   return NextResponse.next();

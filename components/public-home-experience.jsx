@@ -22,7 +22,8 @@ const COPY = {
       signOut: "Sign out",
       logIn: "Log in",
       getStarted: "Get started",
-      openWorkspace: "Open workspace",
+      openWorkspace: "Open Valuation OS",
+      factorLab: "FactorLab",
     },
     hero: {
       eyebrow: "Portfolio decisions, explained",
@@ -31,7 +32,7 @@ const COPY = {
       body:
         "BLS Prime turns cash, holdings, market context, and research into one clear next step: act, wait, or reject.",
       primaryAuthed: "Open Valuation OS",
-      primaryGuest: "Get started",
+      primaryGuest: "Open Valuation OS",
       secondary: "See the workspace",
     },
     workflow: {
@@ -150,7 +151,8 @@ const COPY = {
       signOut: "Cerrar sesión",
       logIn: "Iniciar sesión",
       getStarted: "Empezar",
-      openWorkspace: "Abrir workspace",
+      openWorkspace: "Abrir Valuation OS",
+      factorLab: "FactorLab",
     },
     hero: {
       eyebrow: "Lectura de cartera, sin ruido",
@@ -159,7 +161,7 @@ const COPY = {
       body:
         "BLS Prime revisa tu cartera, el mercado y las señales de riesgo para decirte, en simple, si conviene actuar, esperar o bajar exposición.",
       primaryAuthed: "Abrir Valuation OS",
-      primaryGuest: "Empezar",
+      primaryGuest: "Abrir Valuation OS",
       secondary: "Ver la lectura",
     },
     workflow: {
@@ -286,13 +288,13 @@ function getInitialLanguage() {
   return window.navigator.language?.toLowerCase().startsWith("en") ? "en" : "es";
 }
 
-export function PublicHomeExperience({ brand, isAuthenticated }) {
+export function PublicHomeExperience({ brand }) {
   const [language, setLanguage] = useState("es");
   const [hasResolvedLanguage, setHasResolvedLanguage] = useState(false);
   const copy = COPY[language];
-  const primaryHref = isAuthenticated ? "/valuation-os-lab" : "/login?next=/valuation-os-lab";
-  const factorLabHref = isAuthenticated ? "/app#factorlab" : "/login?next=/app%23factorlab";
-  const primaryLabel = isAuthenticated ? copy.hero.primaryAuthed : copy.hero.primaryGuest;
+  const primaryHref = "/valuation-os-lab";
+  const factorLabHref = "/factorlab";
+  const primaryLabel = copy.hero.primaryGuest || copy.hero.primaryAuthed;
 
   useEffect(() => {
     const initialLanguage = getInitialLanguage();
@@ -330,27 +332,12 @@ export function PublicHomeExperience({ brand, isAuthenticated }) {
         <div className={styles.navActions}>
           <LanguageToggle copy={copy} language={language} onChange={setLanguage} />
 
-          {isAuthenticated ? (
-            <>
-              <Link className={styles.btnGhost} href="/app">
-                {copy.auth.workspace}
-              </Link>
-              <form action="/api/auth/logout" method="post" style={{ display: "contents" }}>
-                <button className={styles.btnSecondary} type="submit">
-                  {copy.auth.signOut}
-                </button>
-              </form>
-            </>
-          ) : (
-            <>
-              <Link className={styles.btnGhost} href="/login">
-                {copy.auth.logIn}
-              </Link>
-              <Link className={styles.btnSecondary} href="/login?next=/valuation-os-lab">
-                {copy.auth.getStarted}
-              </Link>
-            </>
-          )}
+          <Link className={styles.btnGhost} href="/factorlab">
+            {copy.auth.factorLab}
+          </Link>
+          <Link className={styles.btnSecondary} href="/valuation-os-lab">
+            {copy.auth.openWorkspace}
+          </Link>
         </div>
       </nav>
 

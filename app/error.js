@@ -18,14 +18,14 @@ export default function Error({ error, reset }) {
         <p className="brand-wordmark">{appName}</p>
         <h1>We could not open the workspace.</h1>
         <p className="landing-support">
-          Try the workspace again. If the problem persists, sign in again and refresh the live data.
+          Try the workspace again. If the problem persists, open the public Valuation OS and refresh the live data.
         </p>
         <div className="hero-cta-row">
           <button className="primary-button" onClick={() => reset()}>
             Try again
           </button>
-          <Link className="ghost-button" href="/login">
-            Sign in
+          <Link className="ghost-button" href="/valuation-os-lab">
+            Valuation OS
           </Link>
           <Link className="ghost-button" href="/">
             Home

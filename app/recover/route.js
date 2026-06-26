@@ -40,7 +40,7 @@ const recoveryHtml = `<!doctype html>
   <body>
     <main>
       <h1>Recovering browser cache</h1>
-      <p>We are clearing stale local cache and browser storage for this site, then sending you back to login.</p>
+      <p>We are clearing stale local cache and browser storage for this site, then sending you back to Valuation OS.</p>
       <small>If this page stays open for more than a few seconds, refresh once and try again.</small>
     </main>
     <script>
@@ -68,7 +68,7 @@ const recoveryHtml = `<!doctype html>
         } catch {}
 
         window.setTimeout(() => {
-          window.location.replace("/login?recovered=1");
+          window.location.replace("/valuation-os-lab?recovered=1");
         }, 600);
       })();
     </script>
