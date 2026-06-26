@@ -1,10 +1,24 @@
 {
-  "generated_on": "2026-06-25T13:24:04.256680+00:00",
-  "run_date": "2026-06-11",
+  "generated_on": "2026-06-26T13:44:10.977730+00:00",
+  "run_date": "2026-06-26",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 85539,
-  "series_count": 15,
+  "observations": 143223,
+  "series_count": 25,
   "impulse_changes": [
+    {
+      "series_id": "T10YIE",
+      "date": "2026-06-25T00:00:00",
+      "value": 2.21,
+      "transformed": 0.029999999999999805,
+      "momentum": -0.10000000000000009,
+      "impulse": -0.2400000000000002,
+      "momentum_z": -0.8768379873195791,
+      "impulse_z": -1.939160933495224,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y breakeven"
+    },
     {
       "series_id": "GC=F",
       "date": "2026-06-11T00:00:00",
@@ -32,6 +46,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "USDCOP"
+    },
+    {
+      "series_id": "DGS10",
+      "date": "2026-06-24T00:00:00",
+      "value": 4.41,
+      "transformed": -0.08999999999999986,
+      "momentum": -0.03000000000000025,
+      "impulse": -0.5100000000000007,
+      "momentum_z": -0.2594195228756133,
+      "impulse_z": -1.4956099449263658,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y nominal yield"
     },
     {
       "series_id": "LQD",
@@ -90,6 +118,34 @@
       "label": "High yield ETF"
     },
     {
+      "series_id": "WTREGEN",
+      "date": "2026-06-24T00:00:00",
+      "value": 918696.0,
+      "transformed": 918696.0,
+      "momentum": 44619.0,
+      "impulse": 150938.0,
+      "momentum_z": 0.11412465735205518,
+      "impulse_z": 1.0806242000521413,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Treasury General Account"
+    },
+    {
+      "series_id": "BAMLH0A0HYM2",
+      "date": "2026-06-24T00:00:00",
+      "value": 2.76,
+      "transformed": 0.04999999999999982,
+      "momentum": -0.6600000000000001,
+      "impulse": -0.40000000000000036,
+      "momentum_z": -1.6422383708995363,
+      "impulse_z": -0.9876471835193007,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US HY OAS"
+    },
+    {
       "series_id": "^MOVE",
       "date": "2026-06-10T00:00:00",
       "value": 73.94999694824219,
@@ -104,79 +160,46 @@
       "label": "MOVE index"
     },
     {
-      "series_id": "TLT",
-      "date": "2026-06-10T00:00:00",
-      "value": 84.87010192871094,
-      "transformed": -0.0029401828815194264,
-      "momentum": -0.031543495387751364,
-      "impulse": 0.11921906424300843,
-      "momentum_z": -0.04658234903569037,
-      "impulse_z": 0.6431737548147669,
-      "impulse_sign": 1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Long Treasury ETF"
-    },
-    {
-      "series_id": "MXN=X",
-      "date": "2026-06-10T00:00:00",
-      "value": 17.45401954650879,
-      "transformed": -0.000783438252390134,
-      "momentum": -0.0862141983224749,
-      "impulse": -0.08588403504456465,
-      "momentum_z": -0.24198868745585037,
-      "impulse_z": -0.5584212462865383,
+      "series_id": "DFII10",
+      "date": "2026-06-24T00:00:00",
+      "value": 2.23,
+      "transformed": -0.06000000000000005,
+      "momentum": 0.10000000000000009,
+      "impulse": -0.26,
+      "momentum_z": 0.11990946835139482,
+      "impulse_z": -0.8768379873195741,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "USDMXN"
-    },
-    {
-      "series_id": "UUP",
-      "date": "2026-06-11T00:00:00",
-      "value": 28.0049991607666,
-      "transformed": -0.0007032343588262435,
-      "momentum": 0.039472770298898396,
-      "impulse": -0.06213409682736426,
-      "momentum_z": -0.14674157327048962,
-      "impulse_z": -0.5581562790392914,
-      "impulse_sign": -1,
-      "persistent_inflection": true,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "UUP dollar ETF fallback"
-    },
-    {
-      "series_id": "DXY",
-      "date": "2026-06-11T00:00:00",
-      "value": 99.91300201416016,
-      "transformed": -0.0003702029359775594,
-      "momentum": 0.00813545527514492,
-      "impulse": -0.05738632500156626,
-      "momentum_z": 0.030271027632948536,
-      "impulse_z": -0.5271995766871667,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "DXY dollar index"
-    },
-    {
-      "series_id": "HG=F",
-      "date": "2026-06-11T00:00:00",
-      "value": 6.346499919891357,
-      "transformed": 0.015482004678123218,
-      "momentum": 0.3667391810141325,
-      "impulse": -0.17674096050297194,
-      "momentum_z": 0.6426880898775096,
-      "impulse_z": -0.5038143388813358,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Copper futures"
+      "label": "US 10Y real yield"
     }
   ],
   "liquidity": {
-    "status": "missing",
-    "summary": "Liquidity feeds not available yet."
+    "status": "available",
+    "summary": "US net liquidity impulse is negative.",
+    "components": {
+      "us_net_liquidity": {
+        "latest": 5816944.466,
+        "momentum": 33861.457999999635,
+        "impulse": -172305.5510000009,
+        "impulse_direction": "negative"
+      },
+      "WALCL": {
+        "label": "Fed balance sheet",
+        "impulse": -21362.0,
+        "impulse_z": -0.783172344741558
+      },
+      "WTREGEN": {
+        "label": "Treasury General Account",
+        "impulse": 150938.0,
+        "impulse_z": 1.0806242000521413
+      },
+      "RRPONTSYD": {
+        "label": "Overnight reverse repo",
+        "impulse": 19.431,
+        "impulse_z": 0.10072328645241388
+      }
+    }
   },
   "theses": [
     {
@@ -184,10 +207,10 @@
       "title": "USD fuerte vs LatAm FX",
       "status": "live",
       "confidence": 0.62,
-      "amb_display": 0.5,
+      "amb_display": 0.6,
       "confirmations": 2,
-      "neutrals": 1,
-      "contradictions": 2,
+      "neutrals": 0,
+      "contradictions": 3,
       "license_state": "CONDITIONAL",
       "details": [
         {
@@ -201,8 +224,8 @@
           "series_id": "DFII10",
           "expected_sign": 1,
           "label": "US real yields confirm",
-          "observed_sign": 0,
-          "state": "missing"
+          "observed_sign": -1,
+          "state": "contradicting"
         },
         {
           "series_id": "CLP=X",
@@ -287,11 +310,11 @@
       "title": "BCCh corta antes de Fed",
       "status": "live",
       "confidence": 0.56,
-      "amb_display": 0.5,
+      "amb_display": 0.8333333333333334,
       "confirmations": 0,
-      "neutrals": 3,
-      "contradictions": 0,
-      "license_state": "LICENSED",
+      "neutrals": 1,
+      "contradictions": 2,
+      "license_state": "CONDITIONAL",
       "details": [
         {
           "series_id": "CLP=X",
@@ -304,15 +327,15 @@
           "series_id": "DGS2",
           "expected_sign": 1,
           "label": "US front-end still restrictive",
-          "observed_sign": 0,
-          "state": "missing"
+          "observed_sign": -1,
+          "state": "contradicting"
         },
         {
           "series_id": "DFII10",
           "expected_sign": 1,
           "label": "Real-yield backdrop restrictive",
-          "observed_sign": 0,
-          "state": "missing"
+          "observed_sign": -1,
+          "state": "contradicting"
         }
       ],
       "invalidation": [
@@ -333,7 +356,7 @@
         "T2",
         "T3"
       ],
-      "license_value": 3.95
+      "license_value": 4.817
     },
     {
       "release": "China trade / credit impulse",
@@ -343,7 +366,7 @@
         "T2",
         "T3"
       ],
-      "license_value": 3.95
+      "license_value": 4.583
     },
     {
       "release": "US payrolls",
@@ -353,16 +376,7 @@
         "T2",
         "T3"
       ],
-      "license_value": 3.375
-    },
-    {
-      "release": "CFTC positioning",
-      "timing": "Friday lag",
-      "affected_theses": [
-        "T1",
-        "T2"
-      ],
-      "license_value": 3.125
+      "license_value": 4.242
     },
     {
       "release": "Chile CPI / BCCh",
@@ -372,7 +386,16 @@
         "T2",
         "T3"
       ],
-      "license_value": 2.675
+      "license_value": 3.442
+    },
+    {
+      "release": "CFTC positioning",
+      "timing": "Friday lag",
+      "affected_theses": [
+        "T1",
+        "T2"
+      ],
+      "license_value": 3.325
     }
   ],
   "psm": {
