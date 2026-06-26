@@ -6,8 +6,8 @@ export default function manifest() {
     name: appName,
     short_name: "BLS Prime",
     description:
-      "Personal finance, portfolio research, and investment decision memory in one private workspace.",
-    start_url: "/app",
+      "Public valuation, factor, and macro research tools for investment decisions.",
+    start_url: "/valuation-os-lab",
     scope: "/",
     display: "standalone",
     background_color: "#0b0f16",

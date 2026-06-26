@@ -10,7 +10,7 @@ const COPY = {
   en: {
     navAria: "FactorLab navigation",
     nav: { builder: "Builder", catalog: "Catalog", diagnostics: "Diagnostics" },
-    workspace: "Workspace",
+    workspace: "Valuation OS",
     language: "Language",
     hero: {
       kicker: "FactorLab",
@@ -71,7 +71,7 @@ const COPY = {
   es: {
     navAria: "Navegación de FactorLab",
     nav: { builder: "Constructor", catalog: "Catálogo", diagnostics: "Diagnóstico" },
-    workspace: "Espacio",
+    workspace: "Valuation OS",
     language: "Idioma",
     hero: {
       kicker: "FactorLab",
@@ -278,7 +278,7 @@ export function FactorLabWorkstation() {
             <button data-active={language === "en"} onClick={() => setLanguage("en")} type="button">EN</button>
             <button data-active={language === "es"} onClick={() => setLanguage("es")} type="button">ES</button>
           </div>
-          <Link className={styles.workspaceLink} href="/app">
+          <Link className={styles.workspaceLink} href="/valuation-os-lab">
             {copy.workspace}
           </Link>
         </div>

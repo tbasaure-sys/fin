@@ -51,8 +51,8 @@ export default async function MacroBrainPage() {
           <a href="#today">Today</a>
           <a href="#record">Log</a>
         </div>
-        <Link className={styles.navAction} href="/app">
-          Workspace
+        <Link className={styles.navAction} href="/valuation-os-lab">
+          Valuation OS
         </Link>
       </nav>
 
@@ -62,8 +62,8 @@ export default async function MacroBrainPage() {
           <h1>Macro Brain</h1>
           <p>One morning page: what moved, what matters next, what gets saved.</p>
           <div className={styles.actions}>
-            <Link className={styles.primaryButton} href="/app#macrobrain">
-              Open in workspace
+            <Link className={styles.primaryButton} href="/valuation-os-lab">
+              Open Valuation OS
             </Link>
             <a className={styles.secondaryButton} href="#today">See today</a>
           </div>
