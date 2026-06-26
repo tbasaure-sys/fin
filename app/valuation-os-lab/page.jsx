@@ -419,6 +419,7 @@ function EngineConsole({
 }) {
   const coverage = liveSnapshot?.coverage || {};
   const facts = liveSnapshot?.facts || {};
+  const assumptions = liveSnapshot?.assumptions || {};
   const fiscalYear = liveSnapshot?.company?.fiscalYear || "latest";
   const activeFalsifiers = tripwires.map((item) => item.falsifier || item.label);
   const panels = {
@@ -433,15 +434,20 @@ function EngineConsole({
       technical: "Checks SEC companyfacts, quote source, FRED rate, missing drivers, and data lineage.",
       metrics: [
         ["SEC filing", liveSnapshot ? `${liveSnapshot.company?.form || "SEC"} / FY${fiscalYear}` : "Local kernel"],
+        ["Industry policy", assumptions.industry?.label || "Local prior"],
         ["Quote", coverage.quoteSource || "Missing"],
         ["Data quality", fmtPct(quality, 0), quality >= 0.65 ? "good" : "warn"],
-        ["Missing drivers", String(missingDrivers.length), missingDrivers.length ? "bad" : "good"],
       ],
       bullets: [
         liveSnapshot
           ? `Companyfacts status: ${coverage.secCompanyFacts ? "loaded" : "not loaded"}`
           : "Using local thesis kernel until a SEC snapshot is loaded.",
-        coverage.fredConfigured ? "Risk-free rate source is configured." : "Risk-free rate source is not configured.",
+        assumptions.riskFree
+          ? `Risk-free anchor: ${fmtOptional(assumptions.riskFree.value, fmtPct)} from ${assumptions.riskFree.source}.`
+          : coverage.fredConfigured
+            ? "Risk-free rate source is configured."
+            : "Risk-free rate source is not configured.",
+        assumptions.industry?.sicDescription ? `SEC industry hint: ${assumptions.industry.sicDescription}.` : null,
         coverage.quoteSource ? `Market quote source is available: ${coverage.quoteSource}.` : "Market quote provider is missing or unavailable.",
         isFiniteNumber(facts.revenue) ? `Revenue fact: ${factMoney(facts.revenue)}` : null,
         missingDrivers.length ? `Missing: ${missingDrivers.join(", ")}` : null,
@@ -461,6 +467,9 @@ function EngineConsole({
         ["ROIC - WACC", fmtOptional(adjustedDrivers.roic - adjustedDrivers.wacc, fmtPct), adjustedDrivers.roic >= adjustedDrivers.wacc ? "good" : "bad"],
       ],
       bullets: [
+        assumptions.wacc && isFiniteNumber(assumptions.wacc.beta)
+          ? `WACC build: beta ${assumptions.wacc.beta.toFixed(2)}, ERP ${fmtPct(assumptions.wacc.equityRiskPremium)}, debt weight ${fmtPct(assumptions.wacc.debtWeight)}.`
+          : null,
         `Reinvestment rate: ${fmtOptional(adjustedDrivers.reinvestment, fmtPct)}.`,
         `Terminal growth: ${fmtOptional(adjustedDrivers.terminalGrowth, fmtPct)}.`,
         isFiniteNumber(adjustedDrivers.roic) && isFiniteNumber(adjustedDrivers.wacc) && adjustedDrivers.roic < adjustedDrivers.wacc
@@ -543,6 +552,7 @@ function EngineConsole({
       ],
       bullets: [
         "Use the surface below to see where market expectations become plausible or fragile.",
+        assumptions.wacc ? `WACC is bounded by the ${assumptions.industry?.label || "selected"} policy before the reverse DCF is read.` : null,
         activeFalsifiers[0] || null,
       ],
     },
@@ -754,6 +764,35 @@ export default function ValuationOsLabPage() {
     return value < item.low + span * 0.12 || value > item.high - span * 0.12;
   });
   const plainRead = plainDecision(upside, feasibility, missingDrivers);
+  const assumptionPolicy = liveSnapshot?.assumptions || null;
+  const assumptionCards = assumptionPolicy
+    ? [
+        {
+          label: "Industry policy",
+          value: assumptionPolicy.industry?.label || "Broad operating company",
+          note: assumptionPolicy.industry?.sicDescription || "Ticker and SEC profile",
+        },
+        {
+          label: "Risk-free anchor",
+          value: fmtOptional(assumptionPolicy.riskFree?.value, fmtPct),
+          note: assumptionPolicy.riskFree?.date
+            ? `${assumptionPolicy.riskFree.source} / ${assumptionPolicy.riskFree.date}`
+            : assumptionPolicy.riskFree?.source || "Explicit fallback",
+        },
+        {
+          label: "WACC build",
+          value: fmtOptional(assumptionPolicy.wacc?.value, fmtPct),
+          note: isFiniteNumber(assumptionPolicy.wacc?.beta)
+            ? `Beta ${assumptionPolicy.wacc.beta.toFixed(2)} + ERP ${fmtPct(assumptionPolicy.wacc.equityRiskPremium)}`
+            : "Rate, beta, spread, tax",
+        },
+        {
+          label: "Policy confidence",
+          value: fmtOptional(assumptionPolicy.industry?.confidence, (value) => fmtPct(value, 0)),
+          note: "Facts loaded + sector cyclicality",
+        },
+      ]
+    : [];
 
   const fadePath = Array.from({ length: 20 }, (_, index) => {
     const phi = Math.pow(0.5, 1 / adjustedDrivers.moatHalfLife);
@@ -812,7 +851,7 @@ export default function ValuationOsLabPage() {
         moatHalfLife: payload.drivers?.moatHalfLife,
         dataQuality: payload.drivers?.dataQuality,
         modelRisk: payload.drivers?.modelRisk,
-        beta: driverOr(drivers, "beta"),
+        beta: payload.drivers?.beta ?? driverOr(drivers, "beta"),
       };
 
       setLiveCompany(nextCompany);
@@ -1071,6 +1110,25 @@ export default function ValuationOsLabPage() {
                 missing assumptions manually before reading the valuation.
               </div>
             ) : null}
+            {assumptionCards.length ? (
+              <div className={styles.policyStrip} aria-label="Assumption policy">
+                {assumptionCards.map((item) => (
+                  <div key={item.label}>
+                    <span>{item.label}</span>
+                    <strong>{item.value}</strong>
+                    <small>{item.note}</small>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={styles.policyStrip} aria-label="Assumption policy">
+                <div>
+                  <span>Assumption policy</span>
+                  <strong>Local prior</strong>
+                  <small>Load a ticker to replace generic priors with industry-aware rates.</small>
+                </div>
+              </div>
+            )}
             <div className={styles.assumptionList}>
               {assumptionSchema.map((item) => (
                 <label key={item.key} className={styles.assumptionRow}>

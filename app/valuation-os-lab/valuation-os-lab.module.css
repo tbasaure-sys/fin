@@ -827,6 +827,49 @@
   padding-right: 0.2rem;
 }
 
+.policyStrip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.75rem;
+}
+
+.policyStrip div {
+  min-width: 0;
+  padding: 0.72rem;
+  border: 1px solid rgba(92, 216, 202, 0.2);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(92, 216, 202, 0.08), rgba(240, 189, 98, 0.045));
+}
+
+.policyStrip span,
+.policyStrip strong,
+.policyStrip small {
+  display: block;
+}
+
+.policyStrip span {
+  color: var(--amber);
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.policyStrip strong {
+  margin-top: 0.22rem;
+  color: var(--text);
+  font-size: 0.93rem;
+  line-height: 1.12;
+}
+
+.policyStrip small {
+  margin-top: 0.28rem;
+  color: var(--dim);
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
 .assumptionRow {
   display: grid;
   grid-template-columns: minmax(9rem, 1fr) minmax(7rem, 0.85fr) 4.2rem;
@@ -1255,6 +1298,7 @@
   .engineGrid,
   .agentGrid,
   .metricsGrid,
+  .policyStrip,
   .outputStrip {
     grid-template-columns: 1fr;
   }
