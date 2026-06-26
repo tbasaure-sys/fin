@@ -148,14 +148,14 @@ const assumptionSchema = [
 ];
 
 const engines = [
-  ["truth", "Data Truth", "Point-in-time filings, vintages, restatements"],
-  ["accounting", "Accounting", "Economic balance sheet and FCF bridge"],
-  ["twin", "Business Twin", "Driver DAG with sector kernel"],
-  ["bayes", "Bayesian", "Priors, regimes, dependence, scenarios"],
-  ["value", "Valuation", "Fade DCF, residual income, APV"],
-  ["expect", "Expectations", "Reverse DCF and market-implied surface"],
-  ["flows", "Price Formation", "Float, flows, shorts, buybacks"],
-  ["calibration", "Calibration", "Walk-forward scores and model risk"],
+  ["truth", "Data Truth", "Checks source quality before the model speaks"],
+  ["accounting", "Accounting", "Connects reported numbers to economic FCF"],
+  ["twin", "Business Twin", "Maps the thesis into linked business drivers"],
+  ["bayes", "Bayesian", "Turns uncertainty into probabilities and priors"],
+  ["value", "Valuation", "Compares intrinsic value with market price"],
+  ["expect", "Expectations", "Shows what growth and ROIC the price requires"],
+  ["flows", "Price Formation", "Separates fundamentals from market flows"],
+  ["calibration", "Calibration", "Scores model trust and walk-forward risk"],
 ];
 
 function clamp(value, min, max) {
@@ -370,6 +370,14 @@ function statusCopy(status) {
   return "Local verdict active";
 }
 
+function plainDecision(upside, feasibility, missingDrivers) {
+  if (missingDrivers.length) return "Incomplete";
+  if (!isFiniteNumber(upside)) return "Needs inputs";
+  if (upside > 0.15 && feasibility > 0.55) return "Attractive but verify";
+  if (upside < -0.1) return "Price looks demanding";
+  return "Close call";
+}
+
 function EngineMetric({ label, value, tone }) {
   return (
     <div className={styles.engineMetric} data-tone={tone || "neutral"}>
@@ -415,14 +423,16 @@ function EngineConsole({
   const activeFalsifiers = tripwires.map((item) => item.falsifier || item.label);
   const panels = {
     truth: {
-      eyebrow: "Source ledger",
+      eyebrow: "Source confidence",
       title: "Data Truth",
       copy:
         missingDrivers.length > 0
-          ? "Live inputs are loaded, but the valuation is not decision-ready until the missing drivers are filled."
-          : "The current stack has enough live facts to run a source-aware valuation pass.",
+          ? "The model has live data, but the missing fields make the output provisional."
+          : "The inputs are complete enough to treat the next views as source-backed.",
+      plain: "This answers: can we trust the inputs before debating value?",
+      technical: "Checks SEC companyfacts, quote source, FRED rate, missing drivers, and data lineage.",
       metrics: [
-        ["SEC filing", `${liveSnapshot?.company?.form || "Kernel"} / FY${fiscalYear}`],
+        ["SEC filing", liveSnapshot ? `${liveSnapshot.company?.form || "SEC"} / FY${fiscalYear}` : "Local kernel"],
         ["Quote", coverage.quoteSource || "Missing"],
         ["Data quality", fmtPct(quality, 0), quality >= 0.65 ? "good" : "warn"],
         ["Missing drivers", String(missingDrivers.length), missingDrivers.length ? "bad" : "good"],
@@ -438,10 +448,12 @@ function EngineConsole({
       ],
     },
     accounting: {
-      eyebrow: "Economic bridge",
+      eyebrow: "Accounting bridge",
       title: "Accounting",
       copy:
-        "This checks whether revenue, FCF, reinvestment, and ROIC line up before the model is allowed to tell a valuation story.",
+        "Reported accounting is converted into the economics that matter for valuation.",
+      plain: "This answers: is the business really producing cash at attractive returns?",
+      technical: "Compares FCF/share, margin, ROIC, WACC, reinvestment, and terminal growth consistency.",
       metrics: [
         ["FCF / share", fmtMoney(adjustedDrivers.baseFcf)],
         ["Revenue CAGR", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
@@ -459,10 +471,12 @@ function EngineConsole({
       ],
     },
     twin: {
-      eyebrow: "Driver graph",
+      eyebrow: "Thesis mechanics",
       title: "Business Twin",
       copy:
-        "The twin turns the thesis into linked drivers: growth, reinvestment, ROIC fade, moat half-life, and explicit tripwires.",
+        "The thesis is expressed as linked drivers instead of a single fair-value number.",
+      plain: "This answers: what must be true about the business for the thesis to work?",
+      technical: "Connects revenue CAGR, reinvestment, ROIC fade, moat half-life, and falsifiers.",
       metrics: [
         ["Scenario", mode],
         ["Moat half-life", isFiniteNumber(adjustedDrivers.moatHalfLife) ? `${adjustedDrivers.moatHalfLife.toFixed(1)}y` : "Missing"],
@@ -477,10 +491,12 @@ function EngineConsole({
       ],
     },
     bayes: {
-      eyebrow: "Posterior discipline",
+      eyebrow: "Uncertainty layer",
       title: "Bayesian",
       copy:
-        "This layer compares the thesis to what the market already implies and lowers confidence when model risk or missing data widens the posterior.",
+        "The model weighs the thesis against what the market already seems to believe.",
+      plain: "This answers: how confident should we be, given uncertainty and market expectations?",
+      technical: "Uses feasibility, implied CAGR, probability above price, and model-risk penalties.",
       metrics: [
         ["Feasibility", fmtPct(feasibility, 0), feasibility >= 0.55 ? "good" : "warn"],
         ["Above price", fmtPct(distribution.probAbovePrice, 0)],
@@ -497,9 +513,11 @@ function EngineConsole({
       ],
     },
     value: {
-      eyebrow: "Intrinsic ensemble",
+      eyebrow: "Intrinsic value",
       title: "Valuation",
-      copy: "A DCF-led estimate is compared with price, expected IRR, and model disagreement.",
+      copy: "Intrinsic value is compared with price, expected IRR, and model disagreement.",
+      plain: "This answers: does the current price leave enough margin of safety?",
+      technical: "Anchors on fade DCF, then checks residual income, APV, SOTP, and downside floor.",
       metrics: [
         ["Value / share", fmtMoney(valuation)],
         ["Market price", fmtMoney(adjustedDrivers.price)],
@@ -512,9 +530,11 @@ function EngineConsole({
       ],
     },
     expect: {
-      eyebrow: "Reverse DCF",
+      eyebrow: "Market expectations",
       title: "Expectations",
-      copy: "The active surface asks which growth and ROIC combinations justify today's price.",
+      copy: "The surface shows which growth and ROIC combinations would justify today's price.",
+      plain: "This answers: what is the market already pricing in?",
+      technical: "Reverse DCF solves for implied revenue CAGR against terminal ROIC and WACC assumptions.",
       metrics: [
         ["Implied CAGR", fmtPct(impliedCagr)],
         ["Thesis CAGR", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
@@ -527,9 +547,11 @@ function EngineConsole({
       ],
     },
     flows: {
-      eyebrow: "Reflexivity gate",
+      eyebrow: "Market plumbing",
       title: "Price Formation",
-      copy: "This separates intrinsic value from flows, float, buybacks, short pressure, and liquidity support.",
+      copy: "Market flows are kept separate from the company-value estimate.",
+      plain: "This answers: could price move for reasons unrelated to intrinsic value?",
+      technical: "Tracks beta, dilution/buybacks, passive pressure, short pressure, and liquidity support.",
       metrics: [
         ["Beta", isFiniteNumber(adjustedDrivers.beta) ? adjustedDrivers.beta.toFixed(2) : "N/A"],
         ["Buyback proxy", adjustedDrivers.dilution < 0 ? "Supportive" : "Dilutive"],
@@ -542,9 +564,11 @@ function EngineConsole({
       ],
     },
     calibration: {
-      eyebrow: "Walk-forward",
+      eyebrow: "Model trust",
       title: "Calibration",
-      copy: "Calibration asks whether this model family has earned permission to speak with confidence.",
+      copy: "Calibration decides how much confidence the model deserves.",
+      plain: "This answers: should the output be read as a signal, a watch item, or noise?",
+      technical: "Combines data quality, model risk, walk-forward checks, and final-agent status.",
       metrics: [
         ["Data quality", fmtPct(quality, 0)],
         ["Model risk", fmtPct(adjustedDrivers.modelRisk, 0)],
@@ -571,6 +595,12 @@ function EngineConsole({
             {String(engineIndex + 1).padStart(2, "0")} {panel.title}
           </h2>
           <p>{panel.copy}</p>
+          <div className={styles.explainPair}>
+            <span>Plain read</span>
+            <strong>{panel.plain}</strong>
+            <span>Technical read</span>
+            <strong>{panel.technical}</strong>
+          </div>
         </div>
         <div className={styles.debateActions}>
           <button type="button" onClick={onRunDebate} disabled={debateStatus.state === "loading"}>
@@ -723,6 +753,7 @@ export default function ValuationOsLabPage() {
     const span = item.high - item.low;
     return value < item.low + span * 0.12 || value > item.high - span * 0.12;
   });
+  const plainRead = plainDecision(upside, feasibility, missingDrivers);
 
   const fadePath = Array.from({ length: 20 }, (_, index) => {
     const phi = Math.pow(0.5, 1 / adjustedDrivers.moatHalfLife);
@@ -887,7 +918,10 @@ export default function ValuationOsLabPage() {
         </nav>
         <div className={styles.healthPanel}>
           <span>Thesis health</span>
-          <strong>{isFiniteNumber(upside) && upside >= 0 ? "Constructive" : "Demanding"}</strong>
+          <strong>{plainRead}</strong>
+          <p>
+            Combines valuation gap, feasibility, data quality, and active falsifiers into one operating read.
+          </p>
           <dl>
             <div>
               <dt>Falsifiers</dt>
@@ -910,9 +944,15 @@ export default function ValuationOsLabPage() {
           <div>
             <h1>Reverse DCF + ROIC Fade</h1>
             <p>
-              A local prototype for translating qualitative thesis claims into traceable drivers,
-              distributions, feasibility checks, and falsifiers.
+              A valuation workspace that shows the assumptions behind the price: source quality,
+              ROIC economics, market-implied growth, and the falsifiers that would break the thesis.
             </p>
+            <div className={styles.heroSummary}>
+              <span>Decision read</span>
+              <strong>{plainRead}</strong>
+              <span>{fmtPct(upside)} value gap</span>
+              <span>{fmtPct(feasibility, 0)} feasibility</span>
+            </div>
           </div>
           <div className={styles.controls}>
             <form className={styles.liveLoader} onSubmit={loadLiveSnapshot}>
@@ -952,6 +992,29 @@ export default function ValuationOsLabPage() {
           </div>
         </header>
 
+        <section className={styles.orientationStrip} aria-label="Valuation OS reading guide">
+          <div>
+            <span>1 Source</span>
+            <strong>SEC, quote, rate</strong>
+            <p>Confirms whether the inputs are usable.</p>
+          </div>
+          <div>
+            <span>2 Economics</span>
+            <strong>FCF, ROIC, WACC</strong>
+            <p>Shows whether growth earns enough.</p>
+          </div>
+          <div>
+            <span>3 Expectations</span>
+            <strong>Reverse DCF</strong>
+            <p>Shows what the market price requires.</p>
+          </div>
+          <div>
+            <span>4 Verdict</span>
+            <strong>Agents + falsifiers</strong>
+            <p>Separates thesis support from failure points.</p>
+          </div>
+        </section>
+
         <EngineConsole
           activeEngine={activeEngine}
           adjustedDrivers={adjustedDrivers}
@@ -977,6 +1040,9 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>Expectation Engine</span>
                 <h2>Reverse DCF feasibility surface</h2>
+                <p>
+                  Each cell shows value as a percentage of market price. Higher cells require stronger growth and ROIC.
+                </p>
               </div>
               <mark>Market price {fmtMoney(adjustedDrivers.price)}</mark>
             </div>
@@ -993,6 +1059,9 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>Assumption Ledger</span>
                 <h2>Drivers, sources, falsifiers</h2>
+                <p>
+                  Sliders are the controllable assumptions. The line under each driver is the test that would disprove it.
+                </p>
               </div>
               <mark>{tripwires.length} tripped</mark>
             </div>
@@ -1031,6 +1100,7 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>Valuation distribution</span>
                 <h3>{fmtMoney(distribution.p50)} median value</h3>
+                <p>Range of plausible values after model-risk widening.</p>
               </div>
               <mark>{fmtPct(distribution.probAbovePrice, 0)} above price</mark>
             </div>
@@ -1056,6 +1126,7 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>Moat half-life</span>
                 <h3>{adjustedDrivers.moatHalfLife.toFixed(1)} years</h3>
+                <p>How long excess ROIC is assumed to persist.</p>
               </div>
               <mark>Excess ROIC fade</mark>
             </div>
@@ -1071,6 +1142,7 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>ROIIC posterior</span>
                 <h3>{fmtPct(adjustedDrivers.roic)} Y5 ROIC</h3>
+                <p>Checks whether new capital can fund growth.</p>
               </div>
               <mark>Prior to posterior</mark>
             </div>
@@ -1086,6 +1158,7 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>Market-implied expectations</span>
                 <h3>{fmtPct(impliedCagr)} implied CAGR</h3>
+                <p>Compares market-required growth with the thesis input.</p>
               </div>
               <mark>{isFiniteNumber(upside) && upside >= 0 ? "Discount" : "Premium"}</mark>
             </div>
@@ -1115,6 +1188,7 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>Model disagreement</span>
                 <h3>{fmtPct(adjustedDrivers.modelRisk, 0)} risk flag</h3>
+                <p>Higher disagreement means the point estimate deserves less trust.</p>
               </div>
               <mark>Ensemble</mark>
             </div>
@@ -1137,6 +1211,7 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>Data quality</span>
                 <h3>{fmtPct(quality, 0)} usable</h3>
+                <p>Shows whether the system is using live, traceable inputs.</p>
               </div>
               <mark>Latest SEC</mark>
             </div>
@@ -1175,6 +1250,7 @@ export default function ValuationOsLabPage() {
               <div>
                 <span>Decision Engine</span>
                 <h2>Return distribution and permanent-loss discipline</h2>
+                <p>The decision read combines valuation gap, feasibility, and active falsifiers.</p>
               </div>
               <mark>{selectedEngine?.[1]}</mark>
             </div>
@@ -1201,9 +1277,8 @@ export default function ValuationOsLabPage() {
               </div>
             </div>
             <p>
-              This prototype deliberately refuses a single fair-value answer. It shows what the
-              market is demanding, which drivers explain the valuation, and which assumption would
-              invalidate the thesis first.
+              The output is not a one-number target price. It shows what the market demands, which
+              assumptions support the thesis, and which falsifier should be watched first.
             </p>
           </article>
 
