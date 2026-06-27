@@ -15,9 +15,9 @@ const COPY = {
     language: "Language",
     hero: {
       kicker: "FactorLab",
-      title: "Build a factor screen and see exactly why it passes.",
+      title: "Prioritize candidates before valuation.",
       body:
-        "FactorLab turns a factor idea into a point-in-time candidate list, then refuses the run if the spec leaks future data.",
+        "FactorLab is not a valuation model. It ranks research candidates using market factors plus qualitative thesis strength, demand/supply changes, and bottleneck power.",
     },
     status: {
       universe: "Universe",
@@ -31,7 +31,7 @@ const COPY = {
     builder: {
       label: "Screen builder",
       plain:
-        "Pick a universe, set the screen date, and choose how much each factor matters. The result updates from the same spec shown below.",
+        "Pick a universe, set the screen date, and choose how much each signal matters. The result updates from the same spec shown below.",
       asof: "As of",
       topK: "Top K",
       universe: "Universe",
@@ -43,10 +43,18 @@ const COPY = {
     },
     weights: {
       momentum: "Momentum",
-      quality: "Quality",
+      quality: "Financial quality",
       value: "Value",
       lowVol: "Low vol",
+      thesis: "Thesis quality",
+      demandSupply: "Demand/supply",
+      bottleneck: "Bottleneck",
     },
+    signalGuide: [
+      ["Market tape", "Momentum, value, and volatility show how the market is currently pricing the name."],
+      ["Business quality", "Financial quality is the accounting base; thesis quality captures qualitative durability and optionality."],
+      ["Industry setup", "Demand/supply and bottleneck power capture capacity constraints, scarcity, and pricing pressure."],
+    ],
     universeOptions: {
       global: "Global liquid sample",
       us: "US only",
@@ -91,7 +99,7 @@ const COPY = {
       asof: "Drops any row whose price or filing date is after the screen date.",
       liquidity: "Removes names that are too illiquid or too volatile for this run.",
       future: "This would leak future data into the live screen.",
-      score: "Combines normalized factor signals into one ranking score.",
+      score: "Combines market factors, qualitative thesis, demand/supply setup, and bottleneck power.",
       neutralize: "Penalizes crowded sector bets so the list is not just one theme.",
       raw: "Keeps the raw factor score without sector adjustment.",
       topk: "Ranks candidates and returns the top names.",
@@ -142,7 +150,15 @@ const COPY = {
       quality: "Calidad",
       value: "Valor",
       lowVol: "Baja vol.",
+      thesis: "Tesis cualitativa",
+      demandSupply: "Oferta/demanda",
+      bottleneck: "Cuello de botella",
     },
+    signalGuide: [
+      ["Mercado", "Momentum, valor y volatilidad muestran como el mercado esta tratando al nombre."],
+      ["Calidad del negocio", "La calidad financiera es la base contable; la tesis cualitativa captura durabilidad y opcionalidad."],
+      ["Setup industrial", "Oferta/demanda y cuello de botella capturan restricciones de capacidad, escasez y poder de precio."],
+    ],
     universeOptions: {
       global: "Muestra líquida global",
       us: "Solo US",
@@ -222,7 +238,11 @@ function stepPlain(step, copy) {
   if (step.id === "asof") return copy.stepPlain.asof;
   if (step.id === "liquidity") return copy.stepPlain.liquidity;
   if (step.id === "future") return copy.stepPlain.future;
-  if (step.id === "score") return copy.stepPlain.score;
+  if (step.id === "score") {
+    return copy.weights.thesis === "Thesis quality"
+      ? "Combines market factors, qualitative thesis, demand/supply setup, and bottleneck power."
+      : "Combina factores de mercado, tesis cualitativa, oferta/demanda y cuellos de botella.";
+  }
   if (step.id === "neutralize") return step.op === "sector_neutralize" ? copy.stepPlain.neutralize : copy.stepPlain.raw;
   if (step.id === "topk") return copy.stepPlain.topk;
   return step.plain;
@@ -266,15 +286,27 @@ function factorEvidence(row, copy) {
     [copy.weights.quality, row.qualityZ],
     [copy.weights.value, row.valueZ],
     [copy.weights.lowVol, row.lowVolZ],
+    [copy.weights.thesis, row.thesisZ],
+    [copy.weights.demandSupply, row.demandSupplyZ],
+    [copy.weights.bottleneck, row.bottleneckZ],
   ]
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-    .slice(0, 2);
-  return entries.map(([label, value]) => `${label} ${fmtScore(value)}z`).join(" / ");
+    .slice(0, 3);
+  const note = [row.qualitativeNote, row.demandSupplyNote, row.bottleneckNote].filter(Boolean)[0];
+  return {
+    factors: entries.map(([label, value]) => `${label} ${fmtScore(value)}z`),
+    note,
+  };
 }
 
 export function FactorLabWorkstation() {
   const { language, setLanguage } = useLanguagePreference();
   const copy = COPY[language] || COPY.en;
+  const heroTitle = language === "es" ? "Prioriza candidatos antes de valorar." : copy.hero.title;
+  const heroBody =
+    language === "es"
+      ? "FactorLab no es un modelo de valoracion. Ordena candidatos de investigacion usando factores de mercado, tesis cualitativa, cambios de oferta/demanda y poder de cuello de botella."
+      : copy.hero.body;
   const [activeStepId, setActiveStepId] = useState("score");
   const [asof, setAsof] = useState("2026-06-24");
   const [topK, setTopK] = useState(5);
@@ -351,8 +383,8 @@ export function FactorLabWorkstation() {
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>{copy.hero.kicker}</p>
-          <h1>{copy.hero.title}</h1>
-          <p>{copy.hero.body}</p>
+          <h1>{heroTitle}</h1>
+          <p>{heroBody}</p>
         </div>
 
         <div className={styles.statusPlane} aria-label="FactorLab status">
@@ -447,11 +479,20 @@ export function FactorLabWorkstation() {
             <div className={styles.panelTopline}>
               <div>
                 <span>{copy.builder.label}</span>
-                <strong>momentum_quality_value</strong>
+                <strong>factor_plus_thesis_screen</strong>
               </div>
               <mark data-state={run.accepted ? "accepted" : "refused"}>
                 {run.accepted ? copy.status.accepted : copy.status.refused}
               </mark>
+            </div>
+
+            <div className={styles.signalGuide}>
+              {copy.signalGuide.map(([title, body]) => (
+                <div key={title}>
+                  <span>{title}</span>
+                  <p>{body}</p>
+                </div>
+              ))}
             </div>
 
             <div className={styles.weightGrid}>
@@ -599,7 +640,19 @@ export function FactorLabWorkstation() {
                             <i style={{ "--score-width": `${Math.max(8, Math.min(100, 50 + row.score * 24))}%` }} />
                           </td>
                           <td>{row.sector}</td>
-                          <td>{factorEvidence(row, copy)}</td>
+                          <td>
+                            {(() => {
+                              const evidence = factorEvidence(row, copy);
+                              return (
+                                <div className={styles.evidenceStack}>
+                                  {evidence.factors.map((item) => (
+                                    <span key={item}>{item}</span>
+                                  ))}
+                                  {evidence.note ? <p>{evidence.note}</p> : null}
+                                </div>
+                              );
+                            })()}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
