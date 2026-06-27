@@ -594,6 +594,12 @@ function EngineConsole({
   const panel = panels[activeEngine] || panels.expect;
   const final = debate?.final_orchestrator;
   const finalAnalysis = final?.analysis || debate?.deterministic_verdict;
+  const researchability = finalAnalysis?.researchability || debate?.researchability;
+  const quickKill = finalAnalysis?.quick_kill || debate?.quick_kill;
+  const scorecard = finalAnalysis?.scorecard || debate?.agents || [];
+  const bullCase = finalAnalysis?.bull_case || finalAnalysis?.strongest_points || [];
+  const bearCase = finalAnalysis?.bear_case || finalAnalysis?.red_team || [];
+  const killCriteria = finalAnalysis?.kill_criteria || quickKill?.checks?.filter((item) => item.status !== "pass").map((item) => `${item.label}: ${item.note}`) || [];
   const engineIndex = engines.findIndex(([key]) => key === activeEngine);
 
   return (
@@ -647,28 +653,70 @@ function EngineConsole({
         <div className={styles.debatePanel}>
           <div className={styles.debateHeader}>
             <div>
-              <span>Multiagent valuation desk</span>
+              <span>Investment committee</span>
               <h3>{finalAnalysis?.decision || "Final verdict"}</h3>
+              <p>{finalAnalysis?.one_line_conclusion || finalAnalysis?.executive_judgment}</p>
             </div>
-            <mark>{final ? statusCopy(final.status) : "Local verdict"}</mark>
+            <div className={styles.verdictBadges}>
+              <mark>{final ? statusCopy(final.status) : "Local verdict"}</mark>
+              {researchability?.grade ? <mark>Research file {researchability.grade}</mark> : null}
+              {finalAnalysis?.composite_score ? <mark>{finalAnalysis.composite_score}/5</mark> : null}
+            </div>
+          </div>
+          <div className={styles.committeeStrip}>
+            <div>
+              <span>Researchability</span>
+              <strong>{researchability?.label || "Source file pending"}</strong>
+              <p>{researchability?.strategy || "Run the committee after loading a ticker."}</p>
+            </div>
+            <div>
+              <span>Quick kill</span>
+              <strong>{quickKill?.hard_fail ? "Hard gate tripped" : `${quickKill?.tally?.fail || 0} fails / ${quickKill?.tally?.warn || 0} warns`}</strong>
+              <p>{quickKill?.hard_fail ? "The model blocks sizing until the flagged item is repaired." : "No hard stop; read the warnings before sizing."}</p>
+            </div>
           </div>
           <div className={styles.agentGrid}>
-            {debate.agents.map((item) => (
-              <article key={item.id} className={styles.agentCard} data-vote={item.vote}>
+            {scorecard.map((item) => (
+              <article key={item.id || item.label} className={styles.agentCard} data-vote={item.vote}>
                 <span>{item.label}</span>
-                <strong>{item.stance}</strong>
+                <strong>{item.stance || item.role}</strong>
+                <small>{item.role || item.lens}</small>
                 <p>{item.summary}</p>
+                {item.score_5 ? <mark>{item.score_5}/5</mark> : null}
               </article>
             ))}
           </div>
-          <article className={styles.orchestratorCard}>
-            <span>Orchestrator verdict</span>
-            <p>{finalAnalysis?.executive_judgment}</p>
-            <div>
-              <strong>Red team</strong>
-              <BulletList items={finalAnalysis?.red_team || []} />
+          <div className={styles.caseGrid}>
+            <article className={styles.orchestratorCard}>
+              <span>Team lead</span>
+              <p>{finalAnalysis?.executive_judgment}</p>
+              <div>
+                <strong>Bull case</strong>
+                <BulletList items={bullCase} />
+              </div>
+            </article>
+            <article className={styles.orchestratorCard}>
+              <span>Red team</span>
+              <div>
+                <strong>Bear case</strong>
+                <BulletList items={bearCase} />
+              </div>
+              <div>
+                <strong>What would break it</strong>
+                <BulletList items={killCriteria.length ? killCriteria : finalAnalysis?.open_questions || []} />
+              </div>
+            </article>
+          </div>
+          {quickKill?.checks?.length ? (
+            <div className={styles.quickKillGrid}>
+              {quickKill.checks.map((item) => (
+                <span key={item.id} data-status={item.status}>
+                  <strong>{item.label}</strong>
+                  {item.note}
+                </span>
+              ))}
             </div>
-          </article>
+          ) : null}
         </div>
       ) : null}
     </section>

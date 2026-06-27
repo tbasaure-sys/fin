@@ -76,6 +76,13 @@ test("valuation OS debate works without an LLM key", async () => {
     assert.equal(payload.debate.call_budget.final_orchestrator_actual_calls, 0);
     assert.equal(payload.debate.final_orchestrator.status, "unavailable");
     assert.match(payload.debate.final_orchestrator.analysis.executive_judgment, /ASML/i);
+    assert.equal(payload.debate.version, "valuation_os_committee_v2");
+    assert.equal(payload.debate.researchability.grade, "A");
+    assert.equal(payload.debate.final_orchestrator.analysis.researchability.grade, "A");
+    assert.ok(payload.debate.final_orchestrator.analysis.composite_score >= 1);
+    assert.ok(payload.debate.final_orchestrator.analysis.scorecard.length >= 4);
+    assert.ok(payload.debate.final_orchestrator.analysis.quick_kill.checks.length >= 6);
+    assert.match(payload.debate.final_orchestrator.analysis.one_line_conclusion, /ASML/i);
   } finally {
     if (previousEnabled === undefined) delete process.env.VALUATION_OS_LLM_ENABLED;
     else process.env.VALUATION_OS_LLM_ENABLED = previousEnabled;
@@ -113,6 +120,8 @@ test("valuation OS debate falls back when final orchestrator is rate limited", a
     assert.equal(payload.debate.call_budget.final_orchestrator_actual_calls, 0);
     assert.ok(payload.debate.final_orchestrator.retry_after_ms > 0);
     assert.match(payload.debate.final_orchestrator.analysis.executive_judgment, /ASML/i);
+    assert.ok(payload.debate.final_orchestrator.analysis.scorecard.length >= 4);
+    assert.ok(payload.debate.final_orchestrator.analysis.quick_kill.checks.length >= 6);
   } finally {
     globalThis.fetch = previousFetch;
     if (previousEnabled === undefined) delete process.env.VALUATION_OS_LLM_ENABLED;
@@ -121,6 +130,43 @@ test("valuation OS debate falls back when final orchestrator is rate limited", a
     else process.env.VALUATION_OS_LLM_API_KEY = previousKey;
     if (previousOpenAiKey === undefined) delete process.env.OPENAI_API_KEY;
     else process.env.OPENAI_API_KEY = previousOpenAiKey;
+    resetRuntime();
+  }
+});
+
+test("valuation OS committee blocks incomplete live drivers", async () => {
+  const previousEnabled = process.env.VALUATION_OS_LLM_ENABLED;
+  process.env.VALUATION_OS_LLM_ENABLED = "false";
+  resetRuntime();
+
+  try {
+    const response = await postDebate({
+      ...basePayload,
+      ticker: "THIN",
+      drivers: {
+        ...basePayload.drivers,
+        ticker: "THIN",
+        baseFcf: null,
+        revenueCagr: null,
+        roic: null,
+        reinvestment: null,
+        dataQuality: 0.35,
+      },
+      missingDrivers: ["baseFcf", "revenueCagr", "roic", "reinvestment"],
+      valuation: null,
+      upside: null,
+    });
+    assert.equal(response.status, 200);
+    const payload = await response.json();
+    const analysis = payload.debate.final_orchestrator.analysis;
+    assert.equal(analysis.decision, "Not decision-ready");
+    assert.equal(analysis.action, "repair_data");
+    assert.equal(analysis.quick_kill.hard_fail, true);
+    assert.ok(analysis.quick_kill.checks.some((item) => item.id === "source_file" && item.status === "fail"));
+    assert.match(analysis.one_line_conclusion, /not decision-ready/i);
+  } finally {
+    if (previousEnabled === undefined) delete process.env.VALUATION_OS_LLM_ENABLED;
+    else process.env.VALUATION_OS_LLM_ENABLED = previousEnabled;
     resetRuntime();
   }
 });

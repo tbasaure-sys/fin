@@ -642,6 +642,56 @@
   font-weight: 800;
 }
 
+.debateHeader p {
+  max-width: 62rem;
+  margin: 0.45rem 0 0;
+  color: rgba(220, 229, 238, 0.88);
+  line-height: 1.42;
+}
+
+.verdictBadges {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.committeeStrip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+
+.committeeStrip div {
+  min-width: 0;
+  border: 1px solid rgba(85, 209, 195, 0.18);
+  border-radius: 8px;
+  background: rgba(85, 209, 195, 0.045);
+  padding: 0.8rem;
+}
+
+.committeeStrip span,
+.agentCard small,
+.quickKillGrid span {
+  color: var(--dim);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.committeeStrip strong {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text);
+}
+
+.committeeStrip p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .agentGrid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -665,6 +715,22 @@
   color: var(--text);
 }
 
+.agentCard small {
+  min-height: 2rem;
+}
+
+.agentCard mark {
+  align-self: flex-start;
+  margin-top: auto;
+  border: 1px solid rgba(240, 189, 98, 0.25);
+  border-radius: 999px;
+  background: rgba(240, 189, 98, 0.08);
+  color: var(--amber);
+  padding: 0.22rem 0.44rem;
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
 .agentCard[data-vote="constructive"] {
   border-color: rgba(105, 212, 159, 0.32);
 }
@@ -677,6 +743,46 @@
   display: grid;
   gap: 0.75rem;
   margin-top: 0.75rem;
+}
+
+.caseGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 0.75rem;
+}
+
+.quickKillGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.quickKillGrid span {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.032);
+  padding: 0.62rem;
+}
+
+.quickKillGrid strong {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: var(--text);
+  font-size: 0.76rem;
+}
+
+.quickKillGrid span[data-status="pass"] {
+  border-color: rgba(105, 212, 159, 0.22);
+}
+
+.quickKillGrid span[data-status="warn"] {
+  border-color: rgba(240, 189, 98, 0.32);
+}
+
+.quickKillGrid span[data-status="fail"] {
+  border-color: rgba(239, 125, 105, 0.38);
 }
 
 .surfacePanel,
@@ -1297,6 +1403,9 @@
   .engineMetrics,
   .engineGrid,
   .agentGrid,
+  .committeeStrip,
+  .caseGrid,
+  .quickKillGrid,
   .metricsGrid,
   .policyStrip,
   .outputStrip {
@@ -1309,6 +1418,10 @@
 
   .debateActions {
     justify-items: stretch;
+  }
+
+  .verdictBadges {
+    justify-content: flex-start;
   }
 
   .debateActions button {
