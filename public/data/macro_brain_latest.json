@@ -1,24 +1,10 @@
 {
-  "generated_on": "2026-06-26T13:44:10.977730+00:00",
+  "generated_on": "2026-06-27T11:45:27.921401+00:00",
   "run_date": "2026-06-26",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143223,
+  "observations": 143228,
   "series_count": 25,
   "impulse_changes": [
-    {
-      "series_id": "T10YIE",
-      "date": "2026-06-25T00:00:00",
-      "value": 2.21,
-      "transformed": 0.029999999999999805,
-      "momentum": -0.10000000000000009,
-      "impulse": -0.2400000000000002,
-      "momentum_z": -0.8768379873195791,
-      "impulse_z": -1.939160933495224,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y breakeven"
-    },
     {
       "series_id": "GC=F",
       "date": "2026-06-11T00:00:00",
@@ -48,14 +34,28 @@
       "label": "USDCOP"
     },
     {
+      "series_id": "T10YIE",
+      "date": "2026-06-26T00:00:00",
+      "value": 2.2,
+      "transformed": -0.009999999999999787,
+      "momentum": -0.09999999999999964,
+      "impulse": -0.19999999999999973,
+      "momentum_z": -0.8768379873195761,
+      "impulse_z": -1.6019155537569187,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y breakeven"
+    },
+    {
       "series_id": "DGS10",
-      "date": "2026-06-24T00:00:00",
-      "value": 4.41,
-      "transformed": -0.08999999999999986,
-      "momentum": -0.03000000000000025,
-      "impulse": -0.5100000000000007,
-      "momentum_z": -0.2594195228756133,
-      "impulse_z": -1.4956099449263658,
+      "date": "2026-06-25T00:00:00",
+      "value": 4.4,
+      "transformed": -0.009999999999999787,
+      "momentum": 0.05000000000000071,
+      "impulse": -0.4599999999999995,
+      "momentum_z": -0.05188390457511927,
+      "impulse_z": -1.348981518953189,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -132,18 +132,18 @@
       "label": "Treasury General Account"
     },
     {
-      "series_id": "BAMLH0A0HYM2",
-      "date": "2026-06-24T00:00:00",
-      "value": 2.76,
-      "transformed": 0.04999999999999982,
-      "momentum": -0.6600000000000001,
-      "impulse": -0.40000000000000036,
-      "momentum_z": -1.6422383708995363,
-      "impulse_z": -0.9876471835193007,
-      "impulse_sign": -1,
+      "series_id": "EEM",
+      "date": "2026-06-26T00:00:00",
+      "value": 67.19000244140625,
+      "transformed": -0.011394820064253963,
+      "momentum": 0.6933940330761246,
+      "impulse": 0.2557895786663664,
+      "momentum_z": 1.7256058937325736,
+      "impulse_z": 1.0258907289310255,
+      "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US HY OAS"
+      "label": "Emerging markets ETF"
     },
     {
       "series_id": "^MOVE",
@@ -160,18 +160,18 @@
       "label": "MOVE index"
     },
     {
-      "series_id": "DFII10",
+      "series_id": "WALCL",
       "date": "2026-06-24T00:00:00",
-      "value": 2.23,
-      "transformed": -0.06000000000000005,
-      "momentum": 0.10000000000000009,
-      "impulse": -0.26,
-      "momentum_z": 0.11990946835139482,
-      "impulse_z": -0.8768379873195741,
+      "value": 6735645.0,
+      "transformed": 6735645.0,
+      "momentum": 78484.0,
+      "impulse": -21362.0,
+      "momentum_z": 1.077896704690118,
+      "impulse_z": -0.783172344741558,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y real yield"
+      "label": "Fed balance sheet"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": 19.431,
-        "impulse_z": 0.10072328645241388
+        "impulse": -9.892,
+        "impulse_z": -0.19987479618406753
       }
     }
   },
