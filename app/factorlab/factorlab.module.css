@@ -135,7 +135,7 @@
   grid-template-columns: minmax(0, 0.9fr) minmax(320px, 0.55fr);
   gap: clamp(2rem, 7vw, 7rem);
   align-items: end;
-  padding: clamp(4rem, 9vw, 8rem) clamp(1rem, 5vw, 4rem) clamp(2.5rem, 5vw, 4rem);
+  padding: clamp(3rem, 6vw, 5.8rem) clamp(1rem, 5vw, 4rem) clamp(2rem, 4vw, 3rem);
 }
 
 .heroCopy {
@@ -155,11 +155,11 @@
 
 .hero h1 {
   font-family: "DM Serif Display", Georgia, serif;
-  font-size: clamp(3.2rem, 8vw, 7rem);
+  font-size: clamp(2.9rem, 6.8vw, 5.6rem);
   font-weight: 400;
   line-height: 0.98;
   letter-spacing: 0;
-  max-width: 11ch;
+  max-width: 13ch;
   margin: 0.8rem 0 1.2rem;
 }
 
@@ -207,7 +207,8 @@
 .builderPanel,
 .inspectorPanel,
 .specPanel,
-.runPanel {
+.runPanel,
+.auditPanel {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -296,9 +297,14 @@
 .builderPanel,
 .inspectorPanel,
 .specPanel,
-.runPanel {
+.runPanel,
+.auditPanel {
   padding: 1rem;
   min-width: 0;
+}
+
+.auditPanel {
+  grid-column: 1 / -1;
 }
 
 .controlRow,
@@ -308,6 +314,13 @@
   gap: 0.5rem;
 }
 
+.controlStack {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.controlStack label,
 .controlRow label {
   display: grid;
   gap: 0.25rem;
@@ -317,14 +330,99 @@
   letter-spacing: 0.08em;
 }
 
+.controlStack input,
+.controlStack select,
 .controlRow input {
-  width: 8.5rem;
   min-height: 2.25rem;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.25);
   color: var(--text);
   padding: 0 0.65rem;
+}
+
+.controlStack input[type="range"] {
+  padding: 0;
+  accent-color: var(--amber);
+}
+
+.controlStack em {
+  color: var(--green);
+  font-style: normal;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.toggleGrid {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 0.2rem;
+}
+
+.toggleGrid label {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.35rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--muted);
+}
+
+.toggleGrid label[data-danger="true"] {
+  border-color: rgba(241, 132, 114, 0.45);
+  background: rgba(241, 132, 114, 0.08);
+  color: var(--text);
+}
+
+.toggleGrid input {
+  min-height: auto;
+  accent-color: var(--amber);
+}
+
+.toggleGrid p {
+  margin: 0;
+  color: var(--dim);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.weightGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.weightControl {
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.weightControl span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.weightControl input {
+  width: 100%;
+  accent-color: var(--amber);
+}
+
+.weightControl strong {
+  color: var(--green);
+  font-size: 1rem;
 }
 
 .pipeline {
@@ -352,6 +450,11 @@
   background: rgba(238, 191, 103, 0.08);
 }
 
+.pipelineStep[data-status="refused"] {
+  border-color: rgba(241, 132, 114, 0.4);
+  background: rgba(241, 132, 114, 0.06);
+}
+
 .pipelineStep span {
   grid-row: 1 / 3;
   color: var(--amber);
@@ -375,6 +478,12 @@
   color: var(--green);
   padding: 0.35rem 0.65rem;
   font-size: 0.75rem;
+}
+
+.panelTopline mark[data-state="refused"] {
+  border-color: rgba(241, 132, 114, 0.45);
+  background: rgba(241, 132, 114, 0.08);
+  color: var(--red);
 }
 
 .nodeDetail {
@@ -422,6 +531,8 @@
   color: var(--muted);
   background: rgba(255, 255, 255, 0.025);
   position: relative;
+  font: inherit;
+  cursor: pointer;
 }
 
 .dagNode:not(:last-child)::after {
@@ -438,6 +549,11 @@
   border-color: var(--line-strong);
 }
 
+.dagNode[data-status="refused"] {
+  color: var(--red);
+  border-color: rgba(241, 132, 114, 0.4);
+}
+
 .specPanel pre,
 .refusal pre {
   max-height: 27rem;
@@ -447,6 +563,24 @@
   font-size: 0.78rem;
   line-height: 1.5;
   white-space: pre-wrap;
+}
+
+.smallButton {
+  min-height: 2.25rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--text);
+  padding: 0 0.8rem;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.smallButton:hover,
+.smallButton:focus-visible {
+  border-color: var(--line-strong);
 }
 
 .segmented {
@@ -479,13 +613,16 @@
 .resultsTable th,
 .resultsTable td {
   padding: 0.8rem 0.45rem;
-  text-align: right;
+  text-align: left;
   border-bottom: 1px solid var(--line);
+  vertical-align: top;
 }
 
-.resultsTable th:first-child,
-.resultsTable td:first-child {
-  text-align: left;
+.resultsTable td:nth-child(1),
+.resultsTable th:nth-child(1),
+.resultsTable td:nth-child(3),
+.resultsTable th:nth-child(3) {
+  text-align: right;
 }
 
 .resultsTable th {
@@ -494,6 +631,67 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.resultsTable td span {
+  display: block;
+  margin-top: 0.18rem;
+  color: var(--dim);
+  font-size: 0.76rem;
+}
+
+.resultsTable td b {
+  display: block;
+  color: var(--green);
+  font-size: 0.95rem;
+}
+
+.resultsTable td i {
+  display: block;
+  width: min(8rem, 18vw);
+  height: 0.32rem;
+  margin-top: 0.35rem;
+  margin-left: auto;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, var(--amber) var(--score-width), rgba(255, 255, 255, 0.12) var(--score-width));
+}
+
+.resultsWrap {
+  min-width: 0;
+}
+
+.summaryBar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.summaryBar div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.summaryBar span {
+  color: var(--dim);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.summaryBar strong {
+  color: var(--text);
+  font-size: 1.15rem;
+}
+
+.emptyState {
+  color: var(--muted);
 }
 
 .refusal {
@@ -523,6 +721,35 @@
   line-height: 1.55;
 }
 
+.auditList {
+  display: grid;
+  gap: 0.6rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: audit;
+}
+
+.auditList li {
+  counter-increment: audit;
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.auditList li::before {
+  content: counter(audit, decimal-leading-zero);
+  color: var(--amber);
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
 @keyframes rise {
   from {
     opacity: 0;
@@ -539,6 +766,10 @@
   .workbench,
   .mainGrid {
     grid-template-columns: 1fr;
+  }
+
+  .weightGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .rail {
@@ -566,11 +797,11 @@
   }
 
   .hero {
-    padding-top: 3rem;
+    padding-top: 2.5rem;
   }
 
   .hero h1 {
-    font-size: clamp(2.6rem, 15vw, 4.4rem);
+    font-size: clamp(2.35rem, 12vw, 3.6rem);
   }
 
   .controlRow,
@@ -581,6 +812,17 @@
 
   .controlRow input {
     width: min(14rem, 72vw);
+  }
+
+  .weightGrid,
+  .summaryBar {
+    grid-template-columns: 1fr;
+  }
+
+  .resultsTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
   }
 }
 
