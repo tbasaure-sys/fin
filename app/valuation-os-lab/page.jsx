@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import styles from "./valuation-os-lab.module.css";
+import { buildValuationRouter, MODEL_LABELS } from "../../lib/valuation-router.js";
 
 const companies = {
   compounder: {
@@ -230,7 +231,7 @@ function driverOr(current, key) {
   return isFiniteNumber(current?.[key]) ? current[key] : companies.compounder[key];
 }
 
-function valueAt(drivers) {
+function coreDcfValue(drivers) {
   const required = [
     drivers.baseFcf,
     drivers.revenueCagr,
@@ -265,12 +266,56 @@ function valueAt(drivers) {
   return (steadyFcf * 4.2 + terminal * 0.62 * fadeBonus) / dilutionPenalty;
 }
 
-function impliedCagrForPrice(drivers) {
+function methodValuations(drivers) {
+  const dcf = coreDcfValue(drivers);
+  if (!isFiniteNumber(dcf)) return null;
+  const modelRisk = isFiniteNumber(drivers.modelRisk) ? drivers.modelRisk : 0.35;
+  const roicSpread =
+    isFiniteNumber(drivers.terminalRoic) && isFiniteNumber(drivers.wacc)
+      ? drivers.terminalRoic - drivers.wacc
+      : 0;
+  const structuralAverage =
+    (driverOr(drivers, "thesisQuality") + driverOr(drivers, "demandSupply") + driverOr(drivers, "bottleneckPower")) / 3;
+  const marketAnchor = isFiniteNumber(drivers.price)
+    ? drivers.price * (0.86 + structuralAverage * 0.16 + clamp(drivers.revenueCagr || 0, -0.02, 0.18) * 0.7)
+    : dcf * 0.92;
+  const residualIncome =
+    (drivers.baseFcf / Math.max(0.045, drivers.wacc - drivers.terminalGrowth * 0.35)) *
+    clamp(0.5 + Math.max(0, roicSpread) * 3.2 + drivers.margin * 0.35, 0.45, 1.45);
+  const assetValue = drivers.baseFcf * clamp(7.2 + drivers.margin * 13 - modelRisk * 3.5, 5.5, 14);
+  const unitEconomics = dcf * clamp(0.78 + drivers.thesisQuality * 0.18 + drivers.demandSupply * 0.14 + drivers.revenueCagr * 0.55, 0.72, 1.22);
+  const bottleneck = dcf * clamp(0.8 + drivers.bottleneckPower * 0.28 + drivers.demandSupply * 0.1, 0.78, 1.22);
+  const realOptions = dcf * clamp(0.72 + drivers.thesisQuality * 0.17 + clamp(drivers.revenueCagr, -0.02, 0.18) * 1.15 + modelRisk * 0.08, 0.68, 1.24);
+
+  return {
+    dcf,
+    roicFade: dcf * clamp(0.84 + Math.max(0, roicSpread) * 2.6 + drivers.moatHalfLife / 70, 0.74, 1.28),
+    reverseDcf: marketAnchor,
+    residualIncome,
+    assetValue,
+    unitEconomics,
+    bottleneck,
+    realOptions,
+  };
+}
+
+function valueAt(drivers, router = buildValuationRouter(drivers)) {
+  const methods = methodValuations(drivers);
+  if (!methods) return null;
+  const weights = router?.methodWeights || {};
+  const weighted = Object.entries(weights).reduce((sum, [key, weight]) => {
+    const value = methods[key];
+    return isFiniteNumber(value) ? sum + value * weight : sum;
+  }, 0);
+  return weighted > 0 ? weighted : methods.dcf;
+}
+
+function impliedCagrForPrice(drivers, router) {
   if (!isFiniteNumber(drivers.price) || !isFiniteNumber(drivers.baseFcf)) return null;
   let best = drivers.revenueCagr;
   let bestGap = Infinity;
   for (let cagr = -0.02; cagr <= 0.22; cagr += 0.001) {
-    const candidate = valueAt({ ...drivers, revenueCagr: cagr });
+    const candidate = valueAt({ ...drivers, revenueCagr: cagr }, router);
     const gap = Math.abs(candidate - drivers.price);
     if (gap < bestGap) {
       best = cagr;
@@ -300,7 +345,7 @@ function buildDistribution(drivers, valuation) {
   };
 }
 
-function buildSurface(drivers) {
+function buildSurface(drivers, router) {
   const cagrValues = Array.from({ length: 7 }, (_, i) => 0.02 + i * 0.025);
   const roicValues = Array.from({ length: 6 }, (_, i) => 0.08 + i * 0.025);
   return roicValues
@@ -308,7 +353,7 @@ function buildSurface(drivers) {
     .reverse()
     .map((roic) =>
       cagrValues.map((cagr) => {
-        const v = valueAt({ ...drivers, revenueCagr: cagr, terminalRoic: roic });
+        const v = valueAt({ ...drivers, revenueCagr: cagr, terminalRoic: roic }, router);
         const ratio =
           isFiniteNumber(v) && isFiniteNumber(drivers.price)
             ? clamp((v / drivers.price - 0.55) / 1.4, 0, 1)
@@ -430,6 +475,50 @@ function EngineMetric({ label, value, tone }) {
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
+  );
+}
+
+function RouterPanel({ router }) {
+  if (!router) return null;
+  return (
+    <section className={styles.routerPanel} aria-label="Deterministic valuation router">
+      <div>
+        <span>Model Router</span>
+        <h2>Why this valuation stack?</h2>
+        <p>
+          The system first infers the economic regime, then weights model families. This keeps banks,
+          bottleneck compounders, cyclicals, and asset-heavy businesses from sharing one fixed DCF recipe.
+        </p>
+      </div>
+      <div className={styles.routerGrid}>
+        <article>
+          <strong>Regime read</strong>
+          {router.topRegimes.map((item) => (
+            <div className={styles.routerRow} key={item.key}>
+              <span>{item.label}</span>
+              <i>{fmtPct(item.weight, 0)}</i>
+            </div>
+          ))}
+        </article>
+        <article>
+          <strong>Model weights</strong>
+          {router.topModels.map((item) => (
+            <div className={styles.routerRow} key={item.key}>
+              <span>{MODEL_LABELS[item.key] || item.label}</span>
+              <i>{fmtPct(item.weight, 0)}</i>
+            </div>
+          ))}
+        </article>
+        <article>
+          <strong>Use policy</strong>
+          <div className={styles.routerDecision} data-abstain={router.abstain ? "true" : "false"}>
+            <span>{router.abstain ? "Abstain / repair evidence" : "Provisional valuation allowed"}</span>
+            <i>{fmtPct(router.confidence, 0)} router confidence</i>
+          </div>
+          <p>{router.rationale?.[2]}</p>
+        </article>
+      </div>
+    </section>
   );
 }
 
@@ -649,6 +738,11 @@ function EngineConsole({
   const bullCase = finalAnalysis?.bull_case || finalAnalysis?.strongest_points || [];
   const bearCase = finalAnalysis?.bear_case || finalAnalysis?.red_team || [];
   const killCriteria = finalAnalysis?.kill_criteria || quickKill?.checks?.filter((item) => item.status !== "pass").map((item) => `${item.label}: ${item.note}`) || [];
+  const catalystPack = debate?.catalyst_pack || liveSnapshot?.catalystPack;
+  const catalystItems = catalystPack?.dominantCatalysts || [];
+  const liveEvidenceItems = catalystPack?.evidence?.items || catalystPack?.evidencePack?.items || [];
+  const changeLog = debate?.change_log;
+  const providerDiagnostics = debate?.context_pack?.providerDiagnostics || liveSnapshot?.contextPack?.providerDiagnostics || [];
   const engineIndex = engines.findIndex(([key]) => key === activeEngine);
 
   return (
@@ -689,7 +783,7 @@ function EngineConsole({
           <p>{debateStatus.message || "Run the valuation debate to restore the specialist panel and final verdict."}</p>
           {debate?.agents?.length ? (
             <div className={styles.agentVotes}>
-              {debate.agents.slice(0, 5).map((item) => (
+              {debate.agents.slice(0, 7).map((item) => (
                 <span key={item.id} data-vote={item.vote}>
                   {item.label.replace(/^\d+\s*/, "")}: {item.vote}
                 </span>
@@ -723,6 +817,26 @@ function EngineConsole({
               <strong>{quickKill?.hard_fail ? "Hard gate tripped" : `${quickKill?.tally?.fail || 0} fails / ${quickKill?.tally?.warn || 0} warns`}</strong>
               <p>{quickKill?.hard_fail ? "The model blocks sizing until the flagged item is repaired." : "No hard stop; read the warnings before sizing."}</p>
             </div>
+            <div>
+              <span>Catalyst map</span>
+              <strong>{catalystPack?.aggregateScore !== undefined ? fmtPct(catalystPack.aggregateScore, 0) : "Pending"}</strong>
+              <p>
+                {catalystItems.length
+                  ? `${catalystItems.map((item) => `${item.label} ${fmtPct(item.score, 0)}`).join(" / ")}${
+                      liveEvidenceItems.length ? ` from ${liveEvidenceItems.length} live items` : ""
+                    }`
+                  : "Run a live snapshot to score demand, supply, bottlenecks, regulation, earnings, and capex."}
+              </p>
+            </div>
+            <div>
+              <span>Change monitor</span>
+              <strong>{changeLog?.status || "Baseline pending"}</strong>
+              <p>
+                {changeLog?.changes?.length
+                  ? changeLog.changes.slice(0, 2).map((item) => `${item.label}: ${item.previous} -> ${item.current}`).join(" / ")
+                  : "First run establishes the baseline for the next valuation."}
+              </p>
+            </div>
           </div>
           <div className={styles.agentGrid}>
             {scorecard.map((item) => (
@@ -754,6 +868,39 @@ function EngineConsole({
                 <strong>What would break it</strong>
                 <BulletList items={killCriteria.length ? killCriteria : finalAnalysis?.open_questions || []} />
               </div>
+            </article>
+          </div>
+          <div className={styles.diagnosticsGrid}>
+            <article className={styles.orchestratorCard}>
+              <span>Provider diagnostics</span>
+              <div className={styles.providerList}>
+                {providerDiagnostics.slice(0, 6).map((item) => (
+                  <div key={item.block || item.source}>
+                    <strong>{item.block}</strong>
+                    <small>{item.status} / {item.source || "derived"}</small>
+                  </div>
+                ))}
+              </div>
+            </article>
+            <article className={styles.orchestratorCard}>
+              <span>Memo output</span>
+              <p>{debate?.memo?.title || "The memo is generated after the committee verdict."}</p>
+              {debate?.memo?.markdown ? <pre className={styles.memoPreview}>{debate.memo.markdown.split("\n").slice(0, 10).join("\n")}</pre> : null}
+            </article>
+            <article className={styles.orchestratorCard}>
+              <span>Live catalyst evidence</span>
+              {liveEvidenceItems.length ? (
+                <div className={styles.evidenceList}>
+                  {liveEvidenceItems.slice(0, 4).map((item, index) => (
+                    <a key={`${item.provider || "source"}-${item.url || item.title}-${index}`} href={item.url} target="_blank" rel="noreferrer">
+                      <strong>{item.title}</strong>
+                      <small>{item.source || item.provider} / {item.catalystTags?.join(", ") || "catalyst"} / {item.polarity}</small>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p>No live news provider evidence is attached to this run.</p>
+              )}
             </article>
           </div>
           {quickKill?.checks?.length ? (
@@ -830,13 +977,14 @@ export default function ValuationOsLabPage() {
     return drivers;
   }, [drivers, mode]);
 
-  const valuation = useMemo(() => valueAt(adjustedDrivers), [adjustedDrivers]);
-  const impliedCagr = useMemo(() => impliedCagrForPrice(adjustedDrivers), [adjustedDrivers]);
+  const valuationRouter = useMemo(() => buildValuationRouter(adjustedDrivers, liveSnapshot), [adjustedDrivers, liveSnapshot]);
+  const valuation = useMemo(() => valueAt(adjustedDrivers, valuationRouter), [adjustedDrivers, valuationRouter]);
+  const impliedCagr = useMemo(() => impliedCagrForPrice(adjustedDrivers, valuationRouter), [adjustedDrivers, valuationRouter]);
   const distribution = useMemo(
     () => buildDistribution(adjustedDrivers, valuation),
     [adjustedDrivers, valuation],
   );
-  const surface = useMemo(() => buildSurface(adjustedDrivers), [adjustedDrivers]);
+  const surface = useMemo(() => buildSurface(adjustedDrivers, valuationRouter), [adjustedDrivers, valuationRouter]);
   const selectedEngine = engines.find((engine) => engine[0] === activeEngine);
   const upside =
     isFiniteNumber(valuation) && isFiniteNumber(adjustedDrivers.price)
@@ -1007,7 +1155,10 @@ export default function ValuationOsLabPage() {
           ticker: adjustedDrivers.ticker,
           mode,
           drivers: adjustedDrivers,
+          router: valuationRouter,
           snapshot: liveSnapshot,
+          contextPack: liveSnapshot?.contextPack,
+          catalystPack: liveSnapshot?.catalystPack,
           missingDrivers,
           tripwires: tripwires.map((item) => ({
             key: item.key,
@@ -1172,6 +1323,8 @@ export default function ValuationOsLabPage() {
             <p>Separates market requirements from failure points.</p>
           </div>
         </section>
+
+        <RouterPanel router={valuationRouter} />
 
         <EngineConsole
           activeEngine={activeEngine}

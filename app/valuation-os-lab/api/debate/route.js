@@ -1,4 +1,9 @@
 import crypto from "node:crypto";
+import { buildValuationRouter } from "../../../../lib/valuation-router.js";
+import { buildValuationContextPack } from "../../../../lib/valuation-context-pack.js";
+import { buildValuationCatalystPack } from "../../../../lib/valuation-catalyst-pack.js";
+import { normalizeValuationDecision, validateValuationDecision } from "../../../../lib/valuation-decision-schema.js";
+import { renderValuationMemo } from "../../../../lib/valuation-memo.js";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,7 +16,9 @@ const runtimeState =
   {
     cache: new Map(),
     finalOrchestratorRetryAt: 0,
+    lastByTicker: new Map(),
   };
+if (!runtimeState.lastByTicker) runtimeState.lastByTicker = new Map();
 
 globalThis.__VALUATION_OS_DEBATE_RUNTIME__ = runtimeState;
 
@@ -138,6 +145,23 @@ function safeDrivers(input) {
 function safeContext(body) {
   const drivers = safeDrivers(body?.drivers);
   const snapshot = body?.snapshot && typeof body.snapshot === "object" ? body.snapshot : {};
+  const cleanSnapshot = {
+    company: {
+      ticker: cleanString(snapshot?.company?.ticker),
+      entityName: cleanString(snapshot?.company?.entityName || snapshot?.company?.name),
+      fiscalYear: cleanString(snapshot?.company?.fiscalYear),
+      form: cleanString(snapshot?.company?.form),
+      filed: cleanString(snapshot?.company?.filed),
+      industry: cleanString(snapshot?.company?.industry),
+      sicDescription: cleanString(snapshot?.company?.sicDescription),
+    },
+    coverage: snapshot?.coverage && typeof snapshot.coverage === "object" ? snapshot.coverage : {},
+    quote: snapshot?.quote && typeof snapshot.quote === "object" ? snapshot.quote : {},
+    riskFree: snapshot?.riskFree && typeof snapshot.riskFree === "object" ? snapshot.riskFree : {},
+    facts: snapshot?.facts && typeof snapshot.facts === "object" ? snapshot.facts : {},
+    assumptions: snapshot?.assumptions && typeof snapshot.assumptions === "object" ? snapshot.assumptions : {},
+    catalystEvidence: snapshot?.catalystEvidence && typeof snapshot.catalystEvidence === "object" ? snapshot.catalystEvidence : {},
+  };
   const missingDrivers = Array.isArray(body?.missingDrivers)
     ? body.missingDrivers.map((item) => cleanString(item)).filter(Boolean).slice(0, 12)
     : [];
@@ -151,23 +175,13 @@ function safeContext(body) {
         .filter((item) => item.key || item.label)
         .slice(0, 12)
     : [];
-  return {
+  const router = buildValuationRouter(drivers, cleanSnapshot);
+  const baseContext = {
     ticker: cleanString(body?.ticker || drivers.ticker || snapshot?.company?.ticker || "UNKNOWN").toUpperCase(),
     mode: ["bear", "base", "bull"].includes(body?.mode) ? body.mode : "base",
     drivers,
-    snapshot: {
-      company: {
-        ticker: cleanString(snapshot?.company?.ticker),
-        entityName: cleanString(snapshot?.company?.entityName || snapshot?.company?.name),
-        fiscalYear: cleanString(snapshot?.company?.fiscalYear),
-        form: cleanString(snapshot?.company?.form),
-        filed: cleanString(snapshot?.company?.filed),
-      },
-      coverage: snapshot?.coverage && typeof snapshot.coverage === "object" ? snapshot.coverage : {},
-      quote: snapshot?.quote && typeof snapshot.quote === "object" ? snapshot.quote : {},
-      riskFree: snapshot?.riskFree && typeof snapshot.riskFree === "object" ? snapshot.riskFree : {},
-      facts: snapshot?.facts && typeof snapshot.facts === "object" ? snapshot.facts : {},
-    },
+    snapshot: cleanSnapshot,
+    router,
     missingDrivers,
     tripwires,
     valuation: numberOrNull(body?.valuation),
@@ -177,6 +191,20 @@ function safeContext(body) {
     feasibility: numberOrNull(body?.feasibility),
     quality: numberOrNull(body?.quality),
     probabilityAbovePrice: numberOrNull(body?.probabilityAbovePrice),
+  };
+  const clientCatalystPack = body?.catalystPack && typeof body.catalystPack === "object" ? body.catalystPack : null;
+  const catalystPack =
+    clientCatalystPack?.version === "valuation_catalyst_pack_v1"
+      ? clientCatalystPack
+      : buildValuationCatalystPack({ ...baseContext, snapshot: cleanSnapshot, router });
+  const clientPack = body?.contextPack && typeof body.contextPack === "object" ? body.contextPack : null;
+  return {
+    ...baseContext,
+    catalystPack,
+    contextPack:
+      clientPack?.version === "valuation_context_pack_v1"
+        ? clientPack
+        : buildValuationContextPack({ ...baseContext, catalystPack }),
   };
 }
 
@@ -203,6 +231,7 @@ function statusFromCheck(status) {
 function researchabilityAssessment(ctx) {
   const coverage = ctx.snapshot.coverage || {};
   const facts = ctx.snapshot.facts || {};
+  const packQuality = ctx.contextPack?.dataQuality || {};
   const d = ctx.drivers;
   const required = ["baseFcf", "revenueCagr", "margin", "roic", "reinvestment", "thesisQuality", "demandSupply", "bottleneckPower"];
   const missingRequired = required.filter((key) => !isFiniteNumber(d[key]));
@@ -214,8 +243,16 @@ function researchabilityAssessment(ctx) {
     (isFiniteNumber(facts.operatingCashFlow) || isFiniteNumber(facts.freeCashFlow) ? 0.1 : 0);
   const completenessPenalty = Math.min(0.35, (ctx.missingDrivers.length + missingRequired.length) * 0.07);
   const modelPenalty = isFiniteNumber(d.modelRisk) ? clamp(d.modelRisk, 0, 1) * 0.12 : 0.04;
-  const qualityBoost = (isFiniteNumber(ctx.quality) ? ctx.quality : isFiniteNumber(d.dataQuality) ? d.dataQuality : 0.5) * 0.15;
-  const score = clamp(sourceScore + qualityBoost - completenessPenalty - modelPenalty, 0, 1);
+  const qualityInput = isFiniteNumber(packQuality.overallScore)
+    ? packQuality.overallScore / 100
+    : isFiniteNumber(ctx.quality)
+      ? ctx.quality
+      : isFiniteNumber(d.dataQuality)
+        ? d.dataQuality
+        : 0.5;
+  const qualityBoost = qualityInput * 0.15;
+  const packPenalty = packQuality.level === "poor" ? 0.12 : packQuality.level === "limited" ? 0.06 : 0;
+  const score = clamp(sourceScore + qualityBoost - completenessPenalty - modelPenalty - packPenalty, 0, 1);
   const grade = score >= 0.72 ? "A" : score >= 0.48 ? "B" : "C";
 
   return {
@@ -234,6 +271,7 @@ function researchabilityAssessment(ctx) {
       coverage.quoteSource || coverage.fmpConfigured ? `Market quote source: ${coverage.quoteSource || "configured provider"}.` : "No reliable quote provider is confirmed.",
       coverage.fredConfigured || ctx.snapshot.riskFree?.rate ? "Risk-free rate source is configured." : "Risk-free rate should be refreshed from a market source.",
       ctx.missingDrivers.length ? `Missing live drivers: ${ctx.missingDrivers.join(", ")}.` : "Core live drivers are present.",
+      isFiniteNumber(packQuality.overallScore) ? `Context pack quality is ${packQuality.overallScore}/100 (${packQuality.level}).` : "Context pack quality was not available.",
     ],
     warnings: [
       missingRequired.length ? `Driver fields absent from payload: ${missingRequired.join(", ")}.` : null,
@@ -330,6 +368,15 @@ function quickKillChecks(ctx, researchability) {
           : `Structural score is ${fmtPct((d.thesisQuality + d.demandSupply + d.bottleneckPower) / 3, 0)}.`,
       hardFail: !isFiniteNumber(d.thesisQuality) || !isFiniteNumber(d.demandSupply) || !isFiniteNumber(d.bottleneckPower),
     },
+    {
+      id: "model_router",
+      label: "Model family matches business regime",
+      status: ctx.router?.abstain ? "fail" : ctx.router?.confidence < 0.45 ? "warn" : "pass",
+      note: ctx.router?.dominantRegime
+        ? `${ctx.router.dominantRegime.label}; dominant model ${ctx.router.dominantModel?.label || "N/A"}; confidence ${fmtPct(ctx.router.confidence, 0)}.`
+        : "No valuation router output was available.",
+      hardFail: Boolean(ctx.router?.abstain),
+    },
   ];
 
   const tally = checks.reduce(
@@ -365,6 +412,21 @@ function agent(id, label, role, lens, score, stance, summary, evidence = [], con
     bull_points: (extra.bull_points || evidence).filter(Boolean).slice(0, 3),
     bear_points: (extra.bear_points || concerns).filter(Boolean).slice(0, 3),
     confidence: extra.confidence || "medium",
+  };
+}
+
+function catalystEvidence(catalystPack = {}) {
+  const catalysts = Array.isArray(catalystPack.catalysts) ? catalystPack.catalysts : [];
+  const dominant = Array.isArray(catalystPack.dominantCatalysts) ? catalystPack.dominantCatalysts : catalysts.slice(0, 3);
+  const risks = Array.isArray(catalystPack.riskCatalysts) ? catalystPack.riskCatalysts : catalysts.filter((item) => item.stance === "risk");
+  const evidence = dominant.map((item) => `${item.label}: ${fmtPct(item.score, 0)} (${item.stance || "watch"}). ${item.evidence?.[0] || ""}`);
+  const concerns = risks.map((item) => `${item.label}: ${item.falsifiers?.[0] || "watch for thesis break"}`);
+  return {
+    aggregateScore: isFiniteNumber(catalystPack.aggregateScore) ? catalystPack.aggregateScore : null,
+    evidence,
+    concerns,
+    dominant,
+    risks,
   };
 }
 
@@ -405,6 +467,16 @@ function buildAgents(ctx, researchability) {
   );
   const sourceScore = clamp(researchability.score - missing * 0.05, 0, 1);
   const valuationScore = clamp(0.5 + upside + (structuralScore - 0.5) * 0.12, 0, 1);
+  const routerScore = clamp((ctx.router?.confidence || 0.35) - (ctx.router?.abstain ? 0.28 : 0) + 0.12, 0, 1);
+  const catalysts = catalystEvidence(ctx.catalystPack);
+  const catalystScore = clamp(
+    (isFiniteNumber(catalysts.aggregateScore) ? catalysts.aggregateScore : 0.48) * 0.58 +
+      (isFiniteNumber(d.demandSupply) ? d.demandSupply : 0.5) * 0.18 +
+      (isFiniteNumber(d.bottleneckPower) ? d.bottleneckPower : 0.45) * 0.16 +
+      (isFiniteNumber(d.thesisQuality) ? d.thesisQuality : 0.5) * 0.08,
+    0,
+    1,
+  );
 
   return [
     agent(
@@ -430,8 +502,25 @@ function buildAgents(ctx, researchability) {
       ],
     ),
     agent(
+      "model_router",
+      "02 Model Router",
+      "Method selector",
+      "Business regime, method weights, and abstention policy.",
+      routerScore,
+      ctx.router?.abstain ? "abstain" : "model fit checked",
+      `${ctx.router?.dominantRegime?.label || "Unknown regime"} routed toward ${ctx.router?.dominantModel?.label || "N/A"}.`,
+      [
+        ...(ctx.router?.topRegimes || []).slice(0, 3).map((item) => `${item.label}: ${fmtPct(item.weight, 0)}`),
+        ...(ctx.router?.topModels || []).slice(0, 2).map((item) => `${item.label}: ${fmtPct(item.weight, 0)}`),
+      ],
+      [
+        ctx.router?.abstain ? "Router recommends abstention until evidence or regime fit improves." : null,
+        ctx.router?.confidence < 0.45 ? "Router confidence is low; do not over-weight the blended valuation." : null,
+      ],
+    ),
+    agent(
       "accounting",
-      "02 Accounting",
+      "03 Accounting",
       "Financial analyst",
       "FCF bridge, economic profit, capital intensity.",
       accountingScore,
@@ -451,7 +540,7 @@ function buildAgents(ctx, researchability) {
     ),
     agent(
       "business_twin",
-      "03 Business Twin",
+      "04 Business Twin",
       "Business analyst",
       "Qualitative thesis, demand/supply, bottleneck power, and fade path.",
       clamp(twinScore * 0.55 + structuralScore * 0.45, 0, 1),
@@ -474,8 +563,25 @@ function buildAgents(ctx, researchability) {
       ].slice(0, 5),
     ),
     agent(
+      "catalyst_map",
+      "05 Catalyst Map",
+      "Supply-demand analyst",
+      "Demand, supply response, bottlenecks, regulation, earnings power, and capex cycle.",
+      catalystScore,
+      catalystScore > 0.62 ? "catalysts support the modeled fade" : catalystScore < 0.42 ? "catalysts challenge the model" : "catalysts need monitoring",
+      `Catalyst pack score ${fmtPct(catalystScore, 0)} across demand, supply, bottlenecks, regulation, earnings, and capex cycle.`,
+      catalysts.evidence.length ? catalysts.evidence : ["No catalyst pack was available; qualitative assumptions remain manual."],
+      [
+        ...catalysts.concerns,
+        ctx.catalystPack?.warnings?.[0] || null,
+      ],
+      {
+        confidence: ctx.catalystPack?.status === "partial" ? "medium" : "low",
+      },
+    ),
+    agent(
       "bayesian",
-      "04 Bayesian",
+      "06 Bayesian",
       "Scenario researcher",
       "Priors, feasibility, probability above price.",
       bayesScore,
@@ -496,7 +602,7 @@ function buildAgents(ctx, researchability) {
     ),
     agent(
       "valuation",
-      "05 Valuation",
+      "07 Valuation",
       "Portfolio lead",
       "Entry price, margin of safety, expected return.",
       valuationScore,
@@ -518,6 +624,7 @@ function mirrorTest(ctx) {
     `Economics: ROIC ${fmtPct(d.roic)} versus WACC ${fmtPct(d.wacc)}, with terminal ROIC ${fmtPct(d.terminalRoic)}.`,
     `Moat: modeled half-life ${isFiniteNumber(d.moatHalfLife) ? `${d.moatHalfLife.toFixed(1)} years` : "N/A"} before fade assumptions dominate.`,
     `Structure: thesis ${fmtPct(d.thesisQuality, 0)}, demand/supply ${fmtPct(d.demandSupply, 0)}, bottleneck ${fmtPct(d.bottleneckPower, 0)}.`,
+    `Router: ${ctx.router?.dominantRegime?.label || "unknown regime"} with ${ctx.router?.dominantModel?.label || "unknown model"} as the highest-weight method.`,
     `Price/value: estimate ${fmtMoney(ctx.valuation)} versus price ${fmtMoney(d.price)}, or ${fmtPct(ctx.upside)} upside/downside.`,
     `Downside trigger: ${ctx.tripwires[0]?.falsifier || ctx.tripwires[0]?.label || "next filing breaks one of the core drivers"}.`,
   ];
@@ -613,6 +720,24 @@ function orchestratorInput(ctx, agents, verdict) {
     ticker: ctx.ticker,
     mode: ctx.mode,
     drivers: ctx.drivers,
+    router: ctx.router,
+    context_quality: ctx.contextPack?.dataQuality || null,
+    provider_diagnostics: ctx.contextPack?.providerDiagnostics || [],
+    catalyst_pack: {
+      version: ctx.catalystPack?.version || null,
+      status: ctx.catalystPack?.status || null,
+      aggregateScore: ctx.catalystPack?.aggregateScore ?? null,
+      dominantCatalysts: ctx.catalystPack?.dominantCatalysts || [],
+      riskCatalysts: ctx.catalystPack?.riskCatalysts || [],
+      evidence: ctx.catalystPack?.evidencePack
+        ? {
+            status: ctx.catalystPack.evidencePack.status,
+            itemCount: ctx.catalystPack.evidencePack.itemCount,
+            items: ctx.catalystPack.evidencePack.items || [],
+          }
+        : null,
+      warnings: ctx.catalystPack?.warnings || [],
+    },
     metrics: {
       valuation: ctx.valuation,
       price: ctx.drivers.price,
@@ -630,6 +755,66 @@ function orchestratorInput(ctx, agents, verdict) {
       preserve: ["decision", "one_line_conclusion", "composite_score", "researchability", "scorecard", "quick_kill", "bull_case", "bear_case", "kill_criteria", "open_questions"],
       optional: ["memo_patch"],
     },
+  };
+}
+
+function currentChangeSnapshot(ctx, analysis) {
+  return {
+    asOf: new Date().toISOString(),
+    ticker: ctx.ticker,
+    mode: ctx.mode,
+    decision: analysis?.decision || null,
+    action: analysis?.action || null,
+    valuation: ctx.valuation,
+    upside: ctx.upside,
+    expectedIrr: ctx.expectedIrr,
+    contextQuality: ctx.contextPack?.dataQuality?.overallScore ?? null,
+    dominantRegime: ctx.router?.dominantRegime?.label || null,
+    dominantModel: ctx.router?.dominantModel?.label || null,
+    catalystScore: ctx.catalystPack?.aggregateScore ?? null,
+    missingDrivers: ctx.missingDrivers.length,
+  };
+}
+
+function diffChange(label, previous, current, formatter = (value) => String(value)) {
+  if (previous === current) return null;
+  return {
+    label,
+    previous: previous === null || previous === undefined ? "N/A" : formatter(previous),
+    current: current === null || current === undefined ? "N/A" : formatter(current),
+  };
+}
+
+function numericDiffChange(label, previous, current, threshold, formatter) {
+  if (!isFiniteNumber(previous) || !isFiniteNumber(current)) return diffChange(label, previous, current, formatter);
+  if (Math.abs(current - previous) < threshold) return null;
+  return diffChange(label, previous, current, formatter);
+}
+
+function buildChangeLog(ctx, analysis) {
+  const key = `${ctx.ticker}:${ctx.mode}`;
+  const previous = runtimeState.lastByTicker.get(key) || null;
+  const current = currentChangeSnapshot(ctx, analysis);
+  runtimeState.lastByTicker.set(key, current);
+  const changes = previous
+    ? [
+        diffChange("Decision", previous.decision, current.decision),
+        diffChange("Action", previous.action, current.action),
+        numericDiffChange("Fair value", previous.valuation, current.valuation, Math.max(1, Math.abs(current.valuation || 0) * 0.01), fmtMoney),
+        numericDiffChange("Upside/downside", previous.upside, current.upside, 0.025, fmtPct),
+        numericDiffChange("Context quality", previous.contextQuality, current.contextQuality, 5, (value) => `${Number(value).toFixed(0)}/100`),
+        diffChange("Dominant regime", previous.dominantRegime, current.dominantRegime),
+        diffChange("Dominant model", previous.dominantModel, current.dominantModel),
+        numericDiffChange("Catalyst score", previous.catalystScore, current.catalystScore, 0.05, (value) => fmtPct(value, 0)),
+        numericDiffChange("Missing drivers", previous.missingDrivers, current.missingDrivers, 1, (value) => String(value)),
+      ].filter(Boolean)
+    : [];
+  return {
+    version: "valuation_change_log_v1",
+    status: previous ? (changes.length ? "changed" : "unchanged") : "baseline",
+    previousAsOf: previous?.asOf || null,
+    currentAsOf: current.asOf,
+    changes,
   };
 }
 
@@ -685,7 +870,8 @@ async function buildDebate(ctx) {
   const researchability = researchabilityAssessment(ctx);
   const quickKill = quickKillChecks(ctx, researchability);
   const agents = buildAgents(ctx, researchability);
-  const deterministic = committeeVerdict(ctx, agents, researchability, quickKill);
+  const deterministic = normalizeValuationDecision(committeeVerdict(ctx, agents, researchability, quickKill));
+  const deterministicValidation = validateValuationDecision(deterministic);
   const config = llmConfig();
   const finalOrchestrator = {
     enabled: config.enabled,
@@ -697,7 +883,11 @@ async function buildDebate(ctx) {
       final_orchestrator_max_calls: 1,
       final_orchestrator_actual_calls: 0,
     },
-    analysis: deterministic,
+    analysis: deterministicValidation.normalized,
+    schema: {
+      ok: deterministicValidation.ok,
+      issues: deterministicValidation.issues,
+    },
   };
 
   if (config.enabled) {
@@ -708,8 +898,14 @@ async function buildDebate(ctx) {
     } else {
       try {
         const analysis = await callFinalOrchestrator(ctx, agents, deterministic, config);
+        const merged = normalizeValuationDecision({ ...deterministic, ...analysis }, deterministic);
+        const validation = validateValuationDecision(merged);
         finalOrchestrator.status = "ok";
-        finalOrchestrator.analysis = { ...deterministic, ...analysis };
+        finalOrchestrator.analysis = validation.normalized;
+        finalOrchestrator.schema = {
+          ok: validation.ok,
+          issues: validation.issues,
+        };
         finalOrchestrator.call_budget.final_orchestrator_actual_calls = 1;
       } catch (error) {
         const message = String(error?.message || error || "Unknown orchestrator error");
@@ -724,11 +920,53 @@ async function buildDebate(ctx) {
       }
     }
   }
+  const finalValidation = validateValuationDecision(finalOrchestrator.analysis);
+  finalOrchestrator.analysis = finalValidation.normalized;
+  finalOrchestrator.schema = {
+    ok: finalValidation.ok,
+    issues: finalValidation.issues,
+  };
+  const contextPackSummary = {
+    version: ctx.contextPack?.version || null,
+    subject: ctx.contextPack?.subject || null,
+    dataQuality: ctx.contextPack?.dataQuality || null,
+    providerDiagnostics: ctx.contextPack?.providerDiagnostics || [],
+  };
+  const catalystPackSummary = {
+    version: ctx.catalystPack?.version || null,
+    source: ctx.catalystPack?.source || null,
+    status: ctx.catalystPack?.status || null,
+    aggregateScore: ctx.catalystPack?.aggregateScore ?? null,
+    dominantCatalysts: ctx.catalystPack?.dominantCatalysts || [],
+    riskCatalysts: ctx.catalystPack?.riskCatalysts || [],
+    evidence: ctx.catalystPack?.evidencePack
+      ? {
+          status: ctx.catalystPack.evidencePack.status,
+          itemCount: ctx.catalystPack.evidencePack.itemCount,
+          items: ctx.catalystPack.evidencePack.items || [],
+          providerDiagnostics: ctx.catalystPack.evidencePack.providerDiagnostics || [],
+        }
+      : null,
+    warnings: ctx.catalystPack?.warnings || [],
+  };
+  const changeLog = buildChangeLog(ctx, finalOrchestrator.analysis);
+  const memo = renderValuationMemo({
+    ctx,
+    debate: {
+      context_pack: contextPackSummary,
+      catalyst_pack: catalystPackSummary,
+    },
+    analysis: finalOrchestrator.analysis,
+  });
 
   return {
     version: "valuation_os_committee_v2",
     runtime: "deterministic_investment_committee_plus_single_optional_orchestrator",
     call_budget: finalOrchestrator.call_budget,
+    context_pack: contextPackSummary,
+    catalyst_pack: catalystPackSummary,
+    change_log: changeLog,
+    memo,
     researchability,
     quick_kill: quickKill,
     agents,
@@ -744,6 +982,14 @@ export async function POST(request) {
     const cacheKey = `${ctx.ticker}:${ctx.mode}:${digestPayload({
       drivers: ctx.drivers,
       missingDrivers: ctx.missingDrivers,
+      contextQuality: ctx.contextPack?.dataQuality,
+      catalystPack: {
+        version: ctx.catalystPack?.version,
+        aggregateScore: ctx.catalystPack?.aggregateScore,
+        evidenceItemCount: ctx.catalystPack?.evidencePack?.itemCount,
+        dominantCatalysts: ctx.catalystPack?.dominantCatalysts?.map((item) => [item.id, item.score, item.stance]),
+        riskCatalysts: ctx.catalystPack?.riskCatalysts?.map((item) => [item.id, item.score, item.stance]),
+      },
       valuation: ctx.valuation,
       upside: ctx.upside,
       feasibility: ctx.feasibility,

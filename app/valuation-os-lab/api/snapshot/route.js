@@ -1,4 +1,8 @@
 import { buildAssumptionPolicy } from "../../assumption-policy.js";
+import { buildValuationRouter } from "../../../../lib/valuation-router.js";
+import { buildValuationContextPack } from "../../../../lib/valuation-context-pack.js";
+import { buildValuationCatalystPack } from "../../../../lib/valuation-catalyst-pack.js";
+import { fetchValuationCatalystEvidence } from "../../../../lib/valuation-catalyst-news.js";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +29,10 @@ function secUserAgent() {
 
 function fmpApiKey() {
   return cleanEnv(process.env.FMP_API_KEY) || cleanEnv(process.env.FINANCIAL_MODELING_PREP_API_KEY);
+}
+
+function braveApiKey() {
+  return cleanEnv(process.env.BRAVE_SEARCH_API_KEY) || cleanEnv(process.env.BRAVE_API_KEY);
 }
 
 async function fetchJson(url, options = {}) {
@@ -389,6 +397,8 @@ function deriveDrivers(facts, quote, riskFree, metadata = {}) {
   const bottleneckPower = clamp(bottleneckBase + Math.max(0, roicSpread) * 0.9 + Math.min(0.12, Number(capexToRevenue || 0)) * 0.5, 0.15, 0.96);
 
   const drivers = {
+    name: metadata.name || facts?.entityName || null,
+    sector: assumptionPolicy.label,
     price: quote?.price || null,
     baseFcf: baseFcf && baseFcf > 0 ? baseFcf : null,
     revenueCagr: revenueCagr === null ? null : clamp(revenueCagr, -0.02, 0.18),
@@ -407,6 +417,12 @@ function deriveDrivers(facts, quote, riskFree, metadata = {}) {
     dataQuality: clamp(0.22 + factsPresent * 0.075 + (quote ? 0.08 : 0) + (riskFree ? 0.06 : 0) + assumptionPolicy.confidence * 0.12, 0.25, 0.95),
     modelRisk: clamp(0.58 - factsPresent * 0.025 - Math.max(0, Number(roic || 0) - wacc) * 0.45 + (1 - assumptionPolicy.confidence) * 0.18, 0.16, 0.62),
   };
+  const router = buildValuationRouter(drivers, {
+    company: {
+      industry: assumptionPolicy.label,
+      sicDescription: metadata.sicDescription,
+    },
+  });
   const missingDrivers = Object.entries({
     price: drivers.price,
     baseFcf: drivers.baseFcf,
@@ -424,6 +440,7 @@ function deriveDrivers(facts, quote, riskFree, metadata = {}) {
       filedAt: revenue?.filed || operatingIncome?.filed || null,
     },
     drivers,
+    router,
     missingDrivers,
     valuationReady: missingDrivers.length === 0,
     assumptions: {
@@ -480,6 +497,10 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const tickerInfo = await findTicker(searchParams.get("ticker") || "AAPL");
+    const catalystEvidencePromise = fetchValuationCatalystEvidence({
+      ticker: tickerInfo.ticker,
+      companyName: tickerInfo.name,
+    });
     const [facts, submissions, quote, riskFree] = await Promise.all([
       fetchJson(`${SEC_FACTS_BASE}/CIK${tickerInfo.cik}.json`),
       fetchSubmissions(tickerInfo.cik),
@@ -491,29 +512,60 @@ export async function GET(request) {
       sic: submissions?.sic,
       sicDescription: submissions?.sicDescription,
     });
+    const company = {
+      ...tickerInfo,
+      entityName: facts.entityName || tickerInfo.name,
+      industry: derived.assumptions?.industry?.label || null,
+      sic: submissions?.sic || null,
+      sicDescription: submissions?.sicDescription || null,
+      ...derived.company,
+    };
+    const coverage = {
+      secCompanyFacts: true,
+      secSubmissions: Boolean(submissions),
+      quoteSource: quote?.source || null,
+      fmpConfigured: Boolean(fmpApiKey()),
+      braveConfigured: Boolean(braveApiKey()),
+      fredConfigured: Boolean(cleanEnv(process.env.FRED_API_KEY)),
+      secUserAgentConfigured: Boolean(cleanEnv(process.env.SEC_USER_AGENT) || cleanEnv(process.env.SEC_EDGAR_USER_AGENT)),
+    };
+    const catalystEvidence = await catalystEvidencePromise;
+    const snapshotForPacks = {
+      company,
+      coverage,
+      quote,
+      riskFree,
+      assumptions: derived.assumptions,
+      facts: derived.facts,
+      catalystEvidence,
+    };
+    const catalystPack = buildValuationCatalystPack({
+      ticker: tickerInfo.ticker,
+      drivers: derived.drivers,
+      router: derived.router,
+      snapshot: snapshotForPacks,
+      evidencePack: catalystEvidence,
+    });
+    const contextPack = buildValuationContextPack({
+      ticker: tickerInfo.ticker,
+      drivers: derived.drivers,
+      router: derived.router,
+      catalystPack,
+      missingDrivers: derived.missingDrivers,
+      snapshot: snapshotForPacks,
+    });
 
     return Response.json({
       ok: true,
       asOf: new Date().toISOString(),
       ...derived,
-      company: {
-        ...tickerInfo,
-        entityName: facts.entityName || tickerInfo.name,
-        industry: derived.assumptions?.industry?.label || null,
-        sic: submissions?.sic || null,
-        sicDescription: submissions?.sicDescription || null,
-        ...derived.company,
-      },
+      company,
       quote,
       riskFree,
-      coverage: {
-        secCompanyFacts: true,
-        secSubmissions: Boolean(submissions),
-        quoteSource: quote?.source || null,
-        fmpConfigured: Boolean(fmpApiKey()),
-        fredConfigured: Boolean(cleanEnv(process.env.FRED_API_KEY)),
-        secUserAgentConfigured: Boolean(cleanEnv(process.env.SEC_USER_AGENT) || cleanEnv(process.env.SEC_EDGAR_USER_AGENT)),
-      },
+      coverage,
+      catalystEvidence,
+      catalystPack,
+      contextPack,
     });
   } catch (error) {
     return Response.json(
@@ -522,6 +574,7 @@ export async function GET(request) {
         error: error instanceof Error ? error.message : "Unknown valuation snapshot error",
         coverage: {
           fmpConfigured: Boolean(fmpApiKey()),
+          braveConfigured: Boolean(braveApiKey()),
           fredConfigured: Boolean(cleanEnv(process.env.FRED_API_KEY)),
           secUserAgentConfigured: Boolean(cleanEnv(process.env.SEC_USER_AGENT) || cleanEnv(process.env.SEC_EDGAR_USER_AGENT)),
         },

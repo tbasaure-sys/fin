@@ -407,6 +407,90 @@
   line-height: 1.35;
 }
 
+.routerPanel {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.78fr) minmax(0, 1.45fr);
+  gap: 1rem;
+  margin: 0 0 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(85, 209, 195, 0.18);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(85, 209, 195, 0.07), transparent 38%),
+    rgba(8, 18, 29, 0.92);
+}
+
+.routerPanel span:first-child {
+  color: var(--amber);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.routerPanel h2 {
+  margin: 0.25rem 0 0;
+  font-size: 1.25rem;
+}
+
+.routerPanel p {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.routerGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.routerGrid article {
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.routerGrid strong {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--text);
+  font-size: 0.84rem;
+}
+
+.routerRow,
+.routerDecision {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  padding: 0.4rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.routerRow span,
+.routerDecision span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.routerRow i,
+.routerDecision i {
+  flex: 0 0 auto;
+  color: var(--teal);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.routerDecision[data-abstain="true"] i,
+.routerDecision[data-abstain="true"] span {
+  color: rgba(255, 201, 193, 0.95);
+}
+
 .heroGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(24rem, 0.86fr);
@@ -659,7 +743,7 @@
 
 .committeeStrip {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.65rem;
   margin-bottom: 0.75rem;
 }
@@ -749,6 +833,84 @@
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   gap: 0.75rem;
+}
+
+.diagnosticsGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.providerList {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.providerList div {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.032);
+  padding: 0.55rem;
+}
+
+.providerList strong {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.providerList small {
+  display: block;
+  margin-top: 0.18rem;
+  color: var(--dim);
+  overflow-wrap: anywhere;
+}
+
+.memoPreview {
+  max-height: 12rem;
+  overflow: auto;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(5, 10, 16, 0.75);
+  color: rgba(232, 238, 245, 0.86);
+  padding: 0.75rem;
+  white-space: pre-wrap;
+  font: 0.76rem/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.evidenceList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.evidenceList a {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+  padding: 0.58rem;
+  border: 1px solid rgba(85, 209, 195, 0.16);
+  border-radius: 8px;
+  background: rgba(85, 209, 195, 0.035);
+  color: inherit;
+  text-decoration: none;
+}
+
+.evidenceList a:hover {
+  border-color: rgba(85, 209, 195, 0.34);
+}
+
+.evidenceList strong {
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.32;
+}
+
+.evidenceList small {
+  color: var(--dim);
+  overflow-wrap: anywhere;
 }
 
 .quickKillGrid {
@@ -1327,6 +1489,11 @@
     padding-left: 0;
   }
 
+  .routerPanel,
+  .routerGrid {
+    grid-template-columns: 1fr;
+  }
+
   .heroGrid,
   .bottomGrid {
     grid-template-columns: 1fr;
@@ -1402,9 +1569,12 @@
   .engineNav,
   .engineMetrics,
   .engineGrid,
+  .routerGrid,
   .agentGrid,
   .committeeStrip,
   .caseGrid,
+  .diagnosticsGrid,
+  .providerList,
   .quickKillGrid,
   .metricsGrid,
   .policyStrip,
