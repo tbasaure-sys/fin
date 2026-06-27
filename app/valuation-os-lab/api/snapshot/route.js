@@ -362,6 +362,31 @@ function deriveDrivers(facts, quote, riskFree, metadata = {}) {
   const wacc = assumptionPolicy.wacc;
   const terminalRoic = assumptionPolicy.terminalRoic;
   const moatHalfLife = assumptionPolicy.moatHalfLife;
+  const roicSpread = roic === null ? 0 : Number(roic) - wacc;
+  const industryKey = assumptionPolicy.industryKey;
+  const bottleneckBase =
+    industryKey === "semiconductors"
+      ? 0.72
+      : industryKey === "software"
+        ? 0.56
+        : industryKey === "utility"
+          ? 0.62
+          : industryKey === "bank"
+            ? 0.28
+            : 0.46;
+  const demandBase =
+    industryKey === "semiconductors"
+      ? 0.68
+      : industryKey === "software"
+        ? 0.62
+        : industryKey === "healthcare"
+          ? 0.64
+          : industryKey === "bank"
+            ? 0.42
+            : 0.5;
+  const thesisQuality = clamp(0.46 + Math.max(0, roicSpread) * 1.15 + assumptionPolicy.confidence * 0.2, 0.25, 0.92);
+  const demandSupply = clamp(demandBase + Number(revenueCagr || 0) * 0.8 - Math.max(0, Number(capexToRevenue || 0) - 0.12) * 0.35, 0.2, 0.94);
+  const bottleneckPower = clamp(bottleneckBase + Math.max(0, roicSpread) * 0.9 + Math.min(0.12, Number(capexToRevenue || 0)) * 0.5, 0.15, 0.96);
 
   const drivers = {
     price: quote?.price || null,
@@ -376,6 +401,9 @@ function deriveDrivers(facts, quote, riskFree, metadata = {}) {
     dilution: 0,
     beta: assumptionPolicy.beta,
     moatHalfLife,
+    thesisQuality,
+    demandSupply,
+    bottleneckPower,
     dataQuality: clamp(0.22 + factsPresent * 0.075 + (quote ? 0.08 : 0) + (riskFree ? 0.06 : 0) + assumptionPolicy.confidence * 0.12, 0.25, 0.95),
     modelRisk: clamp(0.58 - factsPresent * 0.025 - Math.max(0, Number(roic || 0) - wacc) * 0.45 + (1 - assumptionPolicy.confidence) * 0.18, 0.16, 0.62),
   };

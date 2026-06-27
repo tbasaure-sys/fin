@@ -20,6 +20,7 @@ function isFiniteNumber(value) {
 }
 
 function numberOrNull(value) {
+  if (value === null || value === undefined || value === "") return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -125,6 +126,9 @@ function safeDrivers(input) {
     reinvestment: numberOrNull(drivers.reinvestment),
     dilution: numberOrNull(drivers.dilution),
     moatHalfLife: numberOrNull(drivers.moatHalfLife),
+    thesisQuality: numberOrNull(drivers.thesisQuality),
+    demandSupply: numberOrNull(drivers.demandSupply),
+    bottleneckPower: numberOrNull(drivers.bottleneckPower),
     dataQuality: numberOrNull(drivers.dataQuality),
     modelRisk: numberOrNull(drivers.modelRisk),
     beta: numberOrNull(drivers.beta),
@@ -200,7 +204,7 @@ function researchabilityAssessment(ctx) {
   const coverage = ctx.snapshot.coverage || {};
   const facts = ctx.snapshot.facts || {};
   const d = ctx.drivers;
-  const required = ["baseFcf", "revenueCagr", "margin", "roic", "reinvestment"];
+  const required = ["baseFcf", "revenueCagr", "margin", "roic", "reinvestment", "thesisQuality", "demandSupply", "bottleneckPower"];
   const missingRequired = required.filter((key) => !isFiniteNumber(d[key]));
   const sourceScore =
     (coverageFlag(coverage, "secCompanyFacts", "secCompanyfacts", "secCompanyfactsAvailable") ? 0.25 : 0) +
@@ -311,6 +315,21 @@ function quickKillChecks(ctx, researchability) {
       note: `${ctx.tripwires.length} active falsifier${ctx.tripwires.length === 1 ? "" : "s"} in the ledger.`,
       hardFail: false,
     },
+    {
+      id: "structural_support",
+      label: "Qualitative support is explicit",
+      status:
+        !isFiniteNumber(d.thesisQuality) || !isFiniteNumber(d.demandSupply) || !isFiniteNumber(d.bottleneckPower)
+          ? "fail"
+          : (d.thesisQuality + d.demandSupply + d.bottleneckPower) / 3 < 0.42
+            ? "warn"
+            : "pass",
+      note:
+        !isFiniteNumber(d.thesisQuality) || !isFiniteNumber(d.demandSupply) || !isFiniteNumber(d.bottleneckPower)
+          ? "Thesis, demand/supply, or bottleneck signal is absent."
+          : `Structural score is ${fmtPct((d.thesisQuality + d.demandSupply + d.bottleneckPower) / 3, 0)}.`,
+      hardFail: !isFiniteNumber(d.thesisQuality) || !isFiniteNumber(d.demandSupply) || !isFiniteNumber(d.bottleneckPower),
+    },
   ];
 
   const tally = checks.reduce(
@@ -375,8 +394,17 @@ function buildAgents(ctx, researchability) {
     1,
   );
   const bayesScore = clamp(feasibility * 0.6 + quality * 0.25 + (isFiniteNumber(ctx.probabilityAbovePrice) ? ctx.probabilityAbovePrice : 0.5) * 0.15, 0, 1);
+  const structuralScore = clamp(
+    0.34 +
+      (isFiniteNumber(d.thesisQuality) ? (d.thesisQuality - 0.5) * 0.42 : -0.08) +
+      (isFiniteNumber(d.demandSupply) ? (d.demandSupply - 0.5) * 0.34 : -0.08) +
+      (isFiniteNumber(d.bottleneckPower) ? (d.bottleneckPower - 0.5) * 0.3 : -0.08) +
+      (isFiniteNumber(d.moatHalfLife) ? d.moatHalfLife / 55 : 0),
+    0,
+    1,
+  );
   const sourceScore = clamp(researchability.score - missing * 0.05, 0, 1);
-  const valuationScore = clamp(0.5 + upside, 0, 1);
+  const valuationScore = clamp(0.5 + upside + (structuralScore - 0.5) * 0.12, 0, 1);
 
   return [
     agent(
@@ -425,18 +453,25 @@ function buildAgents(ctx, researchability) {
       "business_twin",
       "03 Business Twin",
       "Business analyst",
-      "Moat half-life, fade path, operating drivers.",
-      twinScore,
-      twinScore > 0.62 ? "durable fade path" : "fragile fade path",
-      `Moat half-life is ${isFiniteNumber(d.moatHalfLife) ? d.moatHalfLife.toFixed(1) : "N/A"} years with terminal ROIC ${fmtPct(d.terminalRoic)}.`,
+      "Qualitative thesis, demand/supply, bottleneck power, and fade path.",
+      clamp(twinScore * 0.55 + structuralScore * 0.45, 0, 1),
+      structuralScore > 0.62 ? "structural support visible" : "structural support fragile",
+      `Thesis ${fmtPct(d.thesisQuality, 0)}, demand/supply ${fmtPct(d.demandSupply, 0)}, bottleneck ${fmtPct(d.bottleneckPower, 0)}; moat half-life ${isFiniteNumber(d.moatHalfLife) ? d.moatHalfLife.toFixed(1) : "N/A"} years.`,
       [
         `Mode: ${ctx.mode}`,
         `Active falsifiers: ${ctx.tripwires.length}`,
         `Terminal spread: ${
           isFiniteNumber(d.terminalRoic) && isFiniteNumber(d.wacc) ? fmtPct(d.terminalRoic - d.wacc) : "N/A"
         }`,
+        `Qualitative thesis score: ${fmtPct(d.thesisQuality, 0)}`,
+        `Demand/supply score: ${fmtPct(d.demandSupply, 0)}`,
       ],
-      ctx.tripwires.map((item) => item.falsifier || item.label).slice(0, 3),
+      [
+        isFiniteNumber(d.thesisQuality) && d.thesisQuality < 0.45 ? "Narrative support is too weak for a valuation premium." : null,
+        isFiniteNumber(d.demandSupply) && d.demandSupply < 0.45 ? "Supply/demand setup does not support the growth path." : null,
+        isFiniteNumber(d.bottleneckPower) && d.bottleneckPower < 0.38 ? "No bottleneck power; pricing may fade faster than modeled." : null,
+        ...ctx.tripwires.map((item) => item.falsifier || item.label),
+      ].slice(0, 5),
     ),
     agent(
       "bayesian",
@@ -450,6 +485,7 @@ function buildAgents(ctx, researchability) {
         `Probability above price: ${fmtPct(ctx.probabilityAbovePrice, 0)}`,
         `Market-implied CAGR: ${fmtPct(ctx.impliedCagr)}`,
         `Scenario quality: ${fmtPct(quality, 0)}`,
+        `Structural support: ${fmtPct(structuralScore, 0)}`,
       ],
       [
         isFiniteNumber(ctx.impliedCagr) && isFiniteNumber(d.revenueCagr) && ctx.impliedCagr > d.revenueCagr + 0.025
@@ -481,6 +517,7 @@ function mirrorTest(ctx) {
     `Business: ${ctx.snapshot.company?.entityName || ctx.drivers.name || ctx.ticker} in ${d.sector || "its reported sector"}.`,
     `Economics: ROIC ${fmtPct(d.roic)} versus WACC ${fmtPct(d.wacc)}, with terminal ROIC ${fmtPct(d.terminalRoic)}.`,
     `Moat: modeled half-life ${isFiniteNumber(d.moatHalfLife) ? `${d.moatHalfLife.toFixed(1)} years` : "N/A"} before fade assumptions dominate.`,
+    `Structure: thesis ${fmtPct(d.thesisQuality, 0)}, demand/supply ${fmtPct(d.demandSupply, 0)}, bottleneck ${fmtPct(d.bottleneckPower, 0)}.`,
     `Price/value: estimate ${fmtMoney(ctx.valuation)} versus price ${fmtMoney(d.price)}, or ${fmtPct(ctx.upside)} upside/downside.`,
     `Downside trigger: ${ctx.tripwires[0]?.falsifier || ctx.tripwires[0]?.label || "next filing breaks one of the core drivers"}.`,
   ];

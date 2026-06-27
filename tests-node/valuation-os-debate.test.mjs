@@ -36,6 +36,9 @@ const basePayload = {
     reinvestment: 0.42,
     dilution: -0.004,
     moatHalfLife: 10,
+    thesisQuality: 0.88,
+    demandSupply: 0.82,
+    bottleneckPower: 0.9,
     dataQuality: 0.82,
     modelRisk: 0.24,
     beta: 1.1,
@@ -81,8 +84,9 @@ test("valuation OS debate works without an LLM key", async () => {
     assert.equal(payload.debate.final_orchestrator.analysis.researchability.grade, "A");
     assert.ok(payload.debate.final_orchestrator.analysis.composite_score >= 1);
     assert.ok(payload.debate.final_orchestrator.analysis.scorecard.length >= 4);
-    assert.ok(payload.debate.final_orchestrator.analysis.quick_kill.checks.length >= 6);
+    assert.ok(payload.debate.final_orchestrator.analysis.quick_kill.checks.length >= 9);
     assert.match(payload.debate.final_orchestrator.analysis.one_line_conclusion, /ASML/i);
+    assert.ok(payload.debate.final_orchestrator.analysis.scorecard.some((item) => /structural|support|thesis/i.test(item.summary)));
   } finally {
     if (previousEnabled === undefined) delete process.env.VALUATION_OS_LLM_ENABLED;
     else process.env.VALUATION_OS_LLM_ENABLED = previousEnabled;
@@ -121,7 +125,7 @@ test("valuation OS debate falls back when final orchestrator is rate limited", a
     assert.ok(payload.debate.final_orchestrator.retry_after_ms > 0);
     assert.match(payload.debate.final_orchestrator.analysis.executive_judgment, /ASML/i);
     assert.ok(payload.debate.final_orchestrator.analysis.scorecard.length >= 4);
-    assert.ok(payload.debate.final_orchestrator.analysis.quick_kill.checks.length >= 6);
+    assert.ok(payload.debate.final_orchestrator.analysis.quick_kill.checks.length >= 9);
   } finally {
     globalThis.fetch = previousFetch;
     if (previousEnabled === undefined) delete process.env.VALUATION_OS_LLM_ENABLED;
@@ -150,9 +154,12 @@ test("valuation OS committee blocks incomplete live drivers", async () => {
         revenueCagr: null,
         roic: null,
         reinvestment: null,
+        thesisQuality: null,
+        demandSupply: null,
+        bottleneckPower: null,
         dataQuality: 0.35,
       },
-      missingDrivers: ["baseFcf", "revenueCagr", "roic", "reinvestment"],
+      missingDrivers: ["baseFcf", "revenueCagr", "roic", "reinvestment", "thesisQuality", "demandSupply", "bottleneckPower"],
       valuation: null,
       upside: null,
     });
@@ -163,6 +170,7 @@ test("valuation OS committee blocks incomplete live drivers", async () => {
     assert.equal(analysis.action, "repair_data");
     assert.equal(analysis.quick_kill.hard_fail, true);
     assert.ok(analysis.quick_kill.checks.some((item) => item.id === "source_file" && item.status === "fail"));
+    assert.ok(analysis.quick_kill.checks.some((item) => item.id === "structural_support" && item.status === "fail"));
     assert.match(analysis.one_line_conclusion, /not decision-ready/i);
   } finally {
     if (previousEnabled === undefined) delete process.env.VALUATION_OS_LLM_ENABLED;

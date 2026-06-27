@@ -19,6 +19,9 @@ const companies = {
     reinvestment: 0.43,
     dilution: -0.006,
     moatHalfLife: 11,
+    thesisQuality: 0.84,
+    demandSupply: 0.76,
+    bottleneckPower: 0.63,
     dataQuality: 0.81,
     modelRisk: 0.23,
     beta: 0.76,
@@ -38,6 +41,9 @@ const companies = {
     reinvestment: 0.52,
     dilution: 0.003,
     moatHalfLife: 6,
+    thesisQuality: 0.82,
+    demandSupply: 0.88,
+    bottleneckPower: 0.91,
     dataQuality: 0.74,
     modelRisk: 0.36,
     beta: 1.18,
@@ -57,6 +63,9 @@ const companies = {
     reinvestment: 0.36,
     dilution: 0.007,
     moatHalfLife: 3.8,
+    thesisQuality: 0.52,
+    demandSupply: 0.46,
+    bottleneckPower: 0.28,
     dataQuality: 0.69,
     modelRisk: 0.44,
     beta: 1.34,
@@ -137,6 +146,33 @@ const assumptionSchema = [
     source: "SBC, repurchases, options, RSUs",
   },
   {
+    key: "thesisQuality",
+    label: "Qualitative thesis",
+    fmt: "score",
+    low: 0.2,
+    high: 0.95,
+    falsifier: "Narrative remains intact while customer behavior, product edge, or unit economics deteriorate",
+    source: "Moat evidence, customer pull, management execution, optionality",
+  },
+  {
+    key: "demandSupply",
+    label: "Demand / supply setup",
+    fmt: "score",
+    low: 0.15,
+    high: 0.95,
+    falsifier: "Demand slows or new supply enters faster than pricing can adjust",
+    source: "Backlog, capacity additions, utilization, inventory, pricing",
+  },
+  {
+    key: "bottleneckPower",
+    label: "Bottleneck power",
+    fmt: "score",
+    low: 0.1,
+    high: 0.98,
+    falsifier: "Customers find substitutes or capacity ceases to constrain the system",
+    source: "Scarcity, substitute availability, switching cost, lead times",
+  },
+  {
     key: "moatHalfLife",
     label: "Moat half-life",
     fmt: "yrs",
@@ -186,6 +222,7 @@ function fmtValue(value, fmt) {
   if (!isFiniteNumber(value)) return "N/A";
   if (fmt === "pct") return fmtPct(value);
   if (fmt === "yrs") return `${value.toFixed(1)}y`;
+  if (fmt === "score") return `${Math.round(value * 100)}/100`;
   return value.toFixed(2);
 }
 
@@ -204,17 +241,26 @@ function valueAt(drivers) {
     drivers.reinvestment,
     drivers.moatHalfLife,
     drivers.dilution,
+    drivers.thesisQuality,
+    drivers.demandSupply,
+    drivers.bottleneckPower,
   ];
   if (required.some((value) => !isFiniteNumber(value))) return null;
-  const growthPower = Math.pow(1 + drivers.revenueCagr, 5);
+  const thesisMultiplier = 0.88 + drivers.thesisQuality * 0.24;
+  const demandMultiplier = 0.9 + drivers.demandSupply * 0.22;
+  const bottleneckMultiplier = 0.94 + drivers.bottleneckPower * 0.16;
+  const effectiveCagr = clamp(drivers.revenueCagr * demandMultiplier * bottleneckMultiplier, -0.04, 0.24);
+  const growthPower = Math.pow(1 + effectiveCagr, 5);
   const marginQuality = 0.72 + drivers.margin * 1.25;
   const roicSpread = Math.max(0, drivers.terminalRoic - drivers.wacc);
-  const reinvestmentDrag = 1 - clamp(drivers.reinvestment * 0.34, 0.04, 0.28);
-  const moatMultiplier = 1 + clamp(drivers.moatHalfLife / 30, 0.03, 0.52);
+  const reinvestmentRelief = 1 - drivers.bottleneckPower * 0.08;
+  const reinvestmentDrag = 1 - clamp(drivers.reinvestment * 0.34 * reinvestmentRelief, 0.035, 0.28);
+  const moatMultiplier = 1 + clamp((drivers.moatHalfLife / 30) * thesisMultiplier, 0.03, 0.62);
   const terminalDenominator = Math.max(0.026, drivers.wacc - drivers.terminalGrowth);
   const steadyFcf = drivers.baseFcf * growthPower * marginQuality * reinvestmentDrag;
   const terminal = steadyFcf * (1 + drivers.terminalGrowth) / terminalDenominator;
-  const fadeBonus = 1 + roicSpread * 2.5 * moatMultiplier;
+  const structuralBonus = 1 + (drivers.thesisQuality + drivers.demandSupply + drivers.bottleneckPower - 1.5) * 0.08;
+  const fadeBonus = (1 + roicSpread * 2.5 * moatMultiplier) * structuralBonus;
   const dilutionPenalty = Math.pow(1 + drivers.dilution, 5);
   return (steadyFcf * 4.2 + terminal * 0.62 * fadeBonus) / dilutionPenalty;
 }
@@ -488,13 +534,16 @@ function EngineConsole({
       technical: "Connects revenue CAGR, reinvestment, ROIC fade, moat half-life, and falsifiers.",
       metrics: [
         ["Scenario", mode],
-        ["Moat half-life", isFiniteNumber(adjustedDrivers.moatHalfLife) ? `${adjustedDrivers.moatHalfLife.toFixed(1)}y` : "Missing"],
-        ["Terminal ROIC", fmtOptional(adjustedDrivers.terminalRoic, fmtPct)],
+        ["Thesis quality", fmtValue(adjustedDrivers.thesisQuality, "score")],
+        ["Demand / supply", fmtValue(adjustedDrivers.demandSupply, "score")],
+        ["Bottleneck", fmtValue(adjustedDrivers.bottleneckPower, "score")],
         ["Tripwires", String(tripwires.length), tripwires.length > 3 ? "warn" : "neutral"],
       ],
       bullets: [
         `Current value path: ${fmtMoney(valuation)} versus price ${fmtMoney(adjustedDrivers.price)}.`,
         `Fade anchor: terminal ROIC ${fmtOptional(adjustedDrivers.terminalRoic, fmtPct)} and WACC ${fmtOptional(adjustedDrivers.wacc, fmtPct)}.`,
+        `Qualitative thesis ${fmtValue(adjustedDrivers.thesisQuality, "score")} modifies fade confidence; demand/supply ${fmtValue(adjustedDrivers.demandSupply, "score")} modifies growth feasibility.`,
+        `Bottleneck power ${fmtValue(adjustedDrivers.bottleneckPower, "score")} captures whether scarcity and substitution risk support pricing.`,
         activeFalsifiers[0] || "No boundary falsifier is currently at the edge of its range.",
         activeFalsifiers[1] || null,
       ],
@@ -510,7 +559,7 @@ function EngineConsole({
         ["Feasibility", fmtPct(feasibility, 0), feasibility >= 0.55 ? "good" : "warn"],
         ["Above price", fmtPct(distribution.probAbovePrice, 0)],
         ["Implied CAGR", fmtPct(impliedCagr)],
-        ["Model risk", fmtPct(adjustedDrivers.modelRisk, 0), adjustedDrivers.modelRisk > 0.4 ? "bad" : "neutral"],
+        ["Structural support", fmtValue((adjustedDrivers.thesisQuality + adjustedDrivers.demandSupply + adjustedDrivers.bottleneckPower) / 3, "score")],
       ],
       bullets: [
         `Expected 5Y IRR: ${fmtPct(expectedIrr)}.`,
@@ -760,6 +809,9 @@ export default function ValuationOsLabPage() {
         terminalRoic: scaleDriver(drivers.terminalRoic, 0.86),
         wacc: scaleDriver(drivers.wacc, 1, 0.012),
         moatHalfLife: scaleDriver(drivers.moatHalfLife, 0.72),
+        thesisQuality: clamp(scaleDriver(drivers.thesisQuality, 0.78), 0.05, 0.98),
+        demandSupply: clamp(scaleDriver(drivers.demandSupply, 0.72), 0.05, 0.98),
+        bottleneckPower: clamp(scaleDriver(drivers.bottleneckPower, 0.7), 0.05, 0.98),
       };
     }
     if (mode === "bull") {
@@ -770,6 +822,9 @@ export default function ValuationOsLabPage() {
         terminalRoic: scaleDriver(drivers.terminalRoic, 1.1),
         wacc: scaleDriver(drivers.wacc, 1, -0.006),
         moatHalfLife: scaleDriver(drivers.moatHalfLife, 1.22),
+        thesisQuality: clamp(scaleDriver(drivers.thesisQuality, 1.12, 0.03), 0.05, 0.98),
+        demandSupply: clamp(scaleDriver(drivers.demandSupply, 1.16, 0.02), 0.05, 0.98),
+        bottleneckPower: clamp(scaleDriver(drivers.bottleneckPower, 1.18, 0.02), 0.05, 0.98),
       };
     }
     return drivers;
@@ -795,16 +850,29 @@ export default function ValuationOsLabPage() {
     isFiniteNumber(impliedCagr) &&
       isFiniteNumber(adjustedDrivers.revenueCagr) &&
       isFiniteNumber(adjustedDrivers.reinvestment) &&
-      isFiniteNumber(adjustedDrivers.modelRisk)
+      isFiniteNumber(adjustedDrivers.modelRisk) &&
+      isFiniteNumber(adjustedDrivers.thesisQuality) &&
+      isFiniteNumber(adjustedDrivers.demandSupply) &&
+      isFiniteNumber(adjustedDrivers.bottleneckPower)
       ? 1 -
           Math.abs(adjustedDrivers.revenueCagr - impliedCagr) * 2.8 -
           Math.max(0, adjustedDrivers.reinvestment - 0.6) * 0.7 -
-          adjustedDrivers.modelRisk * 0.28
+          adjustedDrivers.modelRisk * 0.28 -
+          (1 - adjustedDrivers.thesisQuality) * 0.16 -
+          (1 - adjustedDrivers.demandSupply) * 0.14 -
+          (1 - adjustedDrivers.bottleneckPower) * 0.1
       : 0.05,
     0.05,
     0.95,
   );
-  const quality = clamp(adjustedDrivers.dataQuality - adjustedDrivers.modelRisk * 0.12, 0.2, 0.95);
+  const quality = clamp(
+    adjustedDrivers.dataQuality -
+      adjustedDrivers.modelRisk * 0.12 +
+      (adjustedDrivers.thesisQuality - 0.5) * 0.08 +
+      (adjustedDrivers.demandSupply - 0.5) * 0.05,
+    0.2,
+    0.95,
+  );
   const tripwires = assumptionSchema.filter((item) => {
     const value = adjustedDrivers[item.key];
     if (!isFiniteNumber(value)) return true;
@@ -897,6 +965,9 @@ export default function ValuationOsLabPage() {
         reinvestment: payload.drivers?.reinvestment,
         dilution: payload.drivers?.dilution,
         moatHalfLife: payload.drivers?.moatHalfLife,
+        thesisQuality: payload.drivers?.thesisQuality ?? driverOr(drivers, "thesisQuality"),
+        demandSupply: payload.drivers?.demandSupply ?? driverOr(drivers, "demandSupply"),
+        bottleneckPower: payload.drivers?.bottleneckPower ?? driverOr(drivers, "bottleneckPower"),
         dataQuality: payload.drivers?.dataQuality,
         modelRisk: payload.drivers?.modelRisk,
         beta: payload.drivers?.beta ?? driverOr(drivers, "beta"),
@@ -1007,12 +1078,12 @@ export default function ValuationOsLabPage() {
           <span>Thesis health</span>
           <strong>{plainRead}</strong>
           <p>
-            Combines valuation gap, feasibility, data quality, and active falsifiers into one operating read.
+            Combines valuation gap, feasibility, source quality, qualitative thesis, supply/demand, and falsifiers.
           </p>
           <dl>
             <div>
               <dt>Falsifiers</dt>
-              <dd>{tripwires.length} / 9</dd>
+              <dd>{tripwires.length} / {assumptionSchema.length}</dd>
             </div>
             <div>
               <dt>Confidence</dt>
@@ -1032,7 +1103,7 @@ export default function ValuationOsLabPage() {
             <h1>Reverse DCF + ROIC Fade</h1>
             <p>
               A valuation workspace that shows the assumptions behind the price: source quality,
-              ROIC economics, market-implied growth, and the falsifiers that would break the thesis.
+              ROIC economics, qualitative thesis, supply/demand, bottlenecks, and the falsifiers that would break the thesis.
             </p>
             <div className={styles.heroSummary}>
               <span>Decision read</span>
@@ -1091,14 +1162,14 @@ export default function ValuationOsLabPage() {
             <p>Shows whether growth earns enough.</p>
           </div>
           <div>
-            <span>3 Expectations</span>
-            <strong>Reverse DCF</strong>
-            <p>Shows what the market price requires.</p>
+            <span>3 Structure</span>
+            <strong>Thesis, supply, bottleneck</strong>
+            <p>Shows whether qualitative support makes the numbers plausible.</p>
           </div>
           <div>
-            <span>4 Verdict</span>
-            <strong>Agents + falsifiers</strong>
-            <p>Separates thesis support from failure points.</p>
+            <span>4 Expectations</span>
+            <strong>Reverse DCF + verdict</strong>
+            <p>Separates market requirements from failure points.</p>
           </div>
         </section>
 
