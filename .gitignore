@@ -2,6 +2,10 @@
 output/
 cache/
 tmp/
+artifacts/aurora_router/
+artifacts/aurora_spine_v1/
+artifacts/aurora_tactical_1y/
+artifacts/aurora_omega/
 .pytest_cache/
 .pytest_tmp/
 _local_data/
