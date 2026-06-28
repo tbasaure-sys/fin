@@ -425,8 +425,58 @@ def zscore(series: pd.Series) -> pd.Series:
     return ((s - s.mean()) / std).clip(-5, 5)
 
 
+def normalize_panel_schema(panel: pd.DataFrame) -> pd.DataFrame:
+    """Accept both native router panels and rescued FMP/Yahoo autodiscovery panels."""
+    df = panel.copy()
+    aliases = {
+        "fcf": ["free_cash_flow", "freeCashFlow"],
+        "assets": ["total_assets", "totalAssets"],
+        "equity": ["total_equity", "totalStockholdersEquity", "totalEquity"],
+        "debt": ["total_debt", "totalDebt"],
+        "receivables": ["net_receivables", "netReceivables", "accountsReceivables"],
+        "inventory": ["inventory"],
+    }
+    for canonical, candidates in aliases.items():
+        if canonical not in df.columns:
+            for candidate in candidates:
+                if candidate in df.columns:
+                    df[canonical] = df[candidate]
+                    break
+    for col in ["fcf", "assets", "equity", "debt", "cash", "inventory", "receivables", "capex", "market_cap", "revenue", "ebit", "net_income"]:
+        if col not in df.columns:
+            df[col] = 0.0 if col in {"debt", "cash", "inventory", "receivables", "capex"} else np.nan
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+    if "macro_cost_anchor" not in df.columns:
+        rf = pd.to_numeric(df.get("risk_free_10y", 0.04), errors="coerce").fillna(0.04)
+        df["macro_cost_anchor"] = (rf + 0.045).clip(0.045, 0.16)
+    if "risk_free_delta_1y" not in df.columns:
+        if "risk_free_10y" in df.columns:
+            df["risk_free_delta_1y"] = pd.to_numeric(df["risk_free_10y"], errors="coerce") - pd.to_numeric(df["risk_free_10y"], errors="coerce").shift(1)
+        else:
+            df["risk_free_delta_1y"] = np.nan
+    if "ret_1y_trailing" not in df.columns:
+        df["ret_1y_trailing"] = df.sort_values(["ticker", "year"]).groupby("ticker")["price_t0"].pct_change() if "price_t0" in df.columns else np.nan
+    if "ret_3y_trailing" not in df.columns:
+        df["ret_3y_trailing"] = df.sort_values(["ticker", "year"]).groupby("ticker")["price_t0"].pct_change(3) if "price_t0" in df.columns else np.nan
+    for col in ["vol_1y_trailing", "drawdown_3y_trailing"]:
+        if col not in df.columns:
+            df[col] = np.nan
+    if "gross_margin" not in df.columns:
+        df["gross_margin"] = np.nan
+    if "operating_margin" not in df.columns:
+        df["operating_margin"] = np.nan
+    if "sector" not in df.columns:
+        df["sector"] = "Unknown"
+    if "industry" not in df.columns:
+        df["industry"] = "Unknown"
+    df["net_margin"] = df["net_income"] / df["revenue"].replace(0, np.nan)
+    df["roe"] = df["net_income"] / df["equity"].replace(0, np.nan)
+    df["roa"] = df["net_income"] / df["assets"].replace(0, np.nan)
+    return df
+
+
 def add_features(panel: pd.DataFrame) -> pd.DataFrame:
-    df = panel.sort_values(["ticker", "year"]).copy()
+    df = normalize_panel_schema(panel).sort_values(["ticker", "year"]).copy()
     df["revenue_growth_1y"] = df.groupby("ticker")["revenue"].pct_change().replace([np.inf, -np.inf], np.nan)
     df["revenue_growth_3y"] = df.groupby("ticker")["revenue"].pct_change(3).replace([np.inf, -np.inf], np.nan) / 3
     df["ebit_margin"] = df["ebit"] / df["revenue"].replace(0, np.nan)
