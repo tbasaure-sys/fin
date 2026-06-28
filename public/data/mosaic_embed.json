@@ -1,6 +1,6 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-06-27T11:46:46.836059+00:00",
+  "generated_at": "2026-06-28T11:46:57.287115+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
@@ -12,7 +12,7 @@
   "public_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
-    "newest_cached_at": "2026-06-27T11:46:46.833624+00:00",
+    "newest_cached_at": "2026-06-28T11:46:57.283472+00:00",
     "oldest_cached_at": "2026-06-18T16:47:34.412498+00:00"
   },
   "global_disequilibrium_index": 35,
@@ -26,7 +26,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "62 series used, 0 manual, 2 warming, 0 watch errors.",
-    "freshness": "Newest 2026-06-17; oldest used source age 118 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-06-17; oldest used source age 119 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 2 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -76,7 +76,7 @@
         "url": "https://www.freightos.com/",
         "used_series": 0,
         "warming_series": 2,
-        "latest_date": "2026-06-27"
+        "latest_date": "2026-06-28"
       }
     ],
     "open_gaps": [
@@ -126,7 +126,7 @@
     "unused_error_series": [],
     "manual_series": 0,
     "newest_date": "2026-06-17",
-    "oldest_age_days": 118
+    "oldest_age_days": 119
   },
   "history_delta": {
     "previous_gdi": 35,
