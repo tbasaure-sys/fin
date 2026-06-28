@@ -136,8 +136,34 @@ def _sequence_tensor(frame: pd.DataFrame, values: np.ndarray, max_years: int) ->
     return seq
 
 
-def build_omega_bundle(frame: pd.DataFrame, max_years: int = 8, train_end_year: int = 2020, val_start_year: int = 2021) -> OmegaBundle:
+def _mask_immature_forward_returns(data: pd.DataFrame, data_asof_date: str | None) -> pd.DataFrame:
+    if "asof_date" not in data.columns:
+        return data
+    out = data.copy()
+    cutoff = pd.Timestamp(data_asof_date) if data_asof_date else pd.Timestamp.utcnow()
+    cutoff = cutoff.tz_localize(None) if cutoff.tzinfo is not None else cutoff
+    asof = pd.to_datetime(out["asof_date"], errors="coerce")
+    if getattr(asof.dt, "tz", None) is not None:
+        asof = asof.dt.tz_localize(None)
+    for years, col in [(1, "ann_return_1y_fwd"), (3, "ann_return_3y_fwd")]:
+        if col not in out.columns:
+            continue
+        target_date = asof + pd.DateOffset(years=years)
+        matured = target_date.notna() & (target_date <= cutoff)
+        out[f"{col}_matured"] = matured
+        out.loc[~matured, col] = np.nan
+    return out
+
+
+def build_omega_bundle(
+    frame: pd.DataFrame,
+    max_years: int = 8,
+    train_end_year: int = 2020,
+    val_start_year: int = 2021,
+    data_asof_date: str | None = None,
+) -> OmegaBundle:
     data = frame.sort_values(["ticker", "year"]).reset_index(drop=True).copy()
+    data = _mask_immature_forward_returns(data, data_asof_date)
     lens_cols = [f"pred_{name}" for name in LENS_NAMES]
     feature_cols = [col for col in NUMERIC_FEATURES if col in data.columns]
     data = _safe_numeric(data, feature_cols + lens_cols + TARGET_RETURN_COLS)
