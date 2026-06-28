@@ -54,3 +54,26 @@ If V3 fails gates but the spine remains decent, the product should be:
 That is not failure. It means the production system is the valuation question/memo engine, with ML used as a monitored challenger.
 
 If both spine and residual fail ranking, the next unlock is not more architecture. It is better labels and better lens construction, especially reverse DCF, asset value, residual income, and bottleneck/capital-cycle evidence.
+
+## First V3 Run
+
+The first submitted V3 run passed the hard gate:
+
+- winner: `hgb_residual`
+- validation rows: 1,379 mature rows
+- winner MAE: 0.16858
+- spine MAE: 0.17843
+- uniform MAE: 0.18449
+- best single lens: `reverseDcf`, MAE 0.17674
+- winner IC: 0.04222
+- spine IC: -0.06487
+- winner decile spread: 0.07069
+
+This is the first AURORA run that improved both absolute error and ranking diagnostics.
+
+Two corrections were made after reviewing the run:
+
+1. The common-equity filter had been too aggressive with symbols ending in `X`, removing valid operating companies such as `CVX`, `BSX`, `BDX`, and `EQIX`. V3.1 keeps normal operating tickers and filters fund-like symbols using ticker, sector, industry, and company-name text together.
+2. The production gate now evaluates primary validation years with at least 100 rows. Sparse mature 2023 rows remain diagnostic, but 2021-2022 are the main gate until more 2023/2024 outcomes mature.
+
+The next run should be treated as V3.1. If it still passes, the model is a legitimate production candidate, but it still needs one rolling-origin check before hard deployment.
