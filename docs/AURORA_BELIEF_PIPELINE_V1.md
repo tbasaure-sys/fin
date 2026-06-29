@@ -48,6 +48,7 @@ It returns:
 - market-implied expectations surface
 - economic feasibility manifold
 - calibration status and scored outcomes when supplied
+- recalibration policy for bias, uncertainty, confidence, and abstention adjustments
 - management guidance reliability when supplied
 - priced belief object
 - optional thesis monitor result
@@ -103,9 +104,10 @@ It does not train a model and it does not claim magic. It forces the workflow to
 9. What growth/margin/ROIC surface does the market price require?
 10. Is that surface economically plausible for this kind of business?
 11. Is the model calibrated against realized outcomes?
-12. Is management guidance historically reliable?
-13. What would falsify the thesis?
-14. Did fresh evidence trip anything?
-15. What should the investor do next?
+12. If not, how should future forecasts be shifted, widened, or confidence-haircut?
+13. Is management guidance historically reliable?
+14. What would falsify the thesis?
+15. Did fresh evidence trip anything?
+16. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.

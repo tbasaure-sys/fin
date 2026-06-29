@@ -76,6 +76,8 @@ test("calibration engine marks a single live prediction as pending outcome", () 
   assert.equal(result.decision, "calibration_pending");
   assert.equal(result.summary.scoredRecords, 0);
   assert.equal(result.records[0].status, "pending_outcome");
+  assert.equal(result.recalibrationPolicy.action, "collect_realized_outcomes");
+  assert.equal(result.recalibrationPolicy.globalAdjustments.uncertaintyScale, 1);
 });
 
 test("calibration engine scores continuous forecast coverage and probabilistic investment events", () => {
@@ -102,6 +104,10 @@ test("calibration engine scores continuous forecast coverage and probabilistic i
   assert.ok(Number.isFinite(result.summary.continuous.growth.meanAbsoluteError));
   assert.ok(Number.isFinite(result.summary.continuous.margin.coverage80));
   assert.ok(Number.isFinite(result.summary.investment.meanBrier));
+  assert.ok(Number.isFinite(result.summary.investment.meanPredictedNegativeReturnProbability));
+  assert.ok(Number.isFinite(result.summary.investment.observedNegativeReturnRate));
+  assert.equal(result.recalibrationPolicy.version, "aurora_recalibration_policy_v1");
+  assert.ok(Number.isFinite(result.recalibrationPolicy.globalAdjustments.negativeReturnProbabilityShift));
   assert.ok(["calibration_usable", "calibration_watch", "calibration_failing"].includes(result.decision));
   assert.equal(result.summary.experimentRisk.level, "low_recorded_experiment_pressure");
 });
@@ -127,8 +133,43 @@ test("calibration engine fails badly miscalibrated histories", () => {
   });
 
   assert.equal(result.decision, "calibration_failing");
+  assert.equal(result.recalibrationPolicy.action, "freeze_promotion_and_apply_conservative_overrides");
+  assert.ok(result.recalibrationPolicy.globalAdjustments.uncertaintyScale > 1);
+  assert.ok(result.recalibrationPolicy.globalAdjustments.confidenceHaircut > 0);
   assert.ok(result.summary.continuous.growth.coverage80 < 0.8);
   assert.equal(result.summary.experimentRisk.level, "high_backtest_overfitting_risk");
+});
+
+test("calibration engine emits variable-level shift and interval scale policy", () => {
+  const p1 = prediction(900, "C1");
+  const p2 = prediction(920, "C2");
+  const result = buildAuroraCalibrationEngine(
+    {
+      records: [
+        {
+          id: "c1",
+          prediction: p1,
+          actuals: centeredActuals(p1, {
+            growth: p1.forecast.posterior.growth.p50 + 0.04,
+            value: p1.valuationEnsemble.summary.weightedFairValue * 1.8,
+          }),
+        },
+        {
+          id: "c2",
+          prediction: p2,
+          actuals: centeredActuals(p2, {
+            growth: p2.forecast.posterior.growth.p50 + 0.05,
+            value: p2.valuationEnsemble.summary.weightedFairValue * 1.9,
+          }),
+        },
+      ],
+    },
+    { minCalibrationRecords: 2 },
+  );
+
+  assert.ok(result.recalibrationPolicy.variables.growth.centerShift > 0);
+  assert.ok(result.recalibrationPolicy.variables.value.centerShift > 0);
+  assert.ok(result.recalibrationPolicy.reliability >= 0.9);
 });
 
 test("calibration engine builds return buckets for walk-forward diagnostics", () => {
@@ -148,4 +189,3 @@ test("calibration engine builds return buckets for walk-forward diagnostics", ()
   assert.ok(result.summary.investment.deciles.length >= 2);
   assert.ok(Number.isFinite(result.summary.investment.monotonicity));
 });
-

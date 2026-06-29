@@ -58,6 +58,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.feasibilityManifold.version, "aurora_feasibility_manifold_v1");
   assert.equal(result.calibration.version, "aurora_calibration_engine_v1");
   assert.equal(result.calibration.decision, "calibration_pending");
+  assert.equal(result.calibration.recalibrationPolicy.action, "collect_realized_outcomes");
   assert.equal(result.managementReliability.version, "aurora_management_reliability_engine_v1");
   assert.equal(result.managementReliability.decision, "management_reliability_pending");
   assert.equal(result.beliefObject.version, "aurora_priced_belief_object_v1");
@@ -70,6 +71,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.ok(result.memo.bullets.some((line) => /Expectations surface:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Feasibility manifold:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Calibration:/.test(line)));
+  assert.ok(result.memo.bullets.some((line) => /Recalibration:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Management reliability:/.test(line)));
 });
 
