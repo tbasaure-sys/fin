@@ -328,3 +328,5 @@ Interpretation rule:
 - If V6 passes but does not beat V5.1, keep V5.1 as champion and treat V6 as a more interpretable challenger.
 - If V6 fails MAE but improves IC/decile or regime diagnostics, inspect it as a ranking/explanation module rather than forcing promotion.
 - If V6 fails broadly, the next unlock is not more residual modeling. It is better valuation lenses and richer point-in-time evidence, especially text, capital-cycle, bottleneck, and segment-level signals.
+
+Patch note: the first V6 Colab run exposed a fold-2 feature-count bug in the fundamental transition models. The notebook originally reused one fitted `ColumnTransformer` across several target pipelines; later one-hot fits could mutate earlier pipelines and produce `n_features` mismatches. The patched notebook now builds a fresh preprocessor per target and runs a fold-local smoke prediction after fitting the fundamental models.
