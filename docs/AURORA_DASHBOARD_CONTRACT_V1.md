@@ -23,6 +23,7 @@ It is not a React component. It is a stable contract between the AURORA engines 
 - driver graph
 - assumption ledger
 - calibration history
+- calibration authority and decision rights
 - capital allocation scorecard
 - optional expectation history and analog paths
 
@@ -56,6 +57,8 @@ The panel is shaped around the guide's required metrics:
 - model disagreement
 
 The contract prefers the calibrated branch when the Calibration Integration Packet is available, but it does not mutate the raw forecast.
+
+It also exposes `primaryPanel.calibrationAuthority` so the UI can show whether calibration has earned production rights, should remain in shadow, or must force abstention. Product code should read this compact authority packet before deciding how strongly to present calibrated values.
 
 ## Visualization Slots
 

@@ -118,6 +118,34 @@ Integration modes:
 
 The original forecast remains untouched. This is deliberate: product code can compare raw vs calibrated outputs and decide exactly when to adopt the calibrated branch.
 
+## Calibration Authority
+
+The engine now emits a compact `calibrationAuthority` object. This is the integration-facing contract for product code that should not reverse-engineer raw coverage, Brier, monotonicity, and experiment-risk metrics.
+
+It answers:
+
+```text
+How much right does this calibrated branch have to influence an investor decision?
+```
+
+It includes:
+
+- `authorityScore`: 0-1 score combining sample reliability, 80% interval coverage, negative-return Brier score, return-bucket monotonicity, and experiment-risk pressure.
+- `evidenceTier`: `insufficient_history`, `decision_grade`, `research_grade`, `shadow_grade`, or `memo_only`.
+- `decisionRights`: `observe_only`, `use_calibrated_branch_with_monitoring`, `stage_with_guardrails`, `shadow_or_memo_only`, or `freeze_promotion`.
+- `mode`: product-friendly mode: `observe_only`, `production_monitoring`, `guardrailed_stage`, `shadow`, or `conservative_override`.
+- `hardBlocks`: reasons production use is blocked, such as calibration failure, high backtest-overfitting pressure, insufficient realized outcomes, coverage failure, bad negative-return probability, or non-monotonic return buckets.
+- `requiredEvidence`: the next evidence needed to earn more authority.
+
+The integration packet copies this object into `calibrationIntegration.calibrationAuthority` and mirrors the key fields into `riskControls`:
+
+- `authorityScore`
+- `authorityMode`
+- `decisionRights`
+- `shouldAbstain`
+
+This is intentionally stricter than `calibration.decision`. A calibration history can be directionally useful while still lacking enough realized outcomes to earn production decision rights.
+
 ## Decisions
 
 - `calibration_pending`: no realized outcomes supplied.

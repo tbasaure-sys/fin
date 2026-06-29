@@ -69,6 +69,9 @@ test("dashboard contract exposes the guide's primary panel metrics", () => {
   assert.ok(contract.primaryPanel.dominantDrivers.length >= 1);
   assert.ok(["high", "medium", "low", "insufficient", "unknown", "decision_grade", "research_grade", "memo_only"].includes(contract.primaryPanel.dataQuality.level));
   assert.ok(["low", "medium", "high", "unknown"].includes(contract.primaryPanel.modelDisagreement.level));
+  assert.equal(contract.primaryPanel.calibrationAuthority.available, true);
+  assert.ok(Number.isFinite(contract.primaryPanel.calibrationAuthority.authorityScore));
+  assert.equal(contract.primaryPanel.calibrationAuthority.decisionRights, "observe_only");
 });
 
 test("dashboard contract includes required visualization slots with readiness", () => {
@@ -90,6 +93,7 @@ test("dashboard contract includes required visualization slots with readiness", 
     "historical_analog_paths",
     "capital_allocation_scorecard",
     "calibration_history",
+    "calibration_authority",
     "irr_distribution",
   ].forEach((key) => assert.ok(keys.has(key), `missing ${key}`));
   assert.ok(result.dashboardContract.readiness.score > 0.55);

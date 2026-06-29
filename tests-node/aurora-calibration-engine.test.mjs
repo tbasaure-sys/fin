@@ -78,6 +78,8 @@ test("calibration engine marks a single live prediction as pending outcome", () 
   assert.equal(result.records[0].status, "pending_outcome");
   assert.equal(result.recalibrationPolicy.action, "collect_realized_outcomes");
   assert.equal(result.recalibrationPolicy.globalAdjustments.uncertaintyScale, 1);
+  assert.equal(result.calibrationAuthority.decisionRights, "observe_only");
+  assert.equal(result.calibrationAuthority.evidenceTier, "insufficient_history");
 });
 
 test("calibration engine scores continuous forecast coverage and probabilistic investment events", () => {
@@ -108,6 +110,9 @@ test("calibration engine scores continuous forecast coverage and probabilistic i
   assert.ok(Number.isFinite(result.summary.investment.observedNegativeReturnRate));
   assert.equal(result.recalibrationPolicy.version, "aurora_recalibration_policy_v1");
   assert.ok(Number.isFinite(result.recalibrationPolicy.globalAdjustments.negativeReturnProbabilityShift));
+  assert.equal(result.calibrationAuthority.version, "aurora_calibration_authority_v1");
+  assert.ok(Number.isFinite(result.calibrationAuthority.authorityScore));
+  assert.ok(["insufficient_history", "decision_grade", "research_grade", "shadow_grade", "memo_only"].includes(result.calibrationAuthority.evidenceTier));
   assert.ok(["calibration_usable", "calibration_watch", "calibration_failing"].includes(result.decision));
   assert.equal(result.summary.experimentRisk.level, "low_recorded_experiment_pressure");
 });
@@ -134,6 +139,8 @@ test("calibration engine fails badly miscalibrated histories", () => {
 
   assert.equal(result.decision, "calibration_failing");
   assert.equal(result.recalibrationPolicy.action, "freeze_promotion_and_apply_conservative_overrides");
+  assert.equal(result.calibrationAuthority.decisionRights, "freeze_promotion");
+  assert.ok(result.calibrationAuthority.hardBlocks.includes("calibration_failing"));
   assert.ok(result.recalibrationPolicy.globalAdjustments.uncertaintyScale > 1);
   assert.ok(result.recalibrationPolicy.globalAdjustments.confidenceHaircut > 0);
   assert.ok(result.summary.continuous.growth.coverage80 < 0.8);
@@ -221,6 +228,8 @@ test("calibration integration packet applies shift, scale, confidence and absten
   assert.ok(packet.riskControls.confidence <= 1);
   assert.ok(Number.isFinite(packet.riskControls.negativeReturnProbability));
   assert.ok(Number.isFinite(packet.riskControls.abstentionThreshold));
+  assert.equal(packet.calibrationAuthority.version, "aurora_calibration_authority_v1");
+  assert.equal(packet.riskControls.decisionRights, packet.calibrationAuthority.decisionRights);
   assert.equal(p1.forecast.calibrated, undefined);
 });
 
@@ -230,6 +239,8 @@ test("pipeline exposes calibration integration without mutating the original for
   assert.equal(pending.calibrationIntegration.version, "aurora_calibration_integration_packet_v1");
   assert.equal(pending.calibrationIntegration.mode, "observe_only");
   assert.equal(pending.calibrationIntegration.calibratedForecast.calibrated, true);
+  assert.equal(pending.calibrationIntegration.calibrationAuthority.decisionRights, "observe_only");
   assert.equal(pending.forecast.calibrated, undefined);
   assert.ok(pending.memo.bullets.some((bullet) => bullet.includes("Calibration integration: observe_only.")));
+  assert.ok(pending.memo.bullets.some((bullet) => bullet.includes("Calibration authority: observe_only.")));
 });
