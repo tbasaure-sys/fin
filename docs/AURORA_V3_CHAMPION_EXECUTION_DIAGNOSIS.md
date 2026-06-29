@@ -158,3 +158,56 @@ By primary validation year:
 - 2022: 715 rows, champion MAE 0.18612 vs spine 0.20146 vs uniform 0.20822; champion IC 0.01354
 
 Interpretation: this is the first AURORA result that is both materially useful and cleaner at the dataset/process layer. It should still be described as a production candidate, not a final proven model. The 2022 IC is positive but thin, and the high-confidence bucket mainly improves absolute error rather than decile spread. That means V4.1 can support the Valuation OS memo/routing layer, while position sizing or aggressive ranking claims should wait for rolling-origin validation.
+
+## V5 Rolling-Origin Validation
+
+The next hardening notebook is:
+
+- `notebooks/AURORA_OMEGA_MAX_V5_ROLLING_ORIGIN_VALIDATION.ipynb`
+- `C:\Users\T14 Ultra 7\Downloads\AURORA_OMEGA_MAX_V5_ROLLING_ORIGIN_VALIDATION.ipynb`
+
+V5 is designed to answer the real question: does the V4.1 logic survive repeated walk-forward evaluation, or did it mainly fit the 2021-2022 validation window?
+
+Fold design:
+
+- validation years: 2015-2022
+- for each validation year `Y`, train the spine and residual models using years `<= Y-3`
+- tune model selection and residual blend using only `Y-2` and `Y-1`
+- evaluate only on year `Y`
+- no validation year is used to select that fold's champion
+
+V5 keeps the V4.1 safeguards:
+
+- same operating-equity filter and product/fund canaries
+- same no-leakage feature audit
+- deterministic reverse-DCF/asset-value spine retained as baseline and fallback
+- challenger library includes HGB, RF, ExtraTrees, ridge, elastic net, Huber, and tune-selected small ensembles
+
+V5 exports:
+
+- `rolling_origin_folds.csv`
+- `rolling_origin_predictions.csv`
+- `summary.json`
+- `filter_audit.json`
+- `manifest.json`
+
+V5 promotion gates are intentionally stricter than the two-year V4.1 gate:
+
+- at least 6 completed folds
+- at least 2,500 total validation rows
+- no product/fund canary survivors
+- no wrongly removed operating canaries
+- pooled MAE beats spine and uniform by at least 20 bps
+- champion beats spine in at least 70% of folds
+- champion beats uniform in at least 70% of folds
+- champion beats best single lens in at least 60% of folds
+- pooled IC above 0.025
+- positive IC in at least 60% of folds
+- pooled decile spread above 0.030
+- positive decile spread in at least 50% of folds
+
+Interpretation rule:
+
+- If V5 passes, AURORA can be described as a rolling-origin-validated memo/routing component, still with deterministic fallback.
+- If V5 fails but V4.1 remains strong, keep AURORA as a production candidate for memo/routing only and inspect which years/regimes broke.
+- If V5 fails on IC/decile but not MAE, do not promote ranking or position-sizing language.
