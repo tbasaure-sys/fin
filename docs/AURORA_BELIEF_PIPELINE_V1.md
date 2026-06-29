@@ -14,6 +14,7 @@ product/equity market inputs
   -> Equilibrium Engine
   -> Belief Compiler
   -> Causal Driver Graph
+  -> Semiconductor Twin
   -> Bayesian Forecast Engine
   -> Assumption Ledger Engine
   -> Valuation Ensemble
@@ -47,6 +48,7 @@ It returns:
 - merged compiler evidence
 - compiled drivers
 - causal driver graph
+- semiconductor sector twin when the company belongs to semis, semicap, memory, foundry, lithography, GPU, chip, wafer, or fab economics
 - posterior forecast distribution
 - assumption ledger with sources, distributions, dependencies, and falsifiers
 - valuation ensemble and method disagreement
@@ -114,22 +116,23 @@ It does not train a model and it does not claim magic. It forces the workflow to
 5. What is product-market and equity-market pressure?
 6. What drivers were compiled?
 7. Are those drivers causally compatible?
-8. What posterior distribution follows from the priors, evidence, dependencies, and price?
-9. Which assumptions carry that posterior, who owns them, and what would falsify them?
-10. What do distinct valuation lenses say each future is worth?
-11. What growth/margin/ROIC surface does the market price require?
-12. Is that surface economically plausible for this kind of business?
-13. Is the model calibrated against realized outcomes?
-14. If not, how should future forecasts be shifted, widened, or confidence-haircut?
-15. What calibrated branch and risk controls should downstream product code consume?
-16. How much authority has calibration earned: observe, shadow, stage, monitor, or freeze?
-17. What value, IRR, downside, and sensitivity distribution follows from correlated paths?
-18. What decision rights and sizing cap follow from the risk distribution and hard review states?
-19. Is management guidance historically reliable?
-20. Does management convert business economics into owner economics through capital allocation?
-21. What should the investor dashboard show, and which views are truly ready?
-22. What would falsify the thesis?
-23. Did fresh evidence trip anything?
-24. What should the investor do next?
+8. For semiconductor businesses, is this a durable bottleneck or a capacity/inventory/ASP cycle?
+9. What posterior distribution follows from the priors, evidence, dependencies, and price?
+10. Which assumptions carry that posterior, who owns them, and what would falsify them?
+11. What do distinct valuation lenses say each future is worth?
+12. What growth/margin/ROIC surface does the market price require?
+13. Is that surface economically plausible for this kind of business?
+14. Is the model calibrated against realized outcomes?
+15. If not, how should future forecasts be shifted, widened, or confidence-haircut?
+16. What calibrated branch and risk controls should downstream product code consume?
+17. How much authority has calibration earned: observe, shadow, stage, monitor, or freeze?
+18. What value, IRR, downside, and sensitivity distribution follows from correlated paths?
+19. What decision rights and sizing cap follow from the risk distribution and hard review states?
+20. Is management guidance historically reliable?
+21. Does management convert business economics into owner economics through capital allocation?
+22. What should the investor dashboard show, and which views are truly ready?
+23. What would falsify the thesis?
+24. Did fresh evidence trip anything?
+25. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.

@@ -21,6 +21,7 @@ It is not a React component. It is a stable contract between the AURORA engines 
 - expectations surface
 - feasibility manifold
 - driver graph
+- semiconductor sector twin
 - assumption ledger
 - calibration history
 - calibration authority and decision rights
@@ -59,6 +60,8 @@ The panel is shaped around the guide's required metrics:
 The contract prefers the calibrated branch when the Calibration Integration Packet is available, but it does not mutate the raw forecast.
 
 It also exposes `primaryPanel.calibrationAuthority` so the UI can show whether calibration has earned production rights, should remain in shadow, or must force abstention. Product code should read this compact authority packet before deciding how strongly to present calibrated values.
+
+It exposes `primaryPanel.sectorTwin` for sector-kernel outputs. In v1 the first concrete kernel is `semiconductorTwin`, which separates durable bottleneck evidence from capacity, inventory, ASP, and capex-cycle risk.
 
 ## Visualization Slots
 
