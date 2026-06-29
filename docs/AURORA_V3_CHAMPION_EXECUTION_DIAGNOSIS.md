@@ -77,3 +77,19 @@ Two corrections were made after reviewing the run:
 2. The production gate now evaluates primary validation years with at least 100 rows. Sparse mature 2023 rows remain diagnostic, but 2021-2022 are the main gate until more 2023/2024 outcomes mature.
 
 The next run should be treated as V3.1. If it still passes, the model is a legitimate production candidate, but it still needs one rolling-origin check before hard deployment.
+
+## V4 Meta Champion Upgrade
+
+After V3.1 passed, the next improvement is not a bigger neural net. It is stricter model selection.
+
+V4 adds:
+
+- validation-safe model selection: the champion is selected on 2019-2020 tune score, not on 2021-2022 validation;
+- improved operating-equity filter that keeps valid symbols ending in `X` and REITs while excluding fund-like products by text evidence;
+- feature hygiene that removes all `pred_*`, forward-return, future, and price target fields from residual model features;
+- a richer residual challenger library with HGB, random forest, extra trees, ridge, elastic net, and Huber variants;
+- tune-selected pairwise and top-k meta-ensembles;
+- confidence/abstention diagnostics based on disagreement across the top challenger models;
+- stricter production gates: validation-safe selection, mature rows, MAE lift against spine/uniform/best-single, positive IC, IC lift over spine, positive decile spread, and high-confidence rows that are not worse than the full champion.
+
+V4 is the first notebook that should be considered a real production-candidate test. If it passes, the next hardening step is rolling-origin validation and then wiring the exported manifest into Valuation OS as an AURORA residual champion, with the deterministic spine retained as the fallback.
