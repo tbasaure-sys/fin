@@ -9,6 +9,8 @@ documents / raw evidence
   -> Evidence Signal Extractor
 financial statements
   -> Accounting Engine
+product/equity market inputs
+  -> Equilibrium Engine
   -> Belief Compiler
   -> Causal Driver Graph
   -> Priced Belief Object
@@ -31,6 +33,7 @@ It returns:
 
 - extracted evidence
 - economic accounting adjustments
+- product-market and equity-market equilibrium pressure
 - merged compiler evidence
 - compiled drivers
 - causal driver graph
@@ -44,6 +47,7 @@ It returns:
 - `repair_inputs`: critical data is missing; do not interpret.
 - `memo_only`: belief object abstains; use as research memo.
 - `causal_model_violation`: driver assumptions break causal/economic constraints; repair before underwriting.
+- `equilibrium_pressure_review`: product-market, equity-flow, or reflexivity pressure requires separate review.
 - `priced_belief_ready`: compiled object is ready, but no monitor has run.
 - `active_thesis_intact`: monitor ran and falsifiers are intact.
 - `thesis_deteriorating`: evidence is worsening but no hard falsifier has tripped.
@@ -73,11 +77,12 @@ It does not train a model and it does not claim magic. It forces the workflow to
 1. What evidence was read?
 2. What signals were extracted?
 3. What accounting adjustments were made?
-4. What drivers were compiled?
-5. Are those drivers causally compatible?
-6. What does price imply?
-7. What would falsify the thesis?
-8. Did fresh evidence trip anything?
-9. What should the investor do next?
+4. What is product-market and equity-market pressure?
+5. What drivers were compiled?
+6. Are those drivers causally compatible?
+7. What does price imply?
+8. What would falsify the thesis?
+9. Did fresh evidence trip anything?
+10. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.
