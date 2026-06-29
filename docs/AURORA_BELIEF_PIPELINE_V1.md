@@ -7,6 +7,8 @@ It composes the layers we built without wiring them into the older Valuation OS 
 ```text
 documents / raw evidence
   -> Evidence Signal Extractor
+financial statements
+  -> Accounting Engine
   -> Belief Compiler
   -> Causal Driver Graph
   -> Priced Belief Object
@@ -28,6 +30,7 @@ documents / raw evidence
 It returns:
 
 - extracted evidence
+- economic accounting adjustments
 - merged compiler evidence
 - compiled drivers
 - causal driver graph
@@ -69,11 +72,12 @@ It does not train a model and it does not claim magic. It forces the workflow to
 
 1. What evidence was read?
 2. What signals were extracted?
-3. What drivers were compiled?
-4. Are those drivers causally compatible?
-5. What does price imply?
-6. What would falsify the thesis?
-7. Did fresh evidence trip anything?
-8. What should the investor do next?
+3. What accounting adjustments were made?
+4. What drivers were compiled?
+5. Are those drivers causally compatible?
+6. What does price imply?
+7. What would falsify the thesis?
+8. Did fresh evidence trip anything?
+9. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.

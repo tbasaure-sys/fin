@@ -48,6 +48,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.ticker, "ASML");
   assert.equal(result.ranAt, "2026-03-01T00:00:00.000Z");
   assert.equal(result.extractedEvidence.version, "aurora_compiler_evidence_v1");
+  assert.equal(result.accounting.version, "aurora_accounting_engine_v1");
   assert.equal(result.compiled.version, "aurora_belief_compiler_v1");
   assert.equal(result.driverGraph.version, "aurora_driver_graph_v1");
   assert.equal(result.beliefObject.version, "aurora_priced_belief_object_v1");
