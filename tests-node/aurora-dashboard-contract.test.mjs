@@ -72,6 +72,10 @@ test("dashboard contract exposes the guide's primary panel metrics", () => {
   assert.equal(contract.primaryPanel.calibrationAuthority.available, true);
   assert.ok(Number.isFinite(contract.primaryPanel.calibrationAuthority.authorityScore));
   assert.equal(contract.primaryPanel.calibrationAuthority.decisionRights, "observe_only");
+  assert.equal(contract.primaryPanel.calibrationAdoptionGate.available, true);
+  assert.equal(contract.primaryPanel.calibrationAdoptionGate.status, "observe");
+  assert.equal(contract.primaryPanel.calibrationAdoptionGate.decisionUse, "raw_primary_collect_outcomes");
+  assert.ok(contract.primaryPanel.calibrationAdoptionGate.checklist.some((item) => item.id === "realized_outcomes"));
   assert.equal(contract.primaryPanel.sectorTwin.available, true);
   assert.equal(contract.primaryPanel.sectorTwin.type, "semiconductor");
   assert.equal(contract.primaryPanel.competitiveMoat.decision, "competitive_graph_pending");
@@ -98,6 +102,7 @@ test("dashboard contract includes required visualization slots with readiness", 
     "capital_allocation_scorecard",
     "calibration_history",
     "calibration_authority",
+    "calibration_adoption_gate",
     "sector_twin_semiconductor",
     "irr_distribution",
   ].forEach((key) => assert.ok(keys.has(key), `missing ${key}`));

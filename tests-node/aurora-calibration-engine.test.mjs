@@ -361,7 +361,14 @@ test("calibration integration packet emits a product-facing calibration contract
   assert.ok(Number.isFinite(packet.calibrationContract.adoption.calibratedWeight));
   assert.ok(Number.isFinite(packet.calibrationContract.adoption.maxPositionSizeMultiplier));
   assert.ok(packet.calibrationContract.monitoring.metrics.some((metric) => metric.id === "interval_coverage_80"));
+  assert.equal(packet.calibrationAdoptionGate.version, "aurora_calibration_adoption_gate_v1");
+  assert.equal(packet.calibrationAdoptionGate.status, packet.calibrationContract.status);
+  assert.ok(["calibrated_primary", "calibrated_with_raw_check", "raw_primary_calibrated_shadow", "raw_primary_collect_outcomes", "blocked"].includes(packet.calibrationAdoptionGate.decisionUse));
+  assert.ok(Number.isFinite(packet.calibrationAdoptionGate.adoption.rawWeight));
+  assert.ok(packet.calibrationAdoptionGate.checklist.some((item) => item.id === "realized_outcomes"));
+  assert.ok(packet.calibrationAdoptionGate.checklist.some((item) => item.id === "contract_permission"));
   assert.ok(packet.memo.contractStatus);
+  assert.equal(packet.memo.adoptionGate, packet.calibrationAdoptionGate.status);
 });
 
 test("calibration contract blocks failed calibration from decision use", () => {
@@ -395,6 +402,10 @@ test("calibration contract blocks failed calibration from decision use", () => {
   assert.equal(packet.calibrationContract.adoption.calibratedWeight, 0);
   assert.equal(packet.calibrationContract.adoption.maxPositionSizeMultiplier, 0);
   assert.equal(packet.calibrationContract.productRead.shouldAbstain, true);
+  assert.equal(packet.calibrationAdoptionGate.status, "blocked");
+  assert.equal(packet.calibrationAdoptionGate.canPromote, false);
+  assert.equal(packet.calibrationAdoptionGate.mustAbstain, true);
+  assert.ok(packet.calibrationAdoptionGate.blockers.includes("hard_blocks_clear"));
 });
 
 test("pipeline exposes calibration integration without mutating the original forecast", () => {
