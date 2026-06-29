@@ -330,3 +330,31 @@ Interpretation rule:
 - If V6 fails broadly, the next unlock is not more residual modeling. It is better valuation lenses and richer point-in-time evidence, especially text, capital-cycle, bottleneck, and segment-level signals.
 
 Patch note: the first V6 Colab run exposed a fold-2 feature-count bug in the fundamental transition models. The notebook originally reused one fitted `ColumnTransformer` across several target pipelines; later one-hot fits could mutate earlier pipelines and produce `n_features` mismatches. The patched notebook now builds a fresh preprocessor per target and runs a fold-local smoke prediction after fitting the fundamental models.
+
+## First V6 Run
+
+The first completed V6 run used the patched fundamental preprocessors and finished all ten purged folds:
+
+- artifact directory: `/content/drive/MyDrive/blsprime_aurora_omega/artifacts/omega_v6_economic_gap_model_20260629_043752`
+- completed folds: 10
+- validation years: 2013-2022
+- total validation rows: 6,786
+- pooled economic-gap MAE: 0.13588
+- pooled formula MAE: 0.14125
+- pooled spine MAE: 0.14348
+- pooled uniform MAE: 0.14666
+- MAE lift vs spine: 0.00760
+- MAE lift vs uniform: 0.01077
+- pooled economic-gap IC: 0.05462
+- pooled formula IC: 0.07215
+- pooled spine IC: 0.08008
+- pooled economic-gap decile spread: 0.07215
+- fold win share vs spine: 70%
+- fold win share vs uniform: 80%
+- fold win share vs best single lens: 60%
+- positive IC share: 60%
+- positive decile share: 70%
+
+The run initially printed `production_candidate: false` because of a canary-audit bug, not because the performance gates failed. The filter compared the filtered universe against all operating canaries, including `X`, even when a canary was absent from the raw panel. The patched notebook now checks only operating canaries that are actually present in the raw panel.
+
+Interpretation: V6 is directionally useful and slightly improves absolute-error MAE versus V5.1, but it is not yet a clean replacement for V5.1 because ranking weakened materially. V5.1 remains the stronger ranking/memo router; V6 should be treated as a more economic, interpretable challenger and as evidence that modeling the gap between predicted fundamentals and market-implied expectations is promising. The next V6 improvement should make the residual head multi-objective or rank-aware so it does not buy MAE by giving up IC.
