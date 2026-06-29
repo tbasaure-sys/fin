@@ -19,6 +19,7 @@ product/equity market inputs
   -> Feasibility Manifold
   -> Calibration Engine
   -> Management Reliability Engine
+  -> Capital Allocation Engine
   -> Priced Belief Object
   -> Thesis Monitor
   -> Pipeline Decision
@@ -50,6 +51,7 @@ It returns:
 - calibration status and scored outcomes when supplied
 - recalibration policy for bias, uncertainty, confidence, and abstention adjustments
 - management guidance reliability when supplied
+- capital allocation discipline when allocation history is supplied
 - priced belief object
 - optional thesis monitor result
 - decision state
@@ -67,6 +69,7 @@ It returns:
 - `feasibility_manifold_review`: market-clearing assumptions fall outside plausible economic geometry.
 - `calibration_review`: supplied outcome history indicates calibration failure.
 - `management_reliability_review`: management guidance history is poor and should be haircut before underwriting.
+- `capital_allocation_review`: buybacks, acquisitions, reinvestment, or other uses of capital appear value destructive.
 - `priced_belief_ready`: compiled object is ready, but no monitor has run.
 - `active_thesis_intact`: monitor ran and falsifiers are intact.
 - `thesis_deteriorating`: evidence is worsening but no hard falsifier has tripped.
@@ -106,8 +109,9 @@ It does not train a model and it does not claim magic. It forces the workflow to
 11. Is the model calibrated against realized outcomes?
 12. If not, how should future forecasts be shifted, widened, or confidence-haircut?
 13. Is management guidance historically reliable?
-14. What would falsify the thesis?
-15. Did fresh evidence trip anything?
-16. What should the investor do next?
+14. Does management convert business economics into owner economics through capital allocation?
+15. What would falsify the thesis?
+16. Did fresh evidence trip anything?
+17. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.

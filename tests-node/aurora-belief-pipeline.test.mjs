@@ -61,6 +61,8 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.calibration.recalibrationPolicy.action, "collect_realized_outcomes");
   assert.equal(result.managementReliability.version, "aurora_management_reliability_engine_v1");
   assert.equal(result.managementReliability.decision, "management_reliability_pending");
+  assert.equal(result.capitalAllocation.version, "aurora_capital_allocation_engine_v1");
+  assert.equal(result.capitalAllocation.decision, "capital_allocation_pending");
   assert.equal(result.beliefObject.version, "aurora_priced_belief_object_v1");
   assert.equal(result.monitor.version, "aurora_thesis_monitor_v1");
   assert.equal(result.monitor.status, "intact");
@@ -73,6 +75,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.ok(result.memo.bullets.some((line) => /Calibration:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Recalibration:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Management reliability:/.test(line)));
+  assert.ok(result.memo.bullets.some((line) => /Capital allocation:/.test(line)));
 });
 
 test("belief pipeline can score calibration when actual outcomes are supplied", () => {
