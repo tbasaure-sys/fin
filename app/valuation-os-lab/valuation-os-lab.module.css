@@ -746,8 +746,15 @@
   min-width: 0;
 }
 
+.calibrationContract > div:first-child,
+.calibrationChecklist {
+  grid-column: 1 / -1;
+}
+
 .calibrationContract span,
-.calibrationSteps span {
+.calibrationSteps span,
+.branchMix span,
+.calibrationChecklist span {
   display: block;
   color: var(--amber);
   font-size: 0.68rem;
@@ -765,11 +772,32 @@
 }
 
 .calibrationContract p,
-.calibrationSteps p {
+.calibrationSteps p,
+.calibrationChecklist p {
   margin: 0.42rem 0 0;
   color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.42;
+}
+
+.branchMix {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+}
+
+.branchMix div {
+  min-width: 0;
+  padding: 0.66rem;
+  border: 1px solid rgba(240, 189, 98, 0.18);
+  border-radius: 8px;
+  background: rgba(240, 189, 98, 0.045);
+}
+
+.branchMix strong {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 .calibrationSteps {
@@ -784,6 +812,58 @@
   border-radius: 8px;
   background: rgba(85, 209, 195, 0.045);
   padding: 0.76rem;
+}
+
+.calibrationChecklist {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.05rem;
+}
+
+.calibrationChecklist article {
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.032);
+}
+
+.calibrationChecklist article[data-status="pass"] {
+  border-color: rgba(105, 212, 159, 0.28);
+  background: rgba(105, 212, 159, 0.05);
+}
+
+.calibrationChecklist article[data-status="warn"],
+.calibrationChecklist article[data-status="unknown"] {
+  border-color: rgba(240, 189, 98, 0.28);
+  background: rgba(240, 189, 98, 0.045);
+}
+
+.calibrationChecklist article[data-status="fail"] {
+  border-color: rgba(239, 125, 105, 0.34);
+  background: rgba(239, 125, 105, 0.045);
+}
+
+.calibrationChecklist article > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+
+.calibrationChecklist strong {
+  margin: 0;
+  font-size: 0.86rem;
+  text-align: right;
+}
+
+.calibrationChecklist span {
+  color: var(--teal);
+}
+
+.calibrationChecklist article[data-status="fail"] span {
+  color: var(--red);
 }
 
 .debatePanel {
@@ -1576,7 +1656,9 @@
 
   .routerPanel,
   .routerGrid,
-  .calibrationContract {
+  .calibrationContract,
+  .branchMix,
+  .calibrationChecklist {
     grid-template-columns: 1fr;
   }
 
@@ -1657,6 +1739,8 @@
   .engineGrid,
   .routerGrid,
   .calibrationSteps,
+  .branchMix,
+  .calibrationChecklist,
   .agentGrid,
   .committeeStrip,
   .caseGrid,

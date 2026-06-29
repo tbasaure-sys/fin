@@ -1,5 +1,6 @@
 import { buildAssumptionPolicy } from "../../assumption-policy.js";
 import { buildValuationRouter } from "../../../../lib/valuation-router.js";
+import { buildAuroraCalibrationEngine, buildAuroraCalibrationIntegrationPacket } from "../../../../lib/aurora-calibration-engine.js";
 import { buildValuationContextPack } from "../../../../lib/valuation-context-pack.js";
 import { buildValuationCatalystPack } from "../../../../lib/valuation-catalyst-pack.js";
 import { fetchValuationCatalystEvidence } from "../../../../lib/valuation-catalyst-news.js";
@@ -176,6 +177,118 @@ function safeRatio(numerator, denominator) {
 function clamp(value, min, max) {
   if (!Number.isFinite(Number(value))) return min;
   return Math.min(Math.max(Number(value), min), max);
+}
+
+function posteriorPoint(value, width, low, high, source) {
+  const center = Number(value);
+  const spread = Number(width);
+  if (!Number.isFinite(center)) return null;
+  const boundedWidth = Number.isFinite(spread) ? Math.max(0.001, Math.abs(spread)) : 0.05;
+  return {
+    p10: clamp(center - boundedWidth, low, high),
+    p50: clamp(center, low, high),
+    p90: clamp(center + boundedWidth, low, high),
+    mean: clamp(center, low, high),
+    sd: boundedWidth / 1.2816,
+    source,
+    confidence: 0.42,
+  };
+}
+
+function estimateFairValueFromDrivers(drivers = {}) {
+  const price = Number(drivers.price);
+  const baseFcf = Number(drivers.baseFcf);
+  const wacc = Number(drivers.wacc);
+  const terminalGrowth = Number(drivers.terminalGrowth);
+  const margin = Number(drivers.margin);
+  const thesisQuality = Number(drivers.thesisQuality);
+  const modelRisk = Number(drivers.modelRisk);
+  if (!Number.isFinite(price) || price <= 0) return null;
+  if (!Number.isFinite(baseFcf) || baseFcf <= 0 || !Number.isFinite(wacc) || !Number.isFinite(terminalGrowth)) {
+    return price;
+  }
+  const denominator = Math.max(0.025, wacc - terminalGrowth);
+  const qualityMultiplier = clamp(0.84 + (Number.isFinite(thesisQuality) ? thesisQuality : 0.5) * 0.26 - (Number.isFinite(modelRisk) ? modelRisk : 0.35) * 0.16, 0.62, 1.22);
+  const marginMultiplier = clamp(0.84 + (Number.isFinite(margin) ? margin : 0.12) * 0.9, 0.74, 1.22);
+  return Math.max(0, (baseFcf * marginMultiplier * qualityMultiplier) / denominator);
+}
+
+function buildSnapshotCalibration(company = {}, drivers = {}, options = {}) {
+  const price = Number(drivers.price);
+  const fairValue = estimateFairValueFromDrivers(drivers);
+  const expectedReturn = Number.isFinite(price) && price > 0 && Number.isFinite(fairValue) ? fairValue / price - 1 : null;
+  const risk = clamp(Number(drivers.modelRisk || 0.35), 0, 1);
+  const valueWidth = Number.isFinite(fairValue) ? Math.max(fairValue * (0.16 + risk * 0.24), 1) : null;
+  const prediction = {
+    version: "valuation_os_snapshot_calibration_preview_v1",
+    ticker: company.ticker || drivers.ticker || null,
+    name: company.entityName || company.name || drivers.name || null,
+    company: {
+      ticker: company.ticker || drivers.ticker || null,
+      name: company.entityName || company.name || drivers.name || null,
+      sector: company.industry || drivers.sector || "unknown",
+    },
+    market: { price: Number.isFinite(price) ? price : null },
+    compiled: {
+      ticker: company.ticker || drivers.ticker || null,
+      drivers: {
+        ...drivers,
+        price: Number.isFinite(price) ? price : null,
+        sector: company.industry || drivers.sector || "unknown",
+      },
+    },
+    forecast: {
+      version: "valuation_os_snapshot_forecast_preview_v1",
+      posterior: {
+        growth: posteriorPoint(drivers.revenueCagr, 0.035 + risk * 0.04, -0.35, 0.55, "live snapshot revenue trend"),
+        margin: posteriorPoint(drivers.margin, 0.035 + risk * 0.035, -0.25, 0.72, "live snapshot margin"),
+        roic: posteriorPoint(drivers.roic, 0.045 + risk * 0.055, -0.2, 0.85, "live snapshot ROIC"),
+        reinvestment: posteriorPoint(drivers.reinvestment, 0.08 + risk * 0.08, 0.01, 1.2, "industry reinvestment policy"),
+        wacc: posteriorPoint(drivers.wacc, 0.012 + risk * 0.02, 0.025, 0.28, "risk-free rate and industry policy"),
+        terminalGrowth: posteriorPoint(drivers.terminalGrowth, 0.008 + risk * 0.012, -0.03, 0.075, "terminal growth policy"),
+      },
+      scenarios: Number.isFinite(fairValue)
+        ? [
+            { name: "bear", probability: 0.25, fairValue: Math.max(0, fairValue - valueWidth) },
+            { name: "base", probability: 0.5, fairValue },
+            { name: "bull", probability: 0.25, fairValue: fairValue + valueWidth },
+          ]
+        : [],
+      expectedFairValue: fairValue,
+      expectedReturn,
+      uncertainty: { total: risk },
+    },
+    valuationEnsemble: {
+      version: "valuation_os_snapshot_valuation_preview_v1",
+      summary: {
+        weightedFairValue: fairValue,
+        expectedReturn,
+        disagreement: risk,
+        valueRange: Number.isFinite(fairValue)
+          ? {
+              p10: Math.max(0, fairValue - valueWidth),
+              p50: fairValue,
+              p90: fairValue + valueWidth,
+            }
+          : null,
+      },
+    },
+  };
+  const calibration = buildAuroraCalibrationEngine(prediction, {
+    builtAt: options.builtAt,
+    minCalibrationRecords: 12,
+    minSegmentRecords: 4,
+  });
+  const calibrationIntegration = buildAuroraCalibrationIntegrationPacket(prediction, calibration, {
+    builtAt: options.builtAt,
+    horizon: "3y",
+    sector: company.industry || drivers.sector,
+  });
+  return {
+    calibration,
+    calibrationIntegration,
+    calibrationAdoptionGate: calibrationIntegration.calibrationAdoptionGate,
+  };
 }
 
 async function fetchQuote(ticker) {
@@ -554,6 +667,9 @@ export async function GET(request) {
       missingDrivers: derived.missingDrivers,
       snapshot: snapshotForPacks,
     });
+    const calibrationPreview = buildSnapshotCalibration(company, derived.drivers, {
+      builtAt: new Date().toISOString(),
+    });
 
     return Response.json({
       ok: true,
@@ -566,6 +682,7 @@ export async function GET(request) {
       catalystEvidence,
       catalystPack,
       contextPack,
+      ...calibrationPreview,
     });
   } catch (error) {
     return Response.json(

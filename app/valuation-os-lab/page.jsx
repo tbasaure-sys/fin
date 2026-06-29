@@ -478,6 +478,114 @@ function statusCopy(status) {
   return "Local review ready";
 }
 
+function adoptionStatusLabel(status) {
+  return (
+    {
+      ready: "Usar calibrado",
+      guardrailed: "Usar con limites",
+      shadow: "Mostrar como comparacion",
+      observe: "Juntar resultados",
+      blocked: "No usar",
+      missing: "Sin contrato",
+    }[status] || "Revisar"
+  );
+}
+
+function branchLabel(branch) {
+  return (
+    {
+      calibrated: "Valor calibrado",
+      raw: "Valor original",
+      none: "Sin rama secundaria",
+    }[branch] || String(branch || "Valor original").replaceAll("_", " ")
+  );
+}
+
+function checklistLabel(status) {
+  return (
+    {
+      pass: "OK",
+      warn: "Revisar",
+      fail: "Falta",
+      unknown: "Sin dato",
+    }[status] || "Revisar"
+  );
+}
+
+function buildLocalAdoptionPreview({ adjustedDrivers, feasibility, quality, mode, debate }) {
+  const risk = clamp(adjustedDrivers.modelRisk || 0.35, 0, 1);
+  const score = clamp(quality * 0.45 + feasibility * 0.35 + (1 - risk) * 0.2, 0, 1);
+  const status =
+    score >= 0.72 && debate?.agents?.length
+      ? "guardrailed"
+      : score >= 0.52
+        ? "shadow"
+        : "observe";
+  return {
+    version: "valuation_os_local_adoption_preview_v1",
+    status,
+    decisionUse:
+      status === "guardrailed"
+        ? "calibrated_with_raw_check"
+        : status === "shadow"
+          ? "raw_primary_calibrated_shadow"
+          : "raw_primary_collect_outcomes",
+    canPromote: false,
+    canStage: status === "guardrailed",
+    mustUseRawPrimary: status !== "guardrailed",
+    mustAbstain: false,
+    adoption: {
+      primaryBranch: status === "guardrailed" ? "calibrated" : "raw",
+      calibratedWeight: status === "guardrailed" ? Math.min(0.45, score * 0.55) : 0,
+      rawWeight: status === "guardrailed" ? Math.max(0.55, 1 - score * 0.55) : 1,
+      shadowWeight: status === "shadow" ? Math.min(0.55, score) : 0,
+      maxPositionSizeMultiplier: status === "guardrailed" ? Math.min(0.35, score * 0.42) : 0,
+    },
+    evidence: {
+      authorityScore: score,
+      evidenceTier: "preview_only",
+      scoredRecords: 0,
+      minRecords: 12,
+      contextualApplied: false,
+      activeSegment: { label: `${adjustedDrivers.sector || "Negocio"} / caso ${mode}` },
+      requiredEvidence: ["12 realized outcomes before calibrated output can become primary"],
+    },
+    checklist: [
+      {
+        id: "realized_outcomes",
+        label: "Resultados reales",
+        status: "fail",
+        observed: 0,
+        target: 12,
+        message: "Faltan resultados reales para saber si el modelo acierta fuera de muestra.",
+      },
+      {
+        id: "raw_comparison",
+        label: "Comparar contra original",
+        status: "warn",
+        observed: status,
+        target: "ready",
+        message: "Hasta tener historial, muestra el ajuste calibrado solo como comparacion.",
+      },
+      {
+        id: "final_review",
+        label: "Revision final",
+        status: debate?.agents?.length ? "pass" : "warn",
+        observed: debate?.agents?.length ? "complete" : "pending",
+        target: "complete",
+        message: debate?.agents?.length ? "La revision local ya corrio." : "Corre la revision final antes de leerlo como tesis.",
+      },
+    ],
+    blockers: status === "observe" ? ["realized_outcomes"] : [],
+    warnings: ["Preview local: el permiso real requiere historial de resultados."],
+    memo: {
+      headline: `${adoptionStatusLabel(status)}; vista preliminar.`,
+      explanation: "Este modo muestra como funcionara la calibracion, pero no reemplaza resultados reales.",
+      nextStep: "Guardar predicciones y comparar contra resultados futuros.",
+    },
+  };
+}
+
 function plainDecision(upside, feasibility, missingDrivers) {
   if (missingDrivers.length) return "Incomplete";
   if (!isFiniteNumber(upside)) return "Needs inputs";
@@ -551,43 +659,66 @@ function BulletList({ items }) {
   );
 }
 
-function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, debate }) {
-  const risk = clamp(adjustedDrivers.modelRisk || 0.35, 0, 1);
-  const segmentName = `${adjustedDrivers.sector || "Negocio"} / caso ${mode}`;
-  const trustScore = clamp(quality * 0.45 + feasibility * 0.35 + (1 - risk) * 0.2, 0, 1);
-  const rights =
-    trustScore >= 0.72 && debate?.agents?.length
-      ? "Puede apoyar una decision monitoreada"
-      : trustScore >= 0.52
-        ? "Usar como revision secundaria"
-        : "Solo observar";
+function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, debate, adoptionGate }) {
+  const gate = adoptionGate || buildLocalAdoptionPreview({ adjustedDrivers, feasibility, quality, mode, debate });
+  const authorityScore = gate.evidence?.authorityScore ?? gate.authorityScore ?? 0;
+  const scoredRecords = gate.evidence?.scoredRecords ?? null;
+  const minRecords = gate.evidence?.minRecords ?? null;
+  const activeSegment = gate.evidence?.activeSegment?.label || `${adjustedDrivers.sector || "Negocio"} / caso ${mode}`;
+  const primaryBranch = gate.adoption?.primaryBranch || gate.productRead?.primaryBranch || "raw";
+  const calibratedWeight = gate.adoption?.calibratedWeight ?? 0;
+  const rawWeight = gate.adoption?.rawWeight ?? (primaryBranch === "raw" ? 1 : 1 - calibratedWeight);
+  const shadowWeight = gate.adoption?.shadowWeight ?? 0;
+  const checklist = (gate.checklist || []).slice(0, 6);
   const rows = [
     {
-      label: "Historial global",
-      value: "Guardar resultados",
-      note: "Primero revisa si las predicciones pasadas fueron honestas en general.",
+      label: "Permiso actual",
+      value: adoptionStatusLabel(gate.status),
+      note: gate.memo?.explanation || "Define si el modelo calibrado puede usarse, verse solo como comparacion, o bloquearse.",
     },
     {
       label: "Grupo comparable",
-      value: segmentName,
-      note: "Luego compara contra empresas parecidas y el mismo horizonte antes de ajustar confianza.",
+      value: activeSegment,
+      note: "La confianza debe medirse contra empresas y horizontes parecidos, no contra todo mezclado.",
     },
     {
-      label: "Permiso de uso",
-      value: rights,
-      note: "La app debe mostrar valores calibrados solo cuando ese grupo ya gano confianza.",
+      label: "Historial requerido",
+      value: scoredRecords === null ? "Sin historial" : `${scoredRecords}/${minRecords || "?"} resultados`,
+      note: gate.memo?.nextStep || "Guardar resultados reales permite saber si los rangos fueron honestos.",
     },
   ];
 
   return (
     <div className={styles.calibrationContract} aria-label="Contrato de calibracion contextual">
       <div>
-        <span>Contrato de confianza</span>
-        <strong>{fmtPct(trustScore, 0)} confianza actual</strong>
+        <span>Permiso de calibracion</span>
+        <strong>{adoptionStatusLabel(gate.status)}</strong>
         <p>
-          AURORA no debe usar un promedio unico para todas las empresas. Debe aprender por horizonte,
-          sector, tipo de negocio y estado de decision.
+          Este panel decide si el ajuste calibrado puede cambiar la lectura o si debe quedar solo como
+          comparacion. Sin resultados reales suficientes, el valor original sigue siendo la lectura principal.
         </p>
+        <div className={styles.branchMix}>
+          <div>
+            <span>Rama principal</span>
+            <strong>{branchLabel(primaryBranch)}</strong>
+          </div>
+          <div>
+            <span>Peso calibrado</span>
+            <strong>{fmtPct(calibratedWeight, 0)}</strong>
+          </div>
+          <div>
+            <span>Peso original</span>
+            <strong>{fmtPct(rawWeight, 0)}</strong>
+          </div>
+          <div>
+            <span>Solo comparacion</span>
+            <strong>{fmtPct(shadowWeight, 0)}</strong>
+          </div>
+          <div>
+            <span>Fuerza de evidencia</span>
+            <strong>{fmtPct(authorityScore, 0)}</strong>
+          </div>
+        </div>
       </div>
       <div className={styles.calibrationSteps}>
         {rows.map((item) => (
@@ -598,6 +729,19 @@ function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, deba
           </article>
         ))}
       </div>
+      {checklist.length ? (
+        <div className={styles.calibrationChecklist}>
+          {checklist.map((item) => (
+            <article key={item.id || item.label} data-status={item.status || "unknown"}>
+              <div>
+                <span>{checklistLabel(item.status)}</span>
+                <strong>{item.label}</strong>
+              </div>
+              <p>{item.message}</p>
+            </article>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -620,6 +764,10 @@ function EngineConsole({
   debate,
   debateStatus,
 }) {
+  const calibrationGate =
+    liveSnapshot?.calibrationAdoptionGate || liveSnapshot?.calibrationIntegration?.calibrationAdoptionGate || null;
+  const activeCalibrationGate =
+    calibrationGate || buildLocalAdoptionPreview({ adjustedDrivers, feasibility, quality, mode, debate });
   const coverage = liveSnapshot?.coverage || {};
   const facts = liveSnapshot?.facts || {};
   const assumptions = liveSnapshot?.assumptions || {};
@@ -782,18 +930,19 @@ function EngineConsole({
     calibration: {
       eyebrow: "Trust check",
       title: "Trust check",
-      copy: "Calibration decides whether the model should be used, watched, or ignored.",
-      plain: "Has the model earned enough trust for this company?",
+      copy: "Calibration decides whether adjusted model output can be used, compared, or blocked.",
+      plain: "Has the model proved itself with enough past outcomes?",
       technical: "Combines data quality, model risk, realized-outcome checks, segment calibration, and final-review status.",
       metrics: [
         ["Data quality", fmtPct(quality, 0)],
         ["Model risk", fmtPct(adjustedDrivers.modelRisk, 0)],
-        ["Feasibility", fmtPct(feasibility, 0)],
-        ["Final review", debate?.agents?.length ? "Complete" : "Pending"],
+        ["Calibration use", adoptionStatusLabel(activeCalibrationGate.status)],
+        ["Results scored", activeCalibrationGate.evidence?.scoredRecords === undefined ? "Preview" : `${activeCalibrationGate.evidence.scoredRecords}/${activeCalibrationGate.evidence.minRecords || "?"}`],
       ],
       bullets: [
-        "Model risk reduces confidence even when the value estimate looks attractive.",
-        "When enough past outcomes exist, calibration should be checked by horizon and business type, not only in aggregate.",
+        "The original valuation stays primary until enough past predictions have been scored.",
+        "Calibration is checked by horizon and business type, not only in aggregate.",
+        activeCalibrationGate.memo?.nextStep || "Save predictions and compare them against future realized results.",
         debate?.final_orchestrator ? statusCopy(debate.final_orchestrator.status) : "Run the review to add the final verdict layer.",
       ],
     },
@@ -868,6 +1017,7 @@ function EngineConsole({
           quality={quality}
           mode={mode}
           debate={debate}
+          adoptionGate={activeCalibrationGate}
         />
       ) : null}
       {debate?.agents?.length ? (
