@@ -509,7 +509,7 @@ function RouterPanel({ router }) {
       </div>
       <div className={styles.routerGrid}>
         <article>
-          <strong>Business type</strong>
+          <strong>Tipo de negocio</strong>
           {router.topRegimes.map((item) => (
             <div className={styles.routerRow} key={item.key}>
               <span>{item.label}</span>
@@ -518,7 +518,7 @@ function RouterPanel({ router }) {
           ))}
         </article>
         <article>
-          <strong>Methods used</strong>
+          <strong>Metodos usados</strong>
           {router.topModels.map((item) => (
             <div className={styles.routerRow} key={item.key}>
               <span>{SIMPLE_MODEL_LABELS[item.key] || MODEL_LABELS[item.key] || item.label}</span>
@@ -527,12 +527,12 @@ function RouterPanel({ router }) {
           ))}
         </article>
         <article>
-          <strong>Can we use it?</strong>
+          <strong>Se puede usar?</strong>
           <div className={styles.routerDecision} data-abstain={router.abstain ? "true" : "false"}>
-            <span>{router.abstain ? "Not enough evidence yet" : "Usable as a draft view"}</span>
-            <i>{fmtPct(router.confidence, 0)} trust score</i>
+            <span>{router.abstain ? "Aun falta evidencia" : "Usable como vista preliminar"}</span>
+            <i>{fmtPct(router.confidence, 0)} confianza</i>
           </div>
-          <p>{router.rationale?.[2] || "This panel explains the mix; it does not make the investment decision by itself."}</p>
+          <p>{router.rationale?.[2] || "Este panel explica la mezcla; no toma la decision de inversion por si solo."}</p>
         </article>
       </div>
     </section>
@@ -553,40 +553,40 @@ function BulletList({ items }) {
 
 function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, debate }) {
   const risk = clamp(adjustedDrivers.modelRisk || 0.35, 0, 1);
-  const segmentName = `${adjustedDrivers.sector || "Business"} / ${mode} case`;
+  const segmentName = `${adjustedDrivers.sector || "Negocio"} / caso ${mode}`;
   const trustScore = clamp(quality * 0.45 + feasibility * 0.35 + (1 - risk) * 0.2, 0, 1);
   const rights =
     trustScore >= 0.72 && debate?.agents?.length
-      ? "Can support a monitored decision"
+      ? "Puede apoyar una decision monitoreada"
       : trustScore >= 0.52
-        ? "Use as a shadow check"
-        : "Observe only";
+        ? "Usar como revision secundaria"
+        : "Solo observar";
   const rows = [
     {
-      label: "Global history",
-      value: "Collect outcomes",
-      note: "First ask whether past forecasts were honest overall.",
+      label: "Historial global",
+      value: "Guardar resultados",
+      note: "Primero revisa si las predicciones pasadas fueron honestas en general.",
     },
     {
-      label: "Comparable segment",
+      label: "Grupo comparable",
       value: segmentName,
-      note: "Then check outcomes from the same horizon and business type before adjusting confidence.",
+      note: "Luego compara contra empresas parecidas y el mismo horizonte antes de ajustar confianza.",
     },
     {
-      label: "Decision right",
+      label: "Permiso de uso",
       value: rights,
-      note: "The app should show calibrated values only when the segment has earned trust.",
+      note: "La app debe mostrar valores calibrados solo cuando ese grupo ya gano confianza.",
     },
   ];
 
   return (
-    <div className={styles.calibrationContract} aria-label="Contextual calibration contract">
+    <div className={styles.calibrationContract} aria-label="Contrato de calibracion contextual">
       <div>
-        <span>Contextual calibration</span>
-        <strong>{fmtPct(trustScore, 0)} current trust score</strong>
+        <span>Contrato de confianza</span>
+        <strong>{fmtPct(trustScore, 0)} confianza actual</strong>
         <p>
-          AURORA should not trust one average calibration for every company. It should learn separately
-          by horizon, sector, business type, and decision state.
+          AURORA no debe usar un promedio unico para todas las empresas. Debe aprender por horizonte,
+          sector, tipo de negocio y estado de decision.
         </p>
       </div>
       <div className={styles.calibrationSteps}>
@@ -950,23 +950,23 @@ function EngineConsole({
           </div>
           <div className={styles.diagnosticsGrid}>
             <article className={styles.orchestratorCard}>
-              <span>Provider diagnostics</span>
+              <span>Estado de fuentes</span>
               <div className={styles.providerList}>
                 {providerDiagnostics.slice(0, 6).map((item) => (
                   <div key={item.block || item.source}>
                     <strong>{item.block}</strong>
-                    <small>{item.status} / {item.source || "derived"}</small>
+                    <small>{item.status} / {item.source || "calculado"}</small>
                   </div>
                 ))}
               </div>
             </article>
             <article className={styles.orchestratorCard}>
-              <span>Memo preview</span>
-              <p>{debate?.memo?.title || "The memo is generated after the final review."}</p>
+              <span>Vista previa del memo</span>
+              <p>{debate?.memo?.title || "El memo se genera despues de la revision final."}</p>
               {debate?.memo?.markdown ? <pre className={styles.memoPreview}>{debate.memo.markdown.split("\n").slice(0, 10).join("\n")}</pre> : null}
             </article>
             <article className={styles.orchestratorCard}>
-              <span>Live catalyst evidence</span>
+              <span>Evidencia de catalizadores</span>
               {liveEvidenceItems.length ? (
                 <div className={styles.evidenceList}>
                   {liveEvidenceItems.slice(0, 4).map((item, index) => (
@@ -1158,12 +1158,12 @@ export default function ValuationOsLabPage() {
     if (!/^[A-Z0-9.-]{1,12}$/.test(ticker)) {
       setLiveStatus({
         state: "error",
-        message: "Ticker must be 1-12 letters, numbers, dots, or dashes.",
+        message: "El ticker debe tener 1-12 letras, numeros, puntos o guiones.",
       });
       return;
     }
 
-    setLiveStatus({ state: "loading", message: `Loading ${ticker} from SEC filings, market quote, and rate sources...` });
+    setLiveStatus({ state: "loading", message: `Cargando ${ticker} desde SEC, precio de mercado y tasas...` });
     try {
       const response = await fetch(`/valuation-os-lab/api/snapshot?ticker=${encodeURIComponent(ticker)}`, {
         cache: "no-store",
@@ -1178,8 +1178,8 @@ export default function ValuationOsLabPage() {
         ticker: payload.company?.ticker || ticker,
         name: payload.company?.entityName || payload.company?.name || ticker,
         sector: payload.company?.fiscalYear
-          ? `Latest SEC snapshot FY${payload.company.fiscalYear}`
-          : "Latest SEC snapshot",
+          ? `Ultimo reporte SEC FY${payload.company.fiscalYear}`
+          : "Ultimo reporte SEC",
         price: payload.drivers?.price,
         baseFcf: payload.drivers?.baseFcf,
         revenueCagr: payload.drivers?.revenueCagr,
@@ -1205,25 +1205,25 @@ export default function ValuationOsLabPage() {
       setLiveSnapshot(payload);
       setMissingDrivers(payload.missingDrivers || []);
       setDebate(null);
-      setDebateStatus({ state: "idle", message: "Live snapshot loaded; run the final review for a verdict." });
+      setDebateStatus({ state: "idle", message: "Datos cargados; corre la revision final para ver el veredicto." });
       setLiveStatus({
         state: "ready",
-        message: `${nextCompany.ticker} loaded: latest SEC ${payload.company?.fiscalYear || "snapshot"}${
-          payload.quote?.source ? ` + ${payload.quote.source}` : " without live quote"
-        }${payload.riskFree?.value ? " + FRED rate" : ""}${
-          payload.valuationReady ? "." : `; missing ${payload.missingDrivers.join(", ")}.`
+        message: `${nextCompany.ticker} cargado: SEC ${payload.company?.fiscalYear || "snapshot"}${
+          payload.quote?.source ? ` + ${payload.quote.source}` : " sin precio en vivo"
+        }${payload.riskFree?.value ? " + tasa libre de riesgo" : ""}${
+          payload.valuationReady ? "." : `; faltan ${payload.missingDrivers.join(", ")}.`
         }`,
       });
     } catch (error) {
       setLiveStatus({
         state: "error",
-        message: error instanceof Error ? error.message : "Snapshot load failed.",
+        message: error instanceof Error ? error.message : "No se pudo cargar el reporte.",
       });
     }
   }
 
   async function runValuationDebate() {
-    setDebateStatus({ state: "loading", message: "Running local analyst checks and final review..." });
+    setDebateStatus({ state: "loading", message: "Corriendo revisiones locales y veredicto final..." });
     try {
       const response = await fetch("/valuation-os-lab/api/debate", {
         method: "POST",
@@ -1556,25 +1556,25 @@ export default function ValuationOsLabPage() {
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Return on new capital</span>
+                <span>Retorno del nuevo capital</span>
                 <h3>{fmtPct(adjustedDrivers.roic)} Y5 ROIC</h3>
-                <p>Checks whether new investment can fund the growth assumption.</p>
+                <p>Revisa si la nueva inversion puede financiar el crecimiento supuesto.</p>
               </div>
               <mark>Growth quality</mark>
             </div>
             <MiniLine points={posteriorPath} tone="amber" />
             <p>
-              The system asks whether new capital plausibly earns enough to fund the modeled
-              growth path.
+              La prueba pregunta si el nuevo capital gana lo suficiente para sostener
+              el crecimiento modelado.
             </p>
           </article>
 
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>What price assumes</span>
+                <span>Que exige el precio</span>
                 <h3>{fmtPct(impliedCagr)} implied CAGR</h3>
-                <p>Compares the growth required by price with the growth in your thesis.</p>
+                <p>Compara el crecimiento que exige el precio con el crecimiento de tu tesis.</p>
               </div>
               <mark>{isFiniteNumber(upside) && upside >= 0 ? "Discount" : "Premium"}</mark>
             </div>

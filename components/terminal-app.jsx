@@ -3369,7 +3369,7 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bShock pressure\b/gi, "Presión de shock")
     .replace(/\bNeed more confirmation\b/gi, "Hace falta más confirmación")
     .replace(/\bnone material\b/gi, "nada material")
-    .replace(/\bCounterfactual ledger\b/gi, "Registro contrafactual")
+    .replace(/\bCounterfactual ledger\b/gi, "Historial de decisiones")
     .replace(/\bSaved to Neon\b/gi, "Guardado")
     .replace(/\bPrivate workspace\b/gi, "Espacio privado")
     .replace(/\bConnecting live data\b/gi, "Conectando datos")

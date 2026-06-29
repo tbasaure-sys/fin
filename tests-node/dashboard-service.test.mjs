@@ -605,7 +605,7 @@ test("normalizeWorkspaceDashboard derives escrow readiness and memory events for
   assert.equal(dashboard.memory.recentEvents[0].response, "Guardada");
   assert.equal(dashboard.memory.stats.staged, 1);
   assert.equal(dashboard.memory.stats.deferred, 1);
-  assert.ok(dashboard.memory.weeklyBrief.some((line) => /watch for/i.test(line)));
+  assert.ok(dashboard.memory.weeklyBrief.some((line) => /mirar/i.test(line)));
 });
 
 test("normalizeWorkspaceDashboard exposes plan and access control when billing is present", () => {
