@@ -93,3 +93,36 @@ V4 adds:
 - stricter production gates: validation-safe selection, mature rows, MAE lift against spine/uniform/best-single, positive IC, IC lift over spine, positive decile spread, and high-confidence rows that are not worse than the full champion.
 
 V4 is the first notebook that should be considered a real production-candidate test. If it passes, the next hardening step is rolling-origin validation and then wiring the exported manifest into Valuation OS as an AURORA residual champion, with the deterministic spine retained as the fallback.
+
+## V4 First Run and V4.1 Hardening
+
+The submitted V4 run passed all V4 gates:
+
+- champion: `hgb_abs_deep`
+- validation rows: 1,498 primary mature rows from 2021-2022
+- champion MAE: 0.15870
+- deterministic spine MAE: 0.16822
+- uniform blend MAE: 0.17468
+- best single lens: `reverseDcf`, MAE 0.16657
+- champion IC: 0.05870
+- champion decile spread: 0.11114
+- high-confidence MAE: 0.13232 vs full champion MAE 0.15870
+- `production_candidate`: true
+
+However, the exported memo sample revealed a universe leak: `ABALX` survived the common-equity filter. That is not acceptable for a professional operating-equity valuation router, even if the model metrics still pass. The issue was that fund share-class exclusion depended on sparse FMP text evidence. V4.1 fixes that directly.
+
+V4.1 adds:
+
+- direct product/fund canaries: `ABALX`, `FNILX`, `VTSAX`, crypto/commodity trusts, and common ETF tickers must not survive;
+- operating-company canaries: `CVX`, `BSX`, `BDX`, `EQIX`, `X`, and class-share forms such as `BRK-B` are preserved when present;
+- a rule that excludes exactly five-letter tickers ending in `X`, instead of excluding all tickers ending in `X`;
+- a feature-leakage audit that fails if forward returns, future fields, target fields, price-target fields, lens predictions, or Omega weights enter the residual model features;
+- per-primary-year gates requiring the champion to beat spine/uniform MAE and keep positive IC in each 2021/2022 validation year;
+- stricter confidence gates: high-confidence rows must have a real MAE lift and positive rank signal.
+
+New notebook:
+
+- `notebooks/AURORA_OMEGA_MAX_V4_1_HARDENED_META_CHAMPION.ipynb`
+- `C:\Users\T14 Ultra 7\Downloads\AURORA_OMEGA_MAX_V4_1_HARDENED_META_CHAMPION.ipynb`
+
+The next Colab run should use V4.1. If it remains `production_candidate=true`, the next step is not another notebook variant; it is rolling-origin validation plus integration into Valuation OS with the deterministic reverse-DCF spine as fallback.
