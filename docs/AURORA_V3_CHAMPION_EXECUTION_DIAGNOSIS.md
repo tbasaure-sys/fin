@@ -211,3 +211,45 @@ Interpretation rule:
 - If V5 passes, AURORA can be described as a rolling-origin-validated memo/routing component, still with deterministic fallback.
 - If V5 fails but V4.1 remains strong, keep AURORA as a production candidate for memo/routing only and inspect which years/regimes broke.
 - If V5 fails on IC/decile but not MAE, do not promote ranking or position-sizing language.
+
+## First V5 Run and Audit Rejection
+
+The first V5 run mechanically passed all gates:
+
+- completed folds: 8
+- validation years: 2015-2022
+- total validation rows: 5,399
+- pooled champion MAE: 0.13961
+- pooled spine MAE: 0.15141
+- pooled uniform MAE: 0.15592
+- pooled champion IC: 0.18862
+- pooled champion decile spread: 0.16417
+- fold win share vs spine/uniform/best single: 100%
+- decision printed by notebook: `PROMOTE_ROLLING_ORIGIN_VALIDATED_MEMO_ROUTER`
+
+However, fresh audit found a serious methodological issue: V5 tuned model selection and residual blend on `Y-2` and `Y-1` while validating year `Y`. With a 3Y forward target, those tune labels would not be known at the validation decision date. This is label-availability leakage in model selection.
+
+Therefore the first V5 result must not be promoted, even though the metrics are strong. It should be kept only as a diagnostic showing that the model family is promising.
+
+## V5.1 Purged Rolling-Origin Validation
+
+The corrected notebook is:
+
+- `notebooks/AURORA_OMEGA_MAX_V5_1_PURGED_ROLLING_ORIGIN_VALIDATION.ipynb`
+- `C:\Users\T14 Ultra 7\Downloads\AURORA_OMEGA_MAX_V5_1_PURGED_ROLLING_ORIGIN_VALIDATION.ipynb`
+
+V5.1 fixes the leakage by enforcing purged label availability:
+
+- validate year `Y`
+- tune model selection and residual blend on `Y-5` and `Y-4`
+- train the spine and residual models on years `<= Y-6`
+- latest tune label matures in `Y-1`, before validation year `Y`
+- each fold asserts `latest_tune_label_year < val_year`
+
+V5.1 also expands validation years to 2013-2022 when enough data exists. This gives the model more cycles and makes the test harder.
+
+Interpretation rule:
+
+- If V5.1 passes, AURORA can be called a purged rolling-origin validated memo/routing component.
+- If V5.1 weakens but remains directionally positive, keep the system as production-candidate with deterministic fallback and inspect weak years.
+- If V5.1 fails IC/decile while keeping MAE lift, do not use ranking language; use only memo/routing plus uncertainty.
