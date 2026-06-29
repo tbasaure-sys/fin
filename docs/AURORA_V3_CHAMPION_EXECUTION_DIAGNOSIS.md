@@ -286,3 +286,45 @@ Weak folds:
 - 2019: champion MAE 0.13583 vs spine 0.13590, effectively flat but just below the strict fold margin; still beats uniform and best single lens, with IC 0.08980 and decile spread 0.01660.
 
 Interpretation: V5.1 is the first defensible validation result. The earlier V5 result was stronger numerically but rejected for label-availability leakage. V5.1 is weaker, as expected, but still passes all purged gates. AURORA can now be promoted as a rolling-origin-validated memo/routing component with deterministic fallback. It should still not be described as a position-sizing or autonomous portfolio model until portfolio-level backtests, sector/regime diagnostics, turnover/capacity tests, and calibration checks are added.
+
+## V6 Economic Gap Model
+
+The next notebook is:
+
+- `notebooks/AURORA_OMEGA_MAX_V6_ECONOMIC_GAP_MODEL.ipynb`
+- `C:\Users\T14 Ultra 7\Downloads\AURORA_OMEGA_MAX_V6_ECONOMIC_GAP_MODEL.ipynb`
+
+V6 addresses the main conceptual objection to V5.1: the purged champion can still look like a tournament that picks the least weak residual model. V6 is designed as a better model, not a bigger model.
+
+The architecture changes the target decomposition:
+
+1. Keep reverse DCF as the market-implied expectations decoder.
+2. Forecast future business fundamentals first: 3Y revenue CAGR, operating margin, ROIC, and FCF margin.
+3. Compare those predicted fundamentals against what the price appears to require.
+4. Convert the economic gap into a small, clipped adjustment to the deterministic spine.
+5. Validate the result with the same purged rolling-origin protocol as V5.1.
+
+This makes the model's claim more economic:
+
+`future business capacity - market-implied expectations = valuation gap`
+
+The V6 notebook intentionally avoids FMP redownloads. It reads the cached Drive panel, rebuilds features and reverse-DCF expectations from the repo code, reuses the hardened common-equity filter and canaries, masks immature 3Y labels, and exports fold metrics plus predictions under:
+
+`/content/drive/MyDrive/blsprime_aurora_omega/artifacts/omega_v6_economic_gap_model_*`
+
+Promotion gates remain strict:
+
+- enough folds and rows;
+- clean product/fund and operating-company canaries;
+- purged selection in every fold;
+- pooled MAE lift versus spine and uniform;
+- fold-level win share versus spine, uniform, and best single lens;
+- positive pooled IC and decile spread;
+- positive IC/decile share across folds.
+
+Interpretation rule:
+
+- If V6 beats V5.1 while passing gates, it is a stronger candidate because it improved the economic mechanism, not only the model-selection wrapper.
+- If V6 passes but does not beat V5.1, keep V5.1 as champion and treat V6 as a more interpretable challenger.
+- If V6 fails MAE but improves IC/decile or regime diagnostics, inspect it as a ranking/explanation module rather than forcing promotion.
+- If V6 fails broadly, the next unlock is not more residual modeling. It is better valuation lenses and richer point-in-time evidence, especially text, capital-cycle, bottleneck, and segment-level signals.
