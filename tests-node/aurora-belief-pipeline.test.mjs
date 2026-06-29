@@ -47,6 +47,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.version, "aurora_belief_pipeline_v1");
   assert.equal(result.ticker, "ASML");
   assert.equal(result.ranAt, "2026-03-01T00:00:00.000Z");
+  assert.equal(result.sourceGovernance.version, "aurora_source_governance_engine_v1");
   assert.equal(result.extractedEvidence.version, "aurora_compiler_evidence_v1");
   assert.equal(result.accounting.version, "aurora_accounting_engine_v1");
   assert.equal(result.equilibrium.version, "aurora_equilibrium_engine_v1");
@@ -68,6 +69,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.monitor.status, "intact");
   assert.equal(result.decision.state, "active_thesis_intact");
   assert.ok(result.evidence.textSignals.capacityConstraint > 0.55);
+  assert.ok(result.memo.bullets.some((line) => /Source governance:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Forecast:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Valuation ensemble:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Expectations surface:/.test(line)));

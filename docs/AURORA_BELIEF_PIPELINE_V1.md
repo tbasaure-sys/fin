@@ -6,6 +6,7 @@ It composes the layers we built without wiring them into the older Valuation OS 
 
 ```text
 documents / raw evidence
+  -> Source Governance Engine
   -> Evidence Signal Extractor
 financial statements
   -> Accounting Engine
@@ -38,6 +39,7 @@ product/equity market inputs
 
 It returns:
 
+- source governance and valuation-use permissions
 - extracted evidence
 - economic accounting adjustments
 - product-market and equity-market equilibrium pressure
@@ -60,6 +62,7 @@ It returns:
 ## Decision States
 
 - `repair_inputs`: critical data is missing; do not interpret.
+- `source_governance_review`: a valuation source, usually alternative data, lacks required governance controls.
 - `memo_only`: belief object abstains; use as research memo.
 - `causal_model_violation`: driver assumptions break causal/economic constraints; repair before underwriting.
 - `equilibrium_pressure_review`: product-market, equity-flow, or reflexivity pressure requires separate review.
@@ -96,22 +99,23 @@ This is the first place AURORA behaves like a coherent system instead of separat
 
 It does not train a model and it does not claim magic. It forces the workflow to be explicit:
 
-1. What evidence was read?
-2. What signals were extracted?
-3. What accounting adjustments were made?
-4. What is product-market and equity-market pressure?
-5. What drivers were compiled?
-6. Are those drivers causally compatible?
-7. What posterior distribution follows from the priors, evidence, dependencies, and price?
-8. What do distinct valuation lenses say each future is worth?
-9. What growth/margin/ROIC surface does the market price require?
-10. Is that surface economically plausible for this kind of business?
-11. Is the model calibrated against realized outcomes?
-12. If not, how should future forecasts be shifted, widened, or confidence-haircut?
-13. Is management guidance historically reliable?
-14. Does management convert business economics into owner economics through capital allocation?
-15. What would falsify the thesis?
-16. Did fresh evidence trip anything?
-17. What should the investor do next?
+1. What sources were used, and are they allowed to influence valuation?
+2. What evidence was read?
+3. What signals were extracted?
+4. What accounting adjustments were made?
+5. What is product-market and equity-market pressure?
+6. What drivers were compiled?
+7. Are those drivers causally compatible?
+8. What posterior distribution follows from the priors, evidence, dependencies, and price?
+9. What do distinct valuation lenses say each future is worth?
+10. What growth/margin/ROIC surface does the market price require?
+11. Is that surface economically plausible for this kind of business?
+12. Is the model calibrated against realized outcomes?
+13. If not, how should future forecasts be shifted, widened, or confidence-haircut?
+14. Is management guidance historically reliable?
+15. Does management convert business economics into owner economics through capital allocation?
+16. What would falsify the thesis?
+17. Did fresh evidence trip anything?
+18. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.
