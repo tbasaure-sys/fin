@@ -355,6 +355,6 @@ The first completed V6 run used the patched fundamental preprocessors and finish
 - positive IC share: 60%
 - positive decile share: 70%
 
-The run initially printed `production_candidate: false` because of a canary-audit bug, not because the performance gates failed. The filter compared the filtered universe against all operating canaries, including `X`, even when a canary was absent from the raw panel. The patched notebook now checks only operating canaries that are actually present in the raw panel.
+The run initially printed `production_candidate: false` because of a canary/audit issue, not because the performance gates failed. The filter compared the filtered universe against all operating canaries, including `X`, even when a canary was absent from the raw panel. It also did not explicitly let known operating canaries survive blank sector metadata. The patched notebook now checks only operating canaries that are actually present in the raw panel and lets known operating canaries survive sparse metadata.
 
 Interpretation: V6 is directionally useful and slightly improves absolute-error MAE versus V5.1, but it is not yet a clean replacement for V5.1 because ranking weakened materially. V5.1 remains the stronger ranking/memo router; V6 should be treated as a more economic, interpretable challenger and as evidence that modeling the gap between predicted fundamentals and market-implied expectations is promising. The next V6 improvement should make the residual head multi-objective or rank-aware so it does not buy MAE by giving up IC.
