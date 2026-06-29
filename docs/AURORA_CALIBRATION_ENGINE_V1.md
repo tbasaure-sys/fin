@@ -196,6 +196,43 @@ The integration packet copies this object into `calibrationIntegration.calibrati
 
 This is intentionally stricter than `calibration.decision`. A calibration history can be directionally useful while still lacking enough realized outcomes to earn production decision rights.
 
+## Calibration Contract
+
+The integration packet now also emits:
+
+```js
+calibrationIntegration.calibrationContract
+```
+
+This is the narrow product contract. It is designed so the UI, API, or future portfolio-sizing layer can integrate calibration without reverse-engineering the whole scoring report.
+
+It answers:
+
+```text
+Can the calibrated branch influence the decision, and if so, how much?
+```
+
+Key fields:
+
+- `status`: `ready`, `guardrailed`, `shadow`, `observe`, or `blocked`.
+- `branch`: which branch product code should treat as primary, for example `calibrated_primary`, `calibrated_with_size_cap`, `raw_primary_calibrated_shadow`, `raw_primary_collect_outcomes`, or `raw_primary_calibration_risk_override`.
+- `canUseForDecision`: true only when authority, abstention, and hard-block checks all allow decision use.
+- `adoption.calibratedWeight`: bounded weight for blending calibrated output into the displayed decision branch.
+- `adoption.maxPositionSizeMultiplier`: sizing cap for decision or portfolio code. It is zero for observe/shadow/blocked states.
+- `productRead`: compact values for product integration: primary branch, secondary branch, confidence, uncertainty scale, negative-return probability, abstention flag, and calibrated-vs-raw expected-return delta.
+- `contextualCalibration`: whether a matching segment policy was actually used.
+- `monitoring`: the metrics and revocation triggers that must be tracked after integration.
+
+Contract statuses:
+
+- `ready`: calibrated branch may be primary, with monitoring.
+- `guardrailed`: calibrated branch may influence the decision, but raw comparison and sizing caps are required.
+- `shadow`: show or log the calibrated branch beside raw output; do not let it drive decisions.
+- `observe`: collect realized outcomes; do not use calibration for decisions.
+- `blocked`: keep raw output primary, use calibration only as a risk override or warning, and abstain from calibrated decision use.
+
+This contract is stricter than both `recalibrationPolicy.action` and `calibrationIntegration.mode`. The policy can say that recalibration is directionally useful, while the contract can still keep it in `guardrailed` or `shadow` until authority is high enough.
+
 ## Decisions
 
 - `calibration_pending`: no realized outcomes supplied.

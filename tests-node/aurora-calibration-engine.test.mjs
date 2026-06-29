@@ -326,6 +326,77 @@ test("calibration integration packet selects matching contextual segment when av
   assert.ok(packet.calibratedForecast.posterior.growth.p50 > p1.forecast.posterior.growth.p50);
 });
 
+test("calibration integration packet emits a product-facing calibration contract", () => {
+  const p1 = prediction(980, "CONTRACT1");
+  const p2 = prediction(1020, "CONTRACT2");
+  const calibration = buildAuroraCalibrationEngine(
+    {
+      records: [
+        {
+          id: "contract1",
+          horizon: "3y",
+          prediction: p1,
+          actuals: centeredActuals(p1, { horizon: "3y", realizedReturn: p1.valuationEnsemble.summary.expectedReturn + 0.02 }),
+        },
+        {
+          id: "contract2",
+          horizon: "3y",
+          prediction: p2,
+          actuals: centeredActuals(p2, { horizon: "3y", realizedReturn: p2.valuationEnsemble.summary.expectedReturn + 0.01 }),
+        },
+      ],
+      experimentLog: { experimentCount: 1 },
+    },
+    { minCalibrationRecords: 2, minSegmentRecords: 2 },
+  );
+  const packet = buildAuroraCalibrationIntegrationPacket(p1, calibration, {
+    builtAt: "2026-03-01T00:00:00.000Z",
+    horizon: "3y",
+    minSegmentRecords: 2,
+  });
+
+  assert.equal(packet.calibrationContract.version, "aurora_calibration_contract_v1");
+  assert.ok(["ready", "guardrailed", "shadow", "blocked"].includes(packet.calibrationContract.status));
+  assert.ok(["calibrated", "raw"].includes(packet.calibrationContract.productRead.primaryBranch));
+  assert.ok(Number.isFinite(packet.calibrationContract.adoption.calibratedWeight));
+  assert.ok(Number.isFinite(packet.calibrationContract.adoption.maxPositionSizeMultiplier));
+  assert.ok(packet.calibrationContract.monitoring.metrics.some((metric) => metric.id === "interval_coverage_80"));
+  assert.ok(packet.memo.contractStatus);
+});
+
+test("calibration contract blocks failed calibration from decision use", () => {
+  const p1 = prediction(900, "BLOCK1");
+  const p2 = prediction(950, "BLOCK2");
+  const farMiss = (pred) => ({
+    growth: pred.forecast.posterior.growth.p90 + 0.45,
+    margin: pred.forecast.posterior.margin.p90 + 0.35,
+    roic: pred.forecast.posterior.roic.p90 + 0.4,
+    reinvestment: pred.forecast.posterior.reinvestment.p90 + 0.4,
+    value: pred.valuationEnsemble.summary.weightedFairValue * 0.2,
+    realizedReturn: -0.55,
+    permanentLoss: true,
+  });
+  const calibration = buildAuroraCalibrationEngine(
+    {
+      records: [
+        { id: "block1", prediction: p1, actuals: farMiss(p1) },
+        { id: "block2", prediction: p2, actuals: farMiss(p2) },
+      ],
+      experimentLog: { experimentCount: 20 },
+    },
+    { minCalibrationRecords: 2 },
+  );
+  const packet = buildAuroraCalibrationIntegrationPacket(p1, calibration, {
+    builtAt: "2026-03-01T00:00:00.000Z",
+  });
+
+  assert.equal(packet.calibrationContract.status, "blocked");
+  assert.equal(packet.calibrationContract.canUseForDecision, false);
+  assert.equal(packet.calibrationContract.adoption.calibratedWeight, 0);
+  assert.equal(packet.calibrationContract.adoption.maxPositionSizeMultiplier, 0);
+  assert.equal(packet.calibrationContract.productRead.shouldAbstain, true);
+});
+
 test("pipeline exposes calibration integration without mutating the original forecast", () => {
   const pending = prediction(1200, "PIPE");
 
@@ -333,6 +404,8 @@ test("pipeline exposes calibration integration without mutating the original for
   assert.equal(pending.calibrationIntegration.mode, "observe_only");
   assert.equal(pending.calibrationIntegration.calibratedForecast.calibrated, true);
   assert.equal(pending.calibrationIntegration.calibrationAuthority.decisionRights, "observe_only");
+  assert.equal(pending.calibrationIntegration.calibrationContract.status, "observe");
+  assert.equal(pending.calibrationIntegration.calibrationContract.branch, "raw_primary_collect_outcomes");
   assert.equal(pending.forecast.calibrated, undefined);
   assert.ok(pending.memo.bullets.some((bullet) => bullet.includes("Calibration integration: observe_only.")));
   assert.ok(pending.memo.bullets.some((bullet) => bullet.includes("Calibration authority: observe_only.")));
