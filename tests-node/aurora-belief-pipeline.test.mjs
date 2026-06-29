@@ -56,6 +56,8 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.valuationEnsemble.version, "aurora_valuation_ensemble_v1");
   assert.equal(result.expectations.version, "aurora_expectations_engine_v1");
   assert.equal(result.feasibilityManifold.version, "aurora_feasibility_manifold_v1");
+  assert.equal(result.calibration.version, "aurora_calibration_engine_v1");
+  assert.equal(result.calibration.decision, "calibration_pending");
   assert.equal(result.beliefObject.version, "aurora_priced_belief_object_v1");
   assert.equal(result.monitor.version, "aurora_thesis_monitor_v1");
   assert.equal(result.monitor.status, "intact");
@@ -65,6 +67,24 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.ok(result.memo.bullets.some((line) => /Valuation ensemble:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Expectations surface:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Feasibility manifold:/.test(line)));
+  assert.ok(result.memo.bullets.some((line) => /Calibration:/.test(line)));
+});
+
+test("belief pipeline can score calibration when actual outcomes are supplied", () => {
+  const result = runAuroraBeliefPipeline({
+    ...baseInput,
+    actuals: {
+      growth: 0.09,
+      margin: 0.22,
+      roic: 0.18,
+      reinvestment: 0.24,
+      realizedReturn: 0.12,
+      value: 1344,
+    },
+  });
+
+  assert.equal(result.calibration.summary.scoredRecords, 1);
+  assert.equal(result.calibration.records[0].status, "scored");
 });
 
 test("belief pipeline blocks causally incoherent driver assumptions", () => {
