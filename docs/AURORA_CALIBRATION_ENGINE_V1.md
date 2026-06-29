@@ -91,6 +91,33 @@ Policy actions:
 - `apply_recalibration_in_shadow`: calibration is watch-level; apply in shadow before changing production decisions.
 - `freeze_promotion_and_apply_conservative_overrides`: calibration is failing; do not promote, widen uncertainty, haircut confidence, and raise abstention.
 
+## Integration Packet
+
+The engine also exports:
+
+```js
+buildAuroraCalibrationIntegrationPacket(prediction, calibration, options)
+```
+
+This is the production-facing adapter. It applies the recalibration policy to a copy of the prediction, not to the original forecast object.
+
+It returns:
+
+- `calibratedForecast`: posterior distributions and scenarios with center shifts and uncertainty scaling applied
+- `calibratedValuationEnsemble`: value range, weighted fair value, expected return, and disagreement adjusted by the policy
+- `riskControls`: confidence haircut, negative-return probability, uncertainty scale, abstention threshold, and `shouldAbstain`
+- `appliedAdjustments`: the exact variable and global adjustments used
+- `warnings`: integration caveats such as pending outcomes, shadow-only calibration, failed calibration, or backtest-overfitting pressure
+
+Integration modes:
+
+- `observe_only`: no scored history yet; collect outcomes without changing production behavior.
+- `production_monitoring`: calibration is usable; the calibrated branch can be used with monitoring.
+- `shadow`: calibration is imperfect; run the calibrated branch beside production before promotion.
+- `conservative_override`: calibration is failing; freeze promotion, widen uncertainty, haircut confidence, and abstain.
+
+The original forecast remains untouched. This is deliberate: product code can compare raw vs calibrated outputs and decide exactly when to adopt the calibrated branch.
+
 ## Decisions
 
 - `calibration_pending`: no realized outcomes supplied.
@@ -104,7 +131,7 @@ In the belief pipeline, calibration is non-blocking by default because a fresh p
 
 If `actuals`, `calibrationRecords`, or `calibrationHistory` are supplied, the pipeline scores them and can emit `calibration_review` when the history is failing.
 
-The pipeline memo also surfaces the recalibration action, so a product integration can read the policy directly instead of reverse-engineering raw calibration metrics.
+The pipeline memo surfaces both the recalibration action and the integration mode, so a product integration can read the policy directly instead of reverse-engineering raw calibration metrics.
 
 ## Why This Layer Matters
 

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { buildAuroraCalibrationEngine } from "../lib/aurora-calibration-engine.js";
+import { buildAuroraCalibrationEngine, buildAuroraCalibrationIntegrationPacket } from "../lib/aurora-calibration-engine.js";
 import { runAuroraBeliefPipeline } from "../lib/aurora-belief-pipeline.js";
 
 const baseInput = {
@@ -188,4 +188,48 @@ test("calibration engine builds return buckets for walk-forward diagnostics", ()
 
   assert.ok(result.summary.investment.deciles.length >= 2);
   assert.ok(Number.isFinite(result.summary.investment.monotonicity));
+});
+
+test("calibration integration packet applies shift, scale, confidence and abstention policy", () => {
+  const p1 = prediction(900, "E1");
+  const calibration = buildAuroraCalibrationEngine(
+    {
+      records: [
+        {
+          id: "e1",
+          prediction: p1,
+          actuals: centeredActuals(p1, {
+            growth: p1.forecast.posterior.growth.p50 + 0.06,
+            value: p1.valuationEnsemble.summary.weightedFairValue * 1.5,
+            realizedReturn: -0.35,
+            permanentLoss: true,
+          }),
+        },
+      ],
+    },
+    { minCalibrationRecords: 1 },
+  );
+  const packet = buildAuroraCalibrationIntegrationPacket(p1, calibration, {
+    builtAt: "2026-03-01T00:00:00.000Z",
+    baseAbstentionThreshold: 0.5,
+  });
+
+  assert.equal(packet.version, "aurora_calibration_integration_packet_v1");
+  assert.ok(["shadow", "production_monitoring", "conservative_override"].includes(packet.mode));
+  assert.ok(packet.calibratedForecast.posterior.growth.p50 > p1.forecast.posterior.growth.p50);
+  assert.ok(packet.calibratedValuationEnsemble.summary.weightedFairValue > p1.valuationEnsemble.summary.weightedFairValue);
+  assert.ok(packet.riskControls.confidence <= 1);
+  assert.ok(Number.isFinite(packet.riskControls.negativeReturnProbability));
+  assert.ok(Number.isFinite(packet.riskControls.abstentionThreshold));
+  assert.equal(p1.forecast.calibrated, undefined);
+});
+
+test("pipeline exposes calibration integration without mutating the original forecast", () => {
+  const pending = prediction(1200, "PIPE");
+
+  assert.equal(pending.calibrationIntegration.version, "aurora_calibration_integration_packet_v1");
+  assert.equal(pending.calibrationIntegration.mode, "observe_only");
+  assert.equal(pending.calibrationIntegration.calibratedForecast.calibrated, true);
+  assert.equal(pending.forecast.calibrated, undefined);
+  assert.ok(pending.memo.bullets.some((bullet) => bullet.includes("Calibration integration: observe_only.")));
 });

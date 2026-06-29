@@ -54,6 +54,7 @@ It returns:
 - economic feasibility manifold
 - calibration status and scored outcomes when supplied
 - recalibration policy for bias, uncertainty, confidence, and abstention adjustments
+- calibration integration packet with calibrated forecast branch, risk controls, and integration mode
 - management guidance reliability when supplied
 - capital allocation discipline when allocation history is supplied
 - priced belief object
@@ -116,10 +117,11 @@ It does not train a model and it does not claim magic. It forces the workflow to
 12. Is that surface economically plausible for this kind of business?
 13. Is the model calibrated against realized outcomes?
 14. If not, how should future forecasts be shifted, widened, or confidence-haircut?
-15. Is management guidance historically reliable?
-16. Does management convert business economics into owner economics through capital allocation?
-17. What would falsify the thesis?
-18. Did fresh evidence trip anything?
-19. What should the investor do next?
+15. What calibrated branch and risk controls should downstream product code consume?
+16. Is management guidance historically reliable?
+17. Does management convert business economics into owner economics through capital allocation?
+18. What would falsify the thesis?
+19. Did fresh evidence trip anything?
+20. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.
