@@ -12,11 +12,13 @@ It does not output a single magic fair value. It converts the current belief obj
 - `evidence`
 - `equilibrium`
 - `driverGraph`
+- `semiconductorTwin`
 
 It returns:
 
 - hierarchical priors
 - posterior distributions for growth, margin, ROIC, reinvestment, WACC, and terminal growth
+- `sectorTwinAdjustment` when a sector kernel is available
 - bear/base/bull valuation scenarios
 - expected fair value and expected return
 - posterior predictive checks
@@ -34,7 +36,35 @@ This engine makes that explicit:
 - company priors use current compiled drivers
 - evidence priors translate text and equilibrium signals
 - dependence adjustments enforce economic coherence
+- sector twin adjustments translate kernel-specific evidence into bounded posterior shifts
 - posterior predictive checks flag impossible tails
+
+## Sector Twin Adjustment
+
+When `semiconductorTwin` is present and applicable, the forecast applies a bounded sector-specific adjustment after generic dependence adjustments:
+
+- durable bottleneck evidence can lift margin durability and ROIC persistence
+- demand visibility can modestly support growth and reinvestment confidence
+- capacity, inventory, ASP, or cancellation risk can lower growth/margin/ROIC, raise WACC, and widen uncertainty
+
+The raw sector result is not hidden. The engine emits:
+
+```js
+forecast.sectorTwinAdjustment
+```
+
+with:
+
+- `applied`
+- `source`
+- `decision`
+- `state`
+- assumption `deltas`
+- `uncertaintyMultiplier`
+- key twin scores
+- human-readable notes
+
+This keeps the guide's distinction intact: the sector twin informs the posterior distribution, but it does not become a separate fair-value oracle.
 
 ## Decisions
 

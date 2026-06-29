@@ -86,6 +86,18 @@ The module does not mutate fair value directly. It emits advisory deltas:
 
 Downstream layers can use these deltas later, but v1 keeps the twin isolated and auditable.
 
+## Forecast Integration
+
+`AURORA Bayesian Forecast Engine v1` now consumes the twin through `forecast.sectorTwinAdjustment`.
+
+The twin does not create an independent valuation. It applies bounded posterior shifts:
+
+- durable bottleneck evidence can lift margin durability and ROIC persistence
+- cycle/glut risk can reduce growth, margin, and ROIC, raise WACC, and widen posterior uncertainty
+- the adjustment is emitted with its deltas, source, decision, state, scores, and notes
+
+This is the first concrete use of a sector kernel inside the probabilistic forecast layer.
+
 ## Falsifiers
 
 The twin generates semiconductor-specific falsifiers such as:

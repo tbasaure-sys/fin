@@ -126,6 +126,70 @@ test("Bayesian forecast engine widens uncertainty when causal graph is unhealthy
   assert.ok(unhealthy.posteriorPredictiveChecks.some((check) => check.key === "driver_graph_violations"));
 });
 
+test("Bayesian forecast engine applies semiconductor twin adjustments to posterior assumptions", () => {
+  const base = {
+    company: { ticker: "SEMI", name: "Semicap Co", sector: "Technology", industry: "Semiconductor equipment" },
+    compiled: {
+      version: "aurora_belief_compiler_v1",
+      ticker: "SEMI",
+      name: "Semicap Co",
+      drivers: {
+        price: 100,
+        revenue: 100,
+        revenueCagr: 0.07,
+        margin: 0.24,
+        roic: 0.19,
+        reinvestment: 0.3,
+        wacc: 0.09,
+        dataQuality: 0.82,
+      },
+    },
+  };
+  const neutral = buildAuroraBayesianForecastEngine(base);
+  const bottleneck = buildAuroraBayesianForecastEngine({
+    ...base,
+    semiconductorTwin: {
+      applicable: true,
+      version: "aurora_semiconductor_twin_v1",
+      decision: "semiconductor_bottleneck_supported",
+      state: "durable_bottleneck",
+      scores: { bottleneckDurability: 0.82, cycleRisk: 0.24, capacityPressure: 0.78, inventoryOverhang: 0.18, aspPower: 0.72 },
+      adjustments: {
+        bottleneckEvidenceDelta: 0.1,
+        marginDurabilityDelta: 0.06,
+        reinvestmentConfidenceDelta: 0.04,
+        cycleRiskPenalty: 0,
+        forecastUncertaintyMultiplier: 0.95,
+      },
+    },
+  });
+  const glut = buildAuroraBayesianForecastEngine({
+    ...base,
+    semiconductorTwin: {
+      applicable: true,
+      version: "aurora_semiconductor_twin_v1",
+      decision: "semiconductor_glut_risk",
+      state: "capacity_glut_risk",
+      scores: { bottleneckDurability: 0.22, cycleRisk: 0.86, capacityPressure: 0.18, inventoryOverhang: 0.82, aspPower: 0.18 },
+      adjustments: {
+        bottleneckEvidenceDelta: -0.08,
+        marginDurabilityDelta: -0.06,
+        reinvestmentConfidenceDelta: -0.04,
+        cycleRiskPenalty: 0.15,
+        forecastUncertaintyMultiplier: 1.34,
+      },
+    },
+  });
+
+  assert.equal(bottleneck.sectorTwinAdjustment.applied, true);
+  assert.equal(bottleneck.sectorTwinAdjustment.source, "aurora_semiconductor_twin_v1");
+  assert.ok(bottleneck.posterior.margin.mean > neutral.posterior.margin.mean);
+  assert.ok(bottleneck.posterior.roic.mean > neutral.posterior.roic.mean);
+  assert.ok(glut.posterior.margin.mean < neutral.posterior.margin.mean);
+  assert.ok(glut.posterior.wacc.mean > neutral.posterior.wacc.mean);
+  assert.ok(glut.uncertainty.total > neutral.uncertainty.total);
+});
+
 test("Bayesian forecast scenarios stay economically ordered", () => {
   const result = buildAuroraBayesianForecastEngine(pipelineOutput(baseInput));
   const [bear, base, bull] = result.scenarios;
@@ -136,4 +200,3 @@ test("Bayesian forecast scenarios stay economically ordered", () => {
   assert.ok(base.wacc >= bull.wacc);
   assert.ok(bear.fairValue < bull.fairValue);
 });
-

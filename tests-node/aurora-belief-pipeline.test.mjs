@@ -56,6 +56,8 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.semiconductorTwin.version, "aurora_semiconductor_twin_v1");
   assert.equal(result.semiconductorTwin.applicable, true);
   assert.equal(result.forecast.version, "aurora_bayesian_forecast_engine_v1");
+  assert.equal(result.forecast.sectorTwinAdjustment.applied, true);
+  assert.equal(result.forecast.sectorTwinAdjustment.source, "aurora_semiconductor_twin_v1");
   assert.equal(result.assumptionLedger.version, "aurora_assumption_ledger_engine_v1");
   assert.equal(result.valuationEnsemble.version, "aurora_valuation_ensemble_v1");
   assert.equal(result.expectations.version, "aurora_expectations_engine_v1");
