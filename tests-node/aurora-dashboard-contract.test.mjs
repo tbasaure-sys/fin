@@ -74,6 +74,7 @@ test("dashboard contract exposes the guide's primary panel metrics", () => {
   assert.equal(contract.primaryPanel.calibrationAuthority.decisionRights, "observe_only");
   assert.equal(contract.primaryPanel.sectorTwin.available, true);
   assert.equal(contract.primaryPanel.sectorTwin.type, "semiconductor");
+  assert.equal(contract.primaryPanel.competitiveMoat.decision, "competitive_graph_pending");
 });
 
 test("dashboard contract includes required visualization slots with readiness", () => {
@@ -92,6 +93,7 @@ test("dashboard contract includes required visualization slots with readiness", 
     "valuation_bridge",
     "market_expectations_history",
     "causal_driver_graph",
+    "competitor_graph",
     "historical_analog_paths",
     "capital_allocation_scorecard",
     "calibration_history",
@@ -111,4 +113,30 @@ test("dashboard contract keeps missing analogs and calibration history explicit"
   assert.equal(byKey.calibration_history.status, "partial");
   assert.ok(result.dashboardContract.memo.requiredMissingViews.includes("historical_analog_paths"));
   assert.ok(result.dashboardContract.investorQuestions.some((question) => /expectations/i.test(question)));
+});
+
+test("dashboard contract surfaces competitor graph moat pressure when peer inputs are supplied", () => {
+  const result = pipeline({
+    competitors: [
+      {
+        ticker: "RISK",
+        name: "Aggressive Rival",
+        marketShare: 0.34,
+        shareGain: 0.12,
+        productOverlap: 0.86,
+        customerOverlap: 0.72,
+        pricePressure: 0.82,
+        capacityGrowth: 0.24,
+        substitutionRisk: 0.68,
+        rdIntensity: 0.18,
+        roic: 0.34,
+        grossMargin: 0.38,
+      },
+    ],
+  });
+
+  assert.equal(result.competitiveMoat.decision, "moat_fade_risk");
+  assert.equal(result.dashboardContract.primaryPanel.competitiveMoat.decision, "moat_fade_risk");
+  assert.ok(result.dashboardContract.warnings.some((warning) => /Competitive graph warns/i.test(warning)));
+  assert.ok(result.dashboardContract.visualizations.some((item) => item.key === "competitor_graph" && item.status === "ready"));
 });

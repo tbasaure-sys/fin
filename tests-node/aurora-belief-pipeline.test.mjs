@@ -55,6 +55,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.driverGraph.version, "aurora_driver_graph_v1");
   assert.equal(result.semiconductorTwin.version, "aurora_semiconductor_twin_v1");
   assert.equal(result.semiconductorTwin.applicable, true);
+  assert.equal(result.competitiveMoat.version, "aurora_competitive_moat_engine_v1");
   assert.equal(result.forecast.version, "aurora_bayesian_forecast_engine_v1");
   assert.equal(result.forecast.sectorTwinAdjustment.applied, true);
   assert.equal(result.forecast.sectorTwinAdjustment.source, "aurora_semiconductor_twin_v1");
@@ -83,6 +84,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.ok(result.memo.bullets.some((line) => /Calibration:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Recalibration:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Semiconductor twin:/.test(line)));
+  assert.ok(result.memo.bullets.some((line) => /Competitive moat:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Management reliability:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Capital allocation:/.test(line)));
 });
