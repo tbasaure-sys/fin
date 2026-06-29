@@ -15,6 +15,7 @@ product/equity market inputs
   -> Belief Compiler
   -> Causal Driver Graph
   -> Bayesian Forecast Engine
+  -> Assumption Ledger Engine
   -> Valuation Ensemble
   -> Expectations Engine
   -> Feasibility Manifold
@@ -47,6 +48,7 @@ It returns:
 - compiled drivers
 - causal driver graph
 - posterior forecast distribution
+- assumption ledger with sources, distributions, dependencies, and falsifiers
 - valuation ensemble and method disagreement
 - market-implied expectations surface
 - economic feasibility manifold
@@ -67,6 +69,7 @@ It returns:
 - `causal_model_violation`: driver assumptions break causal/economic constraints; repair before underwriting.
 - `equilibrium_pressure_review`: product-market, equity-flow, or reflexivity pressure requires separate review.
 - `forecast_requires_review`: Bayesian posterior assumptions or forecast uncertainty require review.
+- `assumption_ledger_review`: assumptions are incomplete or a ledger falsifier has tripped.
 - `valuation_ensemble_review`: intrinsic valuation methods disagree too much or too few lenses are usable.
 - `expectations_surface_review`: market-implied expectations are heroic or the surface is insufficient.
 - `feasibility_manifold_review`: market-clearing assumptions fall outside plausible economic geometry.
@@ -107,15 +110,16 @@ It does not train a model and it does not claim magic. It forces the workflow to
 6. What drivers were compiled?
 7. Are those drivers causally compatible?
 8. What posterior distribution follows from the priors, evidence, dependencies, and price?
-9. What do distinct valuation lenses say each future is worth?
-10. What growth/margin/ROIC surface does the market price require?
-11. Is that surface economically plausible for this kind of business?
-12. Is the model calibrated against realized outcomes?
-13. If not, how should future forecasts be shifted, widened, or confidence-haircut?
-14. Is management guidance historically reliable?
-15. Does management convert business economics into owner economics through capital allocation?
-16. What would falsify the thesis?
-17. Did fresh evidence trip anything?
-18. What should the investor do next?
+9. Which assumptions carry that posterior, who owns them, and what would falsify them?
+10. What do distinct valuation lenses say each future is worth?
+11. What growth/margin/ROIC surface does the market price require?
+12. Is that surface economically plausible for this kind of business?
+13. Is the model calibrated against realized outcomes?
+14. If not, how should future forecasts be shifted, widened, or confidence-haircut?
+15. Is management guidance historically reliable?
+16. Does management convert business economics into owner economics through capital allocation?
+17. What would falsify the thesis?
+18. Did fresh evidence trip anything?
+19. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.

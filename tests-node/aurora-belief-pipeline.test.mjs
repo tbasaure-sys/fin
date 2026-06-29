@@ -54,6 +54,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.compiled.version, "aurora_belief_compiler_v1");
   assert.equal(result.driverGraph.version, "aurora_driver_graph_v1");
   assert.equal(result.forecast.version, "aurora_bayesian_forecast_engine_v1");
+  assert.equal(result.assumptionLedger.version, "aurora_assumption_ledger_engine_v1");
   assert.equal(result.valuationEnsemble.version, "aurora_valuation_ensemble_v1");
   assert.equal(result.expectations.version, "aurora_expectations_engine_v1");
   assert.equal(result.feasibilityManifold.version, "aurora_feasibility_manifold_v1");
@@ -71,6 +72,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.ok(result.evidence.textSignals.capacityConstraint > 0.55);
   assert.ok(result.memo.bullets.some((line) => /Source governance:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Forecast:/.test(line)));
+  assert.ok(result.memo.bullets.some((line) => /Assumption ledger:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Valuation ensemble:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Expectations surface:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Feasibility manifold:/.test(line)));
