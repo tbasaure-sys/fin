@@ -126,3 +126,35 @@ New notebook:
 - `C:\Users\T14 Ultra 7\Downloads\AURORA_OMEGA_MAX_V4_1_HARDENED_META_CHAMPION.ipynb`
 
 The next Colab run should use V4.1. If it remains `production_candidate=true`, the next step is not another notebook variant; it is rolling-origin validation plus integration into Valuation OS with the deterministic reverse-DCF spine as fallback.
+
+## First V4.1 Run
+
+The first submitted V4.1 run stayed production-positive after the harder canaries and gates:
+
+- champion: `ens_hgb_abs_shallow_hgb_abs_deep_0.85_0.15`
+- product mode: `hardened_meta_residual_champion`
+- artifact directory: `/content/drive/MyDrive/blsprime_aurora_omega/artifacts/omega_v4_1_hardened_meta_champion_20260629_003731`
+- filtered universe: 13,410 rows / 775 tickers to 12,897 rows / 729 tickers
+- product/fund survivors: none
+- wrongly removed operating canaries: none
+- feature leakage count: 0
+- validation rows: 1,419 primary mature rows from 2021-2022
+- champion MAE: 0.16424
+- deterministic spine MAE: 0.17405
+- uniform blend MAE: 0.18031
+- best single lens: `reverseDcf`, MAE 0.17238
+- champion IC: 0.03967
+- champion decile spread: 0.06171
+- all-mature champion MAE: 0.16631
+- all-mature champion IC: 0.04189
+- high-confidence rows: 739
+- high-confidence MAE: 0.13875
+- high-confidence IC: 0.02377
+- `production_candidate`: true
+
+By primary validation year:
+
+- 2021: 704 rows, champion MAE 0.14201 vs spine 0.14622 vs uniform 0.15196; champion IC 0.05018
+- 2022: 715 rows, champion MAE 0.18612 vs spine 0.20146 vs uniform 0.20822; champion IC 0.01354
+
+Interpretation: this is the first AURORA result that is both materially useful and cleaner at the dataset/process layer. It should still be described as a production candidate, not a final proven model. The 2022 IC is positive but thin, and the high-confidence bucket mainly improves absolute error rather than decile spread. That means V4.1 can support the Valuation OS memo/routing layer, while position sizing or aggressive ranking claims should wait for rolling-origin validation.
