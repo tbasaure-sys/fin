@@ -76,124 +76,137 @@ const companies = {
 const assumptionSchema = [
   {
     key: "revenueCagr",
-    label: "Revenue CAGR Y1-Y5",
+    label: "Revenue growth, years 1-5",
     fmt: "pct",
     low: 0.01,
     high: 0.18,
-    falsifier: "Two reports below cohort and unit growth bridge",
-    source: "Segment revenue, backlog, customer disclosures",
+    falsifier: "Growth comes in below this path for two reports in a row.",
+    source: "Sales by segment, backlog, customer demand",
   },
   {
     key: "margin",
-    label: "EBIT margin Y5",
+    label: "Operating margin, year 5",
     fmt: "pct",
     low: 0.08,
     high: 0.42,
-    falsifier: "Mix improves while contribution margin falls",
-    source: "Reported EBIT, SBC, leases, R&D capitalization",
+    falsifier: "Margins fall even though mix, scale, or pricing should be helping.",
+    source: "Operating profit after accounting adjustments",
   },
   {
     key: "roic",
-    label: "ROIC Y5",
+    label: "ROIC, year 5",
     fmt: "pct",
     low: 0.06,
     high: 0.34,
-    falsifier: "Incremental capital earns below WACC for 6 quarters",
-    source: "Adjusted NOPAT and invested capital tie-out",
+    falsifier: "New investment earns less than WACC for several periods.",
+    source: "After-tax operating profit and invested capital",
   },
   {
     key: "terminalRoic",
-    label: "Terminal ROIC",
+    label: "Long-run ROIC",
     fmt: "pct",
     low: 0.06,
     high: 0.24,
-    falsifier: "Competitor supply enters without pricing response",
-    source: "Comparable fade priors and industry structure",
+    falsifier: "Competition enters and pricing power does not hold.",
+    source: "History, peers, and competitive structure",
   },
   {
     key: "wacc",
-    label: "After-tax WACC",
+    label: "Required return (WACC)",
     fmt: "pct",
     low: 0.055,
     high: 0.14,
-    falsifier: "Leverage spreads detach from operating risk",
-    source: "Rates, beta, spread, leverage regime",
+    falsifier: "Rates, leverage, or business risk move enough to change the hurdle.",
+    source: "Risk-free rate, beta, credit spread, debt level",
   },
   {
     key: "terminalGrowth",
-    label: "Terminal growth",
+    label: "Long-run growth",
     fmt: "pct",
     low: 0.005,
     high: 0.04,
-    falsifier: "Growth requires reinvestment above steady ROIIC",
-    source: "Inflation, volume runway, saturation checks",
+    falsifier: "The company would need too much reinvestment to keep growing.",
+    source: "Inflation, market size, saturation checks",
   },
   {
     key: "reinvestment",
-    label: "Reinvestment rate",
+    label: "Cash reinvested",
     fmt: "pct",
     low: 0.15,
     high: 0.72,
-    falsifier: "Growth continues while working capital and capex shrink",
-    source: "Capex, working capital, acquisition split",
+    falsifier: "Growth continues only on paper while capex or working capital shrink.",
+    source: "Capex, working capital, acquisitions",
   },
   {
     key: "dilution",
-    label: "Net dilution",
+    label: "Share dilution",
     fmt: "pct",
     low: -0.02,
     high: 0.035,
-    falsifier: "Buybacks offset SBC but share count still rises",
-    source: "SBC, repurchases, options, RSUs",
+    falsifier: "Buybacks do not stop the share count from rising.",
+    source: "Stock compensation, buybacks, options, RSUs",
   },
   {
     key: "thesisQuality",
-    label: "Qualitative thesis",
+    label: "Business quality evidence",
     fmt: "score",
     low: 0.2,
     high: 0.95,
-    falsifier: "Narrative remains intact while customer behavior, product edge, or unit economics deteriorate",
-    source: "Moat evidence, customer pull, management execution, optionality",
+    falsifier: "Customers, product edge, or unit economics worsen despite the story.",
+    source: "Moat evidence, customer pull, execution, optionality",
   },
   {
     key: "demandSupply",
-    label: "Demand / supply setup",
+    label: "Demand vs supply",
     fmt: "score",
     low: 0.15,
     high: 0.95,
-    falsifier: "Demand slows or new supply enters faster than pricing can adjust",
-    source: "Backlog, capacity additions, utilization, inventory, pricing",
+    falsifier: "Demand slows or new supply arrives faster than pricing can adjust.",
+    source: "Backlog, capacity, utilization, inventory, pricing",
   },
   {
     key: "bottleneckPower",
-    label: "Bottleneck power",
+    label: "Scarcity advantage",
     fmt: "score",
     low: 0.1,
     high: 0.98,
-    falsifier: "Customers find substitutes or capacity ceases to constrain the system",
-    source: "Scarcity, substitute availability, switching cost, lead times",
+    falsifier: "Customers find substitutes or capacity stops being scarce.",
+    source: "Scarcity, substitutes, switching cost, lead times",
   },
   {
     key: "moatHalfLife",
-    label: "Moat half-life",
+    label: "Durability of advantage",
     fmt: "yrs",
     low: 1,
     high: 15,
-    falsifier: "ROIC spread decays faster than sector analogues",
+    falsifier: "ROIC fades faster than similar companies.",
     source: "Historical excess ROIC persistence",
   },
 ];
 
 const engines = [
-  ["truth", "Data Truth", "Checks source quality before the model speaks"],
-  ["accounting", "Accounting", "Connects reported numbers to economic FCF"],
-  ["twin", "Business Twin", "Maps the thesis into linked business drivers"],
-  ["bayes", "Bayesian", "Turns uncertainty into probabilities and priors"],
-  ["value", "Valuation", "Compares intrinsic value with market price"],
-  ["expect", "Expectations", "Shows what growth and ROIC the price requires"],
-  ["flows", "Price Formation", "Separates fundamentals from market flows"],
-  ["calibration", "Calibration", "Scores model trust and walk-forward risk"],
+  ["truth", "Data check", "Are the inputs complete and traceable?"],
+  ["accounting", "Cash and returns", "Does the business earn enough on capital?"],
+  ["twin", "Business drivers", "What has to be true for the thesis to work?"],
+  ["bayes", "Scenario confidence", "How much uncertainty should we admit?"],
+  ["value", "Value estimate", "Is there enough margin of safety?"],
+  ["expect", "Price requirements", "What growth and ROIC is the market assuming?"],
+  ["flows", "Market pressure", "Could price move for non-business reasons?"],
+  ["calibration", "Trust check", "Has the model earned confidence?"],
 ];
+
+const SIMPLE_MODEL_LABELS = {
+  dcf: "Cash-flow value (DCF)",
+  roicFade: "ROIC durability value",
+  reverseDcf: "Price-implied expectations",
+  residualIncome: "Book-value return check",
+  assetValue: "Asset floor check",
+  unitEconomics: "Unit economics check",
+  bottleneck: "Scarcity advantage check",
+  realOptions: "Future upside option",
+  ownerEarnings: "Owner cash earnings",
+  capitalCycle: "Supply-cycle check",
+};
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -286,6 +299,8 @@ function methodValuations(drivers) {
   const unitEconomics = dcf * clamp(0.78 + drivers.thesisQuality * 0.18 + drivers.demandSupply * 0.14 + drivers.revenueCagr * 0.55, 0.72, 1.22);
   const bottleneck = dcf * clamp(0.8 + drivers.bottleneckPower * 0.28 + drivers.demandSupply * 0.1, 0.78, 1.22);
   const realOptions = dcf * clamp(0.72 + drivers.thesisQuality * 0.17 + clamp(drivers.revenueCagr, -0.02, 0.18) * 1.15 + modelRisk * 0.08, 0.68, 1.24);
+  const ownerEarnings = dcf * clamp(0.86 + drivers.margin * 0.32 + Math.max(0, 0.55 - drivers.reinvestment) * 0.18 - modelRisk * 0.1, 0.68, 1.26);
+  const capitalCycle = dcf * clamp(0.9 + drivers.demandSupply * 0.15 + drivers.bottleneckPower * 0.1 - drivers.reinvestment * 0.16, 0.68, 1.24);
 
   return {
     dcf,
@@ -296,6 +311,8 @@ function methodValuations(drivers) {
     unitEconomics,
     bottleneck,
     realOptions,
+    ownerEarnings,
+    capitalCycle,
   };
 }
 
@@ -369,7 +386,7 @@ function SparkBars({ rows, price }) {
   }
   const max = Math.max(...rows.map((row) => row.y));
   return (
-    <div className={styles.histogram} aria-label="Valuation distribution">
+    <div className={styles.histogram} aria-label="Possible value range">
       {rows.map((row, index) => (
         <span
           key={index}
@@ -389,7 +406,7 @@ function Surface({ surface, price }) {
   const hasValidSurface = surface.flat().some((cell) => isFiniteNumber(cell.v) && isFiniteNumber(price));
   return (
     <div className={styles.surfaceWrap}>
-      <div className={styles.yAxis}>Terminal ROIC</div>
+      <div className={styles.yAxis}>Long-run ROIC</div>
       <div className={`${styles.surfaceGrid} ${hasValidSurface ? "" : styles.surfaceGridDisabled}`}>
         {surface.flat().map((cell) => {
           const validCell = isFiniteNumber(cell.v) && isFiniteNumber(price);
@@ -408,7 +425,7 @@ function Surface({ surface, price }) {
           );
         })}
       </div>
-      <div className={styles.xAxis}>Revenue CAGR Y1-Y5</div>
+      <div className={styles.xAxis}>Revenue growth, years 1-5</div>
     </div>
   );
 }
@@ -454,11 +471,11 @@ function factMoney(value) {
 }
 
 function statusCopy(status) {
-  if (status === "ok") return "Final editor complete";
-  if (status === "rate_limited") return "Local verdict active; final editor cooling down";
-  if (status === "error") return "Local verdict active; final editor failed";
-  if (status === "unavailable") return "Local verdict active; no LLM key needed";
-  return "Local verdict active";
+  if (status === "ok") return "Final review complete";
+  if (status === "rate_limited") return "Local review ready; final review cooling down";
+  if (status === "error") return "Local review ready; final review failed";
+  if (status === "unavailable") return "Local review ready; no LLM key needed";
+  return "Local review ready";
 }
 
 function plainDecision(upside, feasibility, missingDrivers) {
@@ -481,18 +498,18 @@ function EngineMetric({ label, value, tone }) {
 function RouterPanel({ router }) {
   if (!router) return null;
   return (
-    <section className={styles.routerPanel} aria-label="Deterministic valuation router">
+    <section className={styles.routerPanel} aria-label="Valuation method mix">
       <div>
-        <span>Model Router</span>
-        <h2>Why this valuation stack?</h2>
+        <span>Method mix</span>
+        <h2>Why these valuation methods?</h2>
         <p>
-          The system first infers the economic regime, then weights model families. This keeps banks,
-          bottleneck compounders, cyclicals, and asset-heavy businesses from sharing one fixed DCF recipe.
+          Different businesses need different valuation checks. A bank, a software company, and a
+          semiconductor supplier should not all be forced through one fixed DCF template.
         </p>
       </div>
       <div className={styles.routerGrid}>
         <article>
-          <strong>Regime read</strong>
+          <strong>Business type</strong>
           {router.topRegimes.map((item) => (
             <div className={styles.routerRow} key={item.key}>
               <span>{item.label}</span>
@@ -501,21 +518,21 @@ function RouterPanel({ router }) {
           ))}
         </article>
         <article>
-          <strong>Model weights</strong>
+          <strong>Methods used</strong>
           {router.topModels.map((item) => (
             <div className={styles.routerRow} key={item.key}>
-              <span>{MODEL_LABELS[item.key] || item.label}</span>
+              <span>{SIMPLE_MODEL_LABELS[item.key] || MODEL_LABELS[item.key] || item.label}</span>
               <i>{fmtPct(item.weight, 0)}</i>
             </div>
           ))}
         </article>
         <article>
-          <strong>Use policy</strong>
+          <strong>Can we use it?</strong>
           <div className={styles.routerDecision} data-abstain={router.abstain ? "true" : "false"}>
-            <span>{router.abstain ? "Abstain / repair evidence" : "Provisional valuation allowed"}</span>
-            <i>{fmtPct(router.confidence, 0)} router confidence</i>
+            <span>{router.abstain ? "Not enough evidence yet" : "Usable as a draft view"}</span>
+            <i>{fmtPct(router.confidence, 0)} trust score</i>
           </div>
-          <p>{router.rationale?.[2]}</p>
+          <p>{router.rationale?.[2] || "This panel explains the mix; it does not make the investment decision by itself."}</p>
         </article>
       </div>
     </section>
@@ -531,6 +548,57 @@ function BulletList({ items }) {
         <li key={item}>{item}</li>
       ))}
     </ul>
+  );
+}
+
+function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, debate }) {
+  const risk = clamp(adjustedDrivers.modelRisk || 0.35, 0, 1);
+  const segmentName = `${adjustedDrivers.sector || "Business"} / ${mode} case`;
+  const trustScore = clamp(quality * 0.45 + feasibility * 0.35 + (1 - risk) * 0.2, 0, 1);
+  const rights =
+    trustScore >= 0.72 && debate?.agents?.length
+      ? "Can support a monitored decision"
+      : trustScore >= 0.52
+        ? "Use as a shadow check"
+        : "Observe only";
+  const rows = [
+    {
+      label: "Global history",
+      value: "Collect outcomes",
+      note: "First ask whether past forecasts were honest overall.",
+    },
+    {
+      label: "Comparable segment",
+      value: segmentName,
+      note: "Then check outcomes from the same horizon and business type before adjusting confidence.",
+    },
+    {
+      label: "Decision right",
+      value: rights,
+      note: "The app should show calibrated values only when the segment has earned trust.",
+    },
+  ];
+
+  return (
+    <div className={styles.calibrationContract} aria-label="Contextual calibration contract">
+      <div>
+        <span>Contextual calibration</span>
+        <strong>{fmtPct(trustScore, 0)} current trust score</strong>
+        <p>
+          AURORA should not trust one average calibration for every company. It should learn separately
+          by horizon, sector, business type, and decision state.
+        </p>
+      </div>
+      <div className={styles.calibrationSteps}>
+        {rows.map((item) => (
+          <article key={item.label}>
+            <span>{item.label}</span>
+            <strong>{item.value}</strong>
+            <p>{item.note}</p>
+          </article>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -559,24 +627,24 @@ function EngineConsole({
   const activeFalsifiers = tripwires.map((item) => item.falsifier || item.label);
   const panels = {
     truth: {
-      eyebrow: "Source confidence",
-      title: "Data Truth",
+      eyebrow: "Input reliability",
+      title: "Data check",
       copy:
         missingDrivers.length > 0
-          ? "The model has live data, but the missing fields make the output provisional."
-          : "The inputs are complete enough to treat the next views as source-backed.",
-      plain: "This answers: can we trust the inputs before debating value?",
-      technical: "Checks SEC companyfacts, quote source, FRED rate, missing drivers, and data lineage.",
+          ? "Some live inputs are missing, so the valuation should be treated as a draft."
+          : "The core inputs are present and can be traced back to their sources.",
+      plain: "Can we trust the numbers before reading the valuation?",
+      technical: "Checks SEC company facts, market quote source, risk-free rate, missing fields, and source lineage.",
       metrics: [
-        ["SEC filing", liveSnapshot ? `${liveSnapshot.company?.form || "SEC"} / FY${fiscalYear}` : "Local kernel"],
-        ["Industry policy", assumptions.industry?.label || "Local prior"],
+        ["SEC filing", liveSnapshot ? `${liveSnapshot.company?.form || "SEC"} / FY${fiscalYear}` : "Sample data"],
+        ["Industry policy", assumptions.industry?.label || "Sample assumption"],
         ["Quote", coverage.quoteSource || "Missing"],
         ["Data quality", fmtPct(quality, 0), quality >= 0.65 ? "good" : "warn"],
       ],
       bullets: [
         liveSnapshot
           ? `Companyfacts status: ${coverage.secCompanyFacts ? "loaded" : "not loaded"}`
-          : "Using local thesis kernel until a SEC snapshot is loaded.",
+          : "Using the sample company until a live SEC snapshot is loaded.",
         assumptions.riskFree
           ? `Risk-free anchor: ${fmtOptional(assumptions.riskFree.value, fmtPct)} from ${assumptions.riskFree.source}.`
           : coverage.fredConfigured
@@ -589,12 +657,12 @@ function EngineConsole({
       ],
     },
     accounting: {
-      eyebrow: "Accounting bridge",
-      title: "Accounting",
+      eyebrow: "Cash and returns",
+      title: "Cash and returns",
       copy:
-        "Reported accounting is converted into the economics that matter for valuation.",
-      plain: "This answers: is the business really producing cash at attractive returns?",
-      technical: "Compares FCF/share, margin, ROIC, WACC, reinvestment, and terminal growth consistency.",
+        "Reported financial statements are translated into cash flow, margins, and returns on capital.",
+      plain: "Is the business actually producing valuable cash flow?",
+      technical: "Compares FCF per share, margin, ROIC, WACC, reinvestment, and long-run growth consistency.",
       metrics: [
         ["FCF / share", fmtMoney(adjustedDrivers.baseFcf)],
         ["Revenue CAGR", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
@@ -609,46 +677,46 @@ function EngineConsole({
         `Terminal growth: ${fmtOptional(adjustedDrivers.terminalGrowth, fmtPct)}.`,
         isFiniteNumber(adjustedDrivers.roic) && isFiniteNumber(adjustedDrivers.wacc) && adjustedDrivers.roic < adjustedDrivers.wacc
           ? "Accounting warning: ROIC does not clear WACC."
-          : "Accounting bridge clears the basic ROIC hurdle.",
+          : "The business clears the basic ROIC hurdle.",
         isFiniteNumber(facts.operatingCashFlow) ? `Operating cash flow fact: ${factMoney(facts.operatingCashFlow)}.` : null,
         isFiniteNumber(facts.capex) ? `Capex fact: ${factMoney(facts.capex)}.` : null,
       ],
     },
     twin: {
-      eyebrow: "Thesis mechanics",
-      title: "Business Twin",
+      eyebrow: "Business logic",
+      title: "Business drivers",
       copy:
-        "The thesis is expressed as linked drivers instead of a single fair-value number.",
-      plain: "This answers: what must be true about the business for the thesis to work?",
-      technical: "Connects revenue CAGR, reinvestment, ROIC fade, moat half-life, and falsifiers.",
+        "The investment story is broken into drivers that can be changed, tested, and disproved.",
+      plain: "What has to be true for this investment to work?",
+      technical: "Connects revenue growth, reinvestment, ROIC fade, durability of advantage, and warning tests.",
       metrics: [
         ["Scenario", mode],
-        ["Thesis quality", fmtValue(adjustedDrivers.thesisQuality, "score")],
+        ["Business evidence", fmtValue(adjustedDrivers.thesisQuality, "score")],
         ["Demand / supply", fmtValue(adjustedDrivers.demandSupply, "score")],
-        ["Bottleneck", fmtValue(adjustedDrivers.bottleneckPower, "score")],
-        ["Tripwires", String(tripwires.length), tripwires.length > 3 ? "warn" : "neutral"],
+        ["Scarcity advantage", fmtValue(adjustedDrivers.bottleneckPower, "score")],
+        ["Warnings", String(tripwires.length), tripwires.length > 3 ? "warn" : "neutral"],
       ],
       bullets: [
         `Current value path: ${fmtMoney(valuation)} versus price ${fmtMoney(adjustedDrivers.price)}.`,
-        `Fade anchor: terminal ROIC ${fmtOptional(adjustedDrivers.terminalRoic, fmtPct)} and WACC ${fmtOptional(adjustedDrivers.wacc, fmtPct)}.`,
-        `Qualitative thesis ${fmtValue(adjustedDrivers.thesisQuality, "score")} modifies fade confidence; demand/supply ${fmtValue(adjustedDrivers.demandSupply, "score")} modifies growth feasibility.`,
-        `Bottleneck power ${fmtValue(adjustedDrivers.bottleneckPower, "score")} captures whether scarcity and substitution risk support pricing.`,
-        activeFalsifiers[0] || "No boundary falsifier is currently at the edge of its range.",
+        `Long-run ROIC ${fmtOptional(adjustedDrivers.terminalRoic, fmtPct)} is compared with WACC ${fmtOptional(adjustedDrivers.wacc, fmtPct)}.`,
+        `Business evidence ${fmtValue(adjustedDrivers.thesisQuality, "score")} adjusts confidence in how long high ROIC can last.`,
+        `Scarcity advantage ${fmtValue(adjustedDrivers.bottleneckPower, "score")} asks whether customers have good substitutes.`,
+        activeFalsifiers[0] || "No warning test is currently at the edge of its range.",
         activeFalsifiers[1] || null,
       ],
     },
     bayes: {
-      eyebrow: "Uncertainty layer",
-      title: "Bayesian",
+      eyebrow: "Scenario confidence",
+      title: "Scenario confidence",
       copy:
-        "The model weighs the thesis against what the market already seems to believe.",
-      plain: "This answers: how confident should we be, given uncertainty and market expectations?",
-      technical: "Uses feasibility, implied CAGR, probability above price, and model-risk penalties.",
+        "The model compares your thesis with the assumptions already embedded in the market price.",
+      plain: "How confident should we be after admitting uncertainty?",
+      technical: "Uses feasibility, implied growth, probability above price, and model-risk penalties.",
       metrics: [
         ["Feasibility", fmtPct(feasibility, 0), feasibility >= 0.55 ? "good" : "warn"],
         ["Above price", fmtPct(distribution.probAbovePrice, 0)],
         ["Implied CAGR", fmtPct(impliedCagr)],
-        ["Structural support", fmtValue((adjustedDrivers.thesisQuality + adjustedDrivers.demandSupply + adjustedDrivers.bottleneckPower) / 3, "score")],
+        ["Business support", fmtValue((adjustedDrivers.thesisQuality + adjustedDrivers.demandSupply + adjustedDrivers.bottleneckPower) / 3, "score")],
       ],
       bullets: [
         `Expected 5Y IRR: ${fmtPct(expectedIrr)}.`,
@@ -656,15 +724,15 @@ function EngineConsole({
         isFiniteNumber(impliedCagr) && isFiniteNumber(adjustedDrivers.revenueCagr) && impliedCagr > adjustedDrivers.revenueCagr
           ? "Market-implied growth is above the current thesis input."
           : "Thesis growth is not below market-implied growth.",
-        missingDrivers.length ? "Posterior should stay wide because live data is incomplete." : null,
+        missingDrivers.length ? "The range should stay wide because live data is incomplete." : null,
       ],
     },
     value: {
-      eyebrow: "Intrinsic value",
-      title: "Valuation",
-      copy: "Intrinsic value is compared with price, expected IRR, and model disagreement.",
-      plain: "This answers: does the current price leave enough margin of safety?",
-      technical: "Anchors on fade DCF, then checks residual income, APV, SOTP, and downside floor.",
+      eyebrow: "Value estimate",
+      title: "Value estimate",
+      copy: "Estimated value is compared with the market price, expected return, and disagreement between methods.",
+      plain: "Does the current price leave enough margin of safety?",
+      technical: "Anchors on DCF and ROIC fade, then checks book value, asset floor, owner earnings, and downside risk.",
       metrics: [
         ["Value / share", fmtMoney(valuation)],
         ["Market price", fmtMoney(adjustedDrivers.price)],
@@ -672,16 +740,16 @@ function EngineConsole({
         ["Expected IRR", fmtPct(expectedIrr)],
       ],
       bullets: [
-        "Fade DCF remains the primary lens; residual income and APV are used as disagreement checks.",
+        "DCF and ROIC durability are the main checks; other methods show whether the result is fragile.",
         `Probability above price: ${fmtPct(distribution.probAbovePrice, 0)}.`,
       ],
     },
     expect: {
-      eyebrow: "Market expectations",
-      title: "Expectations",
-      copy: "The surface shows which growth and ROIC combinations would justify today's price.",
-      plain: "This answers: what is the market already pricing in?",
-      technical: "Reverse DCF solves for implied revenue CAGR against terminal ROIC and WACC assumptions.",
+      eyebrow: "Price requirements",
+      title: "Price requirements",
+      copy: "This shows the growth and ROIC needed to justify today's market price.",
+      plain: "What does the stock price already assume?",
+      technical: "Reverse DCF solves for implied revenue growth against long-run ROIC and WACC assumptions.",
       metrics: [
         ["Implied CAGR", fmtPct(impliedCagr)],
         ["Thesis CAGR", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
@@ -689,16 +757,16 @@ function EngineConsole({
         ["Falsifiers", String(tripwires.length)],
       ],
       bullets: [
-        "Use the surface below to see where market expectations become plausible or fragile.",
+        "Use the grid below to see where market expectations become plausible or fragile.",
         assumptions.wacc ? `WACC is bounded by the ${assumptions.industry?.label || "selected"} policy before the reverse DCF is read.` : null,
         activeFalsifiers[0] || null,
       ],
     },
     flows: {
-      eyebrow: "Market plumbing",
-      title: "Price Formation",
-      copy: "Market flows are kept separate from the company-value estimate.",
-      plain: "This answers: could price move for reasons unrelated to intrinsic value?",
+      eyebrow: "Market pressure",
+      title: "Market pressure",
+      copy: "Market mechanics are kept separate from the business-value estimate.",
+      plain: "Could the stock move for reasons unrelated to business value?",
       technical: "Tracks beta, dilution/buybacks, passive pressure, short pressure, and liquidity support.",
       metrics: [
         ["Beta", isFiniteNumber(adjustedDrivers.beta) ? adjustedDrivers.beta.toFixed(2) : "N/A"],
@@ -707,25 +775,26 @@ function EngineConsole({
         ["Price gap", fmtPct(upside)],
       ],
       bullets: [
-        "A good business can still be a bad entry if flow support is already exhausted.",
-        "Flow checks are deliberately kept separate from intrinsic value.",
+        "A good business can still be a poor entry if market support is already exhausted.",
+        "These checks do not change business value; they explain price movement risk.",
       ],
     },
     calibration: {
-      eyebrow: "Model trust",
-      title: "Calibration",
-      copy: "Calibration decides how much confidence the model deserves.",
-      plain: "This answers: should the output be read as a signal, a watch item, or noise?",
-      technical: "Combines data quality, model risk, walk-forward checks, and final-agent status.",
+      eyebrow: "Trust check",
+      title: "Trust check",
+      copy: "Calibration decides whether the model should be used, watched, or ignored.",
+      plain: "Has the model earned enough trust for this company?",
+      technical: "Combines data quality, model risk, realized-outcome checks, segment calibration, and final-review status.",
       metrics: [
         ["Data quality", fmtPct(quality, 0)],
         ["Model risk", fmtPct(adjustedDrivers.modelRisk, 0)],
         ["Feasibility", fmtPct(feasibility, 0)],
-        ["Final checks", debate?.agents?.length ? "Debated" : "Pending"],
+        ["Final review", debate?.agents?.length ? "Complete" : "Pending"],
       ],
       bullets: [
-        "Model risk penalizes confidence even when the point estimate looks attractive.",
-        debate?.final_orchestrator ? statusCopy(debate.final_orchestrator.status) : "Run the debate to add the final orchestrator layer.",
+        "Model risk reduces confidence even when the value estimate looks attractive.",
+        "When enough past outcomes exist, calibration should be checked by horizon and business type, not only in aggregate.",
+        debate?.final_orchestrator ? statusCopy(debate.final_orchestrator.status) : "Run the review to add the final verdict layer.",
       ],
     },
   };
@@ -755,17 +824,17 @@ function EngineConsole({
           </h2>
           <p>{panel.copy}</p>
           <div className={styles.explainPair}>
-            <span>Plain read</span>
+            <span>In plain English</span>
             <strong>{panel.plain}</strong>
-            <span>Technical read</span>
+            <span>What is checked</span>
             <strong>{panel.technical}</strong>
           </div>
         </div>
         <div className={styles.debateActions}>
           <button type="button" onClick={onRunDebate} disabled={debateStatus.state === "loading"}>
-            {debateStatus.state === "loading" ? "Running debate" : "Run valuation debate"}
+            {debateStatus.state === "loading" ? "Running review" : "Run final review"}
           </button>
-          <small>0 specialist LLM calls / 1 final call max</small>
+          <small>Local analyst checks first / one final call max</small>
         </div>
       </div>
       <div className={styles.engineMetrics}>
@@ -779,8 +848,8 @@ function EngineConsole({
           <BulletList items={panel.bullets} />
         </div>
         <div className={styles.engineCard}>
-          <strong>Debate status</strong>
-          <p>{debateStatus.message || "Run the valuation debate to restore the specialist panel and final verdict."}</p>
+          <strong>Review status</strong>
+          <p>{debateStatus.message || "Run the final review to see the analyst checks and verdict."}</p>
           {debate?.agents?.length ? (
             <div className={styles.agentVotes}>
               {debate.agents.slice(0, 7).map((item) => (
@@ -792,11 +861,20 @@ function EngineConsole({
           ) : null}
         </div>
       </div>
+      {activeEngine === "calibration" ? (
+        <CalibrationContract
+          adjustedDrivers={adjustedDrivers}
+          feasibility={feasibility}
+          quality={quality}
+          mode={mode}
+          debate={debate}
+        />
+      ) : null}
       {debate?.agents?.length ? (
         <div className={styles.debatePanel}>
           <div className={styles.debateHeader}>
             <div>
-              <span>Investment committee</span>
+              <span>Analyst review</span>
               <h3>{finalAnalysis?.decision || "Final verdict"}</h3>
               <p>{finalAnalysis?.one_line_conclusion || finalAnalysis?.executive_judgment}</p>
             </div>
@@ -810,15 +888,15 @@ function EngineConsole({
             <div>
               <span>Researchability</span>
               <strong>{researchability?.label || "Source file pending"}</strong>
-              <p>{researchability?.strategy || "Run the committee after loading a ticker."}</p>
+              <p>{researchability?.strategy || "Run the final review after loading a company."}</p>
             </div>
             <div>
-              <span>Quick kill</span>
+              <span>Hard stops</span>
               <strong>{quickKill?.hard_fail ? "Hard gate tripped" : `${quickKill?.tally?.fail || 0} fails / ${quickKill?.tally?.warn || 0} warns`}</strong>
               <p>{quickKill?.hard_fail ? "The model blocks sizing until the flagged item is repaired." : "No hard stop; read the warnings before sizing."}</p>
             </div>
             <div>
-              <span>Catalyst map</span>
+              <span>Near-term evidence</span>
               <strong>{catalystPack?.aggregateScore !== undefined ? fmtPct(catalystPack.aggregateScore, 0) : "Pending"}</strong>
               <p>
                 {catalystItems.length
@@ -829,7 +907,7 @@ function EngineConsole({
               </p>
             </div>
             <div>
-              <span>Change monitor</span>
+              <span>Change watch</span>
               <strong>{changeLog?.status || "Baseline pending"}</strong>
               <p>
                 {changeLog?.changes?.length
@@ -851,7 +929,7 @@ function EngineConsole({
           </div>
           <div className={styles.caseGrid}>
             <article className={styles.orchestratorCard}>
-              <span>Team lead</span>
+              <span>Final view</span>
               <p>{finalAnalysis?.executive_judgment}</p>
               <div>
                 <strong>Bull case</strong>
@@ -865,7 +943,7 @@ function EngineConsole({
                 <BulletList items={bearCase} />
               </div>
               <div>
-                <strong>What would break it</strong>
+                <strong>What would break the thesis</strong>
                 <BulletList items={killCriteria.length ? killCriteria : finalAnalysis?.open_questions || []} />
               </div>
             </article>
@@ -883,8 +961,8 @@ function EngineConsole({
               </div>
             </article>
             <article className={styles.orchestratorCard}>
-              <span>Memo output</span>
-              <p>{debate?.memo?.title || "The memo is generated after the committee verdict."}</p>
+              <span>Memo preview</span>
+              <p>{debate?.memo?.title || "The memo is generated after the final review."}</p>
               {debate?.memo?.markdown ? <pre className={styles.memoPreview}>{debate.memo.markdown.split("\n").slice(0, 10).join("\n")}</pre> : null}
             </article>
             <article className={styles.orchestratorCard}>
@@ -1070,7 +1148,7 @@ export default function ValuationOsLabPage() {
   function updateDriver(key, nextValue) {
     setDrivers((current) => ({ ...current, [key]: Number(nextValue) }));
     setDebate(null);
-    setDebateStatus({ state: "idle", message: "Driver changed; rerun the debate for a fresh verdict." });
+    setDebateStatus({ state: "idle", message: "Assumption changed; rerun the final review for a fresh verdict." });
   }
 
   async function loadLiveSnapshot(event) {
@@ -1085,7 +1163,7 @@ export default function ValuationOsLabPage() {
       return;
     }
 
-    setLiveStatus({ state: "loading", message: `Loading ${ticker} from SEC/FRED/FMP...` });
+    setLiveStatus({ state: "loading", message: `Loading ${ticker} from SEC filings, market quote, and rate sources...` });
     try {
       const response = await fetch(`/valuation-os-lab/api/snapshot?ticker=${encodeURIComponent(ticker)}`, {
         cache: "no-store",
@@ -1127,7 +1205,7 @@ export default function ValuationOsLabPage() {
       setLiveSnapshot(payload);
       setMissingDrivers(payload.missingDrivers || []);
       setDebate(null);
-      setDebateStatus({ state: "idle", message: "Live snapshot loaded; run the debate for a final verdict." });
+      setDebateStatus({ state: "idle", message: "Live snapshot loaded; run the final review for a verdict." });
       setLiveStatus({
         state: "ready",
         message: `${nextCompany.ticker} loaded: latest SEC ${payload.company?.fiscalYear || "snapshot"}${
@@ -1145,7 +1223,7 @@ export default function ValuationOsLabPage() {
   }
 
   async function runValuationDebate() {
-    setDebateStatus({ state: "loading", message: "Running local specialists and final orchestrator..." });
+    setDebateStatus({ state: "loading", message: "Running local analyst checks and final review..." });
     try {
       const response = await fetch("/valuation-os-lab/api/debate", {
         method: "POST",
@@ -1176,19 +1254,19 @@ export default function ValuationOsLabPage() {
       });
       const payload = await response.json();
       if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || "Valuation debate failed.");
+        throw new Error(payload.error || "Final review failed.");
       }
       setDebate(payload.debate);
       setDebateStatus({
         state: "ready",
-        message: `${payload.ticker} debate ready: ${statusCopy(payload.debate.final_orchestrator?.status)}${
+        message: `${payload.ticker} review ready: ${statusCopy(payload.debate.final_orchestrator?.status)}${
           payload.cached ? " (cached)" : ""
         }.`,
       });
     } catch (error) {
       setDebateStatus({
         state: "error",
-        message: error instanceof Error ? error.message : "Valuation debate failed.",
+        message: error instanceof Error ? error.message : "Final review failed.",
       });
     }
   }
@@ -1206,7 +1284,7 @@ export default function ValuationOsLabPage() {
           <strong>OS</strong>
         </div>
         <div className={styles.companyCard}>
-          <span>Thesis</span>
+          <span>Company</span>
           <strong>{adjustedDrivers.ticker}</strong>
           <small>{adjustedDrivers.name}</small>
           <em>{adjustedDrivers.sector}</em>
@@ -1226,18 +1304,18 @@ export default function ValuationOsLabPage() {
           ))}
         </nav>
         <div className={styles.healthPanel}>
-          <span>Thesis health</span>
+          <span>Current read</span>
           <strong>{plainRead}</strong>
           <p>
-            Combines valuation gap, feasibility, source quality, qualitative thesis, supply/demand, and falsifiers.
+            Combines price gap, feasibility, source quality, business evidence, supply/demand, and warnings.
           </p>
           <dl>
             <div>
-              <dt>Falsifiers</dt>
+              <dt>Warnings</dt>
               <dd>{tripwires.length} / {assumptionSchema.length}</dd>
             </div>
             <div>
-              <dt>Confidence</dt>
+              <dt>Feasibility</dt>
               <dd>{fmtPct(feasibility, 0)}</dd>
             </div>
             <div>
@@ -1251,16 +1329,16 @@ export default function ValuationOsLabPage() {
       <section className={styles.workspace}>
         <header className={styles.topbar}>
           <div>
-            <h1>Reverse DCF + ROIC Fade</h1>
+            <h1>Valuation OS</h1>
             <p>
-              A valuation workspace that shows the assumptions behind the price: source quality,
-              ROIC economics, qualitative thesis, supply/demand, bottlenecks, and the falsifiers that would break the thesis.
+              A valuation workspace that explains what the stock price already assumes, what the
+              business must deliver, and what evidence would make the thesis weaker.
             </p>
             <div className={styles.heroSummary}>
               <span>Decision read</span>
               <strong>{plainRead}</strong>
               <span>{fmtPct(upside)} value gap</span>
-              <span>{fmtPct(feasibility, 0)} feasibility</span>
+              <span>{fmtPct(feasibility, 0)} thesis fit</span>
             </div>
           </div>
           <div className={styles.controls}>
@@ -1272,14 +1350,14 @@ export default function ValuationOsLabPage() {
                 placeholder="AAPL"
               />
               <button type="submit" disabled={liveStatus.state === "loading"}>
-                {liveStatus.state === "loading" ? "Loading" : "Load SEC"}
+                {liveStatus.state === "loading" ? "Loading" : "Load company"}
               </button>
             </form>
             <select value={companyKey} onChange={(event) => selectCompany(event.target.value)}>
-              <option value="compounder">Compounder kernel</option>
+              <option value="compounder">Quality software sample</option>
               <option value="cyclical">Semiconductor cycle</option>
-              <option value="bank">Bank residual income</option>
-              {liveCompany ? <option value="live">Live SEC snapshot</option> : null}
+              <option value="bank">Regional bank sample</option>
+              {liveCompany ? <option value="live">Loaded company</option> : null}
             </select>
             <div className={styles.segmented} aria-label="Scenario mode">
               {["bear", "base", "bull"].map((item) => (
@@ -1303,25 +1381,33 @@ export default function ValuationOsLabPage() {
 
         <section className={styles.orientationStrip} aria-label="Valuation OS reading guide">
           <div>
-            <span>1 Source</span>
-            <strong>SEC, quote, rate</strong>
-            <p>Confirms whether the inputs are usable.</p>
+            <span>1 Inputs</span>
+            <strong>Filings, price, rates</strong>
+            <p>Checks whether the numbers are usable.</p>
           </div>
           <div>
             <span>2 Economics</span>
             <strong>FCF, ROIC, WACC</strong>
-            <p>Shows whether growth earns enough.</p>
+            <p>Checks whether growth creates value.</p>
           </div>
           <div>
-            <span>3 Structure</span>
-            <strong>Thesis, supply, bottleneck</strong>
-            <p>Shows whether qualitative support makes the numbers plausible.</p>
+            <span>3 Business</span>
+            <strong>Quality, supply, scarcity</strong>
+            <p>Checks whether the story supports the numbers.</p>
           </div>
           <div>
-            <span>4 Expectations</span>
-            <strong>Reverse DCF + verdict</strong>
-            <p>Separates market requirements from failure points.</p>
+            <span>4 Decision</span>
+            <strong>Price assumptions + warnings</strong>
+            <p>Shows what must go right and what would break it.</p>
           </div>
+        </section>
+
+        <section className={styles.termStrip} aria-label="Plain-language finance terms">
+          <span>Quick terms</span>
+          <p><strong>DCF</strong> means valuing future cash flows today.</p>
+          <p><strong>ROIC</strong> means return on the capital the business uses.</p>
+          <p><strong>WACC</strong> is the return investors require for taking the risk.</p>
+          <p><strong>Reverse DCF</strong> asks what growth the current price already assumes.</p>
         </section>
 
         <RouterPanel router={valuationRouter} />
@@ -1349,37 +1435,37 @@ export default function ValuationOsLabPage() {
           <article className={styles.surfacePanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Expectation Engine</span>
-                <h2>Reverse DCF feasibility surface</h2>
+                <span>Price requirements</span>
+                <h2>What has to be true?</h2>
                 <p>
-                  Each cell shows value as a percentage of market price. Higher cells require stronger growth and ROIC.
+                  Each cell shows estimated value as a percentage of today&apos;s price. The grid makes the price assumptions visible.
                 </p>
               </div>
               <mark>Market price {fmtMoney(adjustedDrivers.price)}</mark>
             </div>
             <Surface surface={surface} price={adjustedDrivers.price} />
             <div className={styles.surfaceLegend}>
-              <span>Below price</span>
-              <b>White contour approximates price parity</b>
-              <span>Above price</span>
+              <span>Looks expensive</span>
+              <b>White line is roughly fair value</b>
+              <span>Looks cheaper</span>
             </div>
           </article>
 
           <article className={styles.ledgerPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Assumption Ledger</span>
-                <h2>Drivers, sources, falsifiers</h2>
+                <span>Assumptions</span>
+                <h2>What you can change</h2>
                 <p>
-                  Sliders are the controllable assumptions. The line under each driver is the test that would disprove it.
+                  Sliders are the assumptions. The sentence under each one says what evidence would make it weaker.
                 </p>
               </div>
-              <mark>{tripwires.length} tripped</mark>
+              <mark>{tripwires.length} warnings</mark>
             </div>
             {missingDrivers.length ? (
               <div className={styles.missingData}>
-                Missing live drivers: {missingDrivers.join(", ")}. Outputs use no prior ticker fallback; fill the
-                missing assumptions manually before reading the valuation.
+                Missing live inputs: {missingDrivers.join(", ")}. The app does not invent ticker-specific values;
+                adjust the missing assumptions before relying on the valuation.
               </div>
             ) : null}
             {assumptionCards.length ? (
@@ -1395,9 +1481,9 @@ export default function ValuationOsLabPage() {
             ) : (
               <div className={styles.policyStrip} aria-label="Assumption policy">
                 <div>
-                  <span>Assumption policy</span>
-                  <strong>Local prior</strong>
-                  <small>Load a ticker to replace generic priors with industry-aware rates.</small>
+                  <span>Rate policy</span>
+                  <strong>Sample assumption</strong>
+                  <small>Load a company to replace sample assumptions with company and industry inputs.</small>
                 </div>
               </div>
             )}
@@ -1428,9 +1514,9 @@ export default function ValuationOsLabPage() {
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Valuation distribution</span>
+                <span>Possible value range</span>
                 <h3>{fmtMoney(distribution.p50)} median value</h3>
-                <p>Range of plausible values after model-risk widening.</p>
+                <p>A range of possible values after widening for uncertainty.</p>
               </div>
               <mark>{fmtPct(distribution.probAbovePrice, 0)} above price</mark>
             </div>
@@ -1454,27 +1540,27 @@ export default function ValuationOsLabPage() {
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Moat half-life</span>
+                <span>Durability of advantage</span>
                 <h3>{adjustedDrivers.moatHalfLife.toFixed(1)} years</h3>
-                <p>How long excess ROIC is assumed to persist.</p>
+                <p>How long the company is assumed to keep earning ROIC above WACC.</p>
               </div>
-              <mark>Excess ROIC fade</mark>
+              <mark>ROIC fade</mark>
             </div>
             <MiniLine points={fadePath} />
             <p>
-              Competitive advantage decays through an explicit fade path instead of a terminal
-              margin typed by hand.
+              The app fades competitive advantage over time instead of assuming today&apos;s high
+              returns last forever.
             </p>
           </article>
 
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>ROIIC posterior</span>
+                <span>Return on new capital</span>
                 <h3>{fmtPct(adjustedDrivers.roic)} Y5 ROIC</h3>
-                <p>Checks whether new capital can fund growth.</p>
+                <p>Checks whether new investment can fund the growth assumption.</p>
               </div>
-              <mark>Prior to posterior</mark>
+              <mark>Growth quality</mark>
             </div>
             <MiniLine points={posteriorPath} tone="amber" />
             <p>
@@ -1486,9 +1572,9 @@ export default function ValuationOsLabPage() {
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Market-implied expectations</span>
+                <span>What price assumes</span>
                 <h3>{fmtPct(impliedCagr)} implied CAGR</h3>
-                <p>Compares market-required growth with the thesis input.</p>
+                <p>Compares the growth required by price with the growth in your thesis.</p>
               </div>
               <mark>{isFiniteNumber(upside) && upside >= 0 ? "Discount" : "Premium"}</mark>
             </div>
@@ -1516,13 +1602,13 @@ export default function ValuationOsLabPage() {
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Model disagreement</span>
+                <span>Method disagreement</span>
                 <h3>{fmtPct(adjustedDrivers.modelRisk, 0)} risk flag</h3>
-                <p>Higher disagreement means the point estimate deserves less trust.</p>
+                <p>When valuation methods disagree, the exact number deserves less trust.</p>
               </div>
-              <mark>Ensemble</mark>
+              <mark>Cross-check</mark>
             </div>
-            {["Fade DCF", "Residual income", "APV", "SOTP check", "Liquidation floor"].map(
+            {["DCF + ROIC fade", "Book-value return", "Adjusted cash flow", "Parts check", "Asset floor"].map(
               (label, index) => {
                 const spread = [1, 0.94, 1.08, 0.88, 0.62][index];
                 return (
@@ -1539,15 +1625,15 @@ export default function ValuationOsLabPage() {
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Data quality</span>
+                <span>Input reliability</span>
                 <h3>{fmtPct(quality, 0)} usable</h3>
-                <p>Shows whether the system is using live, traceable inputs.</p>
+                <p>Shows whether the app is using live, traceable inputs.</p>
               </div>
               <mark>Latest SEC</mark>
             </div>
             <div className={styles.qualityDial} style={{ "--score": `${quality * 100}%` }}>
               <strong>{fmtPct(quality, 0)}</strong>
-              <span>lineage</span>
+              <span>traceable</span>
             </div>
             {liveSnapshot ? (
               <div className={styles.coverageList}>
@@ -1569,7 +1655,7 @@ export default function ValuationOsLabPage() {
                 </div>
               </div>
             ) : (
-              <p>SEC filings are treated as primary truth; convenience feeds remain reconcilable.</p>
+              <p>SEC filings are treated as the primary source; convenience feeds are secondary.</p>
             )}
           </article>
         </section>
@@ -1578,9 +1664,9 @@ export default function ValuationOsLabPage() {
           <article className={styles.outputPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Decision Engine</span>
-                <h2>Return distribution and permanent-loss discipline</h2>
-                <p>The decision read combines valuation gap, feasibility, and active falsifiers.</p>
+                <span>Decision read</span>
+                <h2>What the app is telling you now</h2>
+                <p>The read combines price gap, thesis fit, input quality, and active warnings.</p>
               </div>
               <mark>{selectedEngine?.[1]}</mark>
             </div>
@@ -1590,7 +1676,7 @@ export default function ValuationOsLabPage() {
                 <strong>{fmtMoney(valuation)}</strong>
               </div>
               <div data-tone={isFiniteNumber(upside) && upside >= 0 ? "good" : "bad"}>
-                <span>Upside / downside</span>
+                <span>Value gap</span>
                 <strong>{fmtPct(upside)}</strong>
               </div>
               <div>
@@ -1602,30 +1688,30 @@ export default function ValuationOsLabPage() {
                 <strong>{fmtPct(feasibility, 0)}</strong>
               </div>
               <div>
-                <span>Falsifiers active</span>
+                <span>Warnings active</span>
                 <strong>{tripwires.length}</strong>
               </div>
             </div>
             <p>
-              The output is not a one-number target price. It shows what the market demands, which
-              assumptions support the thesis, and which falsifier should be watched first.
+              This is not a one-number target price. It shows what the market demands, which
+              assumptions support the thesis, and which warning should be watched first.
             </p>
           </article>
 
           <article className={styles.flowPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Price Formation Engine</span>
-                <h2>Separated from intrinsic value</h2>
+                <span>Market pressure</span>
+                <h2>Separated from business value</h2>
               </div>
-              <mark>Reflexivity gate</mark>
+              <mark>Trading context</mark>
             </div>
             <div className={styles.flowStack}>
               {[
-                ["ETF / passive pressure", "Neutral", 0.48],
-                ["Insider and issuance flows", "Watch", 0.38],
+                ["ETF / passive buying", "Neutral", 0.48],
+                ["Insider selling / new shares", "Watch", 0.38],
                 ["Buyback support", "Positive", 0.64],
-                ["Short and option pressure", "Elevated", 0.57],
+                ["Short interest / options", "Elevated", 0.57],
               ].map(([label, state, score]) => (
                 <div key={label} className={styles.flowRow}>
                   <span>{label}</span>
