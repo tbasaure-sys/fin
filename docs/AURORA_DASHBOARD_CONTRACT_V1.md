@@ -31,6 +31,7 @@ It returns:
 - `primaryPanel`
 - `visualizations`
 - `readiness`
+- `decisionPacket`
 - `sensitivityProxy`
 - `warnings`
 - `investorQuestions`
@@ -93,6 +94,27 @@ Levels:
 - `insufficient`
 
 This is intentionally separate from the investment decision state. A company can have a complete dashboard and still be a bad investment, or a sparse dashboard and still be interesting research.
+
+## Decision Packet
+
+When the Decision Engine is present, the contract exposes:
+
+```js
+dashboardContract.decisionPacket
+```
+
+This includes:
+
+- decision rights
+- action label and reason
+- max position cap
+- allowed actions
+- blocked actions
+- hard blocks
+- adverse scenarios
+- reopen triggers
+
+This lets the UI show what can be done now, what is blocked, and what evidence would reopen the decision without turning valuation output into an automatic trade.
 
 ## Pipeline Role
 

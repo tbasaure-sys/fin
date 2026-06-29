@@ -81,7 +81,7 @@ The pipeline memo surfaces:
 Probabilistic valuation: <decision>.
 ```
 
-The probabilistic decision is intentionally non-blocking in v1. It informs the dashboard and future Decision Engine, but it does not override existing hard gates such as causal incoherence, calibration failure, assumption-ledger trips, management reliability, or thesis monitor breaks.
+The probabilistic decision is intentionally non-blocking in v1. It informs the dashboard and the AURORA Decision Engine, but it does not override existing hard gates such as causal incoherence, calibration failure, assumption-ledger trips, management reliability, or thesis monitor breaks.
 
 ## Dashboard Role
 
@@ -110,4 +110,4 @@ The system now has the first real distributional bridge from:
 posterior assumptions -> correlated paths -> value distribution -> IRR distribution -> downside risk -> sensitivity
 ```
 
-That is the missing link between the reverse DCF / ROIC fade spine and an eventual decision engine that can reason about permanent loss, CVaR, and prudent sizing.
+That is the missing link between the reverse DCF / ROIC fade spine and the Decision Engine that reasons about permanent loss, CVaR, and prudent sizing.
