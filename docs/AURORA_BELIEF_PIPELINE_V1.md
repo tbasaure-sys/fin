@@ -8,6 +8,7 @@ It composes the layers we built without wiring them into the older Valuation OS 
 documents / raw evidence
   -> Evidence Signal Extractor
   -> Belief Compiler
+  -> Causal Driver Graph
   -> Priced Belief Object
   -> Thesis Monitor
   -> Pipeline Decision
@@ -29,6 +30,7 @@ It returns:
 - extracted evidence
 - merged compiler evidence
 - compiled drivers
+- causal driver graph
 - priced belief object
 - optional thesis monitor result
 - decision state
@@ -38,6 +40,7 @@ It returns:
 
 - `repair_inputs`: critical data is missing; do not interpret.
 - `memo_only`: belief object abstains; use as research memo.
+- `causal_model_violation`: driver assumptions break causal/economic constraints; repair before underwriting.
 - `priced_belief_ready`: compiled object is ready, but no monitor has run.
 - `active_thesis_intact`: monitor ran and falsifiers are intact.
 - `thesis_deteriorating`: evidence is worsening but no hard falsifier has tripped.
@@ -67,9 +70,10 @@ It does not train a model and it does not claim magic. It forces the workflow to
 1. What evidence was read?
 2. What signals were extracted?
 3. What drivers were compiled?
-4. What does price imply?
-5. What would falsify the thesis?
-6. Did fresh evidence trip anything?
-7. What should the investor do next?
+4. Are those drivers causally compatible?
+5. What does price imply?
+6. What would falsify the thesis?
+7. Did fresh evidence trip anything?
+8. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.

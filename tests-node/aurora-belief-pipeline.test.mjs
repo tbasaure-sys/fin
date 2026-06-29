@@ -49,11 +49,27 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.ranAt, "2026-03-01T00:00:00.000Z");
   assert.equal(result.extractedEvidence.version, "aurora_compiler_evidence_v1");
   assert.equal(result.compiled.version, "aurora_belief_compiler_v1");
+  assert.equal(result.driverGraph.version, "aurora_driver_graph_v1");
   assert.equal(result.beliefObject.version, "aurora_priced_belief_object_v1");
   assert.equal(result.monitor.version, "aurora_thesis_monitor_v1");
   assert.equal(result.monitor.status, "intact");
   assert.equal(result.decision.state, "active_thesis_intact");
   assert.ok(result.evidence.textSignals.capacityConstraint > 0.55);
+});
+
+test("belief pipeline blocks causally incoherent driver assumptions", () => {
+  const result = runAuroraBeliefPipeline({
+    ...baseInput,
+    drivers: {
+      revenueCagr: 0.18,
+      reinvestment: 0.01,
+      roic: 0.06,
+      wacc: 0.1,
+    },
+  });
+
+  assert.equal(result.decision.state, "causal_model_violation");
+  assert.ok(result.driverGraph.constraintViolations.length >= 2);
 });
 
 test("belief pipeline escalates tripped monitor into broken thesis decision", () => {
