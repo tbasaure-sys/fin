@@ -253,3 +253,36 @@ Interpretation rule:
 - If V5.1 passes, AURORA can be called a purged rolling-origin validated memo/routing component.
 - If V5.1 weakens but remains directionally positive, keep the system as production-candidate with deterministic fallback and inspect weak years.
 - If V5.1 fails IC/decile while keeping MAE lift, do not use ranking language; use only memo/routing plus uncertainty.
+
+## First V5.1 Purged Run
+
+The first submitted V5.1 run passed the corrected purged rolling-origin gate:
+
+- artifact directory: `/content/drive/MyDrive/blsprime_aurora_omega/artifacts/omega_v5_1_purged_rolling_origin_validation_20260629_023944`
+- completed folds: 10
+- validation years: 2013-2022
+- total validation rows: 6,619
+- purged selection clean share: 100%
+- product/fund survivors: none
+- wrongly removed operating canaries: none
+- pooled champion MAE: 0.13636
+- pooled spine MAE: 0.14503
+- pooled uniform MAE: 0.14851
+- MAE lift vs spine: 0.00867
+- MAE lift vs uniform: 0.01215
+- pooled champion IC: 0.16220
+- pooled champion decile spread: 0.13726
+- fold win share vs spine: 80%
+- fold win share vs uniform: 90%
+- fold win share vs best single lens: 90%
+- positive IC share: 100%
+- positive decile share: 100%
+- `production_candidate`: true
+- decision: `PROMOTE_ROLLING_ORIGIN_VALIDATED_MEMO_ROUTER`
+
+Weak folds:
+
+- 2013: champion MAE 0.12693 vs spine 0.11006, uniform 0.10999, best single `reverseDcf` 0.10708. Ranking still positive: IC 0.04548, decile spread 0.03661.
+- 2019: champion MAE 0.13583 vs spine 0.13590, effectively flat but just below the strict fold margin; still beats uniform and best single lens, with IC 0.08980 and decile spread 0.01660.
+
+Interpretation: V5.1 is the first defensible validation result. The earlier V5 result was stronger numerically but rejected for label-availability leakage. V5.1 is weaker, as expected, but still passes all purged gates. AURORA can now be promoted as a rolling-origin-validated memo/routing component with deterministic fallback. It should still not be described as a position-sizing or autonomous portfolio model until portfolio-level backtests, sector/regime diagnostics, turnover/capacity tests, and calibration checks are added.
