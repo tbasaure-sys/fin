@@ -14,6 +14,7 @@ product/equity market inputs
   -> Belief Compiler
   -> Causal Driver Graph
   -> Bayesian Forecast Engine
+  -> Valuation Ensemble
   -> Priced Belief Object
   -> Thesis Monitor
   -> Pipeline Decision
@@ -39,6 +40,7 @@ It returns:
 - compiled drivers
 - causal driver graph
 - posterior forecast distribution
+- valuation ensemble and method disagreement
 - priced belief object
 - optional thesis monitor result
 - decision state
@@ -51,6 +53,7 @@ It returns:
 - `causal_model_violation`: driver assumptions break causal/economic constraints; repair before underwriting.
 - `equilibrium_pressure_review`: product-market, equity-flow, or reflexivity pressure requires separate review.
 - `forecast_requires_review`: Bayesian posterior assumptions or forecast uncertainty require review.
+- `valuation_ensemble_review`: intrinsic valuation methods disagree too much or too few lenses are usable.
 - `priced_belief_ready`: compiled object is ready, but no monitor has run.
 - `active_thesis_intact`: monitor ran and falsifiers are intact.
 - `thesis_deteriorating`: evidence is worsening but no hard falsifier has tripped.
@@ -84,9 +87,10 @@ It does not train a model and it does not claim magic. It forces the workflow to
 5. What drivers were compiled?
 6. Are those drivers causally compatible?
 7. What posterior distribution follows from the priors, evidence, dependencies, and price?
-8. What does price imply?
-9. What would falsify the thesis?
-10. Did fresh evidence trip anything?
-11. What should the investor do next?
+8. What do distinct valuation lenses say each future is worth?
+9. What does price imply?
+10. What would falsify the thesis?
+11. Did fresh evidence trip anything?
+12. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.

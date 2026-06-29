@@ -53,12 +53,14 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.compiled.version, "aurora_belief_compiler_v1");
   assert.equal(result.driverGraph.version, "aurora_driver_graph_v1");
   assert.equal(result.forecast.version, "aurora_bayesian_forecast_engine_v1");
+  assert.equal(result.valuationEnsemble.version, "aurora_valuation_ensemble_v1");
   assert.equal(result.beliefObject.version, "aurora_priced_belief_object_v1");
   assert.equal(result.monitor.version, "aurora_thesis_monitor_v1");
   assert.equal(result.monitor.status, "intact");
   assert.equal(result.decision.state, "active_thesis_intact");
   assert.ok(result.evidence.textSignals.capacityConstraint > 0.55);
   assert.ok(result.memo.bullets.some((line) => /Forecast:/.test(line)));
+  assert.ok(result.memo.bullets.some((line) => /Valuation ensemble:/.test(line)));
 });
 
 test("belief pipeline blocks causally incoherent driver assumptions", () => {
