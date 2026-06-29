@@ -386,3 +386,44 @@ Interpretation rule:
 - If V6.1 keeps most of V6's MAE lift while restoring IC/decile near V5.1 or spine, it becomes the strongest economic-gap challenger.
 - If V6.1 falls back to spine in many folds, the economic-gap signal is useful but too unstable for autonomous adjustment.
 - If V6.1 still loses ranking despite the guard, the next improvement should move upstream: better future-fundamental models, sector/regime-specific heads, or textual/bottleneck features rather than more residual blending.
+
+## First V6.1 Run
+
+The first completed V6.1 run finished all ten purged folds:
+
+- artifact directory: `/content/drive/MyDrive/blsprime_aurora_omega/artifacts/omega_v6_1_rank_aware_economic_gap_20260629_050146`
+- completed folds: 10
+- validation years: 2013-2022
+- total validation rows: 6,786
+- pooled rank-aware MAE: 0.13674
+- pooled unguarded MAE: 0.13815
+- pooled formula MAE: 0.14125
+- pooled spine MAE: 0.14348
+- pooled uniform MAE: 0.14666
+- MAE lift vs spine: 0.00675
+- MAE lift vs uniform: 0.00992
+- pooled rank-aware IC: 0.03450
+- pooled formula IC: 0.07215
+- pooled spine IC: 0.08008
+- pooled uniform IC: 0.06506
+- pooled rank-aware decile spread: 0.06207
+- pooled spine decile spread: 0.02522
+- fold win share vs spine: 80%
+- fold win share vs uniform: 80%
+- fold win share vs best single lens: 70%
+- positive IC share: 60%
+- positive decile share: 70%
+- rank guard accept share: 100%
+- `production_candidate`: false
+
+Interpretation: V6.1 improved the unguarded learned residual and preserved most of the V6 absolute-error lift, but it did not solve the main problem. The pooled IC is materially below the deterministic spine and below the transparent formula version. The selector accepted a non-spine adjustment in every fold, which means the guard was still too permissive and likely overfit the single selector year. V6.1 should not be promoted.
+
+Decision: keep V5.1 as the current champion for routing/ranking/memo behavior. Keep V6/V6.1 as research evidence that economic-gap features have MAE value and memo interpretability, but do not let learned economic-gap residuals control ranking. The strongest near-term product design is:
+
+`V5.1 router/ranking champion + V6 formula/economic-gap explanation layer + learned residual in shadow only`
+
+The next useful research direction is not more residual blending. It is either:
+
+1. upstream improvement of future-fundamental predictions by regime/sector;
+2. adding text/bottleneck/capital-cycle evidence to the economic-gap representation;
+3. using the economic-gap formula as an explanation and falsifier generator rather than a return-ranking model.
