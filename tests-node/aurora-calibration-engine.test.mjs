@@ -197,6 +197,50 @@ test("calibration engine builds return buckets for walk-forward diagnostics", ()
   assert.ok(Number.isFinite(result.summary.investment.monotonicity));
 });
 
+test("calibration engine builds contextual segment policies for integration", () => {
+  const p1 = prediction(980, "S1");
+  const p2 = prediction(1020, "S2");
+  const p3 = prediction(1500, "S3");
+  const p4 = prediction(1600, "S4");
+  const result = buildAuroraCalibrationEngine(
+    {
+      records: [
+        {
+          id: "s1",
+          horizon: "3y",
+          prediction: p1,
+          actuals: centeredActuals(p1, { horizon: "3y", growth: p1.forecast.posterior.growth.p50 + 0.08, realizedReturn: -0.02 }),
+        },
+        {
+          id: "s2",
+          horizon: "3y",
+          prediction: p2,
+          actuals: centeredActuals(p2, { horizon: "3y", growth: p2.forecast.posterior.growth.p50 + 0.07, realizedReturn: -0.02 }),
+        },
+        {
+          id: "s3",
+          horizon: "1y",
+          prediction: p3,
+          actuals: centeredActuals(p3, { horizon: "1y", growth: p3.forecast.posterior.growth.p50 }),
+        },
+        {
+          id: "s4",
+          horizon: "1y",
+          prediction: p4,
+          actuals: centeredActuals(p4, { horizon: "1y", growth: p4.forecast.posterior.growth.p50 }),
+        },
+      ],
+    },
+    { minCalibrationRecords: 2, minSegmentRecords: 2 },
+  );
+
+  const horizon3y = result.contextualCalibration.segments.find((segment) => segment.key === "horizon:3y");
+  assert.equal(result.contextualCalibration.version, "aurora_contextual_calibration_v1");
+  assert.ok(horizon3y);
+  assert.equal(horizon3y.eligible, true);
+  assert.ok(horizon3y.policy.variables.growth.centerShift > 0.03);
+});
+
 test("calibration integration packet applies shift, scale, confidence and abstention policy", () => {
   const p1 = prediction(900, "E1");
   const calibration = buildAuroraCalibrationEngine(
@@ -231,6 +275,55 @@ test("calibration integration packet applies shift, scale, confidence and absten
   assert.equal(packet.calibrationAuthority.version, "aurora_calibration_authority_v1");
   assert.equal(packet.riskControls.decisionRights, packet.calibrationAuthority.decisionRights);
   assert.equal(p1.forecast.calibrated, undefined);
+});
+
+test("calibration integration packet selects matching contextual segment when available", () => {
+  const p1 = prediction(980, "CTX1");
+  const p2 = prediction(1020, "CTX2");
+  const p3 = prediction(1500, "CTX3");
+  const p4 = prediction(1600, "CTX4");
+  const calibration = buildAuroraCalibrationEngine(
+    {
+      records: [
+        {
+          id: "ctx1",
+          horizon: "3y",
+          prediction: p1,
+          actuals: centeredActuals(p1, { horizon: "3y", growth: p1.forecast.posterior.growth.p50 + 0.08, realizedReturn: -0.02 }),
+        },
+        {
+          id: "ctx2",
+          horizon: "3y",
+          prediction: p2,
+          actuals: centeredActuals(p2, { horizon: "3y", growth: p2.forecast.posterior.growth.p50 + 0.07, realizedReturn: -0.02 }),
+        },
+        {
+          id: "ctx3",
+          horizon: "1y",
+          prediction: p3,
+          actuals: centeredActuals(p3, { horizon: "1y", growth: p3.forecast.posterior.growth.p50 - 0.01 }),
+        },
+        {
+          id: "ctx4",
+          horizon: "1y",
+          prediction: p4,
+          actuals: centeredActuals(p4, { horizon: "1y", growth: p4.forecast.posterior.growth.p50 - 0.01 }),
+        },
+      ],
+    },
+    { minCalibrationRecords: 2, minSegmentRecords: 2 },
+  );
+  const packet = buildAuroraCalibrationIntegrationPacket(p1, calibration, {
+    builtAt: "2026-03-01T00:00:00.000Z",
+    horizon: "3y",
+    minSegmentRecords: 2,
+  });
+
+  assert.equal(packet.contextualCalibration.applied, true);
+  assert.match(packet.contextualCalibration.activeSegment.key, /horizon:3y/);
+  assert.equal(packet.appliedAdjustments.contextualCalibration.applied, true);
+  assert.ok(packet.appliedAdjustments.contextualCalibration.contextualWeight > 0);
+  assert.ok(packet.calibratedForecast.posterior.growth.p50 > p1.forecast.posterior.growth.p50);
 });
 
 test("pipeline exposes calibration integration without mutating the original forecast", () => {

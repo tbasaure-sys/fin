@@ -26,6 +26,7 @@ It returns:
 - monotonicity between predicted and realized return buckets
 - permanent-loss rate
 - experiment-count pressure for backtest-overfitting risk
+- contextual calibration segments by horizon, sector, archetype, horizon-archetype, horizon-sector, and decision state
 - a recalibration policy that can be applied by downstream engines
 
 ## Continuous Calibration
@@ -91,6 +92,36 @@ Policy actions:
 - `apply_recalibration_in_shadow`: calibration is watch-level; apply in shadow before changing production decisions.
 - `freeze_promotion_and_apply_conservative_overrides`: calibration is failing; do not promote, widen uncertainty, haircut confidence, and raise abstention.
 
+## Contextual Calibration
+
+The engine also emits:
+
+```js
+calibration.contextualCalibration
+```
+
+This prevents one global calibration average from silently overriding different business realities. AURORA now scores eligible segment policies for:
+
+- `horizon`
+- `sector`
+- `archetype`
+- `horizon_archetype`
+- `horizon_sector`
+- `decision_state`
+
+Each segment includes:
+
+- segment key and readable label
+- scored outcome count
+- segment decision
+- segment recalibration policy
+- segment authority packet
+- eligibility flag
+
+The integration packet can then select the most specific eligible segment matching the current prediction context. For example, a 3Y semiconductor/capacity-cycle record can use a `horizon_sector` or `horizon_archetype` policy instead of a global correction learned from unrelated 1Y or financial-sector outcomes.
+
+This is intentionally bounded. The contextual policy is blended with the global policy rather than replacing it outright. Segment calibration is allowed to influence the calibrated branch only when enough realized outcomes exist for that segment and the segment is not failing coverage or negative-return probability checks.
+
 ## Integration Packet
 
 The engine also exports:
@@ -107,6 +138,7 @@ It returns:
 - `calibratedValuationEnsemble`: value range, weighted fair value, expected return, and disagreement adjusted by the policy
 - `riskControls`: confidence haircut, negative-return probability, uncertainty scale, abstention threshold, and `shouldAbstain`
 - `appliedAdjustments`: the exact variable and global adjustments used
+- `contextualCalibration`: whether a matching contextual segment was used, which segment was selected, and why no segment was used if none matched
 - `warnings`: integration caveats such as pending outcomes, shadow-only calibration, failed calibration, or backtest-overfitting pressure
 
 Integration modes:
@@ -117,6 +149,24 @@ Integration modes:
 - `conservative_override`: calibration is failing; freeze promotion, widen uncertainty, haircut confidence, and abstain.
 
 The original forecast remains untouched. This is deliberate: product code can compare raw vs calibrated outputs and decide exactly when to adopt the calibrated branch.
+
+### Integration-Ready Contract
+
+Product code should read, in order:
+
+1. `calibrationIntegration.calibrationAuthority`
+2. `calibrationIntegration.contextualCalibration`
+3. `calibrationIntegration.riskControls`
+4. `calibrationIntegration.appliedAdjustments`
+
+The calibration branch is ready for integration when:
+
+- `calibrationAuthority.decisionRights` is not `observe_only` or `freeze_promotion`
+- `riskControls.shouldAbstain` is false
+- `contextualCalibration.applied` is true, or the global calibration authority is decision-grade
+- hard blocks are empty
+
+If these checks do not pass, the calibrated branch should be shown as shadow/diagnostic evidence, not as a production decision override.
 
 ## Calibration Authority
 
