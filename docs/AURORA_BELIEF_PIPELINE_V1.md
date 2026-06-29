@@ -57,6 +57,7 @@ It returns:
 - calibration integration packet with calibrated forecast branch, risk controls, and integration mode
 - management guidance reliability when supplied
 - capital allocation discipline when allocation history is supplied
+- dashboard contract with primary panel metrics, visualization readiness, warnings, and investor questions
 - priced belief object
 - optional thesis monitor result
 - decision state
@@ -120,8 +121,9 @@ It does not train a model and it does not claim magic. It forces the workflow to
 15. What calibrated branch and risk controls should downstream product code consume?
 16. Is management guidance historically reliable?
 17. Does management convert business economics into owner economics through capital allocation?
-18. What would falsify the thesis?
-19. Did fresh evidence trip anything?
-20. What should the investor do next?
+18. What should the investor dashboard show, and which views are truly ready?
+19. What would falsify the thesis?
+20. Did fresh evidence trip anything?
+21. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.
