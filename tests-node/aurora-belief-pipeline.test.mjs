@@ -58,6 +58,8 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.feasibilityManifold.version, "aurora_feasibility_manifold_v1");
   assert.equal(result.calibration.version, "aurora_calibration_engine_v1");
   assert.equal(result.calibration.decision, "calibration_pending");
+  assert.equal(result.managementReliability.version, "aurora_management_reliability_engine_v1");
+  assert.equal(result.managementReliability.decision, "management_reliability_pending");
   assert.equal(result.beliefObject.version, "aurora_priced_belief_object_v1");
   assert.equal(result.monitor.version, "aurora_thesis_monitor_v1");
   assert.equal(result.monitor.status, "intact");
@@ -68,6 +70,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.ok(result.memo.bullets.some((line) => /Expectations surface:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Feasibility manifold:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Calibration:/.test(line)));
+  assert.ok(result.memo.bullets.some((line) => /Management reliability:/.test(line)));
 });
 
 test("belief pipeline can score calibration when actual outcomes are supplied", () => {
@@ -85,6 +88,20 @@ test("belief pipeline can score calibration when actual outcomes are supplied", 
 
   assert.equal(result.calibration.summary.scoredRecords, 1);
   assert.equal(result.calibration.records[0].status, "scored");
+});
+
+test("belief pipeline escalates unreliable management guidance history", () => {
+  const result = runAuroraBeliefPipeline({
+    ...baseInput,
+    managementGuidance: [
+      { id: "m1", kpi: "revenue", low: 120, high: 130, actual: 92, revisionDirection: "cut", regime: "downturn" },
+      { id: "m2", kpi: "operating_margin", low: 0.32, high: 0.36, actual: 0.2, scale: 1, revisionDirection: "lower" },
+      { id: "m3", kpi: "fcf", low: 55, high: 65, actual: 25, revisionDirection: "down" },
+    ],
+  });
+
+  assert.equal(result.managementReliability.decision, "management_reliability_poor");
+  assert.equal(result.decision.state, "management_reliability_review");
 });
 
 test("belief pipeline blocks causally incoherent driver assumptions", () => {

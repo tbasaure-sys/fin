@@ -18,6 +18,7 @@ product/equity market inputs
   -> Expectations Engine
   -> Feasibility Manifold
   -> Calibration Engine
+  -> Management Reliability Engine
   -> Priced Belief Object
   -> Thesis Monitor
   -> Pipeline Decision
@@ -47,6 +48,7 @@ It returns:
 - market-implied expectations surface
 - economic feasibility manifold
 - calibration status and scored outcomes when supplied
+- management guidance reliability when supplied
 - priced belief object
 - optional thesis monitor result
 - decision state
@@ -63,6 +65,7 @@ It returns:
 - `expectations_surface_review`: market-implied expectations are heroic or the surface is insufficient.
 - `feasibility_manifold_review`: market-clearing assumptions fall outside plausible economic geometry.
 - `calibration_review`: supplied outcome history indicates calibration failure.
+- `management_reliability_review`: management guidance history is poor and should be haircut before underwriting.
 - `priced_belief_ready`: compiled object is ready, but no monitor has run.
 - `active_thesis_intact`: monitor ran and falsifiers are intact.
 - `thesis_deteriorating`: evidence is worsening but no hard falsifier has tripped.
@@ -100,8 +103,9 @@ It does not train a model and it does not claim magic. It forces the workflow to
 9. What growth/margin/ROIC surface does the market price require?
 10. Is that surface economically plausible for this kind of business?
 11. Is the model calibrated against realized outcomes?
-12. What would falsify the thesis?
-13. Did fresh evidence trip anything?
-14. What should the investor do next?
+12. Is management guidance historically reliable?
+13. What would falsify the thesis?
+14. Did fresh evidence trip anything?
+15. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.
