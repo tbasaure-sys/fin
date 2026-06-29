@@ -16,6 +16,7 @@ product/equity market inputs
   -> Bayesian Forecast Engine
   -> Valuation Ensemble
   -> Expectations Engine
+  -> Feasibility Manifold
   -> Priced Belief Object
   -> Thesis Monitor
   -> Pipeline Decision
@@ -43,6 +44,7 @@ It returns:
 - posterior forecast distribution
 - valuation ensemble and method disagreement
 - market-implied expectations surface
+- economic feasibility manifold
 - priced belief object
 - optional thesis monitor result
 - decision state
@@ -57,6 +59,7 @@ It returns:
 - `forecast_requires_review`: Bayesian posterior assumptions or forecast uncertainty require review.
 - `valuation_ensemble_review`: intrinsic valuation methods disagree too much or too few lenses are usable.
 - `expectations_surface_review`: market-implied expectations are heroic or the surface is insufficient.
+- `feasibility_manifold_review`: market-clearing assumptions fall outside plausible economic geometry.
 - `priced_belief_ready`: compiled object is ready, but no monitor has run.
 - `active_thesis_intact`: monitor ran and falsifiers are intact.
 - `thesis_deteriorating`: evidence is worsening but no hard falsifier has tripped.
@@ -92,8 +95,9 @@ It does not train a model and it does not claim magic. It forces the workflow to
 7. What posterior distribution follows from the priors, evidence, dependencies, and price?
 8. What do distinct valuation lenses say each future is worth?
 9. What growth/margin/ROIC surface does the market price require?
-10. What would falsify the thesis?
-11. Did fresh evidence trip anything?
-12. What should the investor do next?
+10. Is that surface economically plausible for this kind of business?
+11. What would falsify the thesis?
+12. Did fresh evidence trip anything?
+13. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.
