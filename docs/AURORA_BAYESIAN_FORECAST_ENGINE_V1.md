@@ -66,5 +66,4 @@ node scripts/run_aurora_bayesian_forecast.mjs --input pipeline-output.json --out
 
 ## Current Limits
 
-This is still a deterministic Bayesian approximation, not a full Monte Carlo engine. The next step is to add sampled posterior paths with Sobol or Latin hypercube sampling, then expose the scenario distribution in the UI.
-
+This remains a deterministic Bayesian approximation. It now feeds `AURORA Probabilistic Valuation v1`, which samples correlated posterior paths with quasi-Monte Carlo and exposes value, IRR, downside, and sensitivity distributions for the dashboard and future Decision Engine.

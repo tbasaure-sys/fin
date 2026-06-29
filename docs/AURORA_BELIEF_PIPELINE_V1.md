@@ -55,6 +55,7 @@ It returns:
 - calibration status and scored outcomes when supplied
 - recalibration policy for bias, uncertainty, confidence, and abstention adjustments
 - calibration integration packet with calibrated forecast branch, risk controls, and integration mode
+- probabilistic valuation with correlated quasi-Monte Carlo paths, IRR distribution, CVaR, and sensitivity
 - management guidance reliability when supplied
 - capital allocation discipline when allocation history is supplied
 - dashboard contract with primary panel metrics, visualization readiness, warnings, and investor questions
@@ -119,11 +120,12 @@ It does not train a model and it does not claim magic. It forces the workflow to
 13. Is the model calibrated against realized outcomes?
 14. If not, how should future forecasts be shifted, widened, or confidence-haircut?
 15. What calibrated branch and risk controls should downstream product code consume?
-16. Is management guidance historically reliable?
-17. Does management convert business economics into owner economics through capital allocation?
-18. What should the investor dashboard show, and which views are truly ready?
-19. What would falsify the thesis?
-20. Did fresh evidence trip anything?
-21. What should the investor do next?
+16. What value, IRR, downside, and sensitivity distribution follows from correlated paths?
+17. Is management guidance historically reliable?
+18. Does management convert business economics into owner economics through capital allocation?
+19. What should the investor dashboard show, and which views are truly ready?
+20. What would falsify the thesis?
+21. Did fresh evidence trip anything?
+22. What should the investor do next?
 
 That is the production skeleton we can now expose in the UI or feed into future ML.

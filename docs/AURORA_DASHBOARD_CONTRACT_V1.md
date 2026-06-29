@@ -79,7 +79,7 @@ Each slot has:
 - `reason`
 - `dataRef`
 
-This keeps the UI honest. For example, the Sobol sensitivity view is currently a `proxy` based on assumption-burden and driver-graph sensitivity. It should not be represented as true Sobol sampling until the probabilistic valuation layer exists.
+This keeps the UI honest. If `probabilisticValuation.sensitivity` is available, the Sobol-style sensitivity slot is `ready`. If it is missing, the dashboard can fall back to a `proxy` based on assumption-burden and driver-graph sensitivity.
 
 ## Readiness
 

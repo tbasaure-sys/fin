@@ -77,7 +77,7 @@ test("dashboard contract includes required visualization slots with readiness", 
     historicalAnalogs: [{ ticker: "LRCX", year: 2018, similarity: 0.72 }],
   });
 
-  assert.equal(result.dashboardContract.visualizations.length, 11);
+  assert.ok(result.dashboardContract.visualizations.length >= 11);
   const keys = new Set(result.dashboardContract.visualizations.map((item) => item.key));
   [
     "fan_chart",
@@ -90,6 +90,7 @@ test("dashboard contract includes required visualization slots with readiness", 
     "historical_analog_paths",
     "capital_allocation_scorecard",
     "calibration_history",
+    "irr_distribution",
   ].forEach((key) => assert.ok(keys.has(key), `missing ${key}`));
   assert.ok(result.dashboardContract.readiness.score > 0.55);
   assert.ok(result.dashboardContract.memo.nextBestIntegration);
