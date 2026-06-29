@@ -1,0 +1,121 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { runAuroraBeliefPipeline, runAuroraBeliefPipelinePanel } from "../lib/aurora-belief-pipeline.js";
+
+const baseInput = {
+  company: {
+    ticker: "ASML",
+    name: "ASML Holding NV",
+    sector: "Technology",
+    industry: "Semiconductor equipment",
+  },
+  market: { price: 1200, beta: 1.12 },
+  macro: { riskFreeRate: 0.044, equityRiskPremium: 0.052, inflation: 0.024 },
+  financials: {
+    incomeStatements: [
+      { date: "2021-12-31", revenue: 180, ebit: 52 },
+      { date: "2022-12-31", revenue: 210, ebit: 63 },
+      { date: "2023-12-31", revenue: 250, ebit: 76 },
+      { date: "2024-12-31", revenue: 300, ebit: 93 },
+    ],
+    balanceSheets: [{ date: "2024-12-31", totalDebt: 18, totalStockholdersEquity: 285, cashAndCashEquivalents: 42 }],
+    cashFlows: [{ date: "2024-12-31", operatingCashFlow: 36, capitalExpenditure: -8 }],
+  },
+  documents: [
+    {
+      type: "earnings call",
+      source: "company transcript",
+      text:
+        "Management described multi-year demand visibility supported by backlog. The company remains capacity constrained and pricing power is strong. Internal controls were effective.",
+    },
+  ],
+  observations: {
+    asOfDate: "2026-03-01",
+    metrics: {
+      revenue_growth: 0.23,
+      operating_margin: 0.39,
+      roic: 0.33,
+      reinvestment_rate: 0.16,
+    },
+  },
+};
+
+test("belief pipeline composes evidence extraction, compiler, belief object, and monitor", () => {
+  const result = runAuroraBeliefPipeline(baseInput, { asOfDate: "2026-01-01", ranAt: "2026-03-01T00:00:00.000Z" });
+
+  assert.equal(result.version, "aurora_belief_pipeline_v1");
+  assert.equal(result.ticker, "ASML");
+  assert.equal(result.ranAt, "2026-03-01T00:00:00.000Z");
+  assert.equal(result.extractedEvidence.version, "aurora_compiler_evidence_v1");
+  assert.equal(result.compiled.version, "aurora_belief_compiler_v1");
+  assert.equal(result.beliefObject.version, "aurora_priced_belief_object_v1");
+  assert.equal(result.monitor.version, "aurora_thesis_monitor_v1");
+  assert.equal(result.monitor.status, "intact");
+  assert.equal(result.decision.state, "active_thesis_intact");
+  assert.ok(result.evidence.textSignals.capacityConstraint > 0.55);
+});
+
+test("belief pipeline escalates tripped monitor into broken thesis decision", () => {
+  const result = runAuroraBeliefPipeline({
+    ...baseInput,
+    observations: {
+      asOfDate: "2026-03-01",
+      metrics: {
+        revenue_growth: -0.02,
+        operating_margin: 0.39,
+        roic: 0.33,
+        reinvestment_rate: 0.16,
+      },
+    },
+  });
+
+  assert.equal(result.monitor.status, "tripped");
+  assert.equal(result.decision.state, "thesis_broken_or_needs_reunderwriting");
+  assert.equal(result.decision.action, "re-underwrite_or_reject_thesis");
+});
+
+test("belief pipeline can compile without observations and leaves monitor null", () => {
+  const { observations, ...inputWithoutObservations } = baseInput;
+  const result = runAuroraBeliefPipeline(inputWithoutObservations);
+
+  assert.equal(result.monitor, null);
+  assert.ok(["priced_belief_ready", "memo_only"].includes(result.decision.state));
+  assert.ok(result.memo.bullets.some((line) => /Monitor status: not run/.test(line)));
+});
+
+test("belief pipeline repairs sparse input before interpretation", () => {
+  const result = runAuroraBeliefPipeline({
+    company: { ticker: "THIN", sector: "Unknown" },
+    market: { price: 42 },
+  });
+
+  assert.equal(result.decision.state, "repair_inputs");
+  assert.equal(result.compiled.driverQuality.level, "insufficient");
+});
+
+test("belief pipeline panel summarizes decisions and monitor statuses", () => {
+  const panel = runAuroraBeliefPipelinePanel([
+    baseInput,
+    {
+      ...baseInput,
+      company: { ...baseInput.company, ticker: "BROKEN" },
+      observations: {
+        asOfDate: "2026-03-01",
+        metrics: {
+          revenue_growth: -0.02,
+          operating_margin: 0.39,
+          roic: 0.33,
+          reinvestment_rate: 0.16,
+        },
+      },
+    },
+  ]);
+
+  assert.equal(panel.version, "aurora_belief_pipeline_panel_v1");
+  assert.equal(panel.count, 2);
+  assert.equal(panel.monitorCounts.intact, 1);
+  assert.equal(panel.monitorCounts.tripped, 1);
+  assert.equal(panel.counts.active_thesis_intact, 1);
+  assert.equal(panel.counts.thesis_broken_or_needs_reunderwriting, 1);
+});
