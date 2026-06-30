@@ -117,6 +117,135 @@ test("calibration engine scores continuous forecast coverage and probabilistic i
   assert.equal(result.summary.experimentRisk.level, "low_recorded_experiment_pressure");
 });
 
+test("calibration engine scores expectation-violation diagnostics from priced beliefs", () => {
+  const p1 = prediction(980, "EV1");
+  const p2 = prediction(1180, "EV2");
+  const result = buildAuroraCalibrationEngine({
+    records: [
+      {
+        id: "ev1",
+        prediction: p1,
+        actuals: centeredActuals(p1, {
+          growth: p1.forecast.posterior.growth.p50 + 0.04,
+          margin: p1.forecast.posterior.margin.p50 + 0.02,
+          roic: p1.forecast.posterior.roic.p50 + 0.03,
+          reinvestment: p1.forecast.posterior.reinvestment.p50 - 0.02,
+        }),
+      },
+      {
+        id: "ev2",
+        prediction: p2,
+        actuals: centeredActuals(p2, {
+          growth: p2.forecast.posterior.growth.p50 - 0.01,
+          margin: p2.forecast.posterior.margin.p50 + 0.01,
+          roic: p2.forecast.posterior.roic.p50,
+          reinvestment: p2.forecast.posterior.reinvestment.p50 - 0.01,
+        }),
+      },
+    ],
+  });
+  const packet = buildAuroraCalibrationIntegrationPacket(p1, result, {
+    builtAt: "2026-03-01T00:00:00.000Z",
+  });
+
+  assert.equal(result.summary.expectationViolation.count, 2);
+  assert.ok(Number.isFinite(result.summary.expectationViolation.composite.meanAbsoluteError));
+  assert.ok(Number.isFinite(result.summary.expectationViolation.composite.directionAccuracy));
+  assert.ok(Number.isFinite(result.summary.expectationViolation.components.growth.meanAbsoluteError));
+  assert.ok(packet.calibrationContract.monitoring.metrics.some((metric) => metric.id === "expectation_violation_direction_accuracy"));
+});
+
+test("calibration engine derives thesis usefulness from belief object confidence and decision class", () => {
+  const p = prediction(1100, "TU1");
+  p.beliefObject = {
+    ...p.beliefObject,
+    decisionClass: "research_priority",
+    decisionEvidence: {
+      ...p.beliefObject.decisionEvidence,
+      confidence: 0.77,
+      falsifiabilityYield: 0.26,
+    },
+    decisionClassLedger: {
+      ...p.beliefObject.decisionClassLedger,
+      classSupport: 0.69,
+    },
+    evidenceDebt: 0.11,
+    transitionSignal: {
+      archetypeMigrationScore: 0.15,
+      ...p.beliefObject.transitionSignal,
+    },
+    falsifiabilityYield: 0.26,
+    lensLegitimacy: [
+      { key: "reverseDcf", legitimacy: 0.86, reason: "Always useful as price-as-question spine." },
+      { key: "roicFade", legitimacy: 0.58, reason: "Valid when excess ROIC is measurable." },
+    ],
+    assumptionBurdenOfProof: { score: 0.22 },
+    beliefDistortionIndex: 34,
+    abstain: false,
+  };
+
+  const result = buildAuroraCalibrationEngine({
+    records: [
+      {
+        id: "tu1",
+        prediction: p,
+        actuals: centeredActuals(p, {
+          decisionClass: "research_priority",
+          value: p.valuationEnsemble.summary.weightedFairValue,
+          realizedReturn: p.valuationEnsemble.summary.expectedReturn,
+        }),
+      },
+    ],
+    experimentLog: { experimentCount: 1 },
+  });
+
+  assert.equal(result.summary.scoredRecords, 1);
+  const row = result.records.find((record) => record.status === "scored");
+  assert.equal(row.belief.thesisUsefulObserved, true);
+  assert.equal(row.belief.thesisUsefulPredicted, true);
+  assert.ok(Number.isFinite(row.belief.thesisUsefulPredictedScore));
+});
+
+test("calibration engine marks abstention as not useful even with strong signal fields", () => {
+  const p = prediction(1100, "TU2");
+  p.beliefObject = {
+    ...p.beliefObject,
+    decisionClass: "research_priority",
+    decisionEvidence: {
+      ...p.beliefObject.decisionEvidence,
+      confidence: 0.81,
+    },
+    decisionClassLedger: {
+      ...p.beliefObject.decisionClassLedger,
+      classSupport: 0.74,
+    },
+    evidenceDebt: 0.08,
+    transitionSignal: {
+      ...p.beliefObject.transitionSignal,
+      archetypeMigrationScore: 0.05,
+    },
+    abstain: true,
+  };
+
+  const result = buildAuroraCalibrationEngine({
+    records: [
+      {
+        id: "tu2",
+        prediction: p,
+        actuals: centeredActuals(p, {
+          decisionClass: "research_not_rankable",
+          value: p.valuationEnsemble.summary.weightedFairValue,
+          realizedReturn: p.valuationEnsemble.summary.expectedReturn,
+        }),
+      },
+    ],
+  });
+
+  const row = result.records.find((record) => record.status === "scored");
+  assert.equal(row.belief.thesisUsefulPredicted, false);
+  assert.equal(row.belief.thesisUsefulObserved, false);
+});
+
 test("calibration engine fails badly miscalibrated histories", () => {
   const p1 = prediction(900, "B1");
   const p2 = prediction(950, "B2");
@@ -145,6 +274,35 @@ test("calibration engine fails badly miscalibrated histories", () => {
   assert.ok(result.recalibrationPolicy.globalAdjustments.confidenceHaircut > 0);
   assert.ok(result.summary.continuous.growth.coverage80 < 0.8);
   assert.equal(result.summary.experimentRisk.level, "high_backtest_overfitting_risk");
+});
+
+test("calibration authority blocks inverted expectation-violation histories", () => {
+  const records = [920, 960, 1000, 1040, 1080].map((price, index) => {
+    const pred = prediction(price, `INV${index}`);
+    const implied = pred.beliefObject.marketImpliedBeliefs;
+    const expectsPositiveGap = (pred.beliefObject.signedOpportunityScore ?? 0) >= 0;
+    return {
+      id: `inv${index}`,
+      prediction: pred,
+      actuals: centeredActuals(pred, {
+        growth: implied.revenueCagr5y.mean + (expectsPositiveGap ? -0.05 : 0.05),
+        margin: implied.terminalMargin.mean + (expectsPositiveGap ? -0.04 : 0.04),
+        roic: implied.roicPath.mean + (expectsPositiveGap ? -0.05 : 0.05),
+        reinvestment: implied.reinvestmentRate.mean + (expectsPositiveGap ? 0.05 : -0.05),
+        value: pred.valuationEnsemble.summary.weightedFairValue * 0.7,
+        realizedReturn: -0.2,
+      }),
+    };
+  });
+
+  const result = buildAuroraCalibrationEngine(
+    { records },
+    { minCalibrationRecords: 5 },
+  );
+
+  assert.ok(result.calibrationAuthority.hardBlocks.includes("expectation_violation_inverted"));
+  assert.ok(result.calibrationAuthority.requiredEvidence.some((item) => item.includes("expectation-violation")));
+  assert.ok(["calibration_watch", "calibration_failing"].includes(result.decision));
 });
 
 test("calibration engine emits variable-level shift and interval scale policy", () => {

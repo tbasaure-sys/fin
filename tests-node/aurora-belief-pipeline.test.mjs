@@ -66,6 +66,7 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.equal(result.calibration.version, "aurora_calibration_engine_v1");
   assert.equal(result.calibration.decision, "calibration_pending");
   assert.equal(result.calibration.recalibrationPolicy.action, "collect_realized_outcomes");
+  assert.equal(result.omegaSpine.version, "aurora_omega_spine_v1");
   assert.equal(result.managementReliability.version, "aurora_management_reliability_engine_v1");
   assert.equal(result.managementReliability.decision, "management_reliability_pending");
   assert.equal(result.capitalAllocation.version, "aurora_capital_allocation_engine_v1");
@@ -87,6 +88,44 @@ test("belief pipeline composes evidence extraction, compiler, belief object, and
   assert.ok(result.memo.bullets.some((line) => /Competitive moat:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Management reliability:/.test(line)));
   assert.ok(result.memo.bullets.some((line) => /Capital allocation:/.test(line)));
+  assert.ok(result.memo.bullets.some((line) => /Omega spine:/.test(line)));
+});
+
+test("belief pipeline exposes processing gap review without pretending it is direct alpha", () => {
+  const result = runAuroraBeliefPipeline(
+    {
+      ...baseInput,
+      market: { ...baseInput.market, marketCap: 12_000_000_000, liquidityScore: 0.82 },
+      filingDate: "2026-02-24",
+      evidenceItems: [
+        {
+          eventType: "10-Q",
+          evidenceType: "liquidity",
+          direction: "bearish",
+          thesisVariable: "free_cash_flow_conversion",
+          whatChanged: "The company added language that working capital needs increased because customers are paying more slowly.",
+          whyItMatters: "This affects free cash flow conversion and balance-sheet flexibility.",
+          semanticNovelty: 0.88,
+          contradictionStrength: 0.72,
+          confidence: 0.86,
+        },
+      ],
+      attention: {
+        abnormalReturn: 0.003,
+        abnormalVolume: 0.08,
+        newsCount: 0,
+        analystRevision: 0,
+        transcriptMentions: 0,
+      },
+    },
+    { asOfDate: "2026-02-26", ranAt: "2026-02-26T00:00:00.000Z" },
+  );
+
+  assert.equal(result.processingGap.version, "aurora_processing_gap_engine_v1");
+  assert.equal(result.processingGap.evidenceCards[0].quadrant, "aurora_zone");
+  assert.equal(result.decision.state, "processing_gap_review");
+  assert.equal(result.decision.action, "investigate_underprocessed_public_evidence");
+  assert.ok(result.memo.bullets.some((line) => /Processing gap:/.test(line)));
 });
 
 test("belief pipeline can score calibration when actual outcomes are supplied", () => {

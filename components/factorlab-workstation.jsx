@@ -114,14 +114,14 @@ const COPY = {
   },
   es: {
     navAria: "Navegación de FactorLab",
-    nav: { builder: "Constructor", audit: "Auditoría", results: "Resultados" },
+    nav: { builder: "Filtro", audit: "Auditoría", results: "Resultados" },
     workspace: "Valuation OS",
     language: "Idioma",
     hero: {
       kicker: "FactorLab",
-      title: "Arma un filtro de factores y ve por qué pasa.",
+      title: "Prioriza candidatos antes de valorar.",
       body:
-        "FactorLab convierte una idea de factores en una lista point-in-time de candidatos, y rechaza la corrida si el spec usa datos futuros.",
+        "FactorLab no valora empresas. Ordena candidatos de investigación con factores de mercado, calidad de tesis, oferta/demanda y poder de cuello de botella.",
     },
     status: {
       universe: "Universo",
@@ -135,7 +135,7 @@ const COPY = {
     builder: {
       label: "Constructor de filtro",
       plain:
-        "Elige universo, fecha de corte y pesos. El resultado se recalcula desde el mismo spec JSON que queda visible abajo.",
+        "Elige universo, fecha de corte y pesos. La lista se recalcula desde el spec JSON que queda visible para auditoría.",
       asof: "Fecha de corte",
       topK: "Top K",
       universe: "Universo",
@@ -143,21 +143,21 @@ const COPY = {
       maxResidualVol: "Volatilidad máx.",
       neutralize: "Neutralizar sector",
       futureSignal: "Usar retorno futuro",
-      futureHelp: "Intencionalmente inválido. Activa una señal con look-ahead para mostrar el rechazo.",
+      futureHelp: "Inválido a propósito. Activa una señal con look-ahead para comprobar que el sistema la rechaza.",
     },
     weights: {
       momentum: "Momentum",
-      quality: "Calidad",
-      value: "Valor",
-      lowVol: "Baja vol.",
+      quality: "Calidad financiera",
+      value: "Value",
+      lowVol: "Low vol",
       thesis: "Tesis cualitativa",
       demandSupply: "Oferta/demanda",
       bottleneck: "Cuello de botella",
     },
     signalGuide: [
-      ["Mercado", "Momentum, valor y volatilidad muestran como el mercado esta tratando al nombre."],
+      ["Mercado", "Momentum, value y volatilidad muestran cómo el mercado trata hoy al activo."],
       ["Calidad del negocio", "La calidad financiera es la base contable; la tesis cualitativa captura durabilidad y opcionalidad."],
-      ["Setup industrial", "Oferta/demanda y cuello de botella capturan restricciones de capacidad, escasez y poder de precio."],
+      ["Setup industrial", "Oferta/demanda y cuello de botella capturan capacidad, escasez y poder de precio."],
     ],
     universeOptions: {
       global: "Muestra líquida global",
@@ -197,19 +197,19 @@ const COPY = {
     audit: {
       title: "Registro de auditoría",
       body:
-        "Esta es la parte importante: cada corrida deja visible la fecha, cobertura de datos, regla de ranking y motivo de rechazo.",
+        "Cada corrida deja visible la fecha de corte, cobertura de datos, regla de ranking y motivo de rechazo.",
     },
     stepPlain: {
       asof: "Elimina cualquier fila cuyo precio o filing sea posterior a la fecha de corte.",
       liquidity: "Remueve nombres demasiado ilíquidos o volátiles para esta corrida.",
       future: "Esto filtraría datos futuros dentro del filtro en vivo.",
-      score: "Combina señales normalizadas de factores en un puntaje único.",
-      neutralize: "Resta el promedio sectorial para que la lista no sea solo un tema.",
+      score: "Combina factores de mercado, tesis cualitativa, oferta/demanda y cuellos de botella.",
+      neutralize: "Resta el promedio sectorial para que la lista no sea solo una apuesta de un sector.",
       raw: "Rankea el puntaje bruto sin ajuste sectorial.",
       topk: "Ordena candidatos y devuelve los mejores nombres.",
     },
     refusalText: {
-      lookaheadMessage: "El retorno futuro solo sirve como etiqueta de entrenamiento, no como input de un filtro en vivo.",
+      lookaheadMessage: "El retorno futuro sirve como etiqueta de entrenamiento, no como input de un filtro en vivo.",
       lookaheadFix: "Apaga la señal de retorno futuro y vuelve a correr el filtro.",
       coverageMessage: "Ningún candidato sobrevivió los filtros point-in-time.",
       coverageFix: "Relaja liquidez, volatilidad, universo o fecha de corte.",
@@ -302,11 +302,8 @@ function factorEvidence(row, copy) {
 export function FactorLabWorkstation() {
   const { language, setLanguage } = useLanguagePreference();
   const copy = COPY[language] || COPY.en;
-  const heroTitle = language === "es" ? "Prioriza candidatos antes de valorar." : copy.hero.title;
-  const heroBody =
-    language === "es"
-      ? "FactorLab no es un modelo de valoracion. Ordena candidatos de investigacion usando factores de mercado, tesis cualitativa, cambios de oferta/demanda y poder de cuello de botella."
-      : copy.hero.body;
+  const heroTitle = copy.hero.title;
+  const heroBody = copy.hero.body;
   const [activeStepId, setActiveStepId] = useState("score");
   const [asof, setAsof] = useState("2026-06-24");
   const [topK, setTopK] = useState(5);

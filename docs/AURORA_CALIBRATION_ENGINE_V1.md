@@ -20,6 +20,7 @@ It returns:
 - record-level forecast errors
 - 80% interval coverage
 - CRPS-style continuous scores
+- priced-belief expectation-violation diagnostics
 - Brier score for negative-return events
 - log score for negative-return events
 - return buckets for walk-forward diagnostics
@@ -63,6 +64,35 @@ The engine scores:
 - monotonicity
 
 This follows the guide's instruction to evaluate probabilistic distributions, not just point estimates.
+
+## Expectation-Violation Calibration
+
+The engine now also scores whether AURORA's priced-belief direction was right.
+
+For each realized record it compares:
+
+- predicted `beliefGap` from the priced-belief object
+- observed realized-minus-implied outcome for:
+  - growth
+  - margin
+  - ROIC
+  - reinvestment
+  - FCF margin
+
+This produces:
+
+- component-level gap bias
+- component-level mean absolute error
+- component-level direction accuracy
+- composite expectation-violation bias
+- composite expectation-violation mean absolute error
+- composite expectation-violation direction accuracy
+
+This matters because the product claim is not only "did the return forecast look good?" but also:
+
+```text
+Did AURORA correctly judge whether the future embedded in price was too hard or too easy?
+```
 
 ## Recalibration Policy
 
@@ -181,10 +211,12 @@ How much right does this calibrated branch have to influence an investor decisio
 It includes:
 
 - `authorityScore`: 0-1 score combining sample reliability, 80% interval coverage, negative-return Brier score, return-bucket monotonicity, and experiment-risk pressure.
+- expectation-violation direction accuracy now also affects authority when enough realized labels exist.
 - `evidenceTier`: `insufficient_history`, `decision_grade`, `research_grade`, `shadow_grade`, or `memo_only`.
 - `decisionRights`: `observe_only`, `use_calibrated_branch_with_monitoring`, `stage_with_guardrails`, `shadow_or_memo_only`, or `freeze_promotion`.
 - `mode`: product-friendly mode: `observe_only`, `production_monitoring`, `guardrailed_stage`, `shadow`, or `conservative_override`.
 - `hardBlocks`: reasons production use is blocked, such as calibration failure, high backtest-overfitting pressure, insufficient realized outcomes, coverage failure, bad negative-return probability, or non-monotonic return buckets.
+- `expectation_violation_inverted` is emitted when AURORA repeatedly points the priced-belief gap in the wrong direction on realized outcomes.
 - `requiredEvidence`: the next evidence needed to earn more authority.
 
 The integration packet copies this object into `calibrationIntegration.calibrationAuthority` and mirrors the key fields into `riskControls`:
