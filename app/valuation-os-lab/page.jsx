@@ -618,11 +618,25 @@ function operationalVerdict({ missingDrivers, valuationRouter, upside, feasibili
       nextStep: "Cargar una empresa o completar FCF, precio, WACC y crecimiento.",
     };
   }
-  if (upside < -0.1 || feasibility < 0.34) {
+  if (upside < -0.1) {
     return {
       tier: "PASS",
-      reason: upside < -0.1 ? "El precio ya exige demasiado frente al valor estimado." : "La historia necesita demasiadas cosas saliendo bien.",
+      reason: "El precio ya exige demasiado frente al valor estimado.",
       nextStep: "Archivar o esperar una mejor entrada de precio/evidencia.",
+    };
+  }
+  if (feasibility < 0.34 && upside > 0.1) {
+    return {
+      tier: "RESEARCH",
+      reason: "La brecha de valor sale de una tesis mucho mas optimista que lo que el precio descuenta.",
+      nextStep: "Validar crecimiento, ROIC, margen y reinversion antes de rankearla.",
+    };
+  }
+  if (feasibility < 0.34) {
+    return {
+      tier: "ABSTAIN",
+      reason: "La historia necesita demasiadas cosas saliendo bien y la brecha de valor no compensa esa fragilidad.",
+      nextStep: "Revisar supuestos antes de tomar una postura.",
     };
   }
   if (upside > 0.16 && feasibility > 0.58 && quality > 0.58 && tripwires.length <= 3) {
@@ -650,17 +664,35 @@ function buildOperationalLadder({
   liveSnapshot,
   valuationRouter,
 }) {
+  const priceNeedsGrowth = isFiniteNumber(impliedCagr) && impliedCagr > 0;
+  const thesisMuchHigherThanPrice =
+    isFiniteNumber(impliedCagr) &&
+    isFiniteNumber(adjustedDrivers.revenueCagr) &&
+    adjustedDrivers.revenueCagr > impliedCagr + 0.06;
+  const roicBelowHurdle =
+    isFiniteNumber(adjustedDrivers.roic) &&
+    isFiniteNumber(adjustedDrivers.wacc) &&
+    adjustedDrivers.roic < adjustedDrivers.wacc;
+  const reinvestmentHeavy = isFiniteNumber(adjustedDrivers.reinvestment) && adjustedDrivers.reinvestment >= 0.85;
   const implied = [
-    `El precio necesita cerca de ${fmtPct(impliedCagr)} de Revenue CAGR para que la historia cierre.`,
+    priceNeedsGrowth
+      ? `El precio necesita cerca de ${fmtPct(impliedCagr)} de Revenue CAGR para que la historia cierre.`
+      : `El precio no esta exigiendo crecimiento alto: Revenue CAGR implicito ${fmtPct(impliedCagr)}.`,
     `La tesis actual usa ${fmtPct(adjustedDrivers.revenueCagr)} de Revenue CAGR y ${fmtPct(adjustedDrivers.margin)} de Operating margin.`,
-    isFiniteNumber(upside) && upside >= 0
+    thesisMuchHigherThanPrice
+      ? "La brecha positiva viene de una tesis mucho mas optimista que el precio, no de un precio exigente."
+      : isFiniteNumber(upside) && upside >= 0
       ? `El valor estimado queda ${fmtPct(upside)} sobre el precio actual.`
       : `El precio actual ya parece exigir mas que el caso base.`,
   ];
 
   const mustTrue = [
-    `ROIC debe mantenerse por encima de WACC: ${fmtPct(adjustedDrivers.roic)} vs ${fmtPct(adjustedDrivers.wacc)}.`,
-    `La reinversion debe sostener crecimiento sin comerse el FCF: ${fmtPct(adjustedDrivers.reinvestment)} reinvertido.`,
+    roicBelowHurdle
+      ? `ROIC esta bajo WACC: ${fmtPct(adjustedDrivers.roic)} vs ${fmtPct(adjustedDrivers.wacc)}. Hay que explicar como vuelve a crear valor.`
+      : `ROIC debe mantenerse por encima de WACC: ${fmtPct(adjustedDrivers.roic)} vs ${fmtPct(adjustedDrivers.wacc)}.`,
+    reinvestmentHeavy
+      ? `La tesis reinvierte casi todo el FCF: ${fmtPct(adjustedDrivers.reinvestment)}. Debe probar retorno incremental alto.`
+      : `La reinversion debe sostener crecimiento sin comerse el FCF: ${fmtPct(adjustedDrivers.reinvestment)} reinvertido.`,
     `La ventaja competitiva debe durar cerca de ${fmtValue(adjustedDrivers.moatHalfLife, "yrs")}.`,
   ];
 
@@ -673,7 +705,10 @@ function buildOperationalLadder({
 
   const evidenceAgainst = [
     adjustedDrivers.modelRisk >= 0.4 ? "Desacuerdo alto entre metodos o supuestos." : null,
-    feasibility < 0.5 ? "Factibilidad ajustada: el precio exige bastante." : null,
+    feasibility < 0.5 ? "Factibilidad baja: la tesis necesita validacion antes de rankear." : null,
+    thesisMuchHigherThanPrice ? "La tesis asume mucho mas crecimiento que el precio implicito." : null,
+    roicBelowHurdle ? "ROIC esta por debajo de WACC." : null,
+    reinvestmentHeavy ? "La reinversion consume casi todo el FCF." : null,
     tripwires.length ? `${tripwires.length} supuestos estan cerca de zona de alerta.` : null,
     missingDrivers.length ? "Faltan inputs especificos del ticker." : null,
   ].filter(Boolean);
@@ -681,6 +716,9 @@ function buildOperationalLadder({
   const review = [
     missingDrivers.length ? `Completar: ${missingDrivers.slice(0, 3).join(", ")}.` : null,
     adjustedDrivers.modelRisk >= 0.35 ? "Revisar por que los metodos discrepan." : null,
+    thesisMuchHigherThanPrice ? "Comprobar si la empresa puede sostener una ruta muy superior a la implicita en precio." : null,
+    roicBelowHurdle ? "Identificar que cambio haria que ROIC vuelva a superar WACC." : null,
+    reinvestmentHeavy ? "Separar reinversion de mantenimiento vs crecimiento real." : null,
     adjustedDrivers.demandSupply < 0.62 ? "Buscar evidencia de demanda, capacidad, inventario o pricing." : null,
     liveSnapshot?.coverage?.braveConfigured === false ? "Agregar evidencia externa de noticias o catalizadores." : null,
     valuationRouter?.decision?.reason || null,
