@@ -893,6 +893,207 @@
   color: rgba(248, 200, 111, 0.96);
 }
 
+.researchLoopGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.75fr);
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.researchLoopHero,
+.researchLoopCard {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.researchLoopHero {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  border-color: rgba(216, 173, 88, 0.2);
+  background:
+    linear-gradient(135deg, rgba(216, 173, 88, 0.08), rgba(255, 255, 255, 0.018) 46%),
+    rgba(255, 255, 255, 0.026);
+}
+
+.researchLoopHero h3,
+.researchLoopCard h3 {
+  margin: 0;
+  line-height: 1.18;
+}
+
+.researchLoopHero h3 {
+  font-size: clamp(1.25rem, 2.1vw, 1.7rem);
+}
+
+.researchLoopHero p,
+.researchLoopQueue small,
+.researchLoopStack span,
+.researchLoopAgents span,
+.researchLoopGates span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.researchLoopMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.researchLoopCard {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.researchLoopStack,
+.researchLoopAgents,
+.researchLoopGates,
+.researchLoopQueue {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.researchLoopStack span,
+.researchLoopAgents span,
+.researchLoopGates div,
+.researchLoopQueue div {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+  padding: 0.72rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.024);
+}
+
+.researchLoopStack strong,
+.researchLoopAgents strong,
+.researchLoopGates strong,
+.researchLoopQueue strong {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.researchLoopQueue span {
+  color: rgba(248, 200, 111, 0.86);
+  font-size: 0.66rem;
+  font-weight: 760;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.researchLoopGates div[data-status="pass"] {
+  border-color: rgba(82, 208, 163, 0.18);
+}
+
+.researchLoopGates div[data-status="warn"] {
+  border-color: rgba(255, 180, 84, 0.22);
+}
+
+.researchLoopGates div[data-status="fail"] {
+  border-color: rgba(255, 124, 114, 0.24);
+}
+
+.diffusionControls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.diffusionControls label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.diffusionGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.diffusionHero,
+.diffusionCard {
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.diffusionHero {
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+  border-color: rgba(255, 124, 114, 0.2);
+  background:
+    linear-gradient(135deg, rgba(255, 124, 114, 0.09), rgba(255, 255, 255, 0.018) 44%),
+    rgba(255, 255, 255, 0.026);
+}
+
+.diffusionHero h3 {
+  margin: 0;
+  font-size: clamp(1.75rem, 3vw, 2.8rem);
+  line-height: 0.95;
+}
+
+.diffusionHero p,
+.diffusionCard span,
+.diffusionList span {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.diffusionMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.diffusionCard {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.diffusionCard h3 {
+  margin: 0;
+  line-height: 1.18;
+}
+
+.diffusionList,
+.diffusionUniverse {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.diffusionList div,
+.diffusionUniverse span {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+  padding: 0.7rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.024);
+}
+
+.diffusionList strong,
+.diffusionUniverse strong {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.diffusionUniverse {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .macroBrainPanel {
   display: grid;
   gap: 1rem;
@@ -6075,6 +6276,9 @@
   .answerCommandRow,
   .diversificationClockCard,
   .factorLabGrid,
+  .researchLoopGrid,
+  .diffusionGrid,
+  .diffusionControls,
   .mosaicGuide,
   .mosaicPlainNote,
   .mosaicLayout,
@@ -6190,6 +6394,11 @@
   .answerGrid,
   .answerModuleGrid,
   .decisionPillarGrid,
+  .researchLoopGrid,
+  .diffusionGrid,
+  .diffusionControls,
+  .diffusionMetricGrid,
+  .diffusionUniverse,
   .mosaicGuide,
   .mosaicPlainNote,
   .mosaicLead,

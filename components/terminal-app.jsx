@@ -2071,6 +2071,180 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
   );
 }
 
+function MarketDiffusionPanel({ workspaceId }) {
+  const [regime, setRegime] = useState("crisis");
+  const [horizonDays, setHorizonDays] = useState(20);
+  const [guidanceScale, setGuidanceScale] = useState(1.0);
+  const [simulation, setSimulation] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const runSimulation = useCallback(async () => {
+    if (!workspaceId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams({
+        regime,
+        horizonDays: String(horizonDays),
+        guidanceScale: String(guidanceScale),
+        nScenarios: "5000",
+        stratifiedStress: "true",
+      });
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/market-simulation?${params}`, { cache: "no-store" });
+      const payload = await parseResponse(response);
+      setSimulation(payload);
+    } catch (requestError) {
+      setError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo correr la simulacion de mercado."));
+    } finally {
+      setLoading(false);
+    }
+  }, [workspaceId, regime, horizonDays, guidanceScale]);
+
+  useEffect(() => {
+    if (!workspaceId || simulation || loading) return;
+    void runSimulation();
+  }, [workspaceId, simulation, loading, runSimulation]);
+
+  const risk = simulation?.risk || {};
+  const diagnostics = simulation?.diagnostics || {};
+  const deployment = simulation?.deployment || {};
+  const championMetrics = deployment?.championMetrics || {};
+  const mmdRatio = Number(championMetrics?.relative_to_gaussian?.mmd_multi_ratio_candidate_vs_gaussian);
+  const tailContributors = safeList(simulation?.tailContributors);
+  const samplePaths = safeList(simulation?.samplePaths);
+  const universe = safeList(simulation?.universe);
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <p className={styles.kicker}>Factor-DDPM contract</p>
+          <h2>Escenarios sinteticos que buscan colas, no promedios</h2>
+          <p className={styles.supportText}>
+            Simulacion bajo contrato v7: champion offline, stress book estratificado y endpoint de investigacion hasta cerrar los gates estrictos.
+          </p>
+        </div>
+        <button className={styles.primaryButton} disabled={loading || !workspaceId} onClick={runSimulation} type="button">
+          {loading ? "Simulando..." : "Simular"}
+        </button>
+      </div>
+
+      <div className={styles.diffusionControls}>
+        <label>
+          <span>Regimen</span>
+          <select className={styles.textInput} onChange={(event) => setRegime(event.target.value)} value={regime}>
+            <option value="crisis">Crisis</option>
+            <option value="baseline">Baseline</option>
+            <option value="recovery">Recovery</option>
+            <option value="inflation">Inflation shock</option>
+          </select>
+        </label>
+        <label>
+          <span>Horizonte</span>
+          <select className={styles.textInput} onChange={(event) => setHorizonDays(Number(event.target.value))} value={horizonDays}>
+            <option value={10}>10 dias</option>
+            <option value={20}>20 dias</option>
+            <option value={60}>60 dias</option>
+          </select>
+        </label>
+        <label>
+          <span>Guidance</span>
+          <input
+            className={styles.textInput}
+            max="4"
+            min="0.5"
+            onChange={(event) => setGuidanceScale(Number(event.target.value))}
+            step="0.1"
+            type="number"
+            value={guidanceScale}
+          />
+        </label>
+      </div>
+
+      {error ? <div className={styles.banner} data-tone="error">{error}</div> : null}
+
+      <div className={styles.diffusionGrid}>
+        <article className={styles.diffusionHero}>
+          <p className={styles.kicker}>{simulation?.regimeLabel || "Preparando"}</p>
+          <h3>{risk.cvar5Label || "-"} CVaR 5%</h3>
+          <p>
+            Peor promedio de la cola inferior en {simulation?.model?.horizonDays || horizonDays} dias. No es prediccion: es una prueba de resistencia sintetica.
+          </p>
+          <div className={styles.researchLoopMeta}>
+            <ToneBadge tone="bad">VaR 5% {risk.var5Label || "-"}</ToneBadge>
+            <ToneBadge tone="warn">Perdida {risk.probabilityLossLabel || "-"}</ToneBadge>
+            <ToneBadge tone="neutral">{simulation?.model?.nScenarios || 5000} escenarios</ToneBadge>
+            <ToneBadge tone={deployment?.readyForEndpoint ? "good" : "warn"}>
+              {deployment?.statusLabel || "Research gate"}
+            </ToneBadge>
+          </div>
+        </article>
+
+        <div className={styles.diffusionMetricGrid}>
+          <MetricTile detail="Mediana de escenarios." label="Retorno mediano" value={risk.medianReturnLabel || "-"} />
+          <MetricTile detail="Percentil 1." label="VaR 1%" tone="bad" value={risk.var1Label || "-"} />
+          <MetricTile detail="Probabilidad de drawdown <= -10%." label="DD -10%" tone="warn" value={risk.probabilityDrawdown10Label || "-"} />
+          <MetricTile detail="Cobertura de bins sinteticos." label="Coverage" value={diagnostics.distributionCoverageLabel || "-"} />
+          <MetricTile detail="Contra matriz objetivo." label="Correlacion" value={diagnostics.correlationFidelityLabel || "-"} />
+          <MetricTile detail="Promedio off-diagonal objetivo." label="Corr objetivo" value={diagnostics.targetAverageCorrelation !== undefined ? formatPct(diagnostics.targetAverageCorrelation) : "-"} />
+          <MetricTile detail="Contrato v7." label="Gate endpoint" tone={deployment?.readyForEndpoint ? "good" : "warn"} value={deployment?.readyForEndpoint ? "Listo" : "Offline"} />
+          <MetricTile detail="Ratio multi-MMD contra Gaussian." label="MMD ratio" tone="warn" value={Number.isFinite(mmdRatio) ? `${mmdRatio.toFixed(2)}x` : "-"} />
+          <MetricTile detail="Checkpoint servido en vivo." label="Runtime" tone={simulation?.model?.trainedCheckpointServed ? "good" : "warn"} value={simulation?.model?.trainedCheckpointServed ? "PyTorch" : "Proxy"} />
+        </div>
+
+        <article className={styles.diffusionCard}>
+          <h3>Quien pega en la cola</h3>
+          {tailContributors.length ? (
+            <div className={styles.diffusionList}>
+              {tailContributors.map((item) => (
+                <div key={item.ticker}>
+                  <strong>{item.ticker}</strong>
+                  <span>{item.contributionLabel} aporte ponderado en CVaR</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>Corre una simulacion para ver aportes de cola.</p>
+          )}
+        </article>
+
+        <article className={styles.diffusionCard}>
+          <h3>Peores trayectorias</h3>
+          {samplePaths.length ? (
+            <div className={styles.diffusionList}>
+              {samplePaths.slice(0, 5).map((path) => (
+                <div key={path.id}>
+                  <strong>{path.portfolioReturnLabel}</strong>
+                  <span>Drawdown maximo {path.maxDrawdownLabel}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>Las trayectorias extremas apareceran despues de simular.</p>
+          )}
+        </article>
+
+        <article className={styles.diffusionCard}>
+          <h3>Universo usado</h3>
+          {universe.length ? (
+            <div className={styles.diffusionUniverse}>
+              {universe.slice(0, 8).map((asset) => (
+                <span key={asset.ticker}>
+                  <strong>{asset.ticker}</strong>
+                  {asset.weightLabel}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>Sin posiciones conectadas.</p>
+          )}
+        </article>
+      </div>
+    </section>
+  );
+}
+
 function HoldingsPanel({
   portfolioModule,
   holdingDraft,
@@ -2626,6 +2800,125 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
             </div>
           )}
         </section>
+      </div>
+    </section>
+  );
+}
+
+function ResearchLoopPanel({ workspaceId }) {
+  const [loop, setLoop] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const runLoop = useCallback(async () => {
+    if (!workspaceId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/research-loop`, { cache: "no-store" });
+      const payload = await parseResponse(response);
+      setLoop(payload);
+    } catch (requestError) {
+      setError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo correr el loop de investigacion."));
+    } finally {
+      setLoading(false);
+    }
+  }, [workspaceId]);
+
+  useEffect(() => {
+    if (!workspaceId || loop || loading) return;
+    void runLoop();
+  }, [workspaceId, loop, loading, runLoop]);
+
+  const gates = safeList(loop?.agents?.checker?.gates);
+  const queue = safeList(loop?.queue);
+  const architecture = loop?.architecture || {};
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.panelHeader}>
+        <div>
+          <p className={styles.kicker}>Research loop</p>
+          <h2>Sistema maker/checker para ideas</h2>
+          <p className={styles.supportText}>
+            Convierte el workspace en una cola verificable: un agente redacta, otro rechaza o aprueba, y nada se promueve sin criterio de parada.
+          </p>
+        </div>
+        <button className={styles.primaryButton} disabled={loading || !workspaceId} onClick={runLoop} type="button">
+          {loading ? "Corriendo..." : "Correr iteracion"}
+        </button>
+      </div>
+
+      {error ? <div className={styles.banner} data-tone="error">{error}</div> : null}
+
+      <div className={styles.researchLoopGrid}>
+        <article className={styles.researchLoopHero}>
+          <p className={styles.kicker}>{loop?.status || "preparando"}</p>
+          <h3>{loop?.headline || "Preparando la primera iteracion"}</h3>
+          <p>{loop?.stopCondition?.reason || "El loop leera acciones, alertas, posiciones y candidatos antes de redactar cualquier memo."}</p>
+          <div className={styles.researchLoopMeta}>
+            <ToneBadge tone={loop?.status === "ready" ? "good" : loop?.status === "blocked" ? "bad" : loop?.status === "review" ? "warn" : "neutral"}>
+              {loop?.stopCondition?.label || "Esperando"}
+            </ToneBadge>
+            <ToneBadge tone="neutral">{queue.length} tarea{queue.length === 1 ? "" : "s"}</ToneBadge>
+          </div>
+        </article>
+
+        <article className={styles.researchLoopCard}>
+          <h3>Arquitectura</h3>
+          <div className={styles.researchLoopStack}>
+            <span><strong>Heartbeat</strong>{architecture.heartbeat || "Disparo manual o por refresh."}</span>
+            <span><strong>Memoria</strong>{architecture.memory || "Estado escrito fuera del prompt."}</span>
+            <span><strong>Isolation</strong>{architecture.isolation || "Una linea por tarea."}</span>
+          </div>
+        </article>
+
+        <article className={styles.researchLoopCard}>
+          <h3>Maker / checker</h3>
+          <div className={styles.researchLoopAgents}>
+            <span>
+              <strong>{loop?.agents?.maker?.role || "research_maker"}</strong>
+              {loop?.agents?.maker?.objective || "Redacta el memo minimo util."}
+            </span>
+            <span>
+              <strong>{loop?.agents?.checker?.role || "research_checker"}</strong>
+              {loop?.agents?.checker?.stopCondition || "Rechaza si falta evidencia, hay leakage o no hay stop condition."}
+            </span>
+          </div>
+        </article>
+
+        <article className={styles.researchLoopCard}>
+          <h3>Gates externos</h3>
+          {gates.length ? (
+            <div className={styles.researchLoopGates}>
+              {gates.map((gate) => (
+                <div data-status={gate.status} key={gate.id}>
+                  <strong>{gate.label}</strong>
+                  <span>{gate.detail}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>Los gates aparecen despues de la primera iteracion.</p>
+          )}
+        </article>
+
+        <article className={styles.researchLoopCard}>
+          <h3>Cola</h3>
+          {queue.length ? (
+            <div className={styles.researchLoopQueue}>
+              {queue.slice(0, 5).map((task) => (
+                <div key={task.id}>
+                  <span>{task.type}</span>
+                  <strong>{task.ticker}: {task.title}</strong>
+                  <small>{task.hypothesis}</small>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>Sin tareas activas en la foto actual.</p>
+          )}
+        </article>
       </div>
     </section>
   );
@@ -3557,6 +3850,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       activeWorkspacePanels = (
         <>
           <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
+          <MarketDiffusionPanel workspaceId={workspaceId} />
           <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
         </>
       );
@@ -3565,6 +3859,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       activeWorkspacePanels = (
         <>
           <FactorLabWorkspacePanel portfolioModule={portfolioModule} />
+          <ResearchLoopPanel workspaceId={workspaceId} />
           <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
         </>
       );
