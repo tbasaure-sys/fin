@@ -439,6 +439,159 @@
   color: var(--text);
 }
 
+.operationalShell {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0 0 1rem;
+}
+
+.verdictCard {
+  display: grid;
+  gap: 0.55rem;
+  padding: 1.1rem;
+  border: 1px solid rgba(240, 189, 98, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(240, 189, 98, 0.11), transparent 42%),
+    rgba(8, 17, 27, 0.94);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.22);
+}
+
+.verdictCard[data-tone="positive"] {
+  border-color: rgba(105, 212, 159, 0.34);
+  background:
+    linear-gradient(135deg, rgba(105, 212, 159, 0.12), transparent 42%),
+    rgba(8, 17, 27, 0.94);
+}
+
+.verdictCard[data-tone="active"] {
+  border-color: rgba(85, 209, 195, 0.34);
+  background:
+    linear-gradient(135deg, rgba(85, 209, 195, 0.12), transparent 42%),
+    rgba(8, 17, 27, 0.94);
+}
+
+.verdictCard[data-tone="muted"],
+.verdictCard[data-tone="neutral"] {
+  border-color: rgba(149, 178, 207, 0.2);
+}
+
+.verdictCard span {
+  width: fit-content;
+  border: 1px solid rgba(240, 189, 98, 0.32);
+  border-radius: 999px;
+  padding: 0.3rem 0.58rem;
+  color: var(--amber);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.verdictCard h2 {
+  max-width: 54rem;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(1.45rem, 2.4vw, 2.25rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.verdictCard p {
+  max-width: 58rem;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.48;
+}
+
+.verdictCard strong {
+  color: var(--text);
+}
+
+.verdictLadder {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.ladderPanel {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(8, 17, 27, 0.84);
+}
+
+.ladderPanel > span {
+  display: inline-grid;
+  place-items: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid rgba(240, 189, 98, 0.26);
+  border-radius: 999px;
+  color: var(--amber);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.ladderPanel h2 {
+  margin: 0.65rem 0 0.55rem;
+  font-size: 1rem;
+  line-height: 1.18;
+}
+
+.ladderPanel ul,
+.ladderPanel ol {
+  display: grid;
+  gap: 0.42rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.42;
+}
+
+.evidenceColumns {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.evidenceColumns strong {
+  display: block;
+  margin-bottom: 0.32rem;
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.evidenceColumns p {
+  margin: 0.26rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.38;
+}
+
+.fullAnalysis {
+  margin: 0 0 1rem;
+}
+
+.fullAnalysis summary {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  border: 1px solid rgba(85, 209, 195, 0.24);
+  border-radius: 8px;
+  background: rgba(85, 209, 195, 0.06);
+  color: var(--teal);
+  padding: 0 0.9rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.fullAnalysis[open] summary {
+  margin-bottom: 1rem;
+}
+
 .routerPanel {
   display: grid;
   grid-template-columns: minmax(16rem, 0.78fr) minmax(0, 1.45fr);
@@ -1649,6 +1802,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .verdictLadder {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .orientationStrip div:nth-child(odd) {
     border-left: 0;
     padding-left: 0;
@@ -1735,6 +1892,7 @@
   }
 
   .engineNav,
+  .verdictLadder,
   .engineMetrics,
   .engineGrid,
   .routerGrid,

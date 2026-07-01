@@ -87,7 +87,7 @@ export default function TermsPage() {
           <h2>7. Acceptable use</h2>
           <p>
             Do not use the workspace to automate trading, manipulate markets, violate laws, reverse engineer protected services,
-            overload third-party data providers, or make decisions for another person without proper authorization.
+            overload third-party data providers, or make decisions for another person without proper permission.
           </p>
         </article>
       </section>

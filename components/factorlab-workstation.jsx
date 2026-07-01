@@ -88,6 +88,7 @@ const COPY = {
       score: "Score",
       sector: "Sector",
       evidence: "Why it ranked",
+      analyze: "Analyze in AURORA",
       empty: "No candidates returned.",
     },
     audit: {
@@ -192,6 +193,7 @@ const COPY = {
       score: "Puntaje",
       sector: "Sector",
       evidence: "Por qué rankea",
+      analyze: "Analizar en AURORA",
       empty: "No hubo candidatos.",
     },
     audit: {
@@ -622,6 +624,7 @@ export function FactorLabWorkstation() {
                         <th>{copy.results.score}</th>
                         <th>{copy.results.sector}</th>
                         <th>{copy.results.evidence}</th>
+                        <th>{copy.results.analyze}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -649,6 +652,11 @@ export function FactorLabWorkstation() {
                                 </div>
                               );
                             })()}
+                          </td>
+                          <td>
+                            <Link className={styles.smallButton} href={`/aurora?ticker=${encodeURIComponent(row.ticker)}`}>
+                              {copy.results.analyze}
+                            </Link>
                           </td>
                         </tr>
                       ))}

@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { AuroraVerdictCard } from "@/components/aurora-verdict-card";
+import { SECTIONS } from "@/lib/aurora-copy-map";
 import styles from "./valuation-os-lab.module.css";
 import { buildValuationRouter, MODEL_LABELS } from "../../lib/valuation-router.js";
 
@@ -592,6 +594,106 @@ function plainDecision(upside, feasibility, missingDrivers) {
   if (upside > 0.15 && feasibility > 0.55) return "Atractiva, verificar";
   if (upside < -0.1) return "Precio exigente";
   return "Caso ajustado";
+}
+
+function operationalVerdict({ missingDrivers, valuationRouter, upside, feasibility, quality, tripwires }) {
+  if (missingDrivers.length) {
+    return {
+      tier: "ABSTAIN",
+      reason: `Faltan datos clave: ${missingDrivers.slice(0, 3).join(", ")}.`,
+      nextStep: "Completar los inputs faltantes antes de comparar esta idea.",
+    };
+  }
+  if (valuationRouter?.abstain) {
+    return {
+      tier: "ABSTAIN",
+      reason: valuationRouter.decision?.reason || "La mezcla de datos y metodos no da una lectura confiable.",
+      nextStep: "Revisar fuentes, supuestos y calidad de datos.",
+    };
+  }
+  if (!isFiniteNumber(upside)) {
+    return {
+      tier: "ABSTAIN",
+      reason: "No hay suficiente informacion para estimar la brecha entre precio y valor.",
+      nextStep: "Cargar una empresa o completar FCF, precio, WACC y crecimiento.",
+    };
+  }
+  if (upside < -0.1 || feasibility < 0.34) {
+    return {
+      tier: "PASS",
+      reason: upside < -0.1 ? "El precio ya exige demasiado frente al valor estimado." : "La historia necesita demasiadas cosas saliendo bien.",
+      nextStep: "Archivar o esperar una mejor entrada de precio/evidencia.",
+    };
+  }
+  if (upside > 0.16 && feasibility > 0.58 && quality > 0.58 && tripwires.length <= 3) {
+    return {
+      tier: "RANK",
+      reason: "La brecha, la factibilidad y la calidad de datos permiten compararla contra otras ideas.",
+      nextStep: "Rankearla contra la watchlist y definir falsificadores.",
+    };
+  }
+  return {
+    tier: "RESEARCH",
+    reason: "La idea tiene elementos interesantes, pero todavia necesita evidencia concreta.",
+    nextStep: "Revisar los puntos criticos antes de darle prioridad.",
+  };
+}
+
+function buildOperationalLadder({
+  adjustedDrivers,
+  impliedCagr,
+  upside,
+  feasibility,
+  quality,
+  tripwires,
+  missingDrivers,
+  liveSnapshot,
+  valuationRouter,
+}) {
+  const implied = [
+    `El precio necesita cerca de ${fmtPct(impliedCagr)} de Revenue CAGR para que la historia cierre.`,
+    `La tesis actual usa ${fmtPct(adjustedDrivers.revenueCagr)} de Revenue CAGR y ${fmtPct(adjustedDrivers.margin)} de Operating margin.`,
+    isFiniteNumber(upside) && upside >= 0
+      ? `El valor estimado queda ${fmtPct(upside)} sobre el precio actual.`
+      : `El precio actual ya parece exigir mas que el caso base.`,
+  ];
+
+  const mustTrue = [
+    `ROIC debe mantenerse por encima de WACC: ${fmtPct(adjustedDrivers.roic)} vs ${fmtPct(adjustedDrivers.wacc)}.`,
+    `La reinversion debe sostener crecimiento sin comerse el FCF: ${fmtPct(adjustedDrivers.reinvestment)} reinvertido.`,
+    `La ventaja competitiva debe durar cerca de ${fmtValue(adjustedDrivers.moatHalfLife, "yrs")}.`,
+  ];
+
+  const evidenceFor = [
+    quality >= 0.62 ? "Datos suficientemente rastreables para una primera lectura." : null,
+    adjustedDrivers.thesisQuality >= 0.68 ? "Calidad de tesis por encima del punto medio." : null,
+    adjustedDrivers.demandSupply >= 0.65 ? "Oferta/demanda apoya la historia actual." : null,
+    adjustedDrivers.bottleneckPower >= 0.62 ? "Hay senales de escasez o switching cost." : null,
+  ].filter(Boolean);
+
+  const evidenceAgainst = [
+    adjustedDrivers.modelRisk >= 0.4 ? "Desacuerdo alto entre metodos o supuestos." : null,
+    feasibility < 0.5 ? "Factibilidad ajustada: el precio exige bastante." : null,
+    tripwires.length ? `${tripwires.length} supuestos estan cerca de zona de alerta.` : null,
+    missingDrivers.length ? "Faltan inputs especificos del ticker." : null,
+  ].filter(Boolean);
+
+  const review = [
+    missingDrivers.length ? `Completar: ${missingDrivers.slice(0, 3).join(", ")}.` : null,
+    adjustedDrivers.modelRisk >= 0.35 ? "Revisar por que los metodos discrepan." : null,
+    adjustedDrivers.demandSupply < 0.62 ? "Buscar evidencia de demanda, capacidad, inventario o pricing." : null,
+    liveSnapshot?.coverage?.braveConfigured === false ? "Agregar evidencia externa de noticias o catalizadores." : null,
+    valuationRouter?.decision?.reason || null,
+  ].filter(Boolean).slice(0, 4);
+
+  const breaks = (tripwires.length ? tripwires : []).slice(0, 4).map((item) => item.falsifier);
+  if (!breaks.length) {
+    breaks.push("Dos reportes seguidos bajo la ruta de crecimiento asumida.");
+    breaks.push("Margen bruto cae mas de 300 bps sin explicacion de mix o pricing.");
+    breaks.push("ROIC incremental cae bajo WACC.");
+  }
+
+  return { implied, mustTrue, evidenceFor, evidenceAgainst, review, breaks };
 }
 
 function EngineMetric({ label, value, tone }) {
@@ -1256,6 +1358,33 @@ export default function ValuationOsLabPage() {
     return value < item.low + span * 0.12 || value > item.high - span * 0.12;
   });
   const plainRead = plainDecision(upside, feasibility, missingDrivers);
+  const operationalRead = useMemo(
+    () =>
+      operationalVerdict({
+        missingDrivers,
+        valuationRouter,
+        upside,
+        feasibility,
+        quality,
+        tripwires,
+      }),
+    [missingDrivers, valuationRouter, upside, feasibility, quality, tripwires],
+  );
+  const operationalLadder = useMemo(
+    () =>
+      buildOperationalLadder({
+        adjustedDrivers,
+        impliedCagr,
+        upside,
+        feasibility,
+        quality,
+        tripwires,
+        missingDrivers,
+        liveSnapshot,
+        valuationRouter,
+      }),
+    [adjustedDrivers, impliedCagr, upside, feasibility, quality, tripwires, missingDrivers, liveSnapshot, valuationRouter],
+  );
   const assumptionPolicy = liveSnapshot?.assumptions || null;
   const assumptionCards = assumptionPolicy
     ? [
@@ -1301,9 +1430,20 @@ export default function ValuationOsLabPage() {
     setDebateStatus({ state: "idle", message: "Assumption changed; rerun the final review for a fresh verdict." });
   }
 
-  async function loadLiveSnapshot(event) {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const ticker = String(params.get("ticker") || "").trim().toUpperCase();
+    if (/^[A-Z0-9.-]{1,12}$/.test(ticker)) {
+      setTickerInput(ticker);
+      loadLiveSnapshot(null, ticker);
+    }
+    // Run once on entry so /aurora?ticker=XXX becomes an actual handoff.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function loadLiveSnapshot(event, tickerOverride) {
     event?.preventDefault();
-    const ticker = tickerInput.trim().toUpperCase();
+    const ticker = String(tickerOverride || tickerInput).trim().toUpperCase();
     if (!ticker) return;
     if (!/^[A-Z0-9.-]{1,12}$/.test(ticker)) {
       setLiveStatus({
@@ -1528,6 +1668,67 @@ export default function ValuationOsLabPage() {
             ) : null}
           </div>
         </header>
+
+        <section className={styles.operationalShell} aria-label="Lectura principal de AURORA">
+          <AuroraVerdictCard
+            tier={operationalRead.tier}
+            reason={operationalRead.reason}
+            nextStep={operationalRead.nextStep}
+            className={styles.verdictCard}
+          />
+
+          <div className={styles.verdictLadder}>
+            <article className={styles.ladderPanel}>
+              <span>01</span>
+              <h2>{SECTIONS[0].label}</h2>
+              <ul>
+                {operationalLadder.implied.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </article>
+            <article className={styles.ladderPanel}>
+              <span>02</span>
+              <h2>{SECTIONS[1].label}</h2>
+              <ul>
+                {operationalLadder.mustTrue.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </article>
+            <article className={styles.ladderPanel}>
+              <span>03</span>
+              <h2>{SECTIONS[2].label}</h2>
+              <div className={styles.evidenceColumns}>
+                <div>
+                  <strong>A favor</strong>
+                  {(operationalLadder.evidenceFor.length ? operationalLadder.evidenceFor : ["No hay evidencia positiva suficiente todavia."]).map((item) => (
+                    <p key={item}>{item}</p>
+                  ))}
+                </div>
+                <div>
+                  <strong>Preocupa</strong>
+                  {(operationalLadder.evidenceAgainst.length ? operationalLadder.evidenceAgainst : ["No hay alertas fuertes en la primera lectura."]).map((item) => (
+                    <p key={item}>{item}</p>
+                  ))}
+                </div>
+              </div>
+            </article>
+            <article className={styles.ladderPanel}>
+              <span>04</span>
+              <h2>{SECTIONS[3].label}</h2>
+              <ol>
+                {(operationalLadder.review.length ? operationalLadder.review : ["Revisar el proximo reporte y comparar contra peers."]).map((item) => <li key={item}>{item}</li>)}
+              </ol>
+            </article>
+            <article className={styles.ladderPanel}>
+              <span>05</span>
+              <h2>{SECTIONS[4].label}</h2>
+              <ul>
+                {operationalLadder.breaks.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+            </article>
+          </div>
+        </section>
+
+        <details className={styles.fullAnalysis}>
+          <summary>Ver el analisis completo</summary>
 
         <section className={styles.orientationStrip} aria-label="Guía de lectura de AURORA">
           <div>
@@ -1870,6 +2071,7 @@ export default function ValuationOsLabPage() {
             </div>
           </article>
         </section>
+        </details>
       </section>
     </main>
   );

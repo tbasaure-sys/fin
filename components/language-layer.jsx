@@ -82,7 +82,7 @@ const TEXT_TRANSLATIONS = {
   "6. Your responsibility": "6. Tu responsabilidad",
   "You are responsible for the accuracy of holdings you enter, the assumptions you accept, the professionals you consult, and any decision you make outside the product. Past performance, model output, valuation estimates, and risk scores do not guarantee future results.": "Eres responsable de la precisión de las posiciones que ingresas, los supuestos que aceptas, los profesionales que consultas y cualquier decisión que tomes fuera del producto. El desempeño pasado, los modelos, las estimaciones de valoración y los puntajes de riesgo no garantizan resultados futuros.",
   "7. Acceptable use": "7. Uso aceptable",
-  "Do not use the workspace to automate trading, manipulate markets, violate laws, reverse engineer protected services, overload third-party data providers, or make decisions for another person without proper authorization.": "No uses el espacio de trabajo para automatizar operaciones, manipular mercados, violar leyes, hacer ingeniería inversa de servicios protegidos, sobrecargar proveedores de datos o tomar decisiones por otra persona sin autorización adecuada.",
+  "Do not use the workspace to automate trading, manipulate markets, violate laws, reverse engineer protected services, overload third-party data providers, or make decisions for another person without proper permission.": "No uses el espacio de trabajo para automatizar operaciones, manipular mercados, violar leyes, hacer ingeniería inversa de servicios protegidos, sobrecargar proveedores de datos o tomar decisiones por otra persona sin permiso adecuado.",
   "Today": "Hoy",
   "Start": "Inicio",
   "Brief and action": "Resumen y acción",
