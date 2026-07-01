@@ -11,7 +11,7 @@ const COPY = {
   en: {
     navAria: "FactorLab navigation",
     nav: { builder: "Builder", audit: "Audit", results: "Results" },
-    workspace: "Valuation OS",
+    workspace: "AURORA",
     language: "Language",
     hero: {
       kicker: "FactorLab",
@@ -115,7 +115,7 @@ const COPY = {
   es: {
     navAria: "Navegación de FactorLab",
     nav: { builder: "Filtro", audit: "Auditoría", results: "Resultados" },
-    workspace: "Valuation OS",
+    workspace: "AURORA",
     language: "Idioma",
     hero: {
       kicker: "FactorLab",
@@ -371,7 +371,7 @@ export function FactorLabWorkstation() {
               ES
             </button>
           </div>
-          <Link className={styles.workspaceLink} href="/valuation-os-lab">
+          <Link className={styles.workspaceLink} href="/aurora">
             {copy.workspace}
           </Link>
         </div>

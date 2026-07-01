@@ -1430,8 +1430,8 @@ export default function ValuationOsLabPage() {
       `}</style>
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
-          <span>Valuation</span>
-          <strong>OS</strong>
+          <span>AURORA</span>
+          <strong>Valuation OS</strong>
         </div>
         <div className={styles.companyCard}>
           <span>Company</span>
@@ -1479,7 +1479,7 @@ export default function ValuationOsLabPage() {
       <section className={styles.workspace}>
         <header className={styles.topbar}>
           <div>
-            <h1>Valuation OS</h1>
+            <h1>AURORA Valuation OS</h1>
             <p>
               Una mesa de valoración que muestra qué cree el precio, qué debe demostrar el negocio
               y qué evidencia debilitaría la tesis.
@@ -1529,7 +1529,7 @@ export default function ValuationOsLabPage() {
           </div>
         </header>
 
-        <section className={styles.orientationStrip} aria-label="Guía de lectura de Valuation OS">
+        <section className={styles.orientationStrip} aria-label="Guía de lectura de AURORA">
           <div>
             <span>1 Fuentes</span>
             <strong>Filings, precio, tasas</strong>

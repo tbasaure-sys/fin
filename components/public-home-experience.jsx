@@ -18,21 +18,21 @@ const COPY = {
       factorlab: "FactorLab",
     },
     auth: {
-      workspace: "Workspace",
+      workspace: "AURORA",
       signOut: "Sign out",
       logIn: "Log in",
       getStarted: "Get started",
-      openWorkspace: "Open Valuation OS",
+      openWorkspace: "Open AURORA",
       factorLab: "FactorLab",
     },
     hero: {
-      eyebrow: "Portfolio decisions, explained",
+      eyebrow: "AURORA Valuation OS",
       titleStart: "Know what to do with your money",
       titleAccent: "before you act.",
       body:
         "BLS Prime turns cash, holdings, market context, and research into one clear next step: act, wait, or reject.",
-      primaryAuthed: "Open Valuation OS",
-      primaryGuest: "Open Valuation OS",
+      primaryAuthed: "Open AURORA",
+      primaryGuest: "Open AURORA",
       secondary: "See the workspace",
     },
     workflow: {
@@ -62,7 +62,7 @@ const COPY = {
     },
     preview: {
       sidebarHint: "Decision workspace",
-      sidebarMeta: ["Valuation OS", "Portfolio", "Research"],
+      sidebarMeta: ["AURORA", "Portfolio", "Research"],
       items: [
         { label: "Inputs", target: "inputs" },
         { label: "What matters", target: "attention" },
@@ -139,7 +139,7 @@ const COPY = {
   es: {
     languageName: "Español",
     navAria: "Principal",
-    workspaceNavAria: "Navegación de Valuation OS",
+    workspaceNavAria: "Navegación de AURORA",
     languageAria: "Elegir idioma de la página",
     nav: {
       product: "Cómo se lee",
@@ -147,21 +147,21 @@ const COPY = {
       factorlab: "FactorLab",
     },
     auth: {
-      workspace: "Valuation OS",
+      workspace: "AURORA",
       signOut: "Cerrar sesión",
       logIn: "Iniciar sesión",
       getStarted: "Empezar",
-      openWorkspace: "Abrir Valuation OS",
+      openWorkspace: "Abrir AURORA",
       factorLab: "FactorLab",
     },
     hero: {
-      eyebrow: "Valuation OS + cartera",
+      eyebrow: "AURORA Valuation OS",
       titleStart: "Lee qué exige el precio",
       titleAccent: "antes de decidir.",
       body:
         "BLS Prime ordena valoración, riesgo de cartera y evidencia pública para decidir si una idea merece acción, espera o rechazo.",
-      primaryAuthed: "Abrir Valuation OS",
-      primaryGuest: "Abrir Valuation OS",
+      primaryAuthed: "Abrir AURORA",
+      primaryGuest: "Abrir AURORA",
       secondary: "Ver flujo de trabajo",
     },
     workflow: {
@@ -175,7 +175,7 @@ const COPY = {
       title: "La respuesta viene con razones, no con misterio.",
       body:
         "Cada lectura deja visible la evidencia: precio, cartera, concentración, señales de negocio y el motivo por el que la decisión final tiene sentido.",
-      primary: "Explorar Valuation OS",
+      primary: "Explorar AURORA",
       secondary: "Empezar con tu portafolio",
     },
     cta: {
@@ -191,7 +191,7 @@ const COPY = {
     },
     preview: {
       sidebarHint: "Mesa de inversión",
-      sidebarMeta: ["Valuation OS", "FactorLab", "Cartera"],
+      sidebarMeta: ["AURORA", "FactorLab", "Cartera"],
       items: [
         { label: "Fuentes", target: "inputs" },
         { label: "Creencia", target: "attention" },
@@ -204,7 +204,7 @@ const COPY = {
         { label: "Pruebas", target: "layers" },
         { label: "Tradeoffs", target: "consensus" },
       ],
-      topLabel: "Valuation OS",
+      topLabel: "AURORA",
       topTitle: "Lectura de precio, negocio y cartera",
       topDate: "Ejemplo",
       topStatus: "Toca una sección para abrir el detalle",
@@ -292,7 +292,7 @@ export function PublicHomeExperience({ brand }) {
   const [language, setLanguage] = useState("es");
   const [hasResolvedLanguage, setHasResolvedLanguage] = useState(false);
   const copy = COPY[language];
-  const primaryHref = "/valuation-os-lab";
+  const primaryHref = "/aurora";
   const factorLabHref = "/factorlab";
   const primaryLabel = copy.hero.primaryGuest || copy.hero.primaryAuthed;
 
@@ -335,7 +335,7 @@ export function PublicHomeExperience({ brand }) {
           <Link className={styles.btnGhost} href="/factorlab">
             {copy.auth.factorLab}
           </Link>
-          <Link className={styles.btnSecondary} href="/valuation-os-lab">
+          <Link className={styles.btnSecondary} href="/aurora">
             {copy.auth.openWorkspace}
           </Link>
         </div>

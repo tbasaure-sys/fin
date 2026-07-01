@@ -2289,10 +2289,10 @@ function WorkspaceSidebar({
         <p className={styles.supportText}>Espacio privado de decisión.</p>
       </div>
 
-      <Link className={styles.valuationOsLaunch} href="/valuation-os-lab">
+      <Link className={styles.valuationOsLaunch} href="/aurora">
         <span className={styles.valuationOsLaunchIndex}>01</span>
         <div>
-          <strong>Valuation OS</strong>
+          <strong>AURORA</strong>
           <small>Reverse DCF, ROIC fade y tesis</small>
         </div>
         <em>Principal</em>

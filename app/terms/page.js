@@ -15,7 +15,7 @@ export default function TermsPage() {
           <span className={styles.brandName}>{config.appName}</span>
         </Link>
         <div className={styles.navActions}>
-          <Link className={styles.btnGhost} href="/valuation-os-lab">Valuation OS</Link>
+          <Link className={styles.btnGhost} href="/aurora">AURORA</Link>
           <Link className={styles.btnGhost} href="/">Home</Link>
         </div>
       </nav>
