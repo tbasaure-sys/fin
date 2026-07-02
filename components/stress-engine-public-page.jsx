@@ -6,6 +6,8 @@ import styles from "@/app/stress/stress.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
 import { PlainMetric } from "@/components/ui/plain-metric";
 
+const PORTFOLIO_ENTRY_HREF = "/app#holdings";
+
 const COPY = {
   en: {
     back: "BL'S",
@@ -158,7 +160,7 @@ export function StressEnginePublicPage() {
           {copy.back}
         </Link>
         <nav aria-label="Stress Engine links">
-          <Link href="/app#risk">{copy.navPrimary}</Link>
+          <Link href={PORTFOLIO_ENTRY_HREF}>{copy.navPrimary}</Link>
           <Link href="#methodology">{copy.navSecondary}</Link>
         </nav>
       </header>
@@ -169,7 +171,7 @@ export function StressEnginePublicPage() {
         <h2>{copy.subtitle}</h2>
         <span>{copy.body}</span>
         <div className={styles.heroActions}>
-          <Link href="/app#risk">{copy.primary}</Link>
+          <Link href={PORTFOLIO_ENTRY_HREF}>{copy.primary}</Link>
           <Link href="#methodology">{copy.secondary}</Link>
         </div>
         <small>{copy.disclaimer}</small>
@@ -231,7 +233,7 @@ export function StressEnginePublicPage() {
       <section className={styles.cta}>
         <h2>{copy.ctaTitle}</h2>
         <p>{copy.ctaBody}</p>
-        <Link href="/app#risk">{copy.primary}</Link>
+        <Link href={PORTFOLIO_ENTRY_HREF}>{copy.primary}</Link>
         <small>{copy.disclaimer}</small>
       </section>
     </main>

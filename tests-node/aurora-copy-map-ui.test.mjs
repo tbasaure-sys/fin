@@ -36,3 +36,14 @@ test("user-facing AURORA surfaces do not render blocked engine vocabulary", () =
     }
   }
 });
+
+test("public Stress Engine CTAs enter the portfolio workspace instead of valuation", () => {
+  const homeSource = readFileSync("components/public-home-experience.jsx", "utf8");
+  const stressSource = readFileSync("components/stress-engine-public-page.jsx", "utf8");
+  const terminalSource = readFileSync("components/terminal-app.jsx", "utf8");
+
+  assert.match(homeSource, /title:\s*"Stress Engine"[\s\S]*href:\s*"\/app#holdings"/);
+  assert.match(stressSource, /PORTFOLIO_ENTRY_HREF\s*=\s*"\/app#holdings"/);
+  assert.match(terminalSource, /stress:\s*"risk"/);
+  assert.match(terminalSource, /positions:\s*"holdings"/);
+});

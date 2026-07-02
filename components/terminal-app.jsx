@@ -181,10 +181,14 @@ const LEGACY_HASH_REDIRECT = {
   money: "today",
   portfolio: "risk",
   diversification: "risk",
+  stress: "risk",
+  "stress-engine": "risk",
   research: "candidates",
   factorlab: "candidates",
   macrobrain: "macro",
   mosaic: "macro",
+  positions: "holdings",
+  cartera: "holdings",
 };
 
 function ToneBadge({ tone = "neutral", children }) {
