@@ -18,12 +18,12 @@ const COPY = {
     build: "Research build",
     buildText:
       "The live endpoint serves a guarded correlation proxy while the offline diffusion champion remains gated. It is explicit about non-readiness instead of dressing research as production.",
-    replayTitle: "Historical Replay",
-    replayBody: "Stress coverage is shown against named market episodes, not against the sampler's own target matrix.",
+    replayTitle: "Legacy Replay",
+    replayBody: "The v7 replay is disclosed for audit continuity, not promotion: its severe sleeve used a full-window floor. V8 reruns this with sparse shocks and baseline gates.",
     replay: [
-      ["COVID crash 2020", "Actual min -31.4%", "Synthetic q01 -35.5%", "Covered"],
-      ["Inflation bear 2022", "Actual min -15.9%", "Synthetic q01 -35.5%", "Covered"],
-      ["Bank stress 2023", "Actual min -1.4%", "Synthetic q01 -35.5%", "Covered"],
+      ["COVID crash 2020", "Actual min -31.4%", "Legacy q01 -35.5%", "Provisional"],
+      ["Inflation bear 2022", "Actual min -15.9%", "Legacy q01 -35.5%", "Provisional"],
+      ["Bank stress 2023", "Actual min -1.4%", "Legacy q01 -35.5%", "Provisional"],
     ],
     metrics: [
       ["5,000", "synthetic paths per stress run"],
@@ -33,11 +33,11 @@ const COPY = {
     ],
     methodologyTitle: "Methodology And Gates",
     methodology:
-      "Current live engine: seeded, regime-conditioned covariance proxy with Cholesky correlation, stratified stress sampling, and visible warnings. Offline research: diffusion champion trained in Colab. Gate status: not ready for production endpoint until baseline tests clear Gaussian/t-copula/FHS comparisons and exception backtests.",
+      "Current live engine: seeded, regime-conditioned covariance proxy with Cholesky correlation, stratified stress sampling, and visible warnings. Offline research: diffusion champion trained in Colab. Gate status: not ready for production endpoint until v8 removes the deterministic stress clamp and clears Gaussian/same-stack Gaussian/t-copula/FHS comparisons plus exception backtests.",
     limitationsTitle: "Current Limits",
     limitations: [
       "Do not brand the live surface as DDPM until the served checkpoint clears endpoint gates.",
-      "MMD and sampler-fidelity diagnostics stay below the fold; risk users see VaR, CVaR, drawdown, replay coverage, and tail contributors first.",
+      "MMD and sampler-fidelity diagnostics stay below the fold; risk users see VaR, CVaR, drawdown, replay status, and tail contributors first.",
       "Synthetic scenarios are research artifacts, not forecasts, advice, or execution signals.",
     ],
   },
@@ -53,12 +53,12 @@ const COPY = {
     build: "Build de investigacion",
     buildText:
       "El endpoint vivo sirve un proxy correlacional con guardrails mientras el champion de difusion sigue offline y gated. La no-preparacion queda explicita; no se disfraza investigacion como produccion.",
-    replayTitle: "Replay Historico",
-    replayBody: "La cobertura de stress se muestra contra episodios de mercado, no contra la matriz objetivo del propio sampler.",
+    replayTitle: "Replay Legacy",
+    replayBody: "El replay v7 queda visible por auditoria, no como promocion: su sleeve severo usaba un floor de ventana completa. V8 lo rehace con shocks dispersos y gates contra baselines.",
     replay: [
-      ["COVID crash 2020", "Min real -31.4%", "Q01 sintetico -35.5%", "Cubre"],
-      ["Inflation bear 2022", "Min real -15.9%", "Q01 sintetico -35.5%", "Cubre"],
-      ["Bank stress 2023", "Min real -1.4%", "Q01 sintetico -35.5%", "Cubre"],
+      ["COVID crash 2020", "Min real -31.4%", "Q01 legacy -35.5%", "Provisorio"],
+      ["Inflation bear 2022", "Min real -15.9%", "Q01 legacy -35.5%", "Provisorio"],
+      ["Bank stress 2023", "Min real -1.4%", "Q01 legacy -35.5%", "Provisorio"],
     ],
     metrics: [
       ["5.000", "trayectorias sinteticas por corrida"],
@@ -68,11 +68,11 @@ const COPY = {
     ],
     methodologyTitle: "Metodologia Y Gates",
     methodology:
-      "Motor vivo actual: proxy de covarianza por regimen, con semilla deterministica, correlacion Cholesky, stress sampling estratificado y warnings visibles. Investigacion offline: champion de difusion entrenado en Colab. Estado del gate: no listo para endpoint productivo hasta superar comparaciones Gaussian/t-copula/FHS y backtests de excepciones.",
+      "Motor vivo actual: proxy de covarianza por regimen, con semilla deterministica, correlacion Cholesky, stress sampling estratificado y warnings visibles. Investigacion offline: champion de difusion entrenado en Colab. Estado del gate: no listo para endpoint productivo hasta que v8 elimine el clamp deterministico y supere Gaussian/same-stack Gaussian/t-copula/FHS mas backtests de excepciones.",
     limitationsTitle: "Limites Actuales",
     limitations: [
       "No se marca la superficie viva como DDPM hasta que el checkpoint servido pase los gates de endpoint.",
-      "MMD y fidelidad del sampler quedan bajo el fold; el usuario de riesgo ve primero VaR, CVaR, drawdown, replay historico y contribuidores de cola.",
+      "MMD y fidelidad del sampler quedan bajo el fold; el usuario de riesgo ve primero VaR, CVaR, drawdown, estado del replay y contribuidores de cola.",
       "Los escenarios sinteticos son artefactos de investigacion, no pronosticos, asesoria ni senales de ejecucion.",
     ],
   },

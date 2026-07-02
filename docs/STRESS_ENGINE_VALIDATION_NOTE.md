@@ -15,7 +15,7 @@ Visible user metrics should be:
 - VaR 5% and VaR 1%.
 - CVaR 5%.
 - Probability of drawdown <= -10%.
-- Historical replay coverage for COVID 2020, the 2022 inflation bear market, and 2023 bank stress.
+- Historical replay status for COVID 2020, the 2022 inflation bear market, and 2023 bank stress.
 - Tail contribution by position.
 - Deterministic run ID and seed.
 
@@ -30,15 +30,17 @@ Diagnostics that should stay below the fold:
 
 The v7 offline champion is a research artifact, not a production-served model.
 
+Important update: v7 stress replay is legacy/provisional. The severe stress sleeve used a full-window market-factor floor, so the apparent crisis coverage is not a promotion-grade validation result. V8 must rerun replay with sparse shock days or distributional shifts and compare against practical baselines.
+
 Current scorecard:
 
 - Beats Gaussian MMD: false.
 - Beats Gaussian correlation: false.
-- Stress walk-forward 1% coverage: true.
+- Stress walk-forward 1% coverage: legacy/provisional.
 - Endpoint scenario count: acceptable for research stress runs.
 - Ready for endpoint: false.
 
-The live product should therefore be positioned as Stress Engine, not as Factor-DDPM.
+The live product should therefore be positioned as Stress Engine, not as Factor-DDPM. Public UI may show the v7 replay as an audit artifact only, with an explicit pending-v8 caveat.
 
 ## Baselines Required Before Promotion
 
@@ -49,6 +51,7 @@ The checkpoint should not be promoted until it is compared against:
 - Filtered historical simulation.
 - Block bootstrap.
 - GARCH-DCC or equivalent dynamic-correlation baseline.
+- Same-stack Gaussian factor ablation using the exact DDPM calibration, reconstruction, and residual-bootstrap stack.
 
 Promotion requires materially better tail realism, realized-correlation behavior, and exception backtests. Architecture novelty is not enough.
 
@@ -67,3 +70,5 @@ Next validation pass should include:
 Public surfaces sell the decision output: stress paths, CVaR, drawdown, replay, attribution, and auditability.
 
 Architecture names, version labels, and internal model gates belong in methodology or diagnostics only.
+
+Replay language must say `legacy` or `provisional` until the no-clamp v8 replay passes.

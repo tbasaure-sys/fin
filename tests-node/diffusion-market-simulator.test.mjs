@@ -39,7 +39,9 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.universe.length, 3);
   assert.ok(result.risk.var5 < 0);
   assert.ok(result.risk.cvar5 <= result.risk.var5);
-  assert.equal(result.validation.historicalReplay.coverageLabel, "3/3");
+  assert.equal(result.validation.historicalReplay.coverageLabel, "Legacy 3/3");
+  assert.equal(result.validation.historicalReplay.methodologyValidated, false);
+  assert.equal(result.validation.historicalReplay.methodologyStatus, "legacy_provisional_pending_v8");
   assert.equal(result.validation.baselineComparison.readyForEndpoint, false);
   assert.ok(result.diagnostics.correlationFidelity > 0.75);
   assert.ok(result.tailContributors.length > 0);

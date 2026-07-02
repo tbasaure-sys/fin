@@ -2096,8 +2096,8 @@ const MARKET_STRESS_COPY = {
     var1Detail: "First percentile terminal return.",
     drawdown: "DD -10%",
     drawdownDetail: "Probability of max drawdown <= -10%.",
-    replayCoverage: "Replay coverage",
-    replayCoverageDetail: "Historical episodes covered by synthetic q01.",
+    replayCoverage: "Replay status",
+    replayCoverageDetail: "Legacy v7 replay status; v8 no-clamp rerun required before promotion.",
     worstReplay: "Worst replay",
     worstReplayDetail: "Most severe historical episode in validation.",
     runtime: "Runtime",
@@ -2113,7 +2113,7 @@ const MARKET_STRESS_COPY = {
     historicalReplay: "Historical replay",
     actual: "actual",
     synthetic: "synthetic q01",
-    covered: "covered",
+    covered: "provisional",
     notCovered: "miss",
     universe: "Universe used",
     universeEmpty: "No connected positions.",
@@ -2148,8 +2148,8 @@ const MARKET_STRESS_COPY = {
     var1Detail: "Percentil 1 del retorno terminal.",
     drawdown: "DD -10%",
     drawdownDetail: "Probabilidad de drawdown maximo <= -10%.",
-    replayCoverage: "Replay historico",
-    replayCoverageDetail: "Episodios historicos cubiertos por q01 sintetico.",
+    replayCoverage: "Estado replay",
+    replayCoverageDetail: "Estado legacy v7; requiere rerun v8 sin clamp antes de promover.",
     worstReplay: "Peor replay",
     worstReplayDetail: "Episodio historico mas severo en validacion.",
     runtime: "Runtime",
@@ -2165,7 +2165,7 @@ const MARKET_STRESS_COPY = {
     historicalReplay: "Replay historico",
     actual: "real",
     synthetic: "q01 sintetico",
-    covered: "cubre",
+    covered: "provisorio",
     notCovered: "falla",
     universe: "Universo usado",
     universeEmpty: "Sin posiciones conectadas.",
@@ -2303,7 +2303,7 @@ function MarketDiffusionPanel({ workspaceId }) {
           <MetricTile detail={copy.medianDetail} label={copy.median} value={risk.medianReturnLabel || "-"} />
           <MetricTile detail={copy.var1Detail} label={copy.var1} tone="bad" value={risk.var1Label || "-"} />
           <MetricTile detail={copy.drawdownDetail} label={copy.drawdown} tone="warn" value={risk.probabilityDrawdown10Label || "-"} />
-          <MetricTile detail={copy.replayCoverageDetail} label={copy.replayCoverage} tone={historicalReplay?.coveredCount === historicalReplay?.episodeCount ? "good" : "warn"} value={historicalReplay?.coverageLabel || "-"} />
+          <MetricTile detail={historicalReplay?.methodologyNote || copy.replayCoverageDetail} label={copy.replayCoverage} tone={historicalReplay?.methodologyValidated ? "good" : "warn"} value={historicalReplay?.coverageLabel || "-"} />
           <MetricTile detail={copy.worstReplayDetail} label={copy.worstReplay} tone="bad" value={worstReplay?.actualMinLabel || "-"} />
           <MetricTile detail={copy.runtimeDetail} label={copy.runtime} tone={simulation?.model?.trainedCheckpointServed ? "good" : "warn"} value={simulation?.model?.trainedCheckpointServed ? copy.pytorch : copy.proxy} />
         </div>

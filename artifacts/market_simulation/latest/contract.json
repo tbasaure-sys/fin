@@ -20,7 +20,8 @@
     },
     "stress_book_q01": -0.35458617455426983,
     "scenario_count_ok_for_stress_endpoint": true,
-    "ready_for_endpoint_requires": "strict baseline, exception, and correlation gates; current research champion is offline only"
+    "stress_replay_status": "legacy_v7_provisional_full_window_floor_pending_v8",
+    "ready_for_endpoint_requires": "v8 no-clamp stress book, strict baseline, exception, and correlation gates; current research champion is offline only"
   },
   "championMetrics": {
     "universe_symbols_selected": 500,
@@ -51,6 +52,8 @@
     "walk_forward": {
       "periods": 3,
       "stress_walk_forward_1pct_covers_all": true,
+      "stress_walk_forward_methodology_validated": false,
+      "stress_walk_forward_methodology_note": "v7 coverage is legacy/provisional because the severe stress sleeve used a full-window market-factor floor; rerun v8 sparse stress before promotion.",
       "covid_crash_2020_actual_min": -0.313964,
       "covid_crash_2020_synthetic_q01": -0.354586,
       "inflation_bear_2022_actual_min": -0.158997,
@@ -65,6 +68,7 @@
       "corr_near_gaussian": true,
       "corr_fidelity_ge_0_80": true,
       "stress_walk_forward_1pct_covers_all": true,
+      "stress_walk_forward_methodology_validated": false,
       "endpoint_scenario_count_ok": true,
       "no_validation_used_for_guidance_or_cholesky": true,
       "research_champion": true,
