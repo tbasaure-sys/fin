@@ -1,0 +1,16 @@
+,value
+endpoint,/api/v1/workspaces/{workspaceId}/market-simulation
+status,research_champion_offline_only
+base_model,factor_ddpm_base
+stress_model,factor_ddpm_stress
+generated_scenarios,5000
+endpoint_default_scenarios,5000
+endpoint_min_scenarios,2000
+endpoint_min_stress_scenarios,5000
+endpoint_stress_quantile,0.01
+endpoint_small_request_policy,reject_or_aggregate
+stress_stratified_sampling,True
+stress_multiplier_counts,"{""1.0"": 3150, ""1.4500000476837158"": 1100, ""2.4000000953674316"": 500, ""6.0"": 250}"
+stress_book_q01,-0.4460911059460486
+scenario_count_ok_for_stress_endpoint,True
+ready_for_endpoint_requires,strict MMD and correlation gates; current research champion is offline only

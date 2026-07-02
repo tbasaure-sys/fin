@@ -2,6 +2,8 @@
 
 Status: v8 pivot executed. The served product is the calibrated factor stress engine; DDPM is research-only.
 
+Source evidence lives at `artifacts/market_simulation/v8_ddpm_run_20260702_035744/`. The large DDPM `.npz` banks are excluded from git and remain local/export artifacts.
+
 ## What V8 Found
 
 The honest v8 evaluation rejected the Factor-DDPM as the served champion.
@@ -19,6 +21,8 @@ Headline metrics:
 - Same-stack Gaussian eigen RMSE: `3.465929`.
 
 The decisive ablation is `gaussian_factor_same_calibration_stack`: Gaussian factor noise pushed through the same calibration, reconstruction, and residual-bootstrap stack beats the diffusion model. The product should therefore serve the calibrated stress engine and keep DDPM as a challenger.
+
+The July 2, 2026 zip contains DDPM factor and asset scenario banks, but not a same-stack Gaussian champion scenario bank or the reconstruction coefficients needed to project factor paths into arbitrary user portfolios. Those DDPM banks are evidence, not the served champion.
 
 ## What Is Served
 
@@ -50,6 +54,7 @@ Diagnostics that should stay below the fold:
 - `valid_target_regime` gives only 78 evaluation windows; tail metrics need bootstrap confidence intervals or an all-regime weighted validation companion.
 - The stress table compares one unconditional stress ladder against three historical episodes. It is a stress-floor diagnostic, not episode-conditioned crisis replay.
 - The pooled stress q01 of `-44.6%` is a ladder output. Report quantiles per multiplier sleeve before treating it as an estimated market tail.
+- To serve the exact champion rather than the current CPU runtime, export a same-stack Gaussian scenario bank or the reconstruction package: factor paths, reconstruction beta/loadings, residual bootstrap blocks, sector mapping, and schema manifest.
 
 ## Product Rule
 
