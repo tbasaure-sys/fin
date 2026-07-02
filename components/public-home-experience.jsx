@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 import styles from "@/app/home-page.module.css";
 import { LANGUAGE_STORAGE_KEY, writeStoredLanguage } from "@/components/language-layer";
+import { StressAccountGate } from "@/components/stress-account-gate";
 
 const COPY = {
   es: {
@@ -36,7 +37,8 @@ const COPY = {
         title: "Stress Engine",
         label: "Riesgo de cartera",
         body: "¿Qué tan mal puede salir? Miles de crisis simuladas contra tu cartera real.",
-        href: "/app#holdings",
+        href: "/stress",
+        requiresAccount: true,
         cta: "Probar mi cartera",
       },
     ],
@@ -70,7 +72,8 @@ const COPY = {
         title: "Stress Engine",
         label: "Portfolio Risk",
         body: "How bad can it get? Thousands of simulated crises run against your actual portfolio.",
-        href: "/app#holdings",
+        href: "/stress",
+        requiresAccount: true,
         cta: "Run stress test",
       },
     ],
@@ -113,7 +116,7 @@ export function PublicHomeExperience({ brand }) {
 
           <div className={styles.topActions}>
             <LanguageToggle copy={copy} language={language} onChange={setLanguage} />
-            <Link className={styles.loginLink} href="/login">
+            <Link className={styles.loginLink} href={`/login?lang=${language}`}>
               {copy.login}
             </Link>
           </div>
@@ -127,17 +130,29 @@ export function PublicHomeExperience({ brand }) {
         </div>
 
         <nav className={styles.moduleDeck} aria-label="BLS Prime modules">
-          {copy.modules.map((module, index) => (
-            <Link className={styles.moduleButton} href={module.href} key={module.title}>
-              <span className={styles.moduleIndex}>{String(index + 1).padStart(2, "0")}</span>
-              <span className={styles.moduleText}>
-                <span>{module.label}</span>
-                <strong>{module.title}</strong>
-                <small>{module.body}</small>
-              </span>
-              <em>{module.cta}</em>
-            </Link>
-          ))}
+          {copy.modules.map((module, index) => {
+            const content = (
+              <>
+                <span className={styles.moduleIndex}>{String(index + 1).padStart(2, "0")}</span>
+                <span className={styles.moduleText}>
+                  <span>{module.label}</span>
+                  <strong>{module.title}</strong>
+                  <small>{module.body}</small>
+                </span>
+                <em>{module.cta}</em>
+              </>
+            );
+
+            return module.requiresAccount ? (
+              <StressAccountGate className={styles.moduleButton} key={module.title} language={language}>
+                {content}
+              </StressAccountGate>
+            ) : (
+              <Link className={styles.moduleButton} href={module.href} key={module.title}>
+                {content}
+              </Link>
+            );
+          })}
         </nav>
 
         <footer className={styles.footer}>

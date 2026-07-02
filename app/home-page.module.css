@@ -164,7 +164,11 @@
   min-height: clamp(8.2rem, 14vh, 10rem);
   padding: clamp(1rem, 2vw, 1.45rem);
   overflow: hidden;
+  border: 0;
   color: #f6efe4;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
   text-decoration: none;
   background: rgba(3, 4, 6, 0.88);
   transition:

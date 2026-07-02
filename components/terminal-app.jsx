@@ -223,7 +223,11 @@ function InlineList({ items, emptyLabel }) {
   );
 }
 
-function RangeTabs({ value, onChange }) {
+function RangeTabs({ value, onChange, language = "es" }) {
+  const rangeLabels = language === "en"
+    ? { ALL: "Since start" }
+    : { "1W": "1S", ALL: "Inicio" };
+
   return (
     <div className={styles.rangeTabs} role="tablist" aria-label="Rango de cartera">
       {PORTFOLIO_RANGES.map((option) => (
@@ -236,7 +240,7 @@ function RangeTabs({ value, onChange }) {
           onClick={() => onChange(option)}
           type="button"
         >
-          {option}
+          {rangeLabels[option] || option}
         </button>
       ))}
     </div>
@@ -2057,7 +2061,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
   );
 }
 
-function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
+function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, language = "es" }) {
   const portfolio = portfolioModule || {};
   const analytics = portfolio.analytics || {};
   const holdings = safeList(portfolio.holdings);
@@ -2096,6 +2100,11 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
         <div className={styles.headerMeta}>
           <ToneBadge tone={hasHoldings ? "good" : "warn"}>{hasHoldings ? "Activo" : "VacÃ­o"}</ToneBadge>
           <ToneBadge tone="neutral">{cleanPortfolioLabel(portfolio.holdingsSource?.label || portfolio.chartSource, "Cartera")}</ToneBadge>
+          {showAuroraAction ? (
+            <Link className={styles.secondaryLink} href="/aurora">
+              Abrir AURORA
+            </Link>
+          ) : null}
         </div>
       </div>
 
@@ -2127,7 +2136,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
               <p className={styles.kicker}>Historial</p>
               <h3>Cartera vs {analytics.benchmarkSymbol || "SPY"}</h3>
             </div>
-            <RangeTabs onChange={onRangeChange} value={range} />
+            <RangeTabs language={language} onChange={onRangeChange} value={range} />
           </div>
           <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
         </section>
@@ -2137,25 +2146,29 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
 
       <PortfolioPositionTable holdings={holdings} />
 
-      <div className={styles.portfolioTriageGrid}>
-        <PortfolioExposurePanel holdings={holdings} />
-        <PortfolioReviewPanel holdings={holdings} />
-      </div>
+      {compact ? null : (
+        <>
+          <div className={styles.portfolioTriageGrid}>
+            <PortfolioExposurePanel holdings={holdings} />
+            <PortfolioReviewPanel holdings={holdings} />
+          </div>
 
-      <div className={styles.portfolioLowerGrid}>
-        <PortfolioHorizonPanel analytics={analytics} holdings={holdings} returns={returnBreakdown} />
-        <PortfolioMoversPanel holdings={holdings} />
-        <PortfolioTransactionsPanel transactions={transactions} />
-      </div>
+          <div className={styles.portfolioLowerGrid}>
+            <PortfolioHorizonPanel analytics={analytics} holdings={holdings} returns={returnBreakdown} />
+            <PortfolioMoversPanel holdings={holdings} />
+            <PortfolioTransactionsPanel transactions={transactions} />
+          </div>
 
-      {hasHoldings ? (
-        <div className={styles.portfolioFooterStrip}>
-          <span>Top 5: {concentration.topFive || "-"}</span>
-          <span>RecuperaciÃ³n: {portfolioXray.recoveryShare || "-"}</span>
-          <span>Fragilidad: {portfolioXray.fragileShare || "-"}</span>
-          <span>Riesgo alto: {highRiskCount || "-"}</span>
-        </div>
-      ) : null}
+          {hasHoldings ? (
+            <div className={styles.portfolioFooterStrip}>
+              <span>Top 5: {concentration.topFive || "-"}</span>
+              <span>RecuperaciÃ³n: {portfolioXray.recoveryShare || "-"}</span>
+              <span>Fragilidad: {portfolioXray.fragileShare || "-"}</span>
+              <span>Riesgo alto: {highRiskCount || "-"}</span>
+            </div>
+          ) : null}
+        </>
+      )}
     </section>
   );
 }
@@ -4599,7 +4612,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "risk":
       activeWorkspacePanels = (
         <>
-          <PortfolioPanel onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
+          <PortfolioPanel language={language} onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
           <StressEnginePanel workspaceId={workspaceId} />
           <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
         </>
@@ -4661,6 +4674,15 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "holdings":
       activeWorkspacePanels = (
         <>
+          <PortfolioPanel
+            compact
+            onRangeChange={setPortfolioRange}
+            language={language}
+            portfolioModule={portfolioModule}
+            range={portfolioRange}
+            showAuroraAction
+            xray={dashboard?.xray}
+          />
           <HoldingsPanel
             holdingDraft={holdingDraft}
             onHoldingDraftChange={updateHoldingDraft}

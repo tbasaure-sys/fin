@@ -40,6 +40,7 @@ export async function POST(request) {
   const name = String(formData.get("name") || "");
   const password = String(formData.get("password") || "");
   const intent = String(formData.get("intent") || "signin");
+  const language = String(formData.get("lang") || "es") === "en" ? "en" : "es";
   const next = String(formData.get("next") || "/app");
 
   try {
@@ -54,6 +55,8 @@ export async function POST(request) {
   } catch (error) {
     const url = new URL("/login", request.url);
     url.searchParams.set("next", next.startsWith("/") ? next : "/app");
+    url.searchParams.set("intent", intent === "signup" ? "signup" : "signin");
+    url.searchParams.set("lang", language);
     url.searchParams.set("error", normalizeAuthError(error));
     return NextResponse.redirect(url, 303);
   }

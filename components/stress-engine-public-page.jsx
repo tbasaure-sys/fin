@@ -4,9 +4,8 @@ import Link from "next/link";
 
 import styles from "@/app/stress/stress.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
+import { StressAccountGate } from "@/components/stress-account-gate";
 import { PlainMetric } from "@/components/ui/plain-metric";
-
-const PORTFOLIO_ENTRY_HREF = "/app#holdings";
 
 const COPY = {
   en: {
@@ -160,7 +159,9 @@ export function StressEnginePublicPage() {
           {copy.back}
         </Link>
         <nav aria-label="Stress Engine links">
-          <Link href={PORTFOLIO_ENTRY_HREF}>{copy.navPrimary}</Link>
+          <StressAccountGate className={styles.actionButton} language={language}>
+            {copy.navPrimary}
+          </StressAccountGate>
           <Link href="#methodology">{copy.navSecondary}</Link>
         </nav>
       </header>
@@ -171,7 +172,9 @@ export function StressEnginePublicPage() {
         <h2>{copy.subtitle}</h2>
         <span>{copy.body}</span>
         <div className={styles.heroActions}>
-          <Link href={PORTFOLIO_ENTRY_HREF}>{copy.primary}</Link>
+          <StressAccountGate className={styles.actionButton} language={language}>
+            {copy.primary}
+          </StressAccountGate>
           <Link href="#methodology">{copy.secondary}</Link>
         </div>
         <small>{copy.disclaimer}</small>
@@ -233,7 +236,9 @@ export function StressEnginePublicPage() {
       <section className={styles.cta}>
         <h2>{copy.ctaTitle}</h2>
         <p>{copy.ctaBody}</p>
-        <Link href={PORTFOLIO_ENTRY_HREF}>{copy.primary}</Link>
+        <StressAccountGate className={styles.ctaButton} language={language}>
+          {copy.primary}
+        </StressAccountGate>
         <small>{copy.disclaimer}</small>
       </section>
     </main>

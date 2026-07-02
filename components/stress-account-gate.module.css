@@ -1,0 +1,129 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(14px);
+  animation: gateFade 160ms ease both;
+}
+
+.modal {
+  position: relative;
+  width: min(100%, 31rem);
+  padding: clamp(1.35rem, 3vw, 2rem);
+  border: 1px solid rgba(246, 239, 228, 0.13);
+  border-radius: 8px;
+  color: #f6efe4;
+  background:
+    linear-gradient(180deg, rgba(12, 14, 18, 0.98), rgba(4, 5, 7, 0.98)),
+    #050607;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+  animation: gateRise 200ms ease both;
+}
+
+.closeButton {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(246, 239, 228, 0.12);
+  border-radius: 999px;
+  color: rgba(246, 239, 228, 0.78);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+}
+
+.eyebrow {
+  margin: 0 0 0.75rem;
+  color: #f0b84e;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.modal h2 {
+  max-width: 13ch;
+  margin: 0;
+  color: #fff8ec;
+  font-size: clamp(2rem, 7vw, 3.2rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.modal > p:not(.eyebrow) {
+  max-width: 34rem;
+  margin: 1rem 0 0;
+  color: rgba(246, 239, 228, 0.68);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 1.35rem;
+}
+
+.primary,
+.secondary,
+.auroraLink {
+  min-height: 2.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.primary {
+  border: 1px solid rgba(240, 184, 78, 0.55);
+  color: #050506;
+  background: #f0b84e;
+}
+
+.secondary {
+  border: 1px solid rgba(246, 239, 228, 0.13);
+  color: #f6efe4;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.auroraLink {
+  width: fit-content;
+  margin-top: 0.9rem;
+  padding: 0;
+  min-height: auto;
+  color: rgba(246, 239, 228, 0.64);
+}
+
+@keyframes gateFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes gateRise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 520px) {
+  .actions {
+    grid-template-columns: 1fr;
+  }
+}
