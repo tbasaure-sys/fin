@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { buildDiffusionMarketSimulation } from "../lib/server/diffusion-market-simulator.js";
+import {
+  buildDiffusionMarketSimulation,
+  buildDiffusionMarketSimulationAsync,
+} from "../lib/server/diffusion-market-simulator.js";
 
 const dashboard = {
   workspace_summary: { id: "test-workspace" },
@@ -36,6 +39,8 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.model.stressMultiplierCounts["1.0"], 3150);
   assert.equal(result.model.stressMultiplierCounts["6.0"], 250);
   assert.equal(result.inputSources.correlationSource, "sector_heuristic_fallback");
+  assert.equal(result.inputSources.realReturnData, false);
+  assert.equal(result.inputSources.covarianceSource, "limited_history_structural_fallback");
   assert.equal(result.universe.length, 3);
   assert.ok(result.risk.var5 < 0);
   assert.ok(result.risk.cvar5 <= result.risk.var5);
@@ -57,6 +62,62 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.deployment.runtime.servedEngine, "same_stack_gaussian_factor_stress_engine");
   assert.equal(result.deployment.runtime.trainedCheckpointServed, false);
   assert.equal(result.deployment.requestPolicy.policyApplied, "aggregated_to_minimum");
+});
+
+function buildSyntheticPriceHistory() {
+  const rows = { ASML: [], MSFT: [], SGOV: [] };
+  let asml = 100;
+  let msft = 90;
+  let sgov = 100;
+  for (let i = 0; i < 140; i += 1) {
+    const date = new Date(Date.UTC(2024, 0, 2 + i)).toISOString().slice(0, 10);
+    const market = Math.sin(i / 7) * 0.006 + Math.cos(i / 11) * 0.003;
+    const semis = market + Math.sin(i / 5) * 0.004;
+    const software = market * 0.82 + Math.cos(i / 6) * 0.003;
+    const cash = 0.00012 + Math.sin(i / 17) * 0.00018;
+    asml *= 1 + semis;
+    msft *= 1 + software;
+    sgov *= 1 + cash;
+    rows.ASML.push({ date, close: asml });
+    rows.MSFT.push({ date, close: msft });
+    rows.SGOV.push({ date, close: sgov });
+  }
+  return rows;
+}
+
+test("market simulator can ground covariance and volatility in historical price returns", () => {
+  const result = buildDiffusionMarketSimulation(dashboard, {
+    regime: "crisis",
+    nScenarios: 300,
+    horizonDays: 20,
+    seed: "historical-covariance",
+    priceHistory: buildSyntheticPriceHistory(),
+  });
+
+  assert.equal(result.inputSources.correlationSource, "provided_historical_prices");
+  assert.equal(result.inputSources.realReturnData, true);
+  assert.equal(result.inputSources.covarianceSource, "estimated_from_daily_return_history");
+  assert.equal(result.inputSources.realPairCount, 3);
+  assert.equal(result.inputSources.fallbackPairCount, 0);
+  assert.deepEqual(result.inputSources.limitedHistoryTickers, []);
+  assert.ok(result.inputSources.historyCoverage > 0.99);
+  assert.equal(result.universe.every((row) => row.volSource === "provided_historical_prices"), true);
+  assert.equal(result.universe.every((row) => row.historyRows >= 100), true);
+  assert.equal(result.warnings.some((warning) => warning.includes("Real-return covariance was unavailable")), false);
+});
+
+test("async builder uses provided history without requiring network", async () => {
+  const result = await buildDiffusionMarketSimulationAsync(dashboard, {
+    regime: "baseline",
+    nScenarios: 250,
+    horizonDays: 20,
+    seed: "async-provided-history",
+    priceHistory: buildSyntheticPriceHistory(),
+  });
+
+  assert.equal(result.inputSources.correlationSource, "provided_historical_prices");
+  assert.equal(result.inputSources.realReturnData, true);
+  assert.equal(result.model.nScenarios, 2000);
 });
 
 test("crisis regime is harsher than baseline with the same portfolio", () => {

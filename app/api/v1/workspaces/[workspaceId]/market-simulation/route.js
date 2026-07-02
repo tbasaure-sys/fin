@@ -1,6 +1,6 @@
 import { requireApiWorkspaceSession } from "@/lib/server/auth/session";
 import { getWorkspaceDashboard } from "@/lib/server/dashboard-service";
-import { buildDiffusionMarketSimulation } from "@/lib/server/diffusion-market-simulator";
+import { buildDiffusionMarketSimulationAsync } from "@/lib/server/diffusion-market-simulator";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -35,11 +35,13 @@ export async function GET(request, { params }) {
     stratifiedStress: url.searchParams.get("stratifiedStress") !== "false",
   };
   const portfolioHash = await digestText(JSON.stringify(dashboard?.modules?.portfolio || {}));
-  const cacheKey = `${params.workspaceId}:${portfolioHash}:${JSON.stringify(simulationOptions)}`;
+  const fmpConfigured = Boolean(process.env.FMP_API_KEY || process.env.FINANCIAL_MODELING_PREP_API_KEY);
+  const dailyHistoryCacheBucket = new Date().toISOString().slice(0, 10);
+  const cacheKey = `${params.workspaceId}:${portfolioHash}:${JSON.stringify(simulationOptions)}:${fmpConfigured}:${dailyHistoryCacheBucket}`;
   let payload = SIMULATION_CACHE.get(cacheKey);
   let cacheStatus = "hit";
   if (!payload) {
-    payload = buildDiffusionMarketSimulation(dashboard, simulationOptions);
+    payload = await buildDiffusionMarketSimulationAsync(dashboard, simulationOptions);
     SIMULATION_CACHE.set(cacheKey, payload);
     cacheStatus = "miss";
     trimCache();
