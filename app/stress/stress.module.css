@@ -1,0 +1,238 @@
+.page {
+  min-height: 100svh;
+  padding: clamp(1rem, 2.2vw, 1.8rem);
+  color: #f4efe6;
+  background:
+    radial-gradient(circle at 80% 18%, rgba(240, 184, 78, 0.12), transparent 26rem),
+    linear-gradient(180deg, #020304 0%, #060708 54%, #020304 100%);
+  font-family: "DM Sans", "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.logo {
+  color: #fff8ec;
+  font-size: clamp(1.8rem, 4vw, 3.4rem);
+  font-weight: 850;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+  text-decoration: none;
+}
+
+.topbar nav,
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.topbar a:not(.logo),
+.heroActions a {
+  min-height: 2.55rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.95rem;
+  border: 1px solid rgba(246, 239, 228, 0.13);
+  color: rgba(246, 239, 228, 0.76);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+
+.topbar a:not(.logo):hover,
+.heroActions a:hover {
+  border-color: rgba(240, 184, 78, 0.55);
+  color: #fff8ec;
+  background: rgba(240, 184, 78, 0.08);
+}
+
+.hero {
+  min-height: calc(100svh - 6rem);
+  display: grid;
+  align-content: center;
+  gap: clamp(0.9rem, 2vw, 1.35rem);
+  max-width: 72rem;
+  padding: clamp(3rem, 10vh, 7rem) 0;
+}
+
+.hero p,
+.split p,
+.methodology p:first-child {
+  margin: 0;
+  color: #f0b84e;
+  font-size: 0.76rem;
+  font-weight: 850;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0;
+  color: #fff8ec;
+  font-size: clamp(4.5rem, 15vw, 13rem);
+  font-weight: 900;
+  line-height: 0.78;
+  letter-spacing: -0.08em;
+}
+
+.hero h2 {
+  max-width: 48rem;
+  margin: 0;
+  color: #fff4df;
+  font-size: clamp(1.45rem, 3.4vw, 3.3rem);
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.hero span,
+.split span,
+.methodology span,
+.methodology article p,
+.methodology li {
+  max-width: 46rem;
+  color: rgba(246, 239, 228, 0.66);
+  font-size: clamp(0.96rem, 1.4vw, 1.12rem);
+  line-height: 1.58;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid rgba(246, 239, 228, 0.1);
+  background: rgba(246, 239, 228, 0.1);
+}
+
+.metrics div {
+  min-height: 8rem;
+  display: grid;
+  align-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(4, 5, 7, 0.96);
+}
+
+.metrics strong {
+  color: #fff8ec;
+  font-size: clamp(1.5rem, 3vw, 2.6rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+}
+
+.metrics span {
+  color: rgba(246, 239, 228, 0.58);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.split,
+.methodology {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1.15fr);
+  gap: clamp(1rem, 4vw, 4rem);
+  padding: clamp(3rem, 9vh, 6rem) 0;
+  border-bottom: 1px solid rgba(246, 239, 228, 0.09);
+}
+
+.split article,
+.methodology > div,
+.methodology article {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+}
+
+.split h2,
+.methodology h2 {
+  margin: 0;
+  color: #fff8ec;
+  font-size: clamp(2.2rem, 6vw, 5.8rem);
+  line-height: 0.88;
+  letter-spacing: -0.065em;
+}
+
+.replayTable {
+  display: grid;
+  border-top: 1px solid rgba(246, 239, 228, 0.12);
+}
+
+.replayTable div {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) repeat(3, minmax(0, 0.62fr));
+  gap: 0.7rem;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid rgba(246, 239, 228, 0.1);
+}
+
+.replayTable strong,
+.replayTable em,
+.methodology h3 {
+  color: #fff8ec;
+  font-style: normal;
+}
+
+.replayTable span {
+  color: rgba(246, 239, 228, 0.58);
+  font-size: 0.86rem;
+}
+
+.replayTable em {
+  color: #52d0a3;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.methodology {
+  border-bottom: 0;
+}
+
+.methodology h3 {
+  margin: 1rem 0 0;
+}
+
+.methodology ul {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+@media (max-width: 860px) {
+  .topbar,
+  .split,
+  .methodology {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    display: grid;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .replayTable div {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .hero h1 {
+    font-size: clamp(4rem, 22vw, 6rem);
+  }
+}

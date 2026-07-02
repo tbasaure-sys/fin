@@ -27,13 +27,20 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
 
   assert.equal(result.status, "available");
   assert.equal(result.regime, "crisis");
+  assert.match(result.version, /stress_engine/);
+  assert.match(result.runId, /^stress_/);
+  assert.equal(result.seed, "unit-test");
   assert.equal(result.model.nScenarios, 5000);
+  assert.equal(result.model.tailIntensity, 1);
   assert.equal(result.model.stratifiedStressBook, true);
   assert.equal(result.model.stressMultiplierCounts["1.0"], 3150);
   assert.equal(result.model.stressMultiplierCounts["6.0"], 250);
+  assert.equal(result.inputSources.correlationSource, "sector_heuristic_fallback");
   assert.equal(result.universe.length, 3);
   assert.ok(result.risk.var5 < 0);
   assert.ok(result.risk.cvar5 <= result.risk.var5);
+  assert.equal(result.validation.historicalReplay.coverageLabel, "3/3");
+  assert.equal(result.validation.baselineComparison.readyForEndpoint, false);
   assert.ok(result.diagnostics.correlationFidelity > 0.75);
   assert.ok(result.tailContributors.length > 0);
   assert.equal(result.deployment.status, "research_champion_offline_only");

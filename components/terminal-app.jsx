@@ -24,6 +24,7 @@ import { parseResponse, useWorkspaceLiveData } from "@/components/workspace/live
 import styles from "@/components/workspace/shell.module.css";
 import PortfolioChat from "@/components/portfolio-chat";
 import EquityResearchPanel from "@/components/equity-research-panel";
+import { useLanguagePreference } from "@/components/language-layer";
 import { macroBrainSnapshot } from "@/lib/macro-brain-snapshot";
 import { mosaicObservatorySnapshot } from "@/lib/mosaic-observatory-snapshot";
 
@@ -2071,13 +2072,122 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray }) {
   );
 }
 
+const MARKET_STRESS_COPY = {
+  en: {
+    kicker: "Stress Engine",
+    title: "Regime-conditioned scenarios for tail risk",
+    body: "5,000 synthetic paths per run. CVaR 5%/1%, drawdown probability, historical replay, and tail attribution by position.",
+    run: "Run stress test",
+    running: "Running...",
+    error: "Could not run the stress simulation.",
+    regime: "Regime",
+    horizon: "Horizon",
+    tailIntensity: "Tail intensity",
+    days10: "10 days",
+    days20: "20 days",
+    days60: "60 days",
+    preparing: "Preparing",
+    heroDetail: "Average loss in the lower tail over the selected horizon. Research artifact, not a forecast.",
+    loss: "Loss",
+    scenarios: "scenarios",
+    median: "Median return",
+    medianDetail: "Median synthetic path.",
+    var1: "VaR 1%",
+    var1Detail: "First percentile terminal return.",
+    drawdown: "DD -10%",
+    drawdownDetail: "Probability of max drawdown <= -10%.",
+    replayCoverage: "Replay coverage",
+    replayCoverageDetail: "Historical episodes covered by synthetic q01.",
+    worstReplay: "Worst replay",
+    worstReplayDetail: "Most severe historical episode in validation.",
+    runtime: "Runtime",
+    runtimeDetail: "Served engine.",
+    proxy: "Proxy",
+    pytorch: "PyTorch",
+    tailContributors: "Tail contributors",
+    tailContribution: "weighted CVaR contribution",
+    tailEmpty: "Run a stress test to see tail contributors.",
+    worstPaths: "Worst paths",
+    maxDrawdown: "Max drawdown",
+    pathEmpty: "Extreme paths will appear after simulation.",
+    historicalReplay: "Historical replay",
+    actual: "actual",
+    synthetic: "synthetic q01",
+    covered: "covered",
+    notCovered: "miss",
+    universe: "Universe used",
+    universeEmpty: "No connected positions.",
+    diagnostics: "Model diagnostics",
+    diagnosticsHint: "Kept below the fold because these grade the research engine, not the decision output.",
+    mmdRatio: "Gaussian MMD ratio",
+    corrFidelity: "Target corr fidelity",
+    coverage: "Bin coverage",
+    source: "Input source",
+    methodology: "Methodology",
+  },
+  es: {
+    kicker: "Stress Engine",
+    title: "Escenarios por regimen para riesgo de cola",
+    body: "5.000 trayectorias sinteticas por corrida. CVaR 5%/1%, probabilidad de drawdown, replay historico y atribucion de cola por posicion.",
+    run: "Correr stress test",
+    running: "Corriendo...",
+    error: "No se pudo correr la simulacion de stress.",
+    regime: "Regimen",
+    horizon: "Horizonte",
+    tailIntensity: "Intensidad de cola",
+    days10: "10 dias",
+    days20: "20 dias",
+    days60: "60 dias",
+    preparing: "Preparando",
+    heroDetail: "Perdida promedio en la cola inferior del horizonte elegido. Artefacto de investigacion, no pronostico.",
+    loss: "Perdida",
+    scenarios: "escenarios",
+    median: "Retorno mediano",
+    medianDetail: "Trayectoria sintetica mediana.",
+    var1: "VaR 1%",
+    var1Detail: "Percentil 1 del retorno terminal.",
+    drawdown: "DD -10%",
+    drawdownDetail: "Probabilidad de drawdown maximo <= -10%.",
+    replayCoverage: "Replay historico",
+    replayCoverageDetail: "Episodios historicos cubiertos por q01 sintetico.",
+    worstReplay: "Peor replay",
+    worstReplayDetail: "Episodio historico mas severo en validacion.",
+    runtime: "Runtime",
+    runtimeDetail: "Motor servido.",
+    proxy: "Proxy",
+    pytorch: "PyTorch",
+    tailContributors: "Quien pega en la cola",
+    tailContribution: "aporte ponderado en CVaR",
+    tailEmpty: "Corre un stress test para ver aportes de cola.",
+    worstPaths: "Peores trayectorias",
+    maxDrawdown: "Drawdown maximo",
+    pathEmpty: "Las trayectorias extremas apareceran despues de correr.",
+    historicalReplay: "Replay historico",
+    actual: "real",
+    synthetic: "q01 sintetico",
+    covered: "cubre",
+    notCovered: "falla",
+    universe: "Universo usado",
+    universeEmpty: "Sin posiciones conectadas.",
+    diagnostics: "Diagnosticos del modelo",
+    diagnosticsHint: "Quedan bajo el fold porque evaluan el motor de investigacion, no la decision.",
+    mmdRatio: "MMD vs Gaussian",
+    corrFidelity: "Fidelidad corr objetivo",
+    coverage: "Cobertura bins",
+    source: "Fuente de input",
+    methodology: "Metodologia",
+  },
+};
+
 function MarketDiffusionPanel({ workspaceId }) {
   const [regime, setRegime] = useState("crisis");
   const [horizonDays, setHorizonDays] = useState(20);
-  const [guidanceScale, setGuidanceScale] = useState(1.0);
+  const [tailIntensity, setTailIntensity] = useState(1.0);
   const [simulation, setSimulation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const { language } = useLanguagePreference();
+  const copy = MARKET_STRESS_COPY[language] || MARKET_STRESS_COPY.en;
 
   const runSimulation = useCallback(async () => {
     if (!workspaceId) return;
@@ -2087,7 +2197,7 @@ function MarketDiffusionPanel({ workspaceId }) {
       const params = new URLSearchParams({
         regime,
         horizonDays: String(horizonDays),
-        guidanceScale: String(guidanceScale),
+        tailIntensity: String(tailIntensity),
         nScenarios: "5000",
         stratifiedStress: "true",
       });
@@ -2095,11 +2205,11 @@ function MarketDiffusionPanel({ workspaceId }) {
       const payload = await parseResponse(response);
       setSimulation(payload);
     } catch (requestError) {
-      setError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo correr la simulacion de mercado."));
+      setError(friendlyWorkspaceMessage(requestError?.message || requestError, copy.error));
     } finally {
       setLoading(false);
     }
-  }, [workspaceId, regime, horizonDays, guidanceScale]);
+  }, [workspaceId, regime, horizonDays, tailIntensity, copy.error]);
 
   useEffect(() => {
     if (!workspaceId || simulation || loading) return;
@@ -2109,30 +2219,34 @@ function MarketDiffusionPanel({ workspaceId }) {
   const risk = simulation?.risk || {};
   const diagnostics = simulation?.diagnostics || {};
   const deployment = simulation?.deployment || {};
-  const championMetrics = deployment?.championMetrics || {};
-  const mmdRatio = Number(championMetrics?.relative_to_gaussian?.mmd_multi_ratio_candidate_vs_gaussian);
+  const validation = simulation?.validation || {};
+  const historicalReplay = validation?.historicalReplay || {};
+  const baselineComparison = validation?.baselineComparison || diagnostics?.baselineComparison || {};
+  const replayRows = safeList(historicalReplay?.rows);
+  const worstReplay = replayRows
+    .slice()
+    .sort((left, right) => Number(left.actualMin || 0) - Number(right.actualMin || 0))[0];
+  const mmdRatio = Number(baselineComparison?.gaussianMmdRatio);
   const tailContributors = safeList(simulation?.tailContributors);
   const samplePaths = safeList(simulation?.samplePaths);
   const universe = safeList(simulation?.universe);
 
   return (
-    <section className={styles.panel}>
+    <section className={styles.panel} data-no-translate>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Factor-DDPM contract</p>
-          <h2>Escenarios sinteticos que buscan colas, no promedios</h2>
-          <p className={styles.supportText}>
-            Simulacion bajo contrato v7: champion offline, stress book estratificado y endpoint de investigacion hasta cerrar los gates estrictos.
-          </p>
+          <p className={styles.kicker}>{copy.kicker}</p>
+          <h2>{copy.title}</h2>
+          <p className={styles.supportText}>{copy.body}</p>
         </div>
         <button className={styles.primaryButton} disabled={loading || !workspaceId} onClick={runSimulation} type="button">
-          {loading ? "Simulando..." : "Simular"}
+          {loading ? copy.running : copy.run}
         </button>
       </div>
 
       <div className={styles.diffusionControls}>
         <label>
-          <span>Regimen</span>
+          <span>{copy.regime}</span>
           <select className={styles.textInput} onChange={(event) => setRegime(event.target.value)} value={regime}>
             <option value="crisis">Crisis</option>
             <option value="baseline">Baseline</option>
@@ -2141,23 +2255,23 @@ function MarketDiffusionPanel({ workspaceId }) {
           </select>
         </label>
         <label>
-          <span>Horizonte</span>
+          <span>{copy.horizon}</span>
           <select className={styles.textInput} onChange={(event) => setHorizonDays(Number(event.target.value))} value={horizonDays}>
-            <option value={10}>10 dias</option>
-            <option value={20}>20 dias</option>
-            <option value={60}>60 dias</option>
+            <option value={10}>{copy.days10}</option>
+            <option value={20}>{copy.days20}</option>
+            <option value={60}>{copy.days60}</option>
           </select>
         </label>
         <label>
-          <span>Guidance</span>
+          <span>{copy.tailIntensity}</span>
           <input
             className={styles.textInput}
             max="4"
             min="0.5"
-            onChange={(event) => setGuidanceScale(Number(event.target.value))}
+            onChange={(event) => setTailIntensity(Number(event.target.value))}
             step="0.1"
             type="number"
-            value={guidanceScale}
+            value={tailIntensity}
           />
         </label>
       </div>
@@ -2166,67 +2280,84 @@ function MarketDiffusionPanel({ workspaceId }) {
 
       <div className={styles.diffusionGrid}>
         <article className={styles.diffusionHero}>
-          <p className={styles.kicker}>{simulation?.regimeLabel || "Preparando"}</p>
+          <p className={styles.kicker}>{simulation?.regimeLabel || copy.preparing}</p>
           <h3>{risk.cvar5Label || "-"} CVaR 5%</h3>
-          <p>
-            Peor promedio de la cola inferior en {simulation?.model?.horizonDays || horizonDays} dias. No es prediccion: es una prueba de resistencia sintetica.
-          </p>
+          <p>{copy.heroDetail}</p>
           <div className={styles.researchLoopMeta}>
             <ToneBadge tone="bad">VaR 5% {risk.var5Label || "-"}</ToneBadge>
-            <ToneBadge tone="warn">Perdida {risk.probabilityLossLabel || "-"}</ToneBadge>
-            <ToneBadge tone="neutral">{simulation?.model?.nScenarios || 5000} escenarios</ToneBadge>
-            <ToneBadge tone={deployment?.readyForEndpoint ? "good" : "warn"}>
-              {deployment?.statusLabel || "Research gate"}
+            <ToneBadge tone="warn">{copy.loss} {risk.probabilityLossLabel || "-"}</ToneBadge>
+            <ToneBadge tone="neutral">{simulation?.model?.nScenarios || 5000} {copy.scenarios}</ToneBadge>
+            <ToneBadge tone={validation?.endpointGate?.ready ? "good" : "warn"}>
+              {validation?.endpointGate?.statusLabel || "Research gate"}
             </ToneBadge>
           </div>
+          {simulation?.runId ? (
+            <div className={styles.diffusionAuditTrail}>
+              <span>run {simulation.runId}</span>
+              <span>seed {simulation.seed}</span>
+            </div>
+          ) : null}
         </article>
 
         <div className={styles.diffusionMetricGrid}>
-          <MetricTile detail="Mediana de escenarios." label="Retorno mediano" value={risk.medianReturnLabel || "-"} />
-          <MetricTile detail="Percentil 1." label="VaR 1%" tone="bad" value={risk.var1Label || "-"} />
-          <MetricTile detail="Probabilidad de drawdown <= -10%." label="DD -10%" tone="warn" value={risk.probabilityDrawdown10Label || "-"} />
-          <MetricTile detail="Cobertura de bins sinteticos." label="Coverage" value={diagnostics.distributionCoverageLabel || "-"} />
-          <MetricTile detail="Contra matriz objetivo." label="Correlacion" value={diagnostics.correlationFidelityLabel || "-"} />
-          <MetricTile detail="Promedio off-diagonal objetivo." label="Corr objetivo" value={diagnostics.targetAverageCorrelation !== undefined ? formatPct(diagnostics.targetAverageCorrelation) : "-"} />
-          <MetricTile detail="Contrato v7." label="Gate endpoint" tone={deployment?.readyForEndpoint ? "good" : "warn"} value={deployment?.readyForEndpoint ? "Listo" : "Offline"} />
-          <MetricTile detail="Ratio multi-MMD contra Gaussian." label="MMD ratio" tone="warn" value={Number.isFinite(mmdRatio) ? `${mmdRatio.toFixed(2)}x` : "-"} />
-          <MetricTile detail="Checkpoint servido en vivo." label="Runtime" tone={simulation?.model?.trainedCheckpointServed ? "good" : "warn"} value={simulation?.model?.trainedCheckpointServed ? "PyTorch" : "Proxy"} />
+          <MetricTile detail={copy.medianDetail} label={copy.median} value={risk.medianReturnLabel || "-"} />
+          <MetricTile detail={copy.var1Detail} label={copy.var1} tone="bad" value={risk.var1Label || "-"} />
+          <MetricTile detail={copy.drawdownDetail} label={copy.drawdown} tone="warn" value={risk.probabilityDrawdown10Label || "-"} />
+          <MetricTile detail={copy.replayCoverageDetail} label={copy.replayCoverage} tone={historicalReplay?.coveredCount === historicalReplay?.episodeCount ? "good" : "warn"} value={historicalReplay?.coverageLabel || "-"} />
+          <MetricTile detail={copy.worstReplayDetail} label={copy.worstReplay} tone="bad" value={worstReplay?.actualMinLabel || "-"} />
+          <MetricTile detail={copy.runtimeDetail} label={copy.runtime} tone={simulation?.model?.trainedCheckpointServed ? "good" : "warn"} value={simulation?.model?.trainedCheckpointServed ? copy.pytorch : copy.proxy} />
         </div>
 
         <article className={styles.diffusionCard}>
-          <h3>Quien pega en la cola</h3>
+          <h3>{copy.tailContributors}</h3>
           {tailContributors.length ? (
             <div className={styles.diffusionList}>
               {tailContributors.map((item) => (
                 <div key={item.ticker}>
                   <strong>{item.ticker}</strong>
-                  <span>{item.contributionLabel} aporte ponderado en CVaR</span>
+                  <span>{item.contributionLabel} {copy.tailContribution}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyCopy}>Corre una simulacion para ver aportes de cola.</p>
+            <p className={styles.emptyCopy}>{copy.tailEmpty}</p>
           )}
         </article>
 
         <article className={styles.diffusionCard}>
-          <h3>Peores trayectorias</h3>
+          <h3>{copy.worstPaths}</h3>
           {samplePaths.length ? (
             <div className={styles.diffusionList}>
               {samplePaths.slice(0, 5).map((path) => (
                 <div key={path.id}>
                   <strong>{path.portfolioReturnLabel}</strong>
-                  <span>Drawdown maximo {path.maxDrawdownLabel}</span>
+                  <span>{copy.maxDrawdown} {path.maxDrawdownLabel}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyCopy}>Las trayectorias extremas apareceran despues de simular.</p>
+            <p className={styles.emptyCopy}>{copy.pathEmpty}</p>
           )}
         </article>
 
         <article className={styles.diffusionCard}>
-          <h3>Universo usado</h3>
+          <h3>{copy.historicalReplay}</h3>
+          {replayRows.length ? (
+            <div className={styles.diffusionList}>
+              {replayRows.map((row) => (
+                <div key={row.id}>
+                  <strong>{row.episode}</strong>
+                  <span>{copy.actual} {row.actualMinLabel} · {copy.synthetic} {row.syntheticQ01Label} · {row.covered ? copy.covered : copy.notCovered}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>-</p>
+          )}
+        </article>
+
+        <article className={styles.diffusionCard}>
+          <h3>{copy.universe}</h3>
           {universe.length ? (
             <div className={styles.diffusionUniverse}>
               {universe.slice(0, 8).map((asset) => (
@@ -2237,9 +2368,23 @@ function MarketDiffusionPanel({ workspaceId }) {
               ))}
             </div>
           ) : (
-            <p className={styles.emptyCopy}>Sin posiciones conectadas.</p>
+            <p className={styles.emptyCopy}>{copy.universeEmpty}</p>
           )}
         </article>
+
+        <details className={styles.diffusionDiagnostics}>
+          <summary>{copy.diagnostics}</summary>
+          <p>{copy.diagnosticsHint}</p>
+          <div className={styles.diffusionMetricGrid}>
+            <MetricTile detail="Research baseline diagnostic." label={copy.mmdRatio} tone="warn" value={Number.isFinite(mmdRatio) ? `${mmdRatio.toFixed(2)}x` : baselineComparison?.gaussianMmdRatioLabel || "-"} />
+            <MetricTile detail="Sampler convergence against runtime target matrix." label={copy.corrFidelity} value={diagnostics.correlationFidelityLabel || "-"} />
+            <MetricTile detail="Internal dispersion bin occupancy." label={copy.coverage} value={diagnostics.distributionCoverageLabel || "-"} />
+            <MetricTile detail={simulation?.inputSources?.universePolicy || "-"} label={copy.source} value={simulation?.inputSources?.correlationSource || "-"} />
+          </div>
+          <Link className={styles.inlineLink} href="/stress#methodology">
+            {copy.methodology}
+          </Link>
+        </details>
       </div>
     </section>
   );

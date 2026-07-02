@@ -1051,6 +1051,19 @@
   line-height: 1.5;
 }
 
+.diffusionAuditTrail {
+  display: grid;
+  gap: 0.32rem;
+  padding-top: 0.25rem;
+}
+
+.diffusionAuditTrail span {
+  color: rgba(229, 231, 235, 0.54);
+  font-family: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
+}
+
 .diffusionMetricGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1092,6 +1105,42 @@
 
 .diffusionUniverse {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.diffusionDiagnostics {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.diffusionDiagnostics summary {
+  color: var(--text);
+  font-weight: 780;
+  cursor: pointer;
+}
+
+.diffusionDiagnostics > p {
+  max-width: 48rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.inlineLink {
+  width: fit-content;
+  display: inline-flex;
+  margin-top: 0.8rem;
+  color: rgba(248, 200, 111, 0.92);
+  font-size: 0.82rem;
+  font-weight: 760;
+  text-decoration: none;
+}
+
+.inlineLink:hover,
+.inlineLink:focus-visible {
+  color: var(--text);
 }
 
 .macroBrainPanel {
