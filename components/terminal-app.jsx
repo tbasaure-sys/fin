@@ -2097,7 +2097,7 @@ const MARKET_STRESS_COPY = {
     drawdown: "DD -10%",
     drawdownDetail: "Probability of max drawdown <= -10%.",
     replayCoverage: "Replay status",
-    replayCoverageDetail: "Legacy v7 replay status; v8 no-clamp rerun required before promotion.",
+    replayCoverageDetail: "V8 stress-floor check; not episode-conditioned crisis replay.",
     worstReplay: "Worst replay",
     worstReplayDetail: "Most severe historical episode in validation.",
     runtime: "Runtime",
@@ -2113,13 +2113,13 @@ const MARKET_STRESS_COPY = {
     historicalReplay: "Historical replay",
     actual: "actual",
     synthetic: "synthetic q01",
-    covered: "provisional",
+    covered: "floor",
     notCovered: "miss",
     universe: "Universe used",
     universeEmpty: "No connected positions.",
     diagnostics: "Model diagnostics",
-    diagnosticsHint: "Kept below the fold because these grade the research engine, not the decision output.",
-    mmdRatio: "Gaussian MMD ratio",
+    diagnosticsHint: "Kept below the fold because these grade the DDPM challenger, not the stress decision output.",
+    mmdRatio: "DDPM gap vs champion",
     corrFidelity: "Target corr fidelity",
     coverage: "Bin coverage",
     source: "Input source",
@@ -2149,7 +2149,7 @@ const MARKET_STRESS_COPY = {
     drawdown: "DD -10%",
     drawdownDetail: "Probabilidad de drawdown maximo <= -10%.",
     replayCoverage: "Estado replay",
-    replayCoverageDetail: "Estado legacy v7; requiere rerun v8 sin clamp antes de promover.",
+    replayCoverageDetail: "Chequeo v8 de piso de stress; no es replay condicionado por episodio.",
     worstReplay: "Peor replay",
     worstReplayDetail: "Episodio historico mas severo en validacion.",
     runtime: "Runtime",
@@ -2165,13 +2165,13 @@ const MARKET_STRESS_COPY = {
     historicalReplay: "Replay historico",
     actual: "real",
     synthetic: "q01 sintetico",
-    covered: "provisorio",
+    covered: "piso",
     notCovered: "falla",
     universe: "Universo usado",
     universeEmpty: "Sin posiciones conectadas.",
     diagnostics: "Diagnosticos del modelo",
-    diagnosticsHint: "Quedan bajo el fold porque evaluan el motor de investigacion, no la decision.",
-    mmdRatio: "MMD vs Gaussian",
+    diagnosticsHint: "Quedan bajo el fold porque evaluan el challenger DDPM, no la decision de stress.",
+    mmdRatio: "Brecha DDPM vs champion",
     corrFidelity: "Fidelidad corr objetivo",
     coverage: "Cobertura bins",
     source: "Fuente de input",
@@ -2226,7 +2226,7 @@ function MarketDiffusionPanel({ workspaceId }) {
   const worstReplay = replayRows
     .slice()
     .sort((left, right) => Number(left.actualMin || 0) - Number(right.actualMin || 0))[0];
-  const mmdRatio = Number(baselineComparison?.gaussianMmdRatio);
+  const mmdRatio = Number(baselineComparison?.ddpmVsChampionMmdRatio ?? baselineComparison?.gaussianMmdRatio);
   const tailContributors = safeList(simulation?.tailContributors);
   const samplePaths = safeList(simulation?.samplePaths);
   const universe = safeList(simulation?.universe);
@@ -2376,7 +2376,7 @@ function MarketDiffusionPanel({ workspaceId }) {
           <summary>{copy.diagnostics}</summary>
           <p>{copy.diagnosticsHint}</p>
           <div className={styles.diffusionMetricGrid}>
-            <MetricTile detail="Research baseline diagnostic." label={copy.mmdRatio} tone="warn" value={Number.isFinite(mmdRatio) ? `${mmdRatio.toFixed(2)}x` : baselineComparison?.gaussianMmdRatioLabel || "-"} />
+            <MetricTile detail={baselineComparison?.championModel || "V8 champion baseline diagnostic."} label={copy.mmdRatio} tone="warn" value={Number.isFinite(mmdRatio) ? `${mmdRatio.toFixed(2)}x` : baselineComparison?.ddpmVsChampionMmdRatioLabel || baselineComparison?.gaussianMmdRatioLabel || "-"} />
             <MetricTile detail="Sampler convergence against runtime target matrix." label={copy.corrFidelity} value={diagnostics.correlationFidelityLabel || "-"} />
             <MetricTile detail="Internal dispersion bin occupancy." label={copy.coverage} value={diagnostics.distributionCoverageLabel || "-"} />
             <MetricTile detail={simulation?.inputSources?.universePolicy || "-"} label={copy.source} value={simulation?.inputSources?.correlationSource || "-"} />

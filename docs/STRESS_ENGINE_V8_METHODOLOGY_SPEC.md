@@ -2,6 +2,8 @@
 
 Purpose: convert the v7 Factor-DDPM research notebook into a defensible v8 stress engine. V7 remains reproducible, but its stress replay is no longer treated as validation because the severe sleeve used a deterministic full-window market-factor floor.
 
+Result: the v8 run rejected DDPM promotion. `gaussian_factor_same_calibration_stack`, filtered historical simulation, and Student-t copula all beat DDPM on multi-seed MMD. The shipped module should therefore use the calibrated factor stress-engine framing, with DDPM retained only as a research challenger.
+
 ## Non-Negotiable Fixes
 
 1. Remove default tail winsorization.
@@ -58,6 +60,8 @@ V8 is not endpoint-ready unless all are true:
 - VaR exception tests are added and pass.
 
 If these fail, the correct product label is `Stress Engine`, not `Factor-DDPM`.
+
+In the current v8 run, these failed. The endpoint/product contract has been updated to `v8_calibrated_factor_stress_engine`.
 
 ## Generated Notebook
 

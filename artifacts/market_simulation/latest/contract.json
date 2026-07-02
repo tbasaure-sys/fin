@@ -1,10 +1,12 @@
 {
   "contract": {
     "endpoint": "/api/v1/workspaces/{workspaceId}/market-simulation",
-    "status": "research_champion_offline_only",
-    "run_id": "factor_ddpm_run_20260701_170222",
+    "status": "v8_calibrated_factor_stress_engine",
+    "run_id": "factor_ddpm_run_20260702_035744",
+    "served_engine": "same_stack_gaussian_factor_stress_engine",
+    "challenger_engine": "factor_ddpm_research_challenger",
     "checkpoint_path": "/content/drive/MyDrive/blsprime_ddpm_market_sim/checkpoints/best_factor_ddpm_market_simulator.pt",
-    "manifest_path": "/content/drive/MyDrive/blsprime_ddpm_market_sim/artifacts/factor_ddpm_run_20260701_170222/blsprime_market_simulation_manifest.json",
+    "manifest_path": "/content/drive/MyDrive/blsprime_ddpm_market_sim/artifacts/factor_ddpm_run_20260702_035744/blsprime_market_simulation_manifest.json",
     "generated_scenarios": 5000,
     "endpoint_default_scenarios": 5000,
     "endpoint_min_scenarios": 2000,
@@ -18,61 +20,137 @@
       "2.4": 500,
       "6.0": 250
     },
-    "stress_book_q01": -0.35458617455426983,
+    "stress_book_q01": -0.446091,
+    "stress_book_q01_note": "Pooled ladder q01 from v8 stress sleeves; report sleeve quantiles separately before citing as an estimated market tail.",
     "scenario_count_ok_for_stress_endpoint": true,
-    "stress_replay_status": "legacy_v7_provisional_full_window_floor_pending_v8",
-    "ready_for_endpoint_requires": "v8 no-clamp stress book, strict baseline, exception, and correlation gates; current research champion is offline only"
+    "stress_replay_status": "v8_unconditional_stress_floor_not_episode_conditioned",
+    "ready_for_endpoint_requires": "Served engine is the calibrated factor stress baseline; DDPM remains research-only until it beats same-stack Gaussian, t-copula, and FHS out of sample."
   },
   "championMetrics": {
     "universe_symbols_selected": 500,
     "usable_assets": 420,
-    "factors": 108,
-    "pca_explained_variance": 0.7381,
-    "model_params_millions": 11.18,
+    "factors": 44,
+    "pca_explained_variance": 0.5963,
+    "model_params_millions": 11.14,
+    "train": {
+      "first_valid_noise_mse": 1.039895,
+      "best_valid_noise_mse": 0.563476,
+      "last_valid_noise_mse": 0.563992,
+      "best_epoch": 178,
+      "valid_improvement_pct": 45.814173,
+      "skipped_batches": 2,
+      "skipped_batch_rate": 0.00044444444444444447
+    },
+    "champion": {
+      "model": "gaussian_factor_same_calibration_stack",
+      "status": "served_baseline_champion",
+      "reason": "Best v8 projected MMD among deployable CPU baselines while using the same calibration, reconstruction, and residual-bootstrap stack.",
+      "mmd_rbf_projected": 0.018319,
+      "mmd_rbf_projected_multi_mean": 0.01679,
+      "corr_mae": 0.114396,
+      "corr_top20_eigen_rmse": 3.465929,
+      "cvar5": -0.210428,
+      "probability_drawdown_10pct": 0.358974
+    },
     "base_eval": {
-      "distribution_coverage": 0.967068,
-      "mmd_rbf_projected_multi_mean": 0.012267,
-      "corr_fidelity": 0.913575,
-      "corr_mae": 0.086425,
-      "cvar5": -0.20565,
-      "probability_drawdown_10pct": 0.538095
+      "model": "factor_ddpm_base",
+      "distribution_coverage": 0.913346,
+      "mmd_rbf_projected": 0.150648,
+      "mmd_rbf_projected_multi_mean": 0.142561,
+      "corr_fidelity": 0.853159,
+      "corr_mae": 0.146841,
+      "corr_top20_eigen_rmse": 8.094619,
+      "cvar5": -0.237334,
+      "probability_drawdown_10pct": 0.666667
     },
     "gaussian_cov_train": {
-      "mmd_rbf_projected_multi_mean": 0.008276,
-      "corr_mae": 0.084033,
-      "cvar5": -0.166597,
-      "probability_drawdown_10pct": 0.352381
+      "mmd_rbf_projected": 0.019252,
+      "mmd_rbf_projected_multi_mean": 0.021844,
+      "corr_mae": 0.09,
+      "corr_top20_eigen_rmse": 3.3,
+      "cvar5": -0.162153,
+      "probability_drawdown_10pct": 0.384615
+    },
+    "t_copula_train": {
+      "mmd_rbf_projected": 0.021834,
+      "mmd_rbf_projected_multi_mean": 0.018571,
+      "corr_mae": 0.091423,
+      "corr_top20_eigen_rmse": 3.352917,
+      "cvar5": -0.198261,
+      "probability_drawdown_10pct": 0.538462
+    },
+    "filtered_historical_simulation_train": {
+      "mmd_rbf_projected": 0.019066,
+      "mmd_rbf_projected_multi_mean": 0.016969,
+      "corr_mae": 0.094841,
+      "corr_top20_eigen_rmse": 3.953707,
+      "cvar5": -0.189157,
+      "probability_drawdown_10pct": 0.423077
+    },
+    "gaussian_factor_same_calibration_stack": {
+      "mmd_rbf_projected": 0.018319,
+      "mmd_rbf_projected_multi_mean": 0.01679,
+      "corr_mae": 0.114396,
+      "corr_top20_eigen_rmse": 3.465929,
+      "cvar5": -0.210428,
+      "probability_drawdown_10pct": 0.358974
     },
     "relative_to_gaussian": {
-      "mmd_multi_ratio_candidate_vs_gaussian": 1.482253,
-      "corr_mae_delta_candidate_minus_gaussian": 0.002392,
-      "candidate_corr_near_gaussian_within_tol": true,
-      "candidate_mmd_ratio_within_research_gate": true
+      "mmd_ratio_candidate_vs_gaussian": 7.82498,
+      "mmd_multi_ratio_candidate_vs_gaussian": 6.526204,
+      "corr_mae_delta_candidate_minus_gaussian": 0.057144,
+      "eigen_rmse_delta_candidate_minus_gaussian": 4.751873,
+      "candidate_corr_near_gaussian_within_tol": false,
+      "candidate_mmd_ratio_within_research_gate": false
+    },
+    "relative_to_champion": {
+      "ddpm_mmd_multi_ratio_vs_same_stack": 8.490828,
+      "ddpm_corr_mae_delta_vs_same_stack": 0.032445,
+      "same_stack_beats_ddpm_mmd": true,
+      "same_stack_is_served_champion": true
+    },
+    "factor_space": {
+      "factor_mmd_base": 0.110333,
+      "factor_mmd_base_multi_mean": 0.113566,
+      "factor_eval_windows": 78
     },
     "walk_forward": {
       "periods": 3,
       "stress_walk_forward_1pct_covers_all": true,
+      "walk_forward_1pct_covers_all": true,
       "stress_walk_forward_methodology_validated": false,
-      "stress_walk_forward_methodology_note": "v7 coverage is legacy/provisional because the severe stress sleeve used a full-window market-factor floor; rerun v8 sparse stress before promotion.",
-      "covid_crash_2020_actual_min": -0.313964,
-      "covid_crash_2020_synthetic_q01": -0.354586,
-      "inflation_bear_2022_actual_min": -0.158997,
-      "inflation_bear_2022_synthetic_q01": -0.354586,
-      "bank_stress_2023_actual_min": -0.013722,
-      "bank_stress_2023_synthetic_q01": -0.354586
+      "stress_walk_forward_methodology_note": "V8 compares one unconditional stress ladder against historical episodes. Treat this as a stress-floor diagnostic, not episode-conditioned replay coverage.",
+      "covid_crash_2020_actual_min": -0.35164,
+      "covid_crash_2020_synthetic_q01": -0.446091,
+      "inflation_bear_2022_actual_min": -0.159088,
+      "inflation_bear_2022_synthetic_q01": -0.446091,
+      "bank_stress_2023_actual_min": -0.014601,
+      "bank_stress_2023_synthetic_q01": -0.446091
     },
     "scorecard": {
       "beats_gaussian_mmd": false,
       "beats_gaussian_mmd_multi": false,
+      "mmd_ratio_within_research_gate": false,
       "beats_gaussian_corr": false,
-      "corr_near_gaussian": true,
+      "beats_t_copula_mmd": false,
+      "beats_fhs_mmd": false,
+      "beats_same_stack_gaussian_mmd": false,
+      "corr_near_gaussian": false,
       "corr_fidelity_ge_0_80": true,
+      "target_cvar_close_to_eval_reference": true,
       "stress_walk_forward_1pct_covers_all": true,
-      "stress_walk_forward_methodology_validated": false,
+      "walk_forward_1pct_covers_all": true,
+      "stress_stratified_sampling": true,
       "endpoint_scenario_count_ok": true,
+      "skipped_batch_rate_ok": true,
       "no_validation_used_for_guidance_or_cholesky": true,
-      "research_champion": true,
-      "ready_for_endpoint": false
+      "no_full_window_stress_floor": true,
+      "non_overlapping_eval_windows": false,
+      "eval_metric_sample_size_ok": true,
+      "ddpm_research_champion": false,
+      "research_champion": false,
+      "same_stack_champion": true,
+      "ready_for_endpoint": true
     }
   }
 }

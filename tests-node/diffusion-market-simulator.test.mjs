@@ -39,15 +39,22 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.universe.length, 3);
   assert.ok(result.risk.var5 < 0);
   assert.ok(result.risk.cvar5 <= result.risk.var5);
-  assert.equal(result.validation.historicalReplay.coverageLabel, "Legacy 3/3");
+  assert.equal(result.validation.historicalReplay.coverageLabel, "Floor 3/3");
   assert.equal(result.validation.historicalReplay.methodologyValidated, false);
-  assert.equal(result.validation.historicalReplay.methodologyStatus, "legacy_provisional_pending_v8");
-  assert.equal(result.validation.baselineComparison.readyForEndpoint, false);
+  assert.equal(result.validation.historicalReplay.methodologyStatus, "unconditional_stress_floor");
+  assert.equal(result.validation.baselineComparison.championModel, "gaussian_factor_same_calibration_stack");
+  assert.equal(result.validation.baselineComparison.sameStackChampion, true);
+  assert.equal(result.validation.baselineComparison.ddpmResearchChampion, false);
+  assert.ok(result.validation.baselineComparison.ddpmVsChampionMmdRatio > 8);
+  assert.equal(result.validation.baselineComparison.readyForEndpoint, true);
   assert.ok(result.diagnostics.correlationFidelity > 0.75);
   assert.ok(result.tailContributors.length > 0);
-  assert.equal(result.deployment.status, "research_champion_offline_only");
-  assert.equal(result.deployment.researchChampion, true);
-  assert.equal(result.deployment.readyForEndpoint, false);
+  assert.equal(result.deployment.status, "v8_calibrated_factor_stress_engine");
+  assert.equal(result.deployment.researchChampion, false);
+  assert.equal(result.deployment.ddpmResearchChampion, false);
+  assert.equal(result.deployment.sameStackChampion, true);
+  assert.equal(result.deployment.readyForEndpoint, true);
+  assert.equal(result.deployment.runtime.servedEngine, "same_stack_gaussian_factor_stress_engine");
   assert.equal(result.deployment.runtime.trainedCheckpointServed, false);
   assert.equal(result.deployment.requestPolicy.policyApplied, "aggregated_to_minimum");
 });
@@ -70,7 +77,7 @@ test("crisis regime is harsher than baseline with the same portfolio", () => {
   assert.ok(crisis.risk.probabilityLoss >= baseline.risk.probabilityLoss);
 });
 
-test("non-stress requests are aggregated to the v7 minimum without stress book", () => {
+test("non-stress requests are aggregated to the v8 minimum without stress book", () => {
   const result = buildDiffusionMarketSimulation(dashboard, {
     regime: "baseline",
     nScenarios: 250,
@@ -82,6 +89,8 @@ test("non-stress requests are aggregated to the v7 minimum without stress book",
   assert.equal(result.model.stratifiedStressBook, false);
   assert.equal(result.deployment.requestPolicy.minimumNScenarios, 2000);
   assert.equal(result.deployment.requestPolicy.policyApplied, "aggregated_to_minimum");
-  assert.equal(result.deployment.scorecard.ready_for_endpoint, false);
-  assert.equal(result.deployment.scorecard.research_champion, true);
+  assert.equal(result.deployment.scorecard.ready_for_endpoint, true);
+  assert.equal(result.deployment.scorecard.research_champion, false);
+  assert.equal(result.deployment.scorecard.ddpm_research_champion, false);
+  assert.equal(result.deployment.scorecard.same_stack_champion, true);
 });
