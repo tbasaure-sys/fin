@@ -129,13 +129,14 @@
 }
 
 .copyBlock h1 {
-  max-width: 9ch;
+  max-width: 13ch;
   margin: 0;
   color: #fff8ec;
-  font-size: clamp(3.5rem, 10.4vw, 8.2rem);
-  font-weight: 850;
-  line-height: 0.84;
-  letter-spacing: 0;
+  font-size: clamp(3rem, 8.4vw, 6.4rem);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  word-spacing: 0.1em;
 }
 
 .copyBlock p:not(.kicker):not(.categoryLine) {
