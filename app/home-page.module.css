@@ -119,6 +119,15 @@
   text-transform: uppercase;
 }
 
+.categoryLine {
+  max-width: 42rem;
+  margin: 0 0 clamp(1rem, 2vw, 1.4rem);
+  color: rgba(246, 239, 228, 0.58);
+  font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+  font-weight: 650;
+  line-height: 1.45;
+}
+
 .copyBlock h1 {
   max-width: 9ch;
   margin: 0;
@@ -126,10 +135,10 @@
   font-size: clamp(3.5rem, 10.4vw, 8.2rem);
   font-weight: 850;
   line-height: 0.84;
-  letter-spacing: -0.085em;
+  letter-spacing: 0;
 }
 
-.copyBlock p:not(.kicker) {
+.copyBlock p:not(.kicker):not(.categoryLine) {
   max-width: 46rem;
   margin: clamp(1.35rem, 3vw, 2rem) 0 0;
   color: rgba(246, 239, 228, 0.68);
@@ -214,7 +223,7 @@
   font-size: clamp(1.45rem, 3vw, 2.5rem);
   font-weight: 800;
   line-height: 0.96;
-  letter-spacing: -0.045em;
+  letter-spacing: 0;
 }
 
 .moduleText small {

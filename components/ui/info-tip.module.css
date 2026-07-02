@@ -1,0 +1,50 @@
+.root {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.trigger {
+  width: 1.15rem;
+  height: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(248, 200, 111, 0.44);
+  border-radius: 999px;
+  color: var(--accent);
+  background: rgba(248, 200, 111, 0.08);
+  font: 760 0.68rem/1 var(--mono);
+  cursor: pointer;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
+.panel {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.5rem);
+  z-index: 30;
+  width: min(18rem, calc(100vw - 2rem));
+  padding: 0.75rem;
+  border: 1px solid rgba(248, 200, 111, 0.28);
+  border-radius: 8px;
+  color: var(--text);
+  background: rgba(9, 14, 20, 0.98);
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.44);
+  font: 500 0.78rem/1.5 var(--sans);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+@media (max-width: 520px) {
+  .panel {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}

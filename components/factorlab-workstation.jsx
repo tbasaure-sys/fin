@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import styles from "@/app/factorlab/factorlab.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
+import { InfoTip } from "@/components/ui/info-tip";
 import { factorLabDefaultWeights, factorLabSampleUniverse, runFactorLab } from "@/lib/factorlab-engine";
 
 const COPY = {
@@ -621,9 +622,9 @@ export function FactorLabWorkstation() {
                       <tr>
                         <th>{copy.results.rank}</th>
                         <th>{copy.results.ticker}</th>
-                        <th>{copy.results.score}</th>
-                        <th>{copy.results.sector}</th>
-                        <th>{copy.results.evidence}</th>
+                        <th>{copy.results.score} <InfoTip definitionKey="score" language={language} /></th>
+                        <th>{copy.results.sector} <InfoTip definitionKey="factor" language={language} /></th>
+                        <th>{copy.results.evidence} <InfoTip definitionKey="score" language={language} /></th>
                         <th>{copy.results.analyze}</th>
                       </tr>
                     </thead>

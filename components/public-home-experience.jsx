@@ -11,6 +11,7 @@ const COPY = {
     languageName: "Espanol",
     languageAria: "Elegir idioma",
     kicker: "BLS Prime",
+    category: "Terminal de research institucional para decisiones de renta variable.",
     headline: "Tres modulos. Una decision.",
     body: "Terminal institucional de investigacion accionaria: valoracion, seleccion y stress testing antes de mover capital.",
     enter: "Entrar",
@@ -19,22 +20,22 @@ const COPY = {
     modules: [
       {
         title: "AURORA",
-        label: "Valuation OS",
-        body: "Precio, negocio, cartera y falsificadores en una lectura revisable.",
+        label: "Valuation",
+        body: "Vale la accion lo que cuesta? Una lectura completa y auditable de cualquier empresa.",
         href: "/aurora",
         cta: "Abrir AURORA",
       },
       {
         title: "FactorLab",
         label: "Screening",
-        body: "Ranking point-in-time de candidatos sin leakage y con reglas visibles.",
+        body: "Que acciones merecen atencion? Candidatas rankeadas con las reglas a la vista.",
         href: "/factorlab",
         cta: "Abrir FactorLab",
       },
       {
-        title: "STRESS ENGINE",
+        title: "Stress Engine",
         label: "Portfolio Risk",
-        body: "Escenarios de stress sinteticos sobre tu cartera real. CVaR, drawdown y atribucion de cola por regimen.",
+        body: "Que tan mal puede salir? Miles de crisis simuladas contra tu cartera real.",
         href: "/stress",
         cta: "Correr stress test",
       },
@@ -44,6 +45,7 @@ const COPY = {
     languageName: "English",
     languageAria: "Choose language",
     kicker: "BLS Prime",
+    category: "Institutional research terminal for equity decisions.",
     headline: "Three modules. One decision.",
     body: "Institutional equity research terminal for valuation, candidate selection, and portfolio stress testing before capital moves.",
     enter: "Enter",
@@ -52,22 +54,22 @@ const COPY = {
     modules: [
       {
         title: "AURORA",
-        label: "Valuation OS",
-        body: "Price, business quality, portfolio risk, and falsifiers in one auditable read.",
+        label: "Valuation",
+        body: "Is this stock worth its price? A full, auditable read on any company.",
         href: "/aurora",
         cta: "Open AURORA",
       },
       {
         title: "FactorLab",
         label: "Screening",
-        body: "Point-in-time candidate ranking with visible rules and no leakage.",
+        body: "Which stocks deserve a look? Ranked candidates with the rules shown, not hidden.",
         href: "/factorlab",
         cta: "Open FactorLab",
       },
       {
-        title: "STRESS ENGINE",
+        title: "Stress Engine",
         label: "Portfolio Risk",
-        body: "Synthetic stress scenarios on your actual book. CVaR, drawdown paths, and tail attribution across crisis regimes.",
+        body: "How bad can it get? Thousands of simulated crises run against your actual portfolio.",
         href: "/stress",
         cta: "Run stress test",
       },
@@ -119,6 +121,7 @@ export function PublicHomeExperience({ brand }) {
 
         <div className={styles.copyBlock}>
           <p className={styles.kicker}>{copy.kicker}</p>
+          <p className={styles.categoryLine}>{copy.category}</p>
           <h1 id="home-title">{copy.headline}</h1>
           <p>{copy.body}</p>
         </div>

@@ -80,7 +80,7 @@
   font-size: clamp(4.5rem, 15vw, 13rem);
   font-weight: 900;
   line-height: 0.78;
-  letter-spacing: -0.08em;
+  letter-spacing: 0;
 }
 
 .hero h2 {
@@ -89,18 +89,29 @@
   color: #fff4df;
   font-size: clamp(1.45rem, 3.4vw, 3.3rem);
   line-height: 1;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
 }
 
 .hero span,
+.hero small,
 .split span,
+.split small,
 .methodology span,
 .methodology article p,
-.methodology li {
+.methodology li,
+.cta p,
+.cta small {
   max-width: 46rem;
   color: rgba(246, 239, 228, 0.66);
   font-size: clamp(0.96rem, 1.4vw, 1.12rem);
   line-height: 1.58;
+}
+
+.hero small,
+.split small,
+.cta small {
+  color: rgba(246, 239, 228, 0.52);
+  font-size: 0.8rem;
 }
 
 .metrics {
@@ -111,26 +122,13 @@
   background: rgba(246, 239, 228, 0.1);
 }
 
-.metrics div {
+.metrics article {
   min-height: 8rem;
   display: grid;
   align-content: space-between;
   gap: 1rem;
   padding: 1rem;
   background: rgba(4, 5, 7, 0.96);
-}
-
-.metrics strong {
-  color: #fff8ec;
-  font-size: clamp(1.5rem, 3vw, 2.6rem);
-  line-height: 0.95;
-  letter-spacing: -0.045em;
-}
-
-.metrics span {
-  color: rgba(246, 239, 228, 0.58);
-  font-size: 0.84rem;
-  line-height: 1.45;
 }
 
 .split,
@@ -156,7 +154,7 @@
   color: #fff8ec;
   font-size: clamp(2.2rem, 6vw, 5.8rem);
   line-height: 0.88;
-  letter-spacing: -0.065em;
+  letter-spacing: 0;
 }
 
 .replayTable {
@@ -205,6 +203,39 @@
   gap: 0.7rem;
   margin: 0;
   padding-left: 1.1rem;
+}
+
+.cta {
+  min-height: 42svh;
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+  padding: clamp(3rem, 9vh, 6rem) 0;
+}
+
+.cta h2 {
+  max-width: 12ch;
+  margin: 0;
+  color: #fff8ec;
+  font-size: clamp(3rem, 9vw, 8rem);
+  line-height: 0.84;
+  letter-spacing: 0;
+}
+
+.cta a {
+  width: fit-content;
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  border: 1px solid rgba(240, 184, 78, 0.55);
+  color: #050506;
+  background: #f0b84e;
+  font-size: 0.82rem;
+  font-weight: 850;
+  text-decoration: none;
+  text-transform: uppercase;
 }
 
 @media (max-width: 860px) {

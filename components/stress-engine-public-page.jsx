@@ -4,79 +4,144 @@ import Link from "next/link";
 
 import styles from "@/app/stress/stress.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
+import { PlainMetric } from "@/components/ui/plain-metric";
 
 const COPY = {
   en: {
     back: "BL'S",
+    navPrimary: "Run in workspace",
+    navSecondary: "Methodology",
     label: "03 - Portfolio Risk",
-    title: "STRESS ENGINE",
-    subtitle: "Regime-conditioned scenario generation for tail risk.",
+    title: "Stress Engine",
+    subtitle: "See how much damage your portfolio takes in simulated crises.",
     body:
-      "Synthetic stress scenarios on the current book. CVaR, drawdown probability, and tail attribution are surfaced first; model architecture and gates stay in methodology.",
+      "BLS Prime runs thousands of harsh market scenarios against your actual holdings, then shows the loss, the probability of pain, and the positions doing the damage.",
     primary: "Run in workspace",
     secondary: "Read methodology",
-    build: "V8 verdict",
-    buildText:
-      "V8 dethroned the DDPM. The served product is the calibrated factor stress engine; the diffusion checkpoint stays research-only until it beats same-stack Gaussian, t-copula, and FHS.",
-    replayTitle: "Stress Floor",
-    replayBody: "The v8 crisis table is an unconditional stress-floor diagnostic, not episode-conditioned replay. It shows whether the stress ladder is severe enough, not whether it predicted each episode.",
-    replay: [
-      ["COVID crash 2020", "Actual min -35.2%", "Stress q01 -44.6%", "Floor"],
-      ["Inflation bear 2022", "Actual min -15.9%", "Stress q01 -44.6%", "Floor"],
-      ["Bank stress 2023", "Actual min -1.5%", "Stress q01 -44.6%", "Floor"],
-    ],
+    disclaimer: "Research software. Not financial advice.",
+    metricsLabel: "What you get",
     metrics: [
-      ["5,000", "synthetic paths per stress run"],
-      ["CVaR 5% / 1%", "tail risk readouts"],
-      ["Tail attribution", "position-level loss contributors"],
-      ["Run ID + seed", "deterministic audit trail"],
+      {
+        plain: "If the next 20 days go badly, how much does the portfolio lose?",
+        value: "CVaR 5%",
+        techLabel: "Worst-slice average",
+        definitionKey: "cvar5",
+        tone: "bad",
+      },
+      {
+        plain: "How often do simulated scenarios finish below zero?",
+        value: "Loss share",
+        techLabel: "Probability of loss",
+        definitionKey: "probabilityLoss",
+        tone: "warn",
+      },
+      {
+        plain: "Which positions hurt most when the bad scenarios arrive?",
+        value: "Tail drivers",
+        techLabel: "Tail attribution",
+        definitionKey: "tailContributor",
+      },
+      {
+        plain: "Can a reviewer reproduce this exact run later?",
+        value: "Run ID + seed",
+        techLabel: "Audit fingerprint",
+        definitionKey: "runFingerprint",
+        tone: "good",
+      },
     ],
-    methodologyTitle: "Methodology And Gates",
+    trustEyebrow: "How we chose the engine",
+    trustTitle: "The classical engine won. So that is what we ship.",
+    trustBody:
+      "We tested an experimental AI simulator against classical statistical engines on out-of-sample market data. The classical engine won, so it is the live Stress Engine. The AI model stays in the lab until it earns its place. Every test and threshold remains visible in the methodology.",
+    replayTitle: "Historical stress floor",
+    replayBody: "We check that our simulated crises are at least as severe as real historical ones:",
+    replayCaveat:
+      "This is a severity floor, not a claim that the engine replayed or predicted each crisis.",
+    replay: [
+      ["COVID crash 2020", "Real drop -35%", "Stress floor -45%", "Pass"],
+      ["Inflation bear 2022", "Real drop -16%", "Stress floor -45%", "Pass"],
+      ["Bank stress 2023", "Real drop -2%", "Stress floor -45%", "Pass"],
+    ],
+    methodologyTitle: "Methodology",
     methodology:
-      "Current live engine: calibrated factor stress baseline, implemented as a CPU runtime with Cholesky correlation, stratified stress sampling, and visible warnings. V8 results: same-stack Gaussian MMD 0.0168, FHS 0.0170, t-copula 0.0186, DDPM base 0.1426. The DDPM is not the champion.",
-    limitationsTitle: "Current Limits",
+      "Live engine: calibrated factor stress baseline with Cholesky correlation, stratified stress sampling, visible warnings, and deterministic run fingerprints. V8 results moved raw model scores below the fold because the user decision depends on simulated loss, drawdown, stress-floor status, and tail contributors first.",
+    limitsTitle: "What it cannot do",
     limitations: [
-      "Do not brand the live surface as DDPM; v8 showed the same calibration stack with Gaussian factor noise beats it.",
-      "The pooled -44.6% q01 is a stress-ladder output; report sleeve quantiles before treating it as an estimated market tail.",
-      "MMD and sampler-fidelity diagnostics stay below the fold; risk users see VaR, CVaR, drawdown, stress-floor status, and tail contributors first.",
-      "Synthetic scenarios are research artifacts, not forecasts, advice, or execution signals.",
+      "It does not predict the next crisis. It shows what could happen if bad market weather hits your current book.",
+      "It is built from today's investable universe, which can understate how harsh history really was. Treat the result as a lower bound on tail risk.",
+      "The pooled stress floor is deliberately severe. Read sleeve-level outputs before treating one tail number as an estimated market loss.",
+      "It is research software, not advice, execution instruction, tax guidance, or a replacement for human judgment.",
     ],
+    ctaTitle: "Test your actual holdings.",
+    ctaBody: "Open the workspace, choose the market regime, and run the stress test on the book you own.",
   },
   es: {
     back: "BL'S",
+    navPrimary: "Correr en workspace",
+    navSecondary: "Metodologia",
     label: "03 - Riesgo de cartera",
-    title: "STRESS ENGINE",
-    subtitle: "Generacion de escenarios por regimen para riesgo de cola.",
+    title: "Stress Engine",
+    subtitle: "Ve cuanto dano recibe tu cartera en crisis simuladas.",
     body:
-      "Escenarios de stress sinteticos sobre la cartera actual. Primero aparecen CVaR, probabilidad de drawdown y atribucion de cola; la arquitectura y los gates viven en metodologia.",
+      "BLS Prime corre miles de escenarios duros de mercado contra tus posiciones reales y muestra la perdida, la probabilidad de dolor y que posiciones hacen el dano.",
     primary: "Correr en workspace",
     secondary: "Leer metodologia",
-    build: "Veredicto v8",
-    buildText:
-      "V8 destrono al DDPM. El producto servido es el motor calibrado de stress factorial; el checkpoint de difusion queda solo como investigacion hasta que supere same-stack Gaussian, t-copula y FHS.",
-    replayTitle: "Piso De Stress",
-    replayBody: "La tabla de crisis v8 es un diagnostico de piso de stress incondicional, no replay condicionado por episodio. Mide severidad suficiente, no prediccion de cada episodio.",
-    replay: [
-      ["COVID crash 2020", "Min real -35.2%", "Q01 stress -44.6%", "Piso"],
-      ["Inflation bear 2022", "Min real -15.9%", "Q01 stress -44.6%", "Piso"],
-      ["Bank stress 2023", "Min real -1.5%", "Q01 stress -44.6%", "Piso"],
-    ],
+    disclaimer: "Research software. No es asesoria financiera.",
+    metricsLabel: "Que recibes",
     metrics: [
-      ["5.000", "trayectorias sinteticas por corrida"],
-      ["CVaR 5% / 1%", "lecturas de riesgo de cola"],
-      ["Atribucion de cola", "contribuidores de perdida por posicion"],
-      ["Run ID + seed", "trazabilidad deterministica"],
+      {
+        plain: "Si los proximos 20 dias salen mal, cuanto pierde la cartera?",
+        value: "CVaR 5%",
+        techLabel: "Promedio del peor tramo",
+        definitionKey: "cvar5",
+        tone: "bad",
+      },
+      {
+        plain: "Con que frecuencia los escenarios simulados terminan bajo cero?",
+        value: "Perdida",
+        techLabel: "Probabilidad de perdida",
+        definitionKey: "probabilityLoss",
+        tone: "warn",
+      },
+      {
+        plain: "Que posiciones duelen mas cuando llegan los escenarios malos?",
+        value: "Drivers de cola",
+        techLabel: "Atribucion de cola",
+        definitionKey: "tailContributor",
+      },
+      {
+        plain: "Puede un revisor reproducir esta corrida exacta despues?",
+        value: "Run ID + seed",
+        techLabel: "Huella auditable",
+        definitionKey: "runFingerprint",
+        tone: "good",
+      },
     ],
-    methodologyTitle: "Metodologia Y Gates",
+    trustEyebrow: "Como elegimos el motor",
+    trustTitle: "El motor clasico gano. Eso es lo que servimos.",
+    trustBody:
+      "Probamos un simulador experimental de IA contra motores estadisticos clasicos en datos fuera de muestra. El motor clasico gano, por eso es el Stress Engine vivo. El modelo de IA queda en el laboratorio hasta ganarse el lugar. Cada prueba y umbral sigue visible en metodologia.",
+    replayTitle: "Piso historico de stress",
+    replayBody: "Chequeamos que las crisis simuladas sean al menos tan severas como crisis reales:",
+    replayCaveat:
+      "Esto es un piso de severidad, no una afirmacion de que el motor reprodujo o predijo cada crisis.",
+    replay: [
+      ["COVID crash 2020", "Caida real -35%", "Piso stress -45%", "Pasa"],
+      ["Inflation bear 2022", "Caida real -16%", "Piso stress -45%", "Pasa"],
+      ["Bank stress 2023", "Caida real -2%", "Piso stress -45%", "Pasa"],
+    ],
+    methodologyTitle: "Metodologia",
     methodology:
-      "Motor vivo actual: baseline calibrado de stress factorial, implementado como runtime CPU con correlacion Cholesky, stress sampling estratificado y warnings visibles. Resultados v8: same-stack Gaussian MMD 0.0168, FHS 0.0170, t-copula 0.0186, DDPM base 0.1426. El DDPM no es el champion.",
-    limitationsTitle: "Limites Actuales",
+      "Motor vivo: baseline calibrado de stress factorial con correlacion Cholesky, stress sampling estratificado, warnings visibles y huellas deterministicas de corrida. V8 movio los scores crudos bajo el fold porque la decision del usuario depende primero de perdida simulada, drawdown, piso de stress y contribuidores de cola.",
+    limitsTitle: "Lo que no puede hacer",
     limitations: [
-      "No se marca la superficie viva como DDPM; v8 mostro que el mismo stack de calibracion con ruido Gaussian factor le gana.",
-      "El q01 agregado de -44.6% es output de stress ladder; hay que reportar cuantiles por sleeve antes de tratarlo como cola estimada de mercado.",
-      "MMD y fidelidad del sampler quedan bajo el fold; el usuario de riesgo ve primero VaR, CVaR, drawdown, estado del piso y contribuidores de cola.",
-      "Los escenarios sinteticos son artefactos de investigacion, no pronosticos, asesoria ni senales de ejecucion.",
+      "No predice la proxima crisis. Muestra que podria pasar si mal clima de mercado golpea tu cartera actual.",
+      "Se construye desde el universo invertible de hoy, lo que puede subestimar la dureza real de la historia. Trata el resultado como piso de riesgo de cola.",
+      "El piso agregado de stress es deliberadamente severo. Lee los outputs por sleeve antes de tratar un numero de cola como perdida estimada de mercado.",
+      "Es software de investigacion, no asesoria, instruccion de ejecucion, guia tributaria ni reemplazo del juicio humano.",
     ],
+    ctaTitle: "Prueba tus posiciones reales.",
+    ctaBody: "Abre el workspace, elige el regimen de mercado y corre el stress test sobre la cartera que tienes.",
   },
 };
 
@@ -91,8 +156,8 @@ export function StressEnginePublicPage() {
           {copy.back}
         </Link>
         <nav aria-label="Stress Engine links">
-          <Link href="/app#risk">{copy.primary}</Link>
-          <Link href="#methodology">{copy.secondary}</Link>
+          <Link href="/app#risk">{copy.navPrimary}</Link>
+          <Link href="#methodology">{copy.navSecondary}</Link>
         </nav>
       </header>
 
@@ -105,50 +170,67 @@ export function StressEnginePublicPage() {
           <Link href="/app#risk">{copy.primary}</Link>
           <Link href="#methodology">{copy.secondary}</Link>
         </div>
+        <small>{copy.disclaimer}</small>
       </section>
 
-      <section className={styles.metrics} aria-label="Stress Engine capabilities">
-        {copy.metrics.map(([value, label]) => (
-          <div key={label}>
-            <strong>{value}</strong>
-            <span>{label}</span>
-          </div>
+      <section className={styles.metrics} aria-label={copy.metricsLabel}>
+        {copy.metrics.map((metric) => (
+          <PlainMetric
+            definitionKey={metric.definitionKey}
+            key={metric.plain}
+            language={language}
+            plain={metric.plain}
+            techLabel={metric.techLabel}
+            tone={metric.tone}
+            value={metric.value}
+          />
         ))}
       </section>
 
       <section className={styles.split}>
         <article>
-          <p>{copy.build}</p>
-          <h2>{copy.replayTitle}</h2>
-          <span>{copy.replayBody}</span>
+          <p>{copy.trustEyebrow}</p>
+          <h2>{copy.trustTitle}</h2>
+          <span>{copy.trustBody}</span>
         </article>
-        <div className={styles.replayTable}>
-          {copy.replay.map(([episode, actual, synthetic, status]) => (
-            <div key={episode}>
-              <strong>{episode}</strong>
-              <span>{actual}</span>
-              <span>{synthetic}</span>
-              <em>{status}</em>
-            </div>
-          ))}
-        </div>
+        <article>
+          <p>{copy.replayTitle}</p>
+          <span>{copy.replayBody}</span>
+          <div className={styles.replayTable}>
+            {copy.replay.map(([episode, actual, synthetic, status]) => (
+              <div key={episode}>
+                <strong>{episode}</strong>
+                <span>{actual}</span>
+                <span>{synthetic}</span>
+                <em>{status}</em>
+              </div>
+            ))}
+          </div>
+          <small>{copy.replayCaveat}</small>
+        </article>
       </section>
 
       <section className={styles.methodology} id="methodology">
         <div>
           <p>{copy.methodologyTitle}</p>
-          <h2>{copy.build}</h2>
-          <span>{copy.buildText}</span>
+          <h2>{copy.replayTitle}</h2>
+          <span>{copy.methodology}</span>
         </div>
         <article>
-          <p>{copy.methodology}</p>
-          <h3>{copy.limitationsTitle}</h3>
+          <h3>{copy.limitsTitle}</h3>
           <ul>
             {copy.limitations.map((item) => (
               <li key={item}>{item}</li>
             ))}
           </ul>
         </article>
+      </section>
+
+      <section className={styles.cta}>
+        <h2>{copy.ctaTitle}</h2>
+        <p>{copy.ctaBody}</p>
+        <Link href="/app#risk">{copy.primary}</Link>
+        <small>{copy.disclaimer}</small>
       </section>
     </main>
   );
