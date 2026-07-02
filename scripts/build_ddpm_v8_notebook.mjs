@@ -432,15 +432,63 @@ n_base = min(BASELINE_SCENARIOS, len(real_eval_returns), len(synthetic_returns),
     baseline_train_reference = train_target_reference
 else:
     real_eval_returns = real_valid_returns
-    eval_reference_name = "valid_all_regimes"
+    eval_reference_name = "valid_all_regimes_fallback"
     baseline_train_reference = train_all_reference
 
+MIN_ROBUST_EVAL_WINDOWS = 64
+ABS_MIN_EVAL_WINDOWS = 16
+strict_nonoverlap_eval = strided_windows_np(real_eval_returns, WINDOW_SIZE)
+CONFIG["eval_nonoverlap_windows_available"] = int(len(strict_nonoverlap_eval))
+CONFIG["eval_nonoverlap_min_required"] = int(MIN_ROBUST_EVAL_WINDOWS)
+CONFIG["eval_nonoverlap_gate_ok"] = bool(len(strict_nonoverlap_eval) >= MIN_ROBUST_EVAL_WINDOWS)
+
 real_eval_returns_for_metrics = strided_windows_np(real_eval_returns, EVAL_WINDOW_STRIDE)
-CONFIG["eval_window_stride_applied"] = int(EVAL_WINDOW_STRIDE)
-CONFIG["eval_windows_are_overlapping"] = bool(EVAL_WINDOW_STRIDE < WINDOW_SIZE)
+metric_stride = int(EVAL_WINDOW_STRIDE)
+if len(real_eval_returns_for_metrics) < MIN_ROBUST_EVAL_WINDOWS:
+    stride_candidates = [
+        max(1, WINDOW_SIZE // 2),
+        max(1, WINDOW_SIZE // 3),
+        max(1, WINDOW_SIZE // 5),
+        max(1, WINDOW_SIZE // 10),
+        1,
+    ]
+    best_stride = metric_stride
+    best_reference = real_eval_returns_for_metrics
+    for candidate_stride in stride_candidates:
+        candidate_reference = strided_windows_np(real_eval_returns, candidate_stride)
+        if len(candidate_reference) > len(best_reference):
+            best_stride = int(candidate_stride)
+            best_reference = candidate_reference
+        if len(candidate_reference) >= MIN_ROBUST_EVAL_WINDOWS:
+            break
+    real_eval_returns_for_metrics = best_reference
+    metric_stride = best_stride
+
+CONFIG["eval_window_stride_applied"] = int(metric_stride)
+CONFIG["eval_windows_are_overlapping"] = bool(metric_stride < WINDOW_SIZE)
+CONFIG["eval_metric_windows_available"] = int(len(real_eval_returns_for_metrics))
+CONFIG["eval_metric_reference_note"] = (
+    "non_overlapping_headline"
+    if metric_stride >= WINDOW_SIZE
+    else "adaptive_stride_diagnostics_only_nonoverlap_gate_fails"
+)
 n_base = min(BASELINE_SCENARIOS, len(real_eval_returns_for_metrics), len(synthetic_returns), len(synthetic_returns_base), len(baseline_train_reference))
+CONFIG["eval_metric_windows_used"] = int(n_base)
+CONFIG["eval_metric_sample_size_ok"] = bool(n_base >= MIN_ROBUST_EVAL_WINDOWS)
 `,
   "eval reference stride",
+);
+evalCell = replaceOnce(
+  evalCell,
+  String.raw`if n_base < 64:
+    raise RuntimeError(f"Too few evaluation windows for robust metrics: {n_base}")
+`,
+  String.raw`if n_base < ABS_MIN_EVAL_WINDOWS:
+    raise RuntimeError(f"Too few evaluation windows even for diagnostic metrics: {n_base}")
+if n_base < MIN_ROBUST_EVAL_WINDOWS:
+    print(f"WARNING: only {n_base} eval windows available. Continuing for diagnostics; endpoint promotion gate must fail.")
+`,
+  "low eval window guard",
 );
 evalCell = replaceOnce(
   evalCell,
@@ -523,7 +571,8 @@ gateCell = gateCell.replace(
   '"no_validation_used_for_guidance_or_cholesky": bool(not CONFIG.get("guidance_uses_validation", True) and not CONFIG.get("cholesky_uses_validation", True)),',
   String.raw`"no_validation_used_for_guidance_or_cholesky": bool(not CONFIG.get("guidance_uses_validation", True) and not CONFIG.get("cholesky_uses_validation", True)),
     "no_full_window_stress_floor": bool(CONFIG.get("stress_full_window_floor_applied") is False),
-    "non_overlapping_eval_windows": bool(CONFIG.get("eval_window_stride_applied", 1) >= WINDOW_SIZE),`,
+    "non_overlapping_eval_windows": bool(CONFIG.get("eval_nonoverlap_gate_ok", False)),
+    "eval_metric_sample_size_ok": bool(CONFIG.get("eval_metric_sample_size_ok", False)),`,
 );
 gateCell = gateCell.replace(
   String.raw`scorecard["research_champion"] = bool(
@@ -539,7 +588,8 @@ gateCell = gateCell.replace(
     and scorecard["corr_near_gaussian"]
     and scorecard["corr_fidelity_ge_0_80"]
     and scorecard["no_full_window_stress_floor"]
-    and scorecard["non_overlapping_eval_windows"]`,
+    and scorecard["non_overlapping_eval_windows"]
+    and scorecard["eval_metric_sample_size_ok"]`,
 );
 setSource(notebook.cells[29], gateCell);
 
