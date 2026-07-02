@@ -19,6 +19,19 @@ const dashboard = {
   },
 };
 
+const bankCoveredDashboard = {
+  workspace_summary: { id: "bank-covered-workspace" },
+  modules: {
+    portfolio: {
+      holdings: [
+        { ticker: "AMD", sector: "Information Technology", weightValue: 0.4, riskScore: 4 },
+        { ticker: "MSFT", sector: "Information Technology", weightValue: 0.35, riskScore: 3 },
+        { ticker: "GOOGL", sector: "Communication Services", weightValue: 0.25, riskScore: 3 },
+      ],
+    },
+  },
+};
+
 test("diffusion market simulator builds crisis scenarios with risk metrics", () => {
   const result = buildDiffusionMarketSimulation(dashboard, {
     regime: "crisis",
@@ -54,6 +67,9 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.validation.baselineComparison.readyForEndpoint, true);
   assert.ok(result.diagnostics.correlationFidelity > 0.75);
   assert.ok(result.tailContributors.length > 0);
+  assert.equal(result.scenarioBankOverlay.servedAsPrimary, false);
+  assert.equal(result.scenarioBankOverlay.role, "ddpm_research_challenger_overlay_not_primary");
+  assert.ok(result.scenarioBankOverlay.warnings.some((warning) => warning.includes("not the served champion")));
   assert.equal(result.deployment.status, "v8_calibrated_factor_stress_engine");
   assert.equal(result.deployment.researchChampion, false);
   assert.equal(result.deployment.ddpmResearchChampion, false);
@@ -62,6 +78,29 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.deployment.runtime.servedEngine, "same_stack_gaussian_factor_stress_engine");
   assert.equal(result.deployment.runtime.trainedCheckpointServed, false);
   assert.equal(result.deployment.requestPolicy.policyApplied, "aggregated_to_minimum");
+});
+
+test("scenario bank overlay projects matched v8 bank tickers without becoming the primary engine", () => {
+  const result = buildDiffusionMarketSimulation(bankCoveredDashboard, {
+    regime: "crisis",
+    nScenarios: 300,
+    horizonDays: 20,
+    seed: "bank-overlay",
+  });
+
+  assert.equal(result.scenarioBankOverlay.available, true);
+  assert.equal(result.scenarioBankOverlay.status, "available");
+  assert.equal(result.scenarioBankOverlay.servedAsPrimary, false);
+  assert.equal(result.scenarioBankOverlay.returnSet, "stress");
+  assert.equal(result.scenarioBankOverlay.sourceRunId, "factor_ddpm_run_20260702_035744");
+  assert.equal(result.scenarioBankOverlay.scenarioCount, 5000);
+  assert.equal(result.scenarioBankOverlay.matchedWeightCoverage, 1);
+  assert.deepEqual(result.scenarioBankOverlay.missingAssets, []);
+  assert.ok(result.scenarioBankOverlay.risk.var5 < 0);
+  assert.ok(result.scenarioBankOverlay.risk.cvar5 <= result.scenarioBankOverlay.risk.var5);
+  assert.ok(result.scenarioBankOverlay.tailContributors.length > 0);
+  assert.equal(result.inputSources.scenarioBankOverlay.available, true);
+  assert.equal(result.inputSources.scenarioBankOverlay.servedAsPrimary, false);
 });
 
 function buildSyntheticPriceHistory() {

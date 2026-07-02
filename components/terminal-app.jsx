@@ -2519,6 +2519,12 @@ const STRESS_ENGINE_COPY = {
     distribution: "Where the 5,000 simulations ended",
     distributionCaption: "Each bar shows how many simulations ended in that return range.",
     historicalReplay: "Historical stress floor",
+    scenarioBank: "V8 scenario overlay",
+    scenarioBankCaption: ({ coverage, source }) =>
+      `${coverage || "-"} of portfolio weight matched the v8 bank. Source: ${source || "research overlay"}.`,
+    scenarioBankCvar: "Overlay CVaR 5%",
+    scenarioBankVar: "Overlay VaR 5%",
+    scenarioBankUnavailable: "No matching scenario-bank coverage for this portfolio yet.",
     actual: "real",
     synthetic: "stress floor",
     covered: "floor",
@@ -2591,6 +2597,12 @@ const STRESS_ENGINE_COPY = {
     distribution: "Donde terminaron las 5.000 simulaciones",
     distributionCaption: "Cada barra muestra cuantas simulaciones terminaron en ese rango de retorno.",
     historicalReplay: "Piso historico de stress",
+    scenarioBank: "Overlay de escenarios v8",
+    scenarioBankCaption: ({ coverage, source }) =>
+      `${coverage || "-"} del peso de la cartera calza con el banco v8. Fuente: ${source || "overlay de investigacion"}.`,
+    scenarioBankCvar: "CVaR 5% overlay",
+    scenarioBankVar: "VaR 5% overlay",
+    scenarioBankUnavailable: "Todavia no hay cobertura del banco de escenarios para esta cartera.",
     actual: "real",
     synthetic: "piso stress",
     covered: "piso",
@@ -2754,6 +2766,8 @@ function StressEnginePanel({ workspaceId }) {
   const tailContributors = safeList(simulation?.tailContributors);
   const samplePaths = safeList(simulation?.samplePaths);
   const universe = safeList(simulation?.universe);
+  const scenarioBankOverlay = simulation?.scenarioBankOverlay || {};
+  const scenarioBankRisk = scenarioBankOverlay?.risk || {};
   const warnings = safeList(simulation?.warnings);
   const multiplierCounts = simulation?.model?.stressMultiplierCounts || deployment?.stressBook?.requestedMultiplierCounts || {};
   const currentRegime = copy.regimes.find(([id]) => id === regime) || copy.regimes[1];
@@ -2868,6 +2882,28 @@ function StressEnginePanel({ workspaceId }) {
             </div>
           ) : (
             <p className={styles.emptyCopy}>-</p>
+          )}
+        </article>
+
+        <article className={styles.stressDamagePanel}>
+          <h3>{copy.scenarioBank}</h3>
+          {scenarioBankOverlay?.available && scenarioBankOverlay?.matchedWeightCoverage ? (
+            <div className={styles.diffusionList}>
+              <div>
+                <strong>{scenarioBankRisk.cvar5Label || "-"}</strong>
+                <span>{copy.scenarioBankCvar}</span>
+              </div>
+              <div>
+                <strong>{scenarioBankRisk.var5Label || "-"}</strong>
+                <span>{copy.scenarioBankVar}</span>
+              </div>
+              <div>
+                <strong>{scenarioBankOverlay.matchedWeightCoverageLabel || "-"}</strong>
+                <span>{copy.scenarioBankCaption({ coverage: scenarioBankOverlay.matchedWeightCoverageLabel, source: scenarioBankOverlay.sourceArray })}</span>
+              </div>
+            </div>
+          ) : (
+            <p className={styles.emptyCopy}>{copy.scenarioBankUnavailable}</p>
           )}
         </article>
 
