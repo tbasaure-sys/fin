@@ -71,6 +71,39 @@ test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quo
   assert.equal(dashboard.workspace_summary.primary_stance, "Stay measured");
 });
 
+test("normalizeWorkspaceDashboard drops zero gaps from portfolio performance history", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      generated_at: "2026-06-16T12:00:00.000Z",
+      overview: {},
+      portfolio: {
+        holdings: [{ ticker: "SPY", weight: 1, market_value_usd: 10000 }],
+        current_mix_vs_spy: [
+          { date: "2026-06-01", portfolio_growth: 1, spy_growth: 1 },
+          { date: "2026-06-02", portfolio_growth: 0, spy_growth: 0 },
+          { date: "2026-06-03", portfolio_growth: 1.04, spy_growth: 1.01 },
+        ],
+      },
+      screener: { rows: [] },
+      status: { warnings: [], panels: [] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  const chart = dashboard.modules.portfolio.charts.growthComparison;
+  assert.equal(chart.length, 2);
+  assert.deepEqual(chart.map((row) => row.date), ["2026-06-01", "2026-06-03"]);
+  assert.ok(chart.every((row) => row.portfolio > 0 && row.benchmark > 0));
+  assert.equal(dashboard.modules.portfolio.analytics.totalReturnLabel, "Historial corto");
+});
+
 test("normalizeWorkspaceDashboard preserves portfolio manager fields for the workspace", () => {
   const dashboard = normalizeWorkspaceDashboard({
     workspaceId: "alpha-retail",

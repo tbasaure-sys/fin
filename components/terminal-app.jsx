@@ -259,6 +259,10 @@ function PortfolioChart({ series, benchmarkSymbol }) {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
   };
+  const readIndexPoint = (value) => {
+    const parsed = readChartNumber(value);
+    return parsed !== null && parsed > 0 ? parsed : null;
+  };
 
   const rows = safeList(series)
     .map((row, index) => {
@@ -267,8 +271,8 @@ function PortfolioChart({ series, benchmarkSymbol }) {
         id: `${row?.date || "point"}-${index}`,
         date: row.date,
         timestamp: parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.getTime() : null,
-        portfolio: readChartNumber(row.portfolio),
-        benchmark: readChartNumber(row.benchmark),
+        portfolio: readIndexPoint(row.portfolio),
+        benchmark: readIndexPoint(row.benchmark),
       };
     })
     .filter((row) => Number.isFinite(row.portfolio) || Number.isFinite(row.benchmark));
