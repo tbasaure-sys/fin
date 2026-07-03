@@ -5,317 +5,327 @@ import { useMemo, useState } from "react";
 
 import styles from "@/app/factorlab/factorlab.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
-import { InfoTip } from "@/components/ui/info-tip";
-import { factorLabDefaultWeights, factorLabSampleUniverse, runFactorLab } from "@/lib/factorlab-engine";
+import { factorLabSampleUniverse, runFactorLab } from "@/lib/factorlab-engine";
 
 const COPY = {
   en: {
     navAria: "FactorLab navigation",
-    nav: { builder: "Builder", audit: "Audit", results: "Results" },
-    workspace: "AURORA",
+    nav: { builder: "Search", results: "Files", audit: "Audit" },
+    aurora: "AURORA",
     language: "Language",
     hero: {
       kicker: "FactorLab",
-      title: "Prioritize candidates before valuation.",
+      title: "Find neglected asymmetric research files before they become obvious.",
       body:
-        "FactorLab is not a valuation model. It ranks research candidates using market factors plus qualitative thesis strength, demand/supply changes, and bottleneck power.",
+        "A research triage engine for small and microcaps: hard gates first, opportunity type second, evidence score last.",
+      cta: "Run discovery",
+      secondary: "Open AURORA",
     },
     status: {
       universe: "Universe",
-      eligible: "Eligible",
+      eligible: "Researchable",
       returned: "Returned",
-      guard: "PIT guard",
-      blocked: "Blocked",
+      held: "Held back",
+      topScore: "Top score",
       accepted: "Accepted",
       refused: "Refused",
+      high: "High priority",
+      open: "Open files",
     },
     builder: {
-      label: "Screen builder",
-      plain:
-        "Pick a universe, set the screen date, and choose how much each signal matters. The result updates from the same spec shown below.",
+      title: "Search controls",
+      body:
+        "This does not decide what to buy. It decides whether the information channel is strong enough to justify human research.",
       asof: "As of",
-      topK: "Top K",
       universe: "Universe",
-      minLiquidity: "Min liquidity",
-      maxResidualVol: "Max residual vol",
-      neutralize: "Sector neutralize",
+      topK: "Files returned",
+      minAdv: "Min daily value traded",
+      maxMarketCap: "Max market cap",
+      maxResidualVol: "Max residual volatility",
+      includeDiagnostics: "Show held-back diagnostics",
       futureSignal: "Use future return",
-      futureHelp: "Intentionally invalid. Turns on a look-ahead signal so the refusal path is visible.",
+      futureHelp: "Invalid by design. It proves the screen refuses look-ahead leakage.",
+    },
+    universeOptions: {
+      tradable: "Tradable small/microcaps",
+      us: "US-listed only",
+      micro: "Microcap focus",
+      inflection: "Improvement stories",
+      diagnostics: "Held-back diagnostics",
     },
     weights: {
-      momentum: "Momentum",
-      quality: "Financial quality",
-      value: "Value",
-      lowVol: "Low vol",
-      thesis: "Thesis quality",
-      demandSupply: "Demand/supply",
-      bottleneck: "Bottleneck",
+      quality: "Quality",
+      growth: "Growth",
+      survival: "Survival",
+      neglect: "Neglect",
+      inflection: "Inflection",
+      valuation: "Valuation",
     },
-    signalGuide: [
-      ["Market tape", "Momentum, value, and volatility show how the market is currently pricing the name."],
-      ["Business quality", "Financial quality is the accounting base; thesis quality captures qualitative durability and optionality."],
-      ["Industry setup", "Demand/supply and bottleneck power capture capacity constraints, scarcity, and pricing pressure."],
+    model: [
+      ["Hard gates first", "Liquidity, future data, cash runway, and severe red flags are checked before any score exists."],
+      ["Type before score", "A quality compounder, an inflection, a discounted asset, and an option-like file are not ranked by one generic recipe."],
+      ["Null test pending", "The composite must still beat size, value, and momentum before the weights become trusted."],
     ],
-    universeOptions: {
-      global: "Global liquid sample",
-      us: "US only",
-      "ex-us": "Ex-US",
-      quality: "Quality bias",
-      cyclical: "Cyclicals",
-    },
-    inspector: {
-      label: "Selected step",
-      deterministic: "deterministic",
-      pit: "point-in-time",
-      refused: "refused",
+    pipeline: {
+      selected: "Selected step",
       handle: "Handle",
       input: "Input",
       params: "Params",
-      plain: "Plain meaning",
-      dagAria: "Pipeline view",
-    },
-    spec: {
-      label: "Runnable spec",
-      value: "copied as JSON",
-      copy: "Copy spec",
-      copied: "Copied",
+      meaning: "Plain meaning",
     },
     results: {
-      label: "Run state",
-      validTitle: "Ranked candidates",
+      label: "Research files",
+      validTitle: "Authorized for human work",
       refusedTitle: "Structured refusal",
-      rank: "Rank",
-      ticker: "Ticker",
-      score: "Score",
-      sector: "Sector",
-      evidence: "Why it ranked",
-      analyze: "Analyze in AURORA",
-      empty: "No candidates returned.",
+      rank: "Type rank",
+      file: "File",
+      score: "Evidence score",
+      completeness: "Completeness",
+      setup: "Setup",
+      why: "Why now",
+      kill: "What kills it",
+      next: "Research status",
+      aurora: "Open in AURORA",
+      empty: "No research files returned.",
+      questions: "Questions",
+    },
+    stats: {
+      marketCap: "Market cap",
+      adv: "ADV",
+      fcfYield: "FCF yield",
+      dilution: "Dilution TTM",
+      analysts: "Analysts",
+      news: "News 90d",
+      completeness: "Data",
+    },
+    spec: {
+      title: "Runnable spec",
+      subtitle: "User-safe JSON",
+      copy: "Copy spec",
+      copied: "Copied",
     },
     audit: {
       title: "Audit trail",
       body:
-        "This is the part that matters: every run records the date filter, data coverage, ranking rule, and refusal reason.",
+        "Every run records the as-of date, adapters, gates, held-back count, and refusal reason. Research software, not financial advice.",
     },
-    stepPlain: {
-      asof: "Drops any row whose price or filing date is after the screen date.",
-      liquidity: "Removes names that are too illiquid or too volatile for this run.",
-      future: "This would leak future data into the live screen.",
-      score: "Combines market factors, qualitative thesis, demand/supply setup, and bottleneck power.",
-      neutralize: "Penalizes crowded sector bets so the list is not just one theme.",
-      raw: "Keeps the raw factor score without sector adjustment.",
-      topk: "Ranks candidates and returns the top names.",
-    },
-    refusalText: {
+    refusal: {
       lookaheadMessage: "Future return is only valid as a label for training, not as an input for a live screen.",
       lookaheadFix: "Turn off the future-return signal and rerun the screen.",
-      coverageMessage: "No candidate survived the point-in-time filters.",
-      coverageFix: "Relax liquidity, volatility, universe, or as-of date.",
+      coverageMessage: "No research file survived the point-in-time filters.",
+      coverageFix: "Relax liquidity, volatility, market cap, universe, or as-of date.",
     },
-    footer: "Candidate rankings and diagnostics. Research-only, not financial advice.",
+    footer:
+      "Research prioritization only. No financial advice. Every file still needs primary filings, a thesis, a bear/base/bull model, and invalidation criteria.",
   },
   es: {
     navAria: "Navegación de FactorLab",
-    nav: { builder: "Filtro", audit: "Auditoría", results: "Resultados" },
-    workspace: "AURORA",
+    nav: { builder: "Búsqueda", results: "Archivos", audit: "Auditoría" },
+    aurora: "AURORA",
     language: "Idioma",
     hero: {
       kicker: "FactorLab",
-      title: "Prioriza candidatos antes de valorar.",
+      title: "Encuentra archivos de investigación asimétrica antes de que sean obvios.",
       body:
-        "FactorLab no valora empresas. Ordena candidatos de investigación con factores de mercado, calidad de tesis, oferta/demanda y poder de cuello de botella.",
+        "Un motor de autorización para small y microcaps: primero filtros duros, después tipo de oportunidad, al final puntaje de evidencia.",
+      cta: "Correr búsqueda",
+      secondary: "Abrir AURORA",
     },
     status: {
       universe: "Universo",
-      eligible: "Elegibles",
+      eligible: "Investigables",
       returned: "Devueltos",
-      guard: "Control PIT",
-      blocked: "Bloqueado",
-      accepted: "Aceptada",
-      refused: "Rechazada",
+      held: "Retenidos",
+      topScore: "Mejor puntaje",
+      accepted: "Aceptado",
+      refused: "Rechazado",
+      high: "Prioridad alta",
+      open: "Archivos abiertos",
     },
     builder: {
-      label: "Constructor de filtro",
-      plain:
-        "Elige universo, fecha de corte y pesos. La lista se recalcula desde el spec JSON que queda visible para auditoría.",
+      title: "Controles de búsqueda",
+      body:
+        "Esto no decide qué comprar. Decide si el canal de información alcanza para justificar investigación humana.",
       asof: "Fecha de corte",
-      topK: "Top K",
       universe: "Universo",
-      minLiquidity: "Liquidez mínima",
-      maxResidualVol: "Volatilidad máx.",
-      neutralize: "Neutralizar sector",
+      topK: "Archivos devueltos",
+      minAdv: "Valor transado mínimo diario",
+      maxMarketCap: "Market cap máximo",
+      maxResidualVol: "Volatilidad residual máx.",
+      includeDiagnostics: "Mostrar diagnósticos retenidos",
       futureSignal: "Usar retorno futuro",
-      futureHelp: "Inválido a propósito. Activa una señal con look-ahead para comprobar que el sistema la rechaza.",
+      futureHelp: "Inválido a propósito. Prueba que el filtro rechaza look-ahead.",
+    },
+    universeOptions: {
+      tradable: "Small/microcaps transables",
+      us: "Solo listadas en EE. UU.",
+      micro: "Foco microcap",
+      inflection: "Historias de mejora",
+      diagnostics: "Diagnósticos retenidos",
     },
     weights: {
-      momentum: "Momentum",
-      quality: "Calidad financiera",
-      value: "Value",
-      lowVol: "Low vol",
-      thesis: "Tesis cualitativa",
-      demandSupply: "Oferta/demanda",
-      bottleneck: "Cuello de botella",
+      quality: "Calidad",
+      growth: "Crecimiento",
+      survival: "Supervivencia",
+      neglect: "Baja atención",
+      inflection: "Inflexión",
+      valuation: "Valoración",
     },
-    signalGuide: [
-      ["Mercado", "Momentum, value y volatilidad muestran cómo el mercado trata hoy al activo."],
-      ["Calidad del negocio", "La calidad financiera es la base contable; la tesis cualitativa captura durabilidad y opcionalidad."],
-      ["Setup industrial", "Oferta/demanda y cuello de botella capturan capacidad, escasez y poder de precio."],
+    model: [
+      ["Filtros primero", "Liquidez, datos futuros, runway de caja y red flags severos se revisan antes de que exista un puntaje."],
+      ["Tipo antes que score", "Una calidad reinvertible, una mejora operacional, un activo descontado y una opción frágil no usan la misma receta."],
+      ["Null pendiente", "El compuesto todavía debe ganarle a size, value y momentum antes de confiar en los pesos."],
     ],
-    universeOptions: {
-      global: "Muestra líquida global",
-      us: "Solo US",
-      "ex-us": "Ex-US",
-      quality: "Sesgo calidad",
-      cyclical: "Cíclicos",
-    },
-    inspector: {
-      label: "Paso seleccionado",
-      deterministic: "determinístico",
-      pit: "point-in-time",
-      refused: "rechazado",
+    pipeline: {
+      selected: "Paso seleccionado",
       handle: "Nombre",
-      input: "Entrada",
+      input: "Input",
       params: "Parámetros",
-      plain: "En simple",
-      dagAria: "Vista del pipeline",
-    },
-    spec: {
-      label: "Spec ejecutable",
-      value: "copiable como JSON",
-      copy: "Copiar spec",
-      copied: "Copiado",
+      meaning: "En simple",
     },
     results: {
-      label: "Estado de corrida",
-      validTitle: "Candidatos rankeados",
+      label: "Archivos de investigación",
+      validTitle: "Autorizados para trabajo humano",
       refusedTitle: "Rechazo estructurado",
-      rank: "Rank",
-      ticker: "Ticker",
-      score: "Puntaje",
-      sector: "Sector",
-      evidence: "Por qué rankea",
-      analyze: "Analizar en AURORA",
-      empty: "No hubo candidatos.",
+      rank: "Rank por tipo",
+      file: "Archivo",
+      score: "Puntaje de evidencia",
+      completeness: "Completitud",
+      setup: "Setup",
+      why: "Por qué ahora",
+      kill: "Qué lo mata",
+      next: "Estado de research",
+      aurora: "Abrir en AURORA",
+      empty: "No hubo archivos devueltos.",
+      questions: "Preguntas",
+    },
+    stats: {
+      marketCap: "Market cap",
+      adv: "ADV",
+      fcfYield: "FCF yield",
+      dilution: "Dilución TTM",
+      analysts: "Analistas",
+      news: "Noticias 90d",
+      completeness: "Datos",
+    },
+    spec: {
+      title: "Spec ejecutable",
+      subtitle: "JSON seguro para usuario",
+      copy: "Copiar spec",
+      copied: "Copiado",
     },
     audit: {
       title: "Registro de auditoría",
       body:
-        "Cada corrida deja visible la fecha de corte, cobertura de datos, regla de ranking y motivo de rechazo.",
+        "Cada corrida deja fecha de corte, adaptadores, filtros, archivos retenidos y motivo de rechazo. Software de research, no asesoría financiera.",
     },
-    stepPlain: {
-      asof: "Elimina cualquier fila cuyo precio o filing sea posterior a la fecha de corte.",
-      liquidity: "Remueve nombres demasiado ilíquidos o volátiles para esta corrida.",
-      future: "Esto filtraría datos futuros dentro del filtro en vivo.",
-      score: "Combina factores de mercado, tesis cualitativa, oferta/demanda y cuellos de botella.",
-      neutralize: "Resta el promedio sectorial para que la lista no sea solo una apuesta de un sector.",
-      raw: "Rankea el puntaje bruto sin ajuste sectorial.",
-      topk: "Ordena candidatos y devuelve los mejores nombres.",
+    refusal: {
+      lookaheadMessage: "El retorno futuro sirve como etiqueta de entrenamiento, no como input de una búsqueda en vivo.",
+      lookaheadFix: "Apaga la señal de retorno futuro y vuelve a correr.",
+      coverageMessage: "Ningún archivo sobrevivió los filtros point-in-time.",
+      coverageFix: "Relaja liquidez, volatilidad, market cap, universo o fecha de corte.",
     },
-    refusalText: {
-      lookaheadMessage: "El retorno futuro sirve como etiqueta de entrenamiento, no como input de un filtro en vivo.",
-      lookaheadFix: "Apaga la señal de retorno futuro y vuelve a correr el filtro.",
-      coverageMessage: "Ningún candidato sobrevivió los filtros point-in-time.",
-      coverageFix: "Relaja liquidez, volatilidad, universo o fecha de corte.",
-    },
-    footer: "Ranking de candidatos y diagnóstico. Investigación solamente; no es asesoría financiera.",
+    footer:
+      "Solo priorización de investigación. No es asesoría financiera. Cada archivo requiere filings primarios, tesis, modelo bear/base/bull y criterios de invalidación.",
   },
 };
 
-const universeOptions = ["global", "us", "ex-us", "quality", "cyclical"];
+const universeOptions = ["tradable", "us", "micro", "inflection", "diagnostics"];
 
 function fmtPct(value, digits = 0) {
-  return Number.isFinite(value) ? `${(value * 100).toFixed(digits)}%` : "N/A";
+  return Number.isFinite(value) ? `${(value * 100).toFixed(digits)}%` : "-";
 }
 
 function fmtScore(value) {
-  return Number.isFinite(value) ? value.toFixed(2) : "N/A";
+  return Number.isFinite(value) ? Math.round(value * 100).toString() : "-";
 }
 
-function statusForStep(step, copy) {
-  if (step.status === "refused") return copy.inspector.refused;
-  if (step.status === "pit") return copy.inspector.pit;
-  return copy.inspector.deterministic;
+function fmtScore100(value) {
+  return Number.isFinite(value) ? Math.round(value).toString() : "-";
 }
 
-function stepPlain(step, copy) {
-  if (step.id === "asof") return copy.stepPlain.asof;
-  if (step.id === "liquidity") return copy.stepPlain.liquidity;
-  if (step.id === "future") return copy.stepPlain.future;
-  if (step.id === "score") {
-    return copy.weights.thesis === "Thesis quality"
-      ? "Combines market factors, qualitative thesis, demand/supply setup, and bottleneck power."
-      : "Combina factores de mercado, tesis cualitativa, oferta/demanda y cuellos de botella.";
+function fmtMoney(value) {
+  if (!Number.isFinite(value)) return "-";
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
+  if (value < 1_000_000) return `$${Math.round(value / 1_000)}k`;
+  return `$${(value / 1_000_000).toFixed(0)}M`;
+}
+
+function pipelineText(step, language) {
+  if (language === "es") {
+    if (step.id === "asof") return "Elimina datos que no eran observables en la fecha de corte.";
+    if (step.id === "gates") return "Retiene trampas de liquidez, caja crítica y red flags antes del scoring.";
+    if (step.id === "type") return "Clasifica el tipo de oportunidad antes de aplicar pesos.";
+    if (step.id === "score") return "Usa breakpoints fijos y neglect real; no percentiles del batch.";
+    if (step.id === "null") return "Exporta el compuesto para probarlo contra size, value y momentum.";
+    if (step.id === "memo") return "Devuelve preguntas de investigación, no una lista de compra.";
+    if (step.id === "future") return "Esto filtraría datos futuros dentro de la búsqueda.";
   }
-  if (step.id === "neutralize") return step.op === "sector_neutralize" ? copy.stepPlain.neutralize : copy.stepPlain.raw;
-  if (step.id === "topk") return copy.stepPlain.topk;
   return step.plain;
 }
 
 function refusalMessage(refusal, copy) {
   if (!refusal) return "";
-  if (refusal.errorType === "LookaheadError") return copy.refusalText.lookaheadMessage;
-  if (refusal.errorType === "CoverageError") return copy.refusalText.coverageMessage;
+  if (refusal.errorType === "LookaheadError") return copy.refusal.lookaheadMessage;
+  if (refusal.errorType === "CoverageError") return copy.refusal.coverageMessage;
   return refusal.message;
 }
 
 function refusalFix(refusal, copy) {
   if (!refusal) return "";
-  if (refusal.errorType === "LookaheadError") return copy.refusalText.lookaheadFix;
-  if (refusal.errorType === "CoverageError") return copy.refusalText.coverageFix;
+  if (refusal.errorType === "LookaheadError") return copy.refusal.lookaheadFix;
+  if (refusal.errorType === "CoverageError") return copy.refusal.coverageFix;
   return refusal.fix;
 }
 
-function auditText(item, copy, language) {
+function auditText(item, language) {
   if (language === "en") return item;
-  if (/^Spec parsed\./i.test(item)) return "Spec leído.";
-  if (/Screen date/i.test(item)) return item.replace("Screen date", "Fecha de corte");
-  if (/point-in-time filters/i.test(item)) {
-    return item
-      .replace("of", "de")
-      .replace("names passed point-in-time filters.", "nombres pasaron los filtros point-in-time.");
-  }
-  if (/Sector means were removed before ranking/i.test(item)) return "Se restó el promedio sectorial antes del ranking.";
-  if (/Raw composite scores were ranked/i.test(item)) return "Se rankeó el puntaje compuesto bruto.";
-  if (/candidates returned/i.test(item)) return item.replace("candidates returned.", "candidatos devueltos.");
-  if (/Refused at lead\(next_return\)/i.test(item)) return `Rechazado en lead(next_return): ${copy.refusalText.lookaheadMessage}`;
-  if (/Turn off the future-return/i.test(item)) return copy.refusalText.lookaheadFix;
-  if (/Refused at filter/i.test(item)) return `Rechazado en filter: ${copy.refusalText.coverageMessage}`;
-  return item;
+  return item
+    .replace("Screen date", "Fecha de corte")
+    .replace("files cleared hard gates and evidence threshold.", "archivos pasaron filtros duros y umbral de evidencia.")
+    .replace("files were held back before research triage.", "archivos fueron retenidos antes del triage de investigación.")
+    .replace("Scores use fixed breakpoints, quarterly TTM features, and real neglect variables.", "Los puntajes usan breakpoints fijos, datos trimestrales TTM y variables reales de baja atención.")
+    .replace("Composite weights remain provisional until the factor-null export beats size, value, and momentum.", "Los pesos del compuesto siguen provisionales hasta ganarle al null de size, value y momentum.")
+    .replace("research files returned.", "archivos de investigación devueltos.")
+    .replace("Spec parsed.", "Spec leído.");
 }
 
-function factorEvidence(row, copy) {
-  const entries = [
-    [copy.weights.momentum, row.momentumZ],
-    [copy.weights.quality, row.qualityZ],
-    [copy.weights.value, row.valueZ],
-    [copy.weights.lowVol, row.lowVolZ],
-    [copy.weights.thesis, row.thesisZ],
-    [copy.weights.demandSupply, row.demandSupplyZ],
-    [copy.weights.bottleneck, row.bottleneckZ],
-  ]
-    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))
-    .slice(0, 3);
-  const note = [row.qualitativeNote, row.demandSupplyNote, row.bottleneckNote].filter(Boolean)[0];
+function strongestBlocks(row, language, copy) {
+  return Object.entries(row.blockScores)
+    .map(([key, value]) => ({
+      key,
+      label: value.label?.[language] || copy.weights[key] || key,
+      score: value.score,
+      completeness: value.completeness,
+    }))
+    .sort((a, b) => b.score * b.completeness - a.score * a.completeness)
+    .slice(0, 3)
+    .map((item) => `${item.label} ${fmtScore100(item.score)} (${fmtPct(item.completeness)})`);
+}
+
+function displaySpec(run) {
   return {
-    factors: entries.map(([label, value]) => `${label} ${fmtScore(value)}z`),
-    note,
+    ...run.spec,
+    typeWeights: "type-specific scorecards are mapped in the engine and not rendered as internal labels",
+    factorNull: {
+      ...run.spec.factorNull,
+      status: run.summary.factorNullRequired ? "required before trusting composite weights" : "not required",
+    },
   };
 }
 
 export function FactorLabWorkstation() {
   const { language, setLanguage } = useLanguagePreference();
   const copy = COPY[language] || COPY.en;
-  const heroTitle = copy.hero.title;
-  const heroBody = copy.hero.body;
   const [activeStepId, setActiveStepId] = useState("score");
   const [asof, setAsof] = useState("2026-06-24");
-  const [topK, setTopK] = useState(5);
-  const [universe, setUniverse] = useState("global");
-  const [minLiquidity, setMinLiquidity] = useState(0.65);
-  const [maxResidualVol, setMaxResidualVol] = useState(0.5);
-  const [neutralizeSector, setNeutralizeSector] = useState(true);
+  const [topK, setTopK] = useState(6);
+  const [universe, setUniverse] = useState("tradable");
+  const [minAdvUsd, setMinAdvUsd] = useState(250_000);
+  const [maxMarketCapUsd, setMaxMarketCapUsd] = useState(2_000_000_000);
+  const [maxResidualVol, setMaxResidualVol] = useState(0.7);
+  const [includeDiagnostics, setIncludeDiagnostics] = useState(false);
   const [includeFutureReturn, setIncludeFutureReturn] = useState(false);
-  const [weights, setWeights] = useState(factorLabDefaultWeights);
   const [copied, setCopied] = useState(false);
 
   const run = useMemo(
@@ -324,22 +334,18 @@ export function FactorLabWorkstation() {
         asof,
         topK,
         universe,
-        minLiquidity,
+        minAdvUsd,
+        maxMarketCapUsd,
         maxResidualVol,
-        neutralizeSector,
+        includeDiagnostics,
         includeFutureReturn,
-        weights,
       }),
-    [asof, topK, universe, minLiquidity, maxResidualVol, neutralizeSector, includeFutureReturn, weights],
+    [asof, topK, universe, minAdvUsd, maxMarketCapUsd, maxResidualVol, includeDiagnostics, includeFutureReturn],
   );
 
   const activeStep = run.pipeline.find((step) => step.id === activeStepId) || run.pipeline[0];
-  const specText = useMemo(() => JSON.stringify(run.spec, null, 2), [run.spec]);
-  const topScore = run.summary.topScore;
-
-  function updateWeight(key, value) {
-    setWeights((current) => ({ ...current, [key]: Number(value) / 100 }));
-  }
+  const specText = useMemo(() => JSON.stringify(displaySpec(run), null, 2), [run]);
+  const topFile = run.candidates[0] || null;
 
   async function copySpec() {
     try {
@@ -361,21 +367,17 @@ export function FactorLabWorkstation() {
         </Link>
         <nav className={styles.nav} aria-label={copy.navAria}>
           <a href="#builder">{copy.nav.builder}</a>
-          <a href="#audit">{copy.nav.audit}</a>
           <a href="#results">{copy.nav.results}</a>
+          <a href="#audit">{copy.nav.audit}</a>
         </nav>
         <div className={styles.headerActions}>
           <div className={styles.languageToggle} aria-label={copy.language} role="group">
             <span>{copy.language}</span>
-            <button data-active={language === "en"} onClick={() => setLanguage("en")} type="button">
-              EN
-            </button>
-            <button data-active={language === "es"} onClick={() => setLanguage("es")} type="button">
-              ES
-            </button>
+            <button data-active={language === "en"} onClick={() => setLanguage("en")} type="button">EN</button>
+            <button data-active={language === "es"} onClick={() => setLanguage("es")} type="button">ES</button>
           </div>
           <Link className={styles.workspaceLink} href="/aurora">
-            {copy.workspace}
+            {copy.aurora}
           </Link>
         </div>
       </header>
@@ -383,36 +385,51 @@ export function FactorLabWorkstation() {
       <section className={styles.hero}>
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>{copy.hero.kicker}</p>
-          <h1>{heroTitle}</h1>
-          <p>{heroBody}</p>
+          <h1>{copy.hero.title}</h1>
+          <p>{copy.hero.body}</p>
+          <div className={styles.heroActions}>
+            <a className={styles.primaryButton} href="#results">{copy.hero.cta}</a>
+            <Link className={styles.secondaryButton} href="/aurora">{copy.hero.secondary}</Link>
+          </div>
         </div>
 
-        <div className={styles.statusPlane} aria-label="FactorLab status">
-          <div>
-            <span>{copy.status.universe}</span>
-            <strong>{copy.universeOptions[universe]}</strong>
-          </div>
-          <div>
-            <span>{copy.status.eligible}</span>
-            <strong>{run.accepted ? `${run.summary.eligible} / ${factorLabSampleUniverse.length}` : copy.status.blocked}</strong>
-          </div>
-          <div>
-            <span>{copy.status.guard}</span>
-            <strong>{run.accepted ? copy.status.accepted : copy.status.refused}</strong>
-          </div>
+        <div className={styles.thesisPlane} aria-label="FactorLab model">
+          {copy.model.map(([title, body]) => (
+            <article key={title}>
+              <span>{title}</span>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className={styles.statusStrip} aria-label="FactorLab status">
+        <div>
+          <span>{copy.status.universe}</span>
+          <strong>{copy.universeOptions[universe]}</strong>
+        </div>
+        <div>
+          <span>{copy.status.eligible}</span>
+          <strong>{run.accepted ? `${run.summary.eligible} / ${factorLabSampleUniverse.length}` : copy.status.refused}</strong>
+        </div>
+        <div>
+          <span>{copy.status.high}</span>
+          <strong>{run.summary.rankable}</strong>
+        </div>
+        <div>
+          <span>{copy.status.topScore}</span>
+          <strong>{fmtScore(run.summary.topScore)}</strong>
         </div>
       </section>
 
       <section className={styles.workbench}>
-        <aside className={styles.rail}>
+        <aside className={styles.rail} id="builder">
           <div className={styles.railHeader}>
-            <div>
-              <span>{copy.builder.label}</span>
-              <strong>{copy.builder.plain}</strong>
-            </div>
+            <span>{copy.builder.title}</span>
+            <p>{copy.builder.body}</p>
           </div>
 
-          <div className={styles.controlStack} id="builder">
+          <div className={styles.controlStack}>
             <label>
               <span>{copy.builder.asof}</span>
               <input value={asof} onChange={(event) => setAsof(event.target.value)} type="date" />
@@ -422,9 +439,7 @@ export function FactorLabWorkstation() {
               <span>{copy.builder.universe}</span>
               <select value={universe} onChange={(event) => setUniverse(event.target.value)}>
                 {universeOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {copy.universeOptions[option]}
-                  </option>
+                  <option key={option} value={option}>{copy.universeOptions[option]}</option>
                 ))}
               </select>
             </label>
@@ -435,22 +450,35 @@ export function FactorLabWorkstation() {
             </label>
 
             <label>
-              <span>{copy.builder.minLiquidity}</span>
+              <span>{copy.builder.minAdv}</span>
               <input
-                max="1"
-                min="0"
-                step="0.01"
+                max="5000000"
+                min="50000"
+                step="50000"
                 type="range"
-                value={minLiquidity}
-                onChange={(event) => setMinLiquidity(Number(event.target.value))}
+                value={minAdvUsd}
+                onChange={(event) => setMinAdvUsd(Number(event.target.value))}
               />
-              <em>{fmtPct(minLiquidity)}</em>
+              <em>{fmtMoney(minAdvUsd)}</em>
+            </label>
+
+            <label>
+              <span>{copy.builder.maxMarketCap}</span>
+              <input
+                max="5000000000"
+                min="50000000"
+                step="50000000"
+                type="range"
+                value={maxMarketCapUsd}
+                onChange={(event) => setMaxMarketCapUsd(Number(event.target.value))}
+              />
+              <em>{fmtMoney(maxMarketCapUsd)}</em>
             </label>
 
             <label>
               <span>{copy.builder.maxResidualVol}</span>
               <input
-                max="0.8"
+                max="1"
                 min="0.1"
                 step="0.01"
                 type="range"
@@ -462,8 +490,8 @@ export function FactorLabWorkstation() {
 
             <div className={styles.toggleGrid}>
               <label>
-                <input checked={neutralizeSector} onChange={(event) => setNeutralizeSector(event.target.checked)} type="checkbox" />
-                <span>{copy.builder.neutralize}</span>
+                <input checked={includeDiagnostics} onChange={(event) => setIncludeDiagnostics(event.target.checked)} type="checkbox" />
+                <span>{copy.builder.includeDiagnostics}</span>
               </label>
               <label data-danger={includeFutureReturn}>
                 <input checked={includeFutureReturn} onChange={(event) => setIncludeFutureReturn(event.target.checked)} type="checkbox" />
@@ -478,36 +506,20 @@ export function FactorLabWorkstation() {
           <section className={styles.builderPanel}>
             <div className={styles.panelTopline}>
               <div>
-                <span>{copy.builder.label}</span>
-                <strong>factor_plus_thesis_screen</strong>
+                <span>{copy.builder.title}</span>
+                <strong>neglected_opportunity_triage</strong>
               </div>
               <mark data-state={run.accepted ? "accepted" : "refused"}>
                 {run.accepted ? copy.status.accepted : copy.status.refused}
               </mark>
             </div>
 
-            <div className={styles.signalGuide}>
-              {copy.signalGuide.map(([title, body]) => (
-                <div key={title}>
-                  <span>{title}</span>
-                  <p>{body}</p>
-                </div>
-              ))}
-            </div>
-
             <div className={styles.weightGrid}>
-              {Object.entries(copy.weights).map(([key, label]) => (
-                <label className={styles.weightControl} key={key}>
-                  <span>{label}</span>
-                  <input
-                    max="100"
-                    min="0"
-                    type="range"
-                    value={Math.round((weights[key] ?? 0) * 100)}
-                    onChange={(event) => updateWeight(key, event.target.value)}
-                  />
-                  <strong>{fmtPct(run.spec.weights[key])}</strong>
-                </label>
+              {copy.model.map(([title, body]) => (
+                <article className={styles.weightControl} key={title}>
+                  <span>{title}</span>
+                  <strong>{body}</strong>
+                </article>
               ))}
             </div>
 
@@ -523,7 +535,7 @@ export function FactorLabWorkstation() {
                 >
                   <span>{String(index + 1).padStart(2, "0")}</span>
                   <strong>{step.op}</strong>
-                  <small>{stepPlain(step, copy)}</small>
+                  <small>{pipelineText(step, language)}</small>
                 </button>
               ))}
             </div>
@@ -532,60 +544,38 @@ export function FactorLabWorkstation() {
           <section className={styles.inspectorPanel}>
             <div className={styles.panelTopline}>
               <div>
-                <span>{copy.inspector.label}</span>
+                <span>{copy.pipeline.selected}</span>
                 <strong>{activeStep.op}</strong>
               </div>
-              <mark data-state={activeStep.status}>{statusForStep(activeStep, copy)}</mark>
+              <mark data-state={activeStep.status}>{activeStep.status}</mark>
             </div>
 
-            <div className={styles.nodeDetail}>
-              <dl>
-                <div>
-                  <dt>{copy.inspector.handle}</dt>
-                  <dd>{activeStep.id}</dd>
-                </div>
-                <div>
-                  <dt>{copy.inspector.input}</dt>
-                  <dd>{activeStep.input}</dd>
-                </div>
-                <div>
-                  <dt>{copy.inspector.params}</dt>
-                  <dd>{activeStep.params}</dd>
-                </div>
-                <div>
-                  <dt>{copy.inspector.plain}</dt>
-                  <dd>{stepPlain(activeStep, copy)}</dd>
-                </div>
-              </dl>
-            </div>
-
-            <div className={styles.dagView} aria-label={copy.inspector.dagAria}>
-              {run.pipeline.map((step) => (
-                <button
-                  className={styles.dagNode}
-                  data-active={activeStep.id === step.id}
-                  data-status={step.status}
-                  key={step.id}
-                  onClick={() => setActiveStepId(step.id)}
-                  type="button"
-                >
-                  <span>{step.id}</span>
-                </button>
-              ))}
-            </div>
-          </section>
-
-          <section className={styles.specPanel} id="audit">
-            <div className={styles.panelTopline}>
+            <dl className={styles.nodeDetail}>
               <div>
-                <span>{copy.spec.label}</span>
-                <strong>{copy.spec.value}</strong>
+                <dt>{copy.pipeline.handle}</dt>
+                <dd>{activeStep.id}</dd>
               </div>
-              <button className={styles.smallButton} onClick={copySpec} type="button">
-                {copied ? copy.spec.copied : copy.spec.copy}
-              </button>
-            </div>
-            <pre>{specText}</pre>
+              <div>
+                <dt>{copy.pipeline.input}</dt>
+                <dd>{activeStep.input}</dd>
+              </div>
+              <div>
+                <dt>{copy.pipeline.params}</dt>
+                <dd>{activeStep.params}</dd>
+              </div>
+              <div>
+                <dt>{copy.pipeline.meaning}</dt>
+                <dd>{pipelineText(activeStep, language)}</dd>
+              </div>
+            </dl>
+
+            {topFile ? (
+              <div className={styles.topCandidate}>
+                <span>{copy.results.next}</span>
+                <strong>{topFile.ticker}: {topFile.tierLabel[language]}</strong>
+                <p>{topFile.whyNow}</p>
+              </div>
+            ) : null}
           </section>
 
           <section className={styles.runPanel} id="results">
@@ -600,83 +590,76 @@ export function FactorLabWorkstation() {
             </div>
 
             {run.accepted ? (
-              <div className={styles.resultsWrap}>
-                <div className={styles.summaryBar}>
-                  <div>
-                    <span>{copy.status.eligible}</span>
-                    <strong>{run.summary.eligible}</strong>
-                  </div>
-                  <div>
-                    <span>{copy.status.returned}</span>
-                    <strong>{run.summary.returned}</strong>
-                  </div>
-                  <div>
-                    <span>{copy.results.score}</span>
-                    <strong>{fmtScore(topScore)}</strong>
-                  </div>
-                </div>
-
-                {run.candidates.length ? (
-                  <table className={styles.resultsTable}>
-                    <thead>
-                      <tr>
-                        <th>{copy.results.rank}</th>
-                        <th>{copy.results.ticker}</th>
-                        <th>{copy.results.score} <InfoTip definitionKey="score" language={language} /></th>
-                        <th>{copy.results.sector} <InfoTip definitionKey="factor" language={language} /></th>
-                        <th>{copy.results.evidence} <InfoTip definitionKey="score" language={language} /></th>
-                        <th>{copy.results.analyze}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {run.candidates.map((row) => (
-                        <tr key={row.ticker}>
-                          <td>{row.rank}</td>
-                          <td>
-                            <strong>{row.ticker}</strong>
-                            <span>{row.name}</span>
-                          </td>
-                          <td>
-                            <b>{fmtScore(row.score)}</b>
-                            <i style={{ "--score-width": `${Math.max(8, Math.min(100, 50 + row.score * 24))}%` }} />
-                          </td>
-                          <td>{row.sector}</td>
-                          <td>
-                            {(() => {
-                              const evidence = factorEvidence(row, copy);
-                              return (
-                                <div className={styles.evidenceStack}>
-                                  {evidence.factors.map((item) => (
-                                    <span key={item}>{item}</span>
-                                  ))}
-                                  {evidence.note ? <p>{evidence.note}</p> : null}
-                                </div>
-                              );
-                            })()}
-                          </td>
-                          <td>
-                            <Link className={styles.smallButton} href={`/aurora?ticker=${encodeURIComponent(row.ticker)}`}>
-                              {copy.results.analyze}
-                            </Link>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className={styles.emptyState}>{copy.results.empty}</p>
-                )}
+              <div className={styles.candidateList}>
+                {run.candidates.length ? run.candidates.map((row) => (
+                  <article className={styles.candidateRow} data-gate={row.tier} key={row.ticker}>
+                    <div className={styles.rankCell}>
+                      <span>{copy.results.rank}</span>
+                      <strong>{row.rankWithinType || "-"}</strong>
+                    </div>
+                    <div className={styles.candidateMain}>
+                      <div className={styles.candidateHead}>
+                        <div>
+                          <strong>{row.ticker}</strong>
+                          <span>{row.name} · {row.opportunityTypeLabel[language]}</span>
+                        </div>
+                        <mark data-tier={row.tier}>{row.tierLabel[language]}</mark>
+                      </div>
+                      <p className={styles.thesisText}>{row.thesis}</p>
+                      <div className={styles.reasonGrid}>
+                        <div>
+                          <span>{copy.results.why}</span>
+                          <p>{row.whyNow}</p>
+                        </div>
+                        <div>
+                          <span>{copy.results.kill}</span>
+                          <p>{row.killCriteria}</p>
+                        </div>
+                      </div>
+                      <div className={styles.factorChips}>
+                        {strongestBlocks(row, language, copy).map((item) => <span key={item}>{item}</span>)}
+                      </div>
+                    </div>
+                    <div className={styles.metricCell}>
+                      <span>{copy.results.score}</span>
+                      <strong>{fmtScore100(row.opportunityScore)}</strong>
+                      <i style={{ "--score-width": `${Math.max(8, Math.min(100, row.opportunityScore))}%` }} />
+                      <dl>
+                        <div><dt>{copy.stats.completeness}</dt><dd>{fmtPct(row.dataCompleteness)}</dd></div>
+                        <div><dt>{copy.stats.marketCap}</dt><dd>{fmtMoney(row.marketCapUsd)}</dd></div>
+                        <div><dt>{copy.stats.adv}</dt><dd>{fmtMoney(row.advUsd)}</dd></div>
+                        <div><dt>{copy.stats.fcfYield}</dt><dd>{fmtPct(row.fcfYield, 1)}</dd></div>
+                        <div><dt>{copy.stats.dilution}</dt><dd>{fmtPct(row.dilutionTtm, 1)}</dd></div>
+                        <div><dt>{copy.stats.analysts}</dt><dd>{Number.isFinite(row.analystCount) ? row.analystCount : "-"}</dd></div>
+                      </dl>
+                      <Link className={styles.smallButton} href={`/aurora?ticker=${encodeURIComponent(row.ticker)}`}>
+                        {copy.results.aurora}
+                      </Link>
+                    </div>
+                  </article>
+                )) : <p className={styles.emptyState}>{copy.results.empty}</p>}
               </div>
             ) : (
               <div className={styles.refusal}>
                 <span>{run.refusal?.errorType}</span>
-                <strong>
-                  {run.refusal?.op}: {refusalMessage(run.refusal, copy)}
-                </strong>
+                <strong>{run.refusal?.op}: {refusalMessage(run.refusal, copy)}</strong>
                 <p>{refusalFix(run.refusal, copy)}</p>
                 <pre>{JSON.stringify(run.refusal, null, 2)}</pre>
               </div>
             )}
+          </section>
+
+          <section className={styles.specPanel} id="audit">
+            <div className={styles.panelTopline}>
+              <div>
+                <span>{copy.spec.title}</span>
+                <strong>{copy.spec.subtitle}</strong>
+              </div>
+              <button className={styles.smallButton} onClick={copySpec} type="button">
+                {copied ? copy.spec.copied : copy.spec.copy}
+              </button>
+            </div>
+            <pre>{specText}</pre>
           </section>
 
           <section className={styles.auditPanel}>
@@ -687,9 +670,7 @@ export function FactorLabWorkstation() {
               </div>
             </div>
             <ol className={styles.auditList}>
-              {run.audit.map((item) => (
-                <li key={item}>{auditText(item, copy, language)}</li>
-              ))}
+              {run.audit.map((item) => <li key={item}>{auditText(item, language)}</li>)}
             </ol>
           </section>
         </div>
