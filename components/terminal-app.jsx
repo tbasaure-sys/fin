@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
@@ -38,9 +38,9 @@ const WORKSPACE_NAV = [
     href: "#today",
     label: "Resumen hoy",
     priority: "Inicio",
-    detail: "Lectura y acciÃ³n",
-    title: "Â¿QuÃ© hago hoy?",
-    body: "La lectura en vivo y el movimiento que merece atenciÃ³n ahora.",
+    detail: "Lectura y acción",
+    title: "¿Qué hago hoy?",
+    body: "La lectura en vivo y el movimiento que merece atención ahora.",
   },
   {
     id: "risk",
@@ -48,8 +48,8 @@ const WORKSPACE_NAV = [
     label: "Mi mayor riesgo",
     priority: "Auditar",
     detail: "Portafolio y solapamiento",
-    title: "Â¿QuÃ© domina mi portafolio?",
-    body: "Rendimiento, concentraciÃ³n y diversificaciÃ³n real bajo estrÃ©s.",
+    title: "¿Qué domina mi portafolio?",
+    body: "Rendimiento, concentración y diversificación real bajo estrés.",
   },
   {
     id: "macro",
@@ -57,7 +57,7 @@ const WORKSPACE_NAV = [
     label: "Macro",
     priority: "Contexto",
     detail: "MOSAIC y tesis",
-    title: "Â¿QuÃ© estÃ¡ cambiando afuera?",
+    title: "¿Qué está cambiando afuera?",
     body: "Presiones globales, datos macro y tesis que pueden tocar el portafolio.",
   },
   {
@@ -65,9 +65,9 @@ const WORKSPACE_NAV = [
     href: "#candidates",
     label: "Candidatos",
     priority: "Explorar",
-    detail: "Filtros e investigaciÃ³n",
-    title: "Â¿QuÃ© vale la pena considerar?",
-    body: "Candidatos filtrados, investigaciÃ³n de compaÃ±Ã­a y seÃ±ales macro.",
+    detail: "Filtros e investigación",
+    title: "¿Qué vale la pena considerar?",
+    body: "Candidatos filtrados, investigación de compañía y señales macro.",
   },
   {
     id: "decisions",
@@ -75,7 +75,7 @@ const WORKSPACE_NAV = [
     label: "Decisiones",
     priority: "Registrar",
     detail: "Historial y pendientes",
-    title: "Â¿QuÃ© he decidido y por quÃ©?",
+    title: "¿Qué he decidido y por qué?",
     body: "Acciones preparadas y decisiones registradas.",
   },
 ];
@@ -87,7 +87,7 @@ const WORKSPACE_NAV_ADVANCED = [
     label: "Posiciones",
     priority: "Actualizar",
     detail: "Tabla de posiciones",
-    title: "Posiciones y ediciÃ³n directa",
+    title: "Posiciones y edición directa",
     body: "Revisa, agrega y edita posiciones conectadas al espacio.",
   },
 ];
@@ -128,35 +128,35 @@ const WORKSPACE_SHELL_COPY = {
     },
   },
   es: {
-    sidebarAria: "Navegacion del espacio",
-    sidebarSupport: "Espacio privado de decision.",
-    auroraDetail: "Valoracion, calidad de negocio y tesis",
+    sidebarAria: "Navegación del espacio",
+    sidebarSupport: "Espacio privado de decisión.",
+    auroraDetail: "Valoración, calidad de negocio y tesis",
     principal: "Principal",
     holdings: "Posiciones",
     staged: "En espera",
     ask: "Preguntar al espacio",
     glossary: "Glosario",
-    guide: "Guia",
+    guide: "Guía",
     hideAdvanced: "Ocultar avanzado",
     advanced: "Avanzado",
-    terms: "Terminos",
+    terms: "Términos",
     home: "Inicio",
     privateSpace: "Espacio privado",
-    subtitle: "Lectura clara. Una decision a la vez.",
+    subtitle: "Lectura clara. Una decisión a la vez.",
     userFallback: "Usuario",
     liveFallback: "En vivo",
     noUpdate: "Sin hora de actualizacion",
     refreshing: "Actualizando...",
     refresh: "Actualizar",
-    logout: "Cerrar sesion",
+    logout: "Cerrar sesión",
     syncedStatus: ({ count, date }) => `Portafolio sincronizado | ${count} posiciones | datos al ${date}`,
     nav: {
-      today: ["Hoy", "Leer y actuar", "Que hago hoy?", "La lectura en vivo y el movimiento que merece atencion ahora.", "Inicio"],
-      risk: ["Mi mayor riesgo", "Stress de cartera", "Que domina mi portafolio?", "Rendimiento, concentracion y diversificacion real bajo stress.", "Auditar"],
-      macro: ["Macro", "Contexto externo", "Que esta cambiando afuera?", "Presiones globales, datos macro y tesis que pueden tocar el portafolio.", "Contexto"],
-      candidates: ["Candidatos", "Filtrar e investigar", "Que vale la pena mirar?", "Candidatos filtrados, research de compania y senales macro.", "Explorar"],
-      decisions: ["Decisiones", "Historial y pendientes", "Que he decidido y por que?", "Acciones preparadas y decisiones registradas.", "Registrar"],
-      holdings: ["Posiciones", "Editar cartera", "Posiciones y edicion directa", "Revisa, agrega y edita posiciones conectadas al espacio.", "Actualizar"],
+      today: ["Hoy", "Leer y actuar", "¿Qué hago hoy?", "La lectura en vivo y el movimiento que merece atención ahora.", "Inicio"],
+      risk: ["Mi mayor riesgo", "Stress de cartera", "¿Qué domina mi portafolio?", "Rendimiento, concentración y diversificación real bajo stress.", "Auditar"],
+      macro: ["Macro", "Contexto externo", "¿Qué está cambiando afuera?", "Presiones globales, datos macro y tesis que pueden tocar el portafolio.", "Contexto"],
+      candidates: ["Candidatos", "Filtrar e investigar", "¿Qué vale la pena mirar?", "Candidatos filtrados, research de compañía y señales macro.", "Explorar"],
+      decisions: ["Decisiones", "Historial y pendientes", "¿Qué he decidido y por qué?", "Acciones preparadas y decisiones registradas.", "Registrar"],
+      holdings: ["Posiciones", "Editar cartera", "Posiciones y edición directa", "Revisa, agrega y edita posiciones conectadas al espacio.", "Actualizar"],
     },
   },
 };
@@ -254,6 +254,12 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   const paddingRight = 36;
   const paddingTop = 20;
   const paddingBottom = 34;
+  const readChartNumber = (value) => {
+    if (value === null || value === undefined || value === "") return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  };
+
   const rows = safeList(series)
     .map((row, index) => {
       const parsedDate = row?.date ? new Date(row.date) : null;
@@ -261,8 +267,8 @@ function PortfolioChart({ series, benchmarkSymbol }) {
         id: `${row?.date || "point"}-${index}`,
         date: row.date,
         timestamp: parsedDate && !Number.isNaN(parsedDate.getTime()) ? parsedDate.getTime() : null,
-        portfolio: Number(row.portfolio),
-        benchmark: Number(row.benchmark),
+        portfolio: readChartNumber(row.portfolio),
+        benchmark: readChartNumber(row.benchmark),
       };
     })
     .filter((row) => Number.isFinite(row.portfolio) || Number.isFinite(row.benchmark));
@@ -273,19 +279,20 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   if (portfolioPoints.length < 2 && benchmarkPoints.length < 2) {
     return (
       <div className={styles.chartEmptyState}>
-        <strong>La trayectoria del portafolio aparecerÃ¡ aquÃ­</strong>
-        <p>Se necesitan fotos guardadas antes de dibujar rendimiento, diferencia contra referencia y direcciÃ³n de tendencia.</p>
+        <strong>La trayectoria del portafolio aparecerá aquí</strong>
+        <p>Se necesitan fotos guardadas antes de dibujar rendimiento, diferencia contra referencia y dirección de tendencia.</p>
       </div>
     );
   }
 
   const normalizeSeries = (points, key) => {
-    const validPoints = points.filter((point) => Number(point?.[key]) > 0);
+    const validPoints = points.filter((point) => Number.isFinite(point?.[key]));
     const first = Number(validPoints[0]?.[key]);
-    if (!Number.isFinite(first) || first <= 0) return [];
+    if (!Number.isFinite(first)) return [];
+    const indexLike = first > 0.5 && validPoints.every((point) => Number(point?.[key]) > 0);
     return validPoints.map((point) => ({
       ...point,
-      display: (Number(point[key]) / first) - 1,
+      display: indexLike ? (Number(point[key]) / first) - 1 : Number(point[key]) - first,
     }));
   };
 
@@ -397,7 +404,7 @@ function PortfolioChart({ series, benchmarkSymbol }) {
       </svg>
 
       <div className={styles.chartSummary}>
-        <span>{portfolioChange === null ? "Historial en construcciÃ³n" : `Portafolio ${formatSignedPct(portfolioChange, 1)}`}</span>
+        <span>{portfolioChange === null ? "Historial en construcción" : `Portafolio ${formatSignedPct(portfolioChange, 1)}`}</span>
         {hasBenchmark ? <span>{benchmarkSymbol || "SPY"} {benchmarkChange === null ? "seguimiento" : formatSignedPct(benchmarkChange, 1)}</span> : null}
       </div>
       <div className={styles.chartLegend}>
@@ -444,13 +451,13 @@ function HoldingsReturnBreakdown({ returns }) {
   if (!leaders.length && !detractors.length) {
     return (
       <p className={styles.emptyCopy}>
-        Los aportes por posiciÃ³n aparecerÃ¡n cuando exista costo base guardado.
+        Los aportes por posición aparecerán cuando exista costo base guardado.
       </p>
     );
   }
 
   return (
-    <div className={styles.returnBreakdown} aria-label="Desglose de retorno por posiciÃ³n">
+    <div className={styles.returnBreakdown} aria-label="Desglose de retorno por posición">
       <article className={styles.returnColumn}>
         <div className={styles.returnColumnHead}>
           <strong>Mayores ganancias no realizadas</strong>
@@ -475,7 +482,7 @@ function HoldingsReturnBreakdown({ returns }) {
       <article className={styles.returnColumn}>
         <div className={styles.returnColumnHead}>
           <strong>Mayores lastres</strong>
-          <small>{detractors.length ? "Donde sigue la perdida no realizada" : "Sin lastres registrados ahora"}</small>
+          <small>{detractors.length ? "Dónde sigue la pérdida no realizada" : "Sin lastres registrados ahora"}</small>
         </div>
         {detractors.length ? (
           <div className={styles.returnList}>
@@ -540,14 +547,14 @@ function cleanPortfolioLabel(value, fallback = "Sin clasificar") {
 }
 
 function holdingName(holding) {
-  return cleanPortfolioLabel(holding?.company || holding?.sector || holding?.assetType, "PosiciÃ³n");
+  return cleanPortfolioLabel(holding?.company || holding?.sector || holding?.assetType, "Posición");
 }
 
 function holdingActionLabel(holding) {
   if (holding?.currentAction) return cleanWorkspaceCopy(holding.currentAction);
   const risk = Number(holding?.riskScore);
   const weight = holdingWeightValue(holding);
-  if (Number.isFinite(risk) && risk >= 4 && weight >= 0.035) return "Revisar tamaÃ±o";
+  if (Number.isFinite(risk) && risk >= 4 && weight >= 0.035) return "Revisar tamaño";
   if (weight >= 0.055) return "Revisar peso";
   return "Mantener";
 }
@@ -556,7 +563,7 @@ function holdingReviewReason(holding) {
   if (holding?.nextReviewTrigger) return cleanWorkspaceCopy(holding.nextReviewTrigger);
   if (holding?.thesis) return cleanWorkspaceCopy(holding.thesis);
   const risk = Number(holding?.riskScore);
-  if (Number.isFinite(risk) && risk >= 4) return "Riesgo alto para su tamaÃ±o.";
+  if (Number.isFinite(risk) && risk >= 4) return "Riesgo alto para su tamaño.";
   return cleanPortfolioLabel(holding?.theme || holding?.sector, "Sin nota cargada.");
 }
 
@@ -619,7 +626,7 @@ function buildPortfolioHorizonRows(analytics, returns, holdings) {
     { label: "Hoy", value: weightedDay ? formatSignedPct(weightedDay) : "-", tone: weightedDay < 0 ? "bad" : weightedDay > 0 ? "good" : "neutral" },
     { label: "1 semana", value: "-", tone: "neutral" },
     { label: "1 mes", value: "-", tone: "neutral" },
-    { label: "AÃ±o", value: "-", tone: "neutral" },
+    { label: "Año", value: "-", tone: "neutral" },
     {
       label: "Desde inicio",
       value: analytics?.totalReturnInclDividends !== null && analytics?.totalReturnInclDividends !== undefined
@@ -739,7 +746,7 @@ function PortfolioPositionTable({ holdings }) {
             <span>Peso</span>
             <span>Valor</span>
             <span>Ganancia</span>
-            <span>AcciÃ³n</span>
+            <span>Acción</span>
           </div>
           {rows.map((holding) => (
             <article className={styles.portfolioMatrixRow} key={`portfolio-matrix-${holding.ticker}`}>
@@ -758,7 +765,7 @@ function PortfolioPositionTable({ holdings }) {
           ))}
         </div>
       ) : (
-        <p className={styles.emptyCopy}>Agrega posiciones para ver pesos, valor y revisiÃ³n.</p>
+        <p className={styles.emptyCopy}>Agrega posiciones para ver pesos, valor y revisión.</p>
       )}
     </section>
   );
@@ -830,7 +837,7 @@ function PortfolioExposurePanel({ holdings }) {
   return (
     <section className={styles.portfolioMiniPanel}>
       <div className={styles.portfolioMiniHead}>
-        <p className={styles.kicker}>Exposicion</p>
+        <p className={styles.kicker}>Exposición</p>
         <strong>{holdings.length ? "Top" : "-"}</strong>
       </div>
       <div className={styles.portfolioExposureGrid}>
@@ -885,7 +892,7 @@ function PortfolioReviewPanel({ holdings }) {
           ))}
         </div>
       ) : (
-        <p className={styles.emptyCopy}>La lista aparece cuando cada posiciÃ³n tenga notas de revisiÃ³n.</p>
+        <p className={styles.emptyCopy}>La lista aparece cuando cada posición tenga notas de revisión.</p>
       )}
     </section>
   );
@@ -949,7 +956,7 @@ function PortfolioTransactionsPanel({ transactions }) {
           ))}
         </div>
       ) : (
-        <p className={styles.emptyCopy}>Sin bitÃ¡cora conectada.</p>
+        <p className={styles.emptyCopy}>Sin bitácora conectada.</p>
       )}
     </section>
   );
@@ -1079,7 +1086,7 @@ function contributorTone(role) {
 function contributorRoleLabel(role) {
   if (role === "real diversifier") return "Diversificador real";
   if (role === "phantom diversifier") return "Aporta menos proteccion";
-  if (role === "crowding source") return "Fuente de concentraciÃ³n";
+  if (role === "crowding source") return "Fuente de concentración";
   return cleanWorkspaceCopy(role || "Sin rol");
 }
 
@@ -1091,7 +1098,7 @@ function PhantomBreadthChart({ series }) {
   const paddingY = 24;
 
   if (rows.length < 2) {
-    return <p className={styles.emptyCopy}>Ejecuta el analisis para dibujar la brecha entre amplitud visible y real.</p>;
+    return <p className={styles.emptyCopy}>Ejecuta el análisis para dibujar la brecha entre amplitud visible y real.</p>;
   }
 
   const maxValue = Math.max(
@@ -1298,21 +1305,21 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Solapamiento oculto</p>
-          <h2>Revisa si tu diversificaciÃ³n es real o solo parece real</h2>
+          <h2>Revisa si tu diversificación es real o solo parece real</h2>
           <p className={styles.supportText}>
-            Este mÃ³dulo hace una pregunta simple: si el mercado se vuelve mÃ¡s difÃ­cil, Â¿tus posiciones siguen siendo apuestas distintas o empiezan a moverse juntas?
+            Este módulo hace una pregunta simple: si el mercado se vuelve más difícil, ¿tus posiciones siguen siendo apuestas distintas o empiezan a moverse juntas?
           </p>
           <p className={styles.supportText}>
             {draftDefaults.connectedCount > PHANTOM_MAX_HOLDINGS || draftDefaults.excludedCount
               ? `Se cargaron ${baseRows.length} posiciones analizables desde ${draftDefaults.connectedCount} filas conectadas.`
-              : `${baseRows.length} posiciones conectadas estÃ¡n listas para analizar.`}
-            {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} fila${draftDefaults.excludedCount === 1 ? "" : "s"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"} automÃ¡ticamente.` : ""}
-            {draftDefaults.overflowCount ? ` ${draftDefaults.overflowCount} posiciÃ³n${draftDefaults.overflowCount === 1 ? "" : "es"} menor${draftDefaults.overflowCount === 1 ? "" : "es"} quedÃ³ fuera hasta que la agregues manualmente.` : ""}
+              : `${baseRows.length} posiciones conectadas están listas para analizar.`}
+            {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} fila${draftDefaults.excludedCount === 1 ? "" : "s"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"} automáticamente.` : ""}
+            {draftDefaults.overflowCount ? ` ${draftDefaults.overflowCount} posición${draftDefaults.overflowCount === 1 ? "" : "es"} menor${draftDefaults.overflowCount === 1 ? "" : "es"} quedó fuera hasta que la agregues manualmente.` : ""}
           </p>
         </div>
         <div className={styles.headerMeta}>
           <ToneBadge tone={analysis ? phantomTone(analysis?.current?.classification) : "neutral"}>
-            {analysis ? phantomClassificationLabel(analysis?.current?.classification, analysis?.current?.classification_label) : "Esperando anÃ¡lisis"}
+            {analysis ? phantomClassificationLabel(analysis?.current?.classification, analysis?.current?.classification_label) : "Esperando análisis"}
           </ToneBadge>
           <ToneBadge tone="neutral">{hasDraftRows ? `${draftRows.length} filas` : "Sin posiciones"}</ToneBadge>
         </div>
@@ -1379,7 +1386,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
           </div>
 
           <div className={styles.phantomDraftActions}>
-            <button className={styles.secondaryButton} onClick={addRow} type="button">Agregar posiciÃ³n</button>
+            <button className={styles.secondaryButton} onClick={addRow} type="button">Agregar posición</button>
             <button className={styles.textButton} onClick={resetRows} type="button">Restablecer posiciones conectadas</button>
           </div>
 
@@ -1388,8 +1395,8 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
               <strong>{overDraftLimit ? `Solo ${PHANTOM_MAX_HOLDINGS} posiciones positivas pueden probarse por corrida` : draftIsReady ? "Listo para probar" : "Se necesitan al menos 3 posiciones positivas"}</strong>
               <p className={styles.supportText}>
                 Normalizamos pesos en el servidor. Ingresa porcentajes como piensas el portafolio; el modelo los reescala a 100%.
-                {" "}Si un fondo o acciÃ³n local no tiene historial usable, ingresa sector, paÃ­s o ETF lÃ­quido en el proxy de respaldo.
-                {overDraftLimit ? ` Quita ${positiveDraftCount - PHANTOM_MAX_HOLDINGS} posiciÃ³n${positiveDraftCount - PHANTOM_MAX_HOLDINGS === 1 ? "" : "es"} o vuelve a los mayores pesos conectados.` : ""}
+                {" "}Si un fondo o acción local no tiene historial usable, ingresa sector, país o ETF líquido en el proxy de respaldo.
+                {overDraftLimit ? ` Quita ${positiveDraftCount - PHANTOM_MAX_HOLDINGS} posición${positiveDraftCount - PHANTOM_MAX_HOLDINGS === 1 ? "" : "es"} o vuelve a los mayores pesos conectados.` : ""}
               </p>
             </div>
             <button
@@ -1398,7 +1405,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
               onClick={runAnalysis}
               type="button"
             >
-              {analysisPending ? "Analizando..." : "Analizar diversificaciÃ³n"}
+              {analysisPending ? "Analizando..." : "Analizar diversificación"}
             </button>
           </div>
 
@@ -1410,20 +1417,20 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <article className={styles.phantomResultMetric} data-tone="neutral">
               <span>Amplitud visible</span>
               <strong>{formatBreadth(analysis?.current?.holdings_hhi_breadth)}</strong>
-              <small>{analysis?.copy?.naive_breadth || "CÃ³mo se ve el portafolio si solo miras tamaÃ±os de posiciÃ³n."}</small>
+              <small>{analysis?.copy?.naive_breadth || "Cómo se ve el portafolio si solo miras tamaños de posición."}</small>
             </article>
             <article className={styles.phantomResultMetric} data-tone="warn">
               <span>Amplitud de mercado</span>
               <strong>{formatBreadth(analysis?.current?.raw_breadth)}</strong>
-              <small>{analysis?.copy?.raw_breadth || "CuÃ¡ntas apuestas separadas sugiere el patrÃ³n de retornos en perÃ­odos normales."}</small>
+              <small>{analysis?.copy?.raw_breadth || "Cuántas apuestas separadas sugiere el patrón de retornos en períodos normales."}</small>
             </article>
             <article className={styles.phantomResultMetric} data-tone={phantomTone(analysis?.current?.classification)}>
-              <span>Amplitud bajo estrÃ©s</span>
+              <span>Amplitud bajo estrés</span>
               <strong>{formatBreadth(analysis?.current?.real_breadth)}</strong>
-              <small>{analysis?.copy?.real_breadth || `${formatPct(analysis?.current?.tested_ratio || 0, 0)} de la diversificaciÃ³n resiste cuando las posiciones empiezan a moverse juntas.`}</small>
+              <small>{analysis?.copy?.real_breadth || `${formatPct(analysis?.current?.tested_ratio || 0, 0)} de la diversificación resiste cuando las posiciones empiezan a moverse juntas.`}</small>
             </article>
             <article className={styles.phantomResultMetric} data-tone="bad">
-              <span>DiversificaciÃ³n en riesgo</span>
+              <span>Diversificación en riesgo</span>
               <strong>{formatPct(analysis?.current?.phantom_share || 0, 0)}</strong>
               <small>{cleanWorkspaceCopy(analysis?.copy?.phantom_share || `${formatBreadth(analysis?.current?.phantom_breadth)} puntos desaparecen cuando varias posiciones repiten el mismo riesgo.`)}</small>
             </article>
@@ -1431,13 +1438,13 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
 
           <div className={styles.phantomNarrative}>
             <div>
-              <p className={styles.kicker}>InterpretaciÃ³n</p>
-              <h3>{analysis ? phantomClassificationLabel(analysis?.current?.classification, analysis?.current?.classification_label) : (analysis?.copy?.verdict || "Ejecuta el mÃ³dulo para puntuar la mezcla actual.")}</h3>
+              <p className={styles.kicker}>Interpretación</p>
+              <h3>{analysis ? phantomClassificationLabel(analysis?.current?.classification, analysis?.current?.classification_label) : (analysis?.copy?.verdict || "Ejecuta el módulo para puntuar la mezcla actual.")}</h3>
             </div>
             <div className={styles.phantomNarrativeCopy}>
-              <p>{cleanWorkspaceCopy(analysis?.copy?.verdict || "Ejecuta el mÃ³dulo para puntuar la mezcla actual.")}</p>
+              <p>{cleanWorkspaceCopy(analysis?.copy?.verdict || "Ejecuta el módulo para puntuar la mezcla actual.")}</p>
               <p>{cleanWorkspaceCopy(analysis?.copy?.phantom || "Si el score cae mucho desde amplitud de mercado a amplitud probada, varias posiciones repiten la misma apuesta de fondo.")}</p>
-              <p>{cleanWorkspaceCopy(analysis?.copy?.improve || "Usa la tabla para ver quÃ© posiciones agregan algo genuinamente distinto y cuÃ¡les repiten exposiciÃ³n existente.")}</p>
+              <p>{cleanWorkspaceCopy(analysis?.copy?.improve || "Usa la tabla para ver qué posiciones agregan algo genuinamente distinto y cuáles repiten exposición existente.")}</p>
             </div>
           </div>
 
@@ -1445,14 +1452,14 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <div className={styles.phantomNarrative}>
               <div>
                 <p className={styles.kicker}>Cobertura por proxy</p>
-                <h3>Algunas posiciones se analizaron con proxies de sector o paÃ­s</h3>
+                <h3>Algunas posiciones se analizaron con proxies de sector o país</h3>
               </div>
               <div className={styles.phantomNarrativeCopy}>
-                <p>{cleanWorkspaceCopy(analysis?.copy?.proxy_note || "Cuando un fondo o acciÃ³n no tiene historial usable, el mÃ³dulo estima diversificaciÃ³n con ETF sectorial, ETF paÃ­s o proxy que indiques.")}</p>
+                <p>{cleanWorkspaceCopy(analysis?.copy?.proxy_note || "Cuando un fondo o acción no tiene historial usable, el módulo estima diversificación con ETF sectorial, ETF país o proxy que indiques.")}</p>
                 <p>
                   {safeList(analysis?.diagnostics?.proxied_holdings)
                     .map((row) => `${row.ticker} via ${row.history_label || row.history_symbol}`)
-                    .join(" Â· ")}
+                    .join(" · ")}
                 </p>
               </div>
             </div>
@@ -1461,7 +1468,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
           <div className={styles.phantomInsightStrip}>
             <div>
               <span>Al</span>
-              <strong>{analysis?.as_of ? formatDate(analysis.as_of) : "AÃºn sin puntuar"}</strong>
+              <strong>{analysis?.as_of ? formatDate(analysis.as_of) : "Aún sin puntuar"}</strong>
             </div>
             <div>
               <span>Ventana</span>
@@ -1472,7 +1479,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
               <strong>{analysis?.diagnostics?.common_history_days || "-"}</strong>
             </div>
             <div>
-              <span>DiversificaciÃ³n que resiste</span>
+              <span>Diversificación que resiste</span>
               <strong>{formatPct(analysis?.current?.tested_ratio || 0, 0)}</strong>
             </div>
             <div>
@@ -1485,7 +1492,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.kicker}>Traza de amplitud</p>
-                <h3>CuÃ¡nta diversificaciÃ³n queda cuando las posiciones se mueven juntas</h3>
+                <h3>Cuánta diversificación queda cuando las posiciones se mueven juntas</h3>
               </div>
               {activeContributor ? (
                 <div className={styles.phantomFocusBadge}>
@@ -1501,7 +1508,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             <div className={styles.panelHeader}>
               <div>
                 <p className={styles.kicker}>Quitar una por vez</p>
-                <h3>QuÃ© posiciones agregan algo realmente distinto</h3>
+                <h3>Qué posiciones agregan algo realmente distinto</h3>
               </div>
               {activeContributor ? <ToneBadge tone={contributorTone(activeContributor.role)}>{contributorRoleLabel(activeContributor.role)}</ToneBadge> : null}
             </div>
@@ -1509,8 +1516,8 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             {activeContributor ? (
               <div className={styles.phantomContributorFocus}>
                 <strong>{activeContributor.ticker}</strong>
-                <p>{cleanWorkspaceCopy(activeContributor.role_summary || analysis?.copy?.leave_one_out || "Quita una posiciÃ³n por vez para ver si agrega diversificaciÃ³n real o si se solapa con el resto.")}</p>
-                <p>Quitar este nombre cambia la amplitud visible en {formatBreadth(activeContributor.delta_raw_breadth)}, la diversificaciÃ³n que resiste en {formatBreadth(activeContributor.delta_real_breadth)} y el riesgo de solapamiento en {formatBreadth(activeContributor.delta_phantom_breadth)}.</p>
+                <p>{cleanWorkspaceCopy(activeContributor.role_summary || analysis?.copy?.leave_one_out || "Quita una posición por vez para ver si agrega diversificación real o si se solapa con el resto.")}</p>
+                <p>Quitar este nombre cambia la amplitud visible en {formatBreadth(activeContributor.delta_raw_breadth)}, la diversificación que resiste en {formatBreadth(activeContributor.delta_real_breadth)} y el riesgo de solapamiento en {formatBreadth(activeContributor.delta_phantom_breadth)}.</p>
               </div>
             ) : null}
 
@@ -1520,7 +1527,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                   <span>Ticker</span>
                   <span>Peso</span>
                   <span>Delta probado</span>
-                  <span>Delta frÃ¡gil</span>
+                  <span>Delta frágil</span>
                   <span>Rol</span>
                 </div>
                 <div className={styles.tableBody}>
@@ -1543,7 +1550,7 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                 </div>
               </div>
             ) : (
-              <p className={styles.emptyCopy}>El diagnÃ³stico por posiciÃ³n aparecerÃ¡ despuÃ©s de un anÃ¡lisis exitoso.</p>
+              <p className={styles.emptyCopy}>El diagnóstico por posición aparecerá después de un análisis exitoso.</p>
             )}
           </div>
         </div>
@@ -1559,14 +1566,14 @@ function phantomSimpleGuidance(current) {
     return {
       tone: "bad",
       title: "Reducir solapamiento antes de sumar riesgo",
-      body: "El portafolio puede verse amplio, pero muchas posiciones todavÃ­a se parecen demasiado cuando llega el estrÃ©s.",
+      body: "El portafolio puede verse amplio, pero muchas posiciones todavía se parecen demasiado cuando llega el estrés.",
     };
   }
   if (Number.isFinite(testedRatio) && testedRatio >= 0.67) {
     return {
       tone: "good",
-      title: "La diversificaciÃ³n estÃ¡ resistiendo",
-      body: "La mezcla actual todavÃ­a se comporta como apuestas distintas cuando se incluye el estrÃ©s reciente.",
+      title: "La diversificación está resistiendo",
+      body: "La mezcla actual todavía se comporta como apuestas distintas cuando se incluye el estrés reciente.",
     };
   }
   if (Number.isFinite(testedRatio) && testedRatio >= 0.34) {
@@ -1578,8 +1585,8 @@ function phantomSimpleGuidance(current) {
   }
   return {
     tone: "warn",
-    title: "Ejecutar el chequeo antes de aumentar tamaÃ±o",
-    body: "La prueba usa las posiciones actuales y una ventana mÃ³vil de covarianza de 63 sesiones.",
+    title: "Ejecutar el chequeo antes de aumentar tamaño",
+    body: "La prueba usa las posiciones actuales y una ventana móvil de covarianza de 63 sesiones.",
   };
 }
 
@@ -1644,10 +1651,10 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Solapamiento estructural</p>
-          <h2>CuÃ¡nta diversificaciÃ³n sobrevive cuando llega el estrÃ©s</h2>
+          <h2>Cuánta diversificación sobrevive cuando llega el estrés</h2>
           <p className={styles.supportText}>
             Mide si las posiciones siguen siendo apuestas distintas cuando los mercados se ponen nerviosos.
-            Si varias se mueven juntas, la diversificaciÃ³n visible puede exagerar la protecciÃ³n real.
+            Si varias se mueven juntas, la diversificación visible puede exagerar la protección real.
           </p>
         </div>
         <button className={styles.primaryButton} disabled={analysisPending} onClick={runAnalysis} type="button">
@@ -1676,13 +1683,13 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
                   value={formatBreadth(current?.raw_breadth)}
                 />
                 <MetricTile
-                  detail="Amplitud que sobrevive al ajuste de estrÃ©s."
+                  detail="Amplitud que sobrevive al ajuste de estrés."
                   label="Apuestas probadas"
                   tone={guidance.tone}
                   value={formatBreadth(current?.real_breadth)}
                 />
                 <MetricTile
-                  detail="Amplitud visible que aÃºn no queda validada."
+                  detail="Amplitud visible que aún no queda validada."
                   label="En riesgo"
                   tone={guidance.tone}
                   value={formatPct(current?.phantom_share || 0, 0)}
@@ -1701,7 +1708,7 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
           ) : (
             <div className={styles.phantomSimpleEmpty}>
               <strong>Un clic, tres numeros.</strong>
-              <p>Apuestas visibles, apuestas probadas y porcentaje de diversificaciÃ³n todavÃ­a en riesgo.</p>
+              <p>Apuestas visibles, apuestas probadas y porcentaje de diversificación todavía en riesgo.</p>
             </div>
           )}
         </div>
@@ -1728,12 +1735,12 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
               ))}
             </div>
           ) : (
-            <p className={styles.emptyCopy}>Las notas por posiciÃ³n aparecen despuÃ©s del chequeo.</p>
+            <p className={styles.emptyCopy}>Las notas por posición aparecen después del chequeo.</p>
           )}
 
           <p className={styles.phantomSimpleSource}>
-            {sources.length ? `Precios: ${sources.join(", ")}.` : "La fuente de precios aparecerÃ¡ despuÃ©s del anÃ¡lisis."}
-            {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} posiciÃ³n${draftDefaults.excludedCount === 1 ? "" : "es"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"}.` : ""}
+            {sources.length ? `Precios: ${sources.join(", ")}.` : "La fuente de precios aparecerá después del análisis."}
+            {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} posición${draftDefaults.excludedCount === 1 ? "" : "es"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"}.` : ""}
           </p>
         </aside>
       </div>
@@ -1750,9 +1757,9 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Frontera de accion</p>
+          <p className={styles.kicker}>Frontera de acción</p>
           <h2>{title}</h2>
-          <p className={styles.supportText}>El movimiento mÃ¡s claro que todavÃ­a sobrevive a la lectura actual.</p>
+          <p className={styles.supportText}>El movimiento más claro que todavía sobrevive a la lectura actual.</p>
         </div>
         <ToneBadge tone={statusTone(isBlocked ? "briefing" : (primaryAction?.status || "ready"))}>
           {isBlocked ? "Esperar" : "Accionable"}
@@ -1760,27 +1767,27 @@ function TodayDecisionPanel({ stateSummary, primaryAction, blockedAction, pendin
       </div>
 
       <p className={styles.lead}>
-        {cleanWorkspaceCopy(primaryAction?.summary || blockedAction?.summary || stateSummary?.decisionSummary || "No hay un movimiento legitimo nuevo abierto ahora.")}
+        {cleanWorkspaceCopy(primaryAction?.summary || blockedAction?.summary || stateSummary?.decisionSummary || "No hay un movimiento legítimo nuevo abierto ahora.")}
       </p>
 
       <div className={styles.decisionGrid}>
         <MetricTile
-          detail={cleanWorkspaceCopy(primaryAction?.whyNow || stateSummary?.decisionSummary || "Esperar una estructura mÃ¡s limpia antes de ampliar riesgo.")}
-          label="DecisiÃ³n"
+          detail={cleanWorkspaceCopy(primaryAction?.whyNow || stateSummary?.decisionSummary || "Esperar una estructura más limpia antes de ampliar riesgo.")}
+          label="Decisión"
           value={cleanWorkspaceCopy(primaryAction?.title || "Proteger capital")}
         />
         <MetricTile
-          detail={cleanWorkspaceCopy(primaryAction?.watchFor || blockedAction?.watchFor || "ConfirmaciÃ³n de riesgo mÃ¡s fuerte y amplitud mÃ¡s limpia.")}
-          label="Gatillo de revisiÃ³n"
-          value={activeAction ? formatSize(activeAction) : "Sin cambio de tamaÃ±o"}
+          detail={cleanWorkspaceCopy(primaryAction?.watchFor || blockedAction?.watchFor || "Confirmación de riesgo más fuerte y amplitud más limpia.")}
+          label="Gatillo de revisión"
+          value={activeAction ? formatSize(activeAction) : "Sin cambio de tamaño"}
         />
         <MetricTile
-          detail={cleanWorkspaceCopy(activeAction?.funding || "Mantener el tamaÃ±o actual hasta que la estructura mejore.")}
+          detail={cleanWorkspaceCopy(activeAction?.funding || "Mantener el tamaño actual hasta que la estructura mejore.")}
           label="Fuente de financiamiento"
           value={cleanWorkspaceCopy(activeAction?.funding || "Sin cambio de financiamiento")}
         />
         <MetricTile
-          detail={cleanWorkspaceCopy(blockedAction?.summary || "La estructura actual todavÃ­a no justifica ampliar riesgo.")}
+          detail={cleanWorkspaceCopy(blockedAction?.summary || "La estructura actual todavía no justifica ampliar riesgo.")}
           label="Postura del portafolio"
           value={cleanWorkspaceCopy(stateSummary?.stance || "Postura selectiva")}
         />
@@ -1828,11 +1835,11 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>RadiografÃ­a del portafolio</p>
+          <p className={styles.kicker}>Radiografía del portafolio</p>
           <h2>{hasHoldings && analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "Agrega posiciones para empezar"}</h2>
           <p className={styles.supportText}>
             {hasHoldings
-              ? "Parte por lo que estÃ¡ cargando el portafolio; despuÃ©s lee rendimiento y comparaciÃ³n contra referencia."
+              ? "Parte por lo que está cargando el portafolio; después lee rendimiento y comparación contra referencia."
               : "Ingresa posiciones antes de mostrar rendimiento personal o comparaciones contra referencia."}
           </p>
         </div>
@@ -1844,8 +1851,8 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
 
       <div className={styles.metricsGrid}>
         <MetricTile
-          detail={hasHoldings ? (analytics.hasPerformanceHistory ? "Basado en fotos guardadas." : "Valor actual contra costo base guardado.") : "Agrega al menos una posiciÃ³n primero."}
-          label={hasHoldings && analytics.hasPerformanceHistory ? "Retorno anualizado" : "Retorno desde costo base"}
+          detail={hasHoldings ? (analytics.hasPerformanceHistory ? "Basado en fotos guardadas; no ajusta aportes o retiros." : "Valor actual contra costo base guardado.") : "Agrega al menos una posición primero."}
+          label={hasHoldings && analytics.hasPerformanceHistory ? "Cambio anualizado observado" : "Retorno desde costo base"}
           value={hasHoldings ? (analytics.hasPerformanceHistory ? analytics.annualReturnLabel : currentGainLabel) : "Sin posiciones"}
         />
         <MetricTile
@@ -1854,7 +1861,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
           value={hasHoldings ? (analytics.totalReturnLabel || "Historial limitado") : "Esperando"}
         />
         <MetricTile
-          detail={hasHoldings && analytics.hasBenchmarkHistory ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "La comparaciÃ³n empieza cuando exista historial de posiciones."}
+          detail={hasHoldings && analytics.hasBenchmarkHistory ? `${analytics.excessReturnLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "La comparación empieza cuando exista historial de posiciones."}
           label={`vs ${analytics.benchmarkSymbol || "SPY"}`}
           tone={hasHoldings && analytics.hasBenchmarkHistory ? "good" : "neutral"}
           value={hasHoldings && analytics.hasBenchmarkHistory ? analytics.excessReturnLabel : "Referencia limitada"}
@@ -1874,22 +1881,22 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
             {cleanWorkspaceCopy(
               portfolioXray.carryingNarrative
               || (hasHoldings
-                ? "La radiografÃ­a estÃ¡ armando los motores reales del portafolio."
-                : "Conecta posiciones para ver quÃ© sostiene realmente el portafolio."),
+                ? "La radiografía está armando los motores reales del portafolio."
+                : "Conecta posiciones para ver qué sostiene realmente el portafolio."),
             )}
           </h3>
         </div>
 
         <div className={styles.portfolioNarrativeStats}>
           <div>
-            <span>ConcentraciÃ³n</span>
+            <span>Concentración</span>
             <strong>{concentration.verdict || "-"}</strong>
             <small>Top cinco: {concentration.topFive || "-"}</small>
           </div>
           <div>
             <span>Peso recuperable</span>
             <strong>{recoveryShare}</strong>
-            <small>Peso que todavÃ­a agrega recuperabilidad.</small>
+            <small>Peso que todavía agrega recuperabilidad.</small>
           </div>
           <div>
             <span>Peso fragil</span>
@@ -1897,9 +1904,9 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
             <small>Peso que puede reactivar fragilidad rapido.</small>
           </div>
           <div>
-            <span>ProtecciÃ³n</span>
+            <span>Protección</span>
             <strong>{concentration.ballast || "-"}</strong>
-            <small>ProtecciÃ³n dentro del portafolio actual.</small>
+            <small>Protección dentro del portafolio actual.</small>
           </div>
         </div>
 
@@ -1918,17 +1925,17 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
           <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
           <p className={styles.supportText}>
             {!hasHoldings
-              ? "No se muestra rendimiento personal hasta conectar posiciones. AsÃ­ evitamos que una referencia compartida parezca tu retorno."
+              ? "No se muestra rendimiento personal hasta conectar posiciones. Así evitamos que una referencia compartida parezca tu retorno."
               : analytics.hasPerformanceHistory
               ? `El rendimiento se basa en ${analytics.historySessions} fotos guardadas del portafolio.`
               : hasCostBasisReturn
-                ? `La ganancia actual es ${currentGainLabel}. El historial aÃºn se estÃ¡ armando, por eso la referencia sigue limitada.`
-                : "Falta costo base. La app necesita costo guardado o mÃ¡s historial antes de confiar en retornos."}
+                ? `La ganancia actual es ${currentGainLabel}. El historial aún se está armando, por eso la referencia sigue limitada.`
+                : "Falta costo base. La app necesita costo guardado o más historial antes de confiar en retornos."}
           </p>
           <div className={styles.returnDistributionShell}>
             <div>
-              <p className={styles.kicker}>Retornos por posiciÃ³n</p>
-              <h3>De dÃ³nde vienen ganancias y lastres no realizados</h3>
+              <p className={styles.kicker}>Retornos por posición</p>
+              <h3>De dónde vienen ganancias y lastres no realizados</h3>
             </div>
             <HoldingsReturnBreakdown returns={returnBreakdown} />
           </div>
@@ -1938,7 +1945,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
           <div className={styles.sidePanelHeader}>
             <div>
               <p className={styles.kicker}>Bandas de rol</p>
-              <h3>QuÃ© grupos sostienen el portafolio</h3>
+              <h3>Qué grupos sostienen el portafolio</h3>
             </div>
             <ToneBadge tone="neutral">{roleBands.length || topHoldings.length} visibles</ToneBadge>
           </div>
@@ -1953,7 +1960,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                   </div>
                   <div>
                     <strong>{band.weight || "-"}</strong>
-                    <small>Fragilidad {band.fragilityLabel} / RecuperaciÃ³n {band.recoveryLabel}</small>
+                    <small>Fragilidad {band.fragilityLabel} / Recuperación {band.recoveryLabel}</small>
                   </div>
                 </article>
               ))}
@@ -1964,7 +1971,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                 <article className={styles.holdingRow} key={`hero-${holding.ticker}`}>
                   <div>
                     <strong>{holding.ticker}</strong>
-                    <span>{cleanPortfolioLabel(holding.sector, "PosiciÃ³n")}</span>
+                    <span>{cleanPortfolioLabel(holding.sector, "Posición")}</span>
                   </div>
                   <div>
                     <strong>{holding.weight || "-"}</strong>
@@ -1974,7 +1981,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
               ))}
             </div>
           ) : (
-            <p className={styles.emptyCopy}>No hay posiciones cargadas aÃºn.</p>
+            <p className={styles.emptyCopy}>No hay posiciones cargadas aún.</p>
           )}
         </aside>
       </div>
@@ -1984,7 +1991,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
           <section className={styles.portfolioDriverCard}>
             <div>
               <p className={styles.kicker}>Motores principales</p>
-              <h3>QuÃ© mueve realmente el portafolio</h3>
+              <h3>Qué mueve realmente el portafolio</h3>
             </div>
             {carriers.length ? (
               <div className={styles.portfolioDriverList}>
@@ -1996,7 +2003,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                     </div>
                     <div>
                       <strong>{item.weight || "-"}</strong>
-                      <small>RecuperaciÃ³n {item.recovery || "-"}</small>
+                      <small>Recuperación {item.recovery || "-"}</small>
                     </div>
                   </article>
                 ))}
@@ -2009,7 +2016,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
           <section className={styles.portfolioDriverCard}>
             <div>
               <p className={styles.kicker}>Carga de fragilidad</p>
-              <h3>DÃ³nde el portafolio puede romperse mÃ¡s rÃ¡pido</h3>
+              <h3>Dónde el portafolio puede romperse más rápido</h3>
             </div>
             {fragilityLoad.length ? (
               <div className={styles.portfolioDriverList}>
@@ -2017,7 +2024,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                   <article key={`fragility-${item.ticker}`}>
                     <div>
                       <strong>{item.ticker}</strong>
-                      <small>{cleanPortfolioLabel(item.role, "PosiciÃ³n")}</small>
+                      <small>{cleanPortfolioLabel(item.role, "Posición")}</small>
                     </div>
                     <div>
                       <strong>{item.load || "-"}</strong>
@@ -2027,14 +2034,14 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                 ))}
               </div>
             ) : (
-              <p className={styles.emptyCopy}>El aporte a fragilidad aparecerÃ¡ con la radiografÃ­a.</p>
+              <p className={styles.emptyCopy}>El aporte a fragilidad aparecerá con la radiografía.</p>
             )}
           </section>
 
           <section className={styles.portfolioDriverCard}>
             <div>
-              <p className={styles.kicker}>Motores de recuperacion</p>
-              <h3>QuÃ© todavÃ­a merece su lugar</h3>
+              <p className={styles.kicker}>Motores de recuperación</p>
+              <h3>Qué todavía merece su lugar</h3>
             </div>
             {recoveryDrivers.length ? (
               <div className={styles.portfolioDriverList}>
@@ -2042,17 +2049,17 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
                   <article key={`recovery-${item.ticker}`}>
                     <div>
                       <strong>{item.ticker}</strong>
-                      <small>{cleanPortfolioLabel(item.role, "PosiciÃ³n")}</small>
+                      <small>{cleanPortfolioLabel(item.role, "Posición")}</small>
                     </div>
                     <div>
                       <strong>{item.contribution || "-"}</strong>
-                      <small>Aporte a recuperacion</small>
+                      <small>Aporte a recuperación</small>
                     </div>
                   </article>
                 ))}
               </div>
             ) : (
-              <p className={styles.emptyCopy}>El aporte a recuperaciÃ³n aparecerÃ¡ con la radiografÃ­a.</p>
+              <p className={styles.emptyCopy}>El aporte a recuperación aparecerá con la radiografía.</p>
             )}
           </section>
         </div>
@@ -2061,7 +2068,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
   );
 }
 
-function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, language = "es" }) {
+function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, onOpenRisk = null, language = "es" }) {
   const portfolio = portfolioModule || {};
   const analytics = portfolio.analytics || {};
   const holdings = safeList(portfolio.holdings);
@@ -2094,16 +2101,21 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           <p className={styles.kicker}>Mi cartera</p>
           <h2>{hasHoldings ? totalValueLabel : "Sin posiciones"}</h2>
           <p className={styles.supportText}>
-            {hasHoldings ? `${holdings.length} posiciones. Valor, pesos, exposiciÃ³n y revisiÃ³n en una sola vista.` : "Agrega posiciones para ver valor, pesos y revisiÃ³n."}
+            {hasHoldings ? `${holdings.length} posiciones. Valor, pesos, exposición y revisión en una sola vista.` : "Agrega posiciones para ver valor, pesos y revisión."}
           </p>
         </div>
         <div className={styles.headerMeta}>
-          <ToneBadge tone={hasHoldings ? "good" : "warn"}>{hasHoldings ? "Activo" : "VacÃ­o"}</ToneBadge>
+          <ToneBadge tone={hasHoldings ? "good" : "warn"}>{hasHoldings ? "Activo" : "Vacío"}</ToneBadge>
           <ToneBadge tone="neutral">{cleanPortfolioLabel(portfolio.holdingsSource?.label || portfolio.chartSource, "Cartera")}</ToneBadge>
           {showAuroraAction ? (
             <Link className={styles.secondaryLink} href="/aurora">
               Abrir AURORA
             </Link>
+          ) : null}
+          {onOpenRisk ? (
+            <button className={styles.secondaryButton} onClick={onOpenRisk} type="button">
+              Abrir Stress Engine
+            </button>
           ) : null}
         </div>
       </div>
@@ -2134,11 +2146,16 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           <div className={styles.portfolioSectionHead}>
             <div>
               <p className={styles.kicker}>Historial</p>
-              <h3>Cartera vs {analytics.benchmarkSymbol || "SPY"}</h3>
+              <h3>Valor normalizado vs {analytics.benchmarkSymbol || "SPY"}</h3>
             </div>
             <RangeTabs language={language} onChange={onRangeChange} value={range} />
           </div>
           <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
+          <p className={styles.supportText}>
+            {analytics.hasPerformanceHistory
+              ? `Serie basada en ${analytics.historySessions} fotos guardadas del valor de cartera. Los aportes y retiros se muestran como historial de valor, no como TWR puro.`
+              : "Conecta posiciones y guarda más fotos para construir una trayectoria comparable."}
+          </p>
         </section>
 
         <PortfolioDonutPanel holdings={holdings} topHolding={topHolding} />
@@ -2162,7 +2179,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           {hasHoldings ? (
             <div className={styles.portfolioFooterStrip}>
               <span>Top 5: {concentration.topFive || "-"}</span>
-              <span>RecuperaciÃ³n: {portfolioXray.recoveryShare || "-"}</span>
+              <span>Recuperación: {portfolioXray.recoveryShare || "-"}</span>
               <span>Fragilidad: {portfolioXray.fragileShare || "-"}</span>
               <span>Riesgo alto: {highRiskCount || "-"}</span>
             </div>
@@ -2219,7 +2236,7 @@ const MARKET_STRESS_COPY = {
     universe: "Universe used",
     universeEmpty: "No connected positions.",
     diagnostics: "Model diagnostics",
-    diagnosticsHint: "Kept below the fold because these grade the DDPM challenger, not the stress decision output.",
+    diagnosticsHint: "Kept below the fold because these grade model-selection evidence, not the stress decision output.",
     mmdRatio: "DDPM gap vs champion",
     corrFidelity: "Target corr fidelity",
     coverage: "Bin coverage",
@@ -2228,55 +2245,55 @@ const MARKET_STRESS_COPY = {
   },
   es: {
     kicker: "Stress Engine",
-    title: "Escenarios por regimen para riesgo de cola",
-    body: "5.000 trayectorias sinteticas por corrida. CVaR 5%/1%, probabilidad de drawdown, replay historico y atribucion de cola por posicion.",
+    title: "Escenarios por régimen para riesgo de cola",
+    body: "5.000 trayectorias sintéticas por corrida. CVaR 5%/1%, probabilidad de drawdown, replay histórico y atribución de cola por posición.",
     run: "Correr stress test",
     running: "Corriendo...",
-    error: "No se pudo correr la simulacion de stress.",
-    regime: "Regimen",
+    error: "No se pudo correr la simulación de stress.",
+    regime: "Régimen",
     horizon: "Horizonte",
     tailIntensity: "Intensidad de cola",
-    days10: "10 dias",
-    days20: "20 dias",
-    days60: "60 dias",
+    days10: "10 días",
+    days20: "20 días",
+    days60: "60 días",
     preparing: "Preparando",
-    heroDetail: "Perdida promedio en la cola inferior del horizonte elegido. Artefacto de investigacion, no pronostico.",
-    loss: "Perdida",
+    heroDetail: "Pérdida promedio en la cola inferior del horizonte elegido. Artefacto de investigación, no pronóstico.",
+    loss: "Pérdida",
     scenarios: "escenarios",
     median: "Retorno mediano",
-    medianDetail: "Trayectoria sintetica mediana.",
+    medianDetail: "Trayectoria sintética mediana.",
     var1: "VaR 1%",
     var1Detail: "Percentil 1 del retorno terminal.",
     drawdown: "DD -10%",
-    drawdownDetail: "Probabilidad de drawdown maximo <= -10%.",
+    drawdownDetail: "Probabilidad de drawdown máximo <= -10%.",
     replayCoverage: "Estado replay",
     replayCoverageDetail: "Chequeo v8 de piso de stress; no es replay condicionado por episodio.",
     worstReplay: "Peor replay",
-    worstReplayDetail: "Episodio historico mas severo en validacion.",
+    worstReplayDetail: "Episodio histórico más severo en validación.",
     runtime: "Runtime",
     runtimeDetail: "Motor servido.",
     proxy: "Proxy",
     pytorch: "PyTorch",
-    tailContributors: "Quien pega en la cola",
+    tailContributors: "Quién pega en la cola",
     tailContribution: "aporte ponderado en CVaR",
     tailEmpty: "Corre un stress test para ver aportes de cola.",
     worstPaths: "Peores trayectorias",
-    maxDrawdown: "Drawdown maximo",
-    pathEmpty: "Las trayectorias extremas apareceran despues de correr.",
-    historicalReplay: "Replay historico",
+    maxDrawdown: "Drawdown máximo",
+    pathEmpty: "Las trayectorias extremas aparecerán después de correr.",
+    historicalReplay: "Replay histórico",
     actual: "real",
-    synthetic: "q01 sintetico",
+    synthetic: "q01 sintético",
     covered: "piso",
     notCovered: "falla",
     universe: "Universo usado",
     universeEmpty: "Sin posiciones conectadas.",
-    diagnostics: "Diagnosticos del modelo",
-    diagnosticsHint: "Quedan bajo el fold porque evaluan el challenger DDPM, no la decision de stress.",
+    diagnostics: "Diagnósticos del modelo",
+    diagnosticsHint: "Quedan bajo el fold porque evalúan el challenger DDPM, no la decisión de stress.",
     mmdRatio: "Brecha DDPM vs champion",
     corrFidelity: "Fidelidad corr objetivo",
     coverage: "Cobertura bins",
     source: "Fuente de input",
-    methodology: "Metodologia",
+    methodology: "Metodología",
   },
 };
 
@@ -2448,7 +2465,7 @@ function MarketDiffusionPanel({ workspaceId }) {
               {replayRows.map((row) => (
                 <div key={row.id}>
                   <strong>{row.episode}</strong>
-                  <span>{copy.actual} {row.actualMinLabel} Â· {copy.synthetic} {row.syntheticQ01Label} Â· {row.covered ? copy.covered : copy.notCovered}</span>
+                  <span>{copy.actual} {row.actualMinLabel} · {copy.synthetic} {row.syntheticQ01Label} · {row.covered ? copy.covered : copy.notCovered}</span>
                 </div>
               ))}
             </div>
@@ -2536,9 +2553,9 @@ const STRESS_ENGINE_COPY = {
     distribution: "Where the 5,000 simulations ended",
     distributionCaption: "Each bar shows how many simulations ended in that return range.",
     historicalReplay: "Historical stress floor",
-    scenarioBank: "V8 scenario overlay",
+    scenarioBank: "Factor scenario bank",
     scenarioBankCaption: ({ coverage, source }) =>
-      `${coverage || "-"} of portfolio weight matched the v8 bank. Source: ${source || "research overlay"}.`,
+      `${coverage || "-"} of portfolio weight matched the validated bank. Source: ${source || "factor bank"}.`,
     scenarioBankCvar: "Overlay CVaR 5%",
     scenarioBankVar: "Overlay VaR 5%",
     scenarioBankUnavailable: "No matching scenario-bank coverage for this portfolio yet.",
@@ -2550,8 +2567,8 @@ const STRESS_ENGINE_COPY = {
     universeEmpty: "No positions yet. Add holdings in the Holdings tab and the risk engine will pick them up automatically.",
     diagnostics: "Model diagnostics",
     diagnosticsFor: "For quants and auditors.",
-    diagnosticsHint: "These keep the v8 model-selection evidence visible without making the risk decision harder to read.",
-    mmdRatio: "DDPM gap vs champion",
+    diagnosticsHint: "These keep model-selection evidence visible without making the risk decision harder to read.",
+    mmdRatio: "Engine fit vs baselines",
     corrFidelity: "Correlation fidelity",
     coverage: "Distribution coverage",
     runtime: "Runtime",
@@ -2566,7 +2583,7 @@ const STRESS_ENGINE_COPY = {
     warnings: "Warnings",
     noWarnings: "No runtime warnings.",
     trustRibbon: ({ runId, seed }) =>
-      `Simulated scenarios, not predictions | Engine: calibrated factor stress baseline (v8) | Run ${runId || "-"} | seed ${seed || "-"}`,
+      `Simulated scenarios, not predictions | Engine: validated PIT FHS factor bank | Run ${runId || "-"} | seed ${seed || "-"}`,
     chartAria: "Worst simulated cumulative paths",
     histogramAria: "Histogram of simulated terminal returns",
     regimes: [
@@ -2578,60 +2595,60 @@ const STRESS_ENGINE_COPY = {
   },
   es: {
     kicker: "Stress Engine",
-    title: "Que tan mal puede salir esta cartera?",
+    title: "¿Qué tan mal puede salir esta cartera?",
     body: "Prueba tus posiciones reales contra clima de mercado simulado. Escenarios, no predicciones.",
     run: "Correr stress test",
     running: "Simulando 5.000 escenarios...",
     error: "No se pudo correr el stress test. Revisa que el workspace tenga posiciones e intenta de nuevo.",
     answer: ({ regimeLabel, cvar5, horizonDays }) =>
-      `En un ${regimeLabel} simulado, esta cartera pierde ${cvar5} en el peor 5% de los proximos ${horizonDays} dias.`,
+      `En un ${regimeLabel} simulado, esta cartera pierde ${cvar5} en el peor 5% de los próximos ${horizonDays} días.`,
     testAgainst: "Probar contra",
-    overNext: "Durante los proximos",
+    overNext: "Durante los próximos",
     severity: "Severidad",
-    severityCaption: "La severidad cambia que tan dura es la escalera de stress. El valor crudo vive en diagnosticos.",
-    standard: "Estandar",
+    severityCaption: "La severidad cambia qué tan dura es la escalera de stress. El valor crudo vive en diagnósticos.",
+    standard: "Estándar",
     harsh: "Duro",
     extreme: "Extremo",
     custom: "Custom",
     rawTailIntensity: "Intensidad cruda de cola",
-    rawTailHelp: "Control avanzado. Valores mas altos empujan el motor a colas mas severas.",
-    days10: "10 dias",
-    days20: "20 dias",
-    days60: "60 dias",
+    rawTailHelp: "Control avanzado. Valores más altos empujan el motor a colas más severas.",
+    days10: "10 días",
+    days20: "20 días",
+    days60: "60 días",
     preparing: "Preparando",
-    lossChancePlain: "Con que frecuencia la cartera simulada termina bajo cero.",
-    drawdownPlain: "Con que frecuencia la ruta cae al menos 10% desde un maximo.",
+    lossChancePlain: "Con qué frecuencia la cartera simulada termina bajo cero.",
+    drawdownPlain: "Con qué frecuencia la ruta cae al menos 10% desde un máximo.",
     worstPathPlain: "El peor resultado terminal de la corrida.",
-    loss: "Chance de perdida",
+    loss: "Chance de pérdida",
     scenarios: "escenarios",
-    damageTitle: "Que duele mas en los escenarios malos",
-    tailContribution: "empuja {value} de la perdida de cola",
-    tailEmpty: "No hay contribuidores de cola todavia. Corre el stress test despues de agregar posiciones.",
-    worstPaths: "Las cinco simulaciones mas feas",
-    pathCaption: "Cada linea es una de las peores rutas acumuladas simuladas.",
-    maxDrawdown: "Drawdown maximo",
-    pathEmpty: "Las peores rutas apareceran despues de correr la simulacion.",
-    distribution: "Donde terminaron las 5.000 simulaciones",
-    distributionCaption: "Cada barra muestra cuantas simulaciones terminaron en ese rango de retorno.",
-    historicalReplay: "Piso historico de stress",
-    scenarioBank: "Overlay de escenarios v8",
+    damageTitle: "Qué duele más en los escenarios malos",
+    tailContribution: "empuja {value} de la pérdida de cola",
+    tailEmpty: "No hay contribuidores de cola todavía. Corre el stress test después de agregar posiciones.",
+    worstPaths: "Las cinco simulaciones más feas",
+    pathCaption: "Cada línea es una de las peores rutas acumuladas simuladas.",
+    maxDrawdown: "Drawdown máximo",
+    pathEmpty: "Las peores rutas aparecerán después de correr la simulación.",
+    distribution: "Dónde terminaron las 5.000 simulaciones",
+    distributionCaption: "Cada barra muestra cuántas simulaciones terminaron en ese rango de retorno.",
+    historicalReplay: "Piso histórico de stress",
+    scenarioBank: "Banco factorial de escenarios",
     scenarioBankCaption: ({ coverage, source }) =>
-      `${coverage || "-"} del peso de la cartera calza con el banco v8. Fuente: ${source || "overlay de investigacion"}.`,
+      `${coverage || "-"} del peso de la cartera calza con el banco validado. Fuente: ${source || "banco factorial"}.`,
     scenarioBankCvar: "CVaR 5% overlay",
     scenarioBankVar: "VaR 5% overlay",
-    scenarioBankUnavailable: "Todavia no hay cobertura del banco de escenarios para esta cartera.",
+    scenarioBankUnavailable: "Todavía no hay cobertura del banco de escenarios para esta cartera.",
     actual: "real",
     synthetic: "piso stress",
     covered: "piso",
     notCovered: "falla",
     universe: "Posiciones incluidas",
-    universeEmpty: "No hay posiciones todavia. Agregalas en Posiciones y el motor de riesgo las tomara automaticamente.",
-    diagnostics: "Diagnosticos del modelo",
+    universeEmpty: "No hay posiciones todavía. Agrégalas en Posiciones y el motor de riesgo las tomará automáticamente.",
+    diagnostics: "Diagnósticos del modelo",
     diagnosticsFor: "Para quants y auditores.",
-    diagnosticsHint: "Esto mantiene visible la evidencia de seleccion v8 sin ensuciar la decision de riesgo.",
+    diagnosticsHint: "Esto mantiene visible la evidencia de selección sin ensuciar la decisión de riesgo.",
     mmdRatio: "Brecha DDPM vs champion",
-    corrFidelity: "Fidelidad de correlacion",
-    coverage: "Cobertura de distribucion",
+    corrFidelity: "Fidelidad de correlación",
+    coverage: "Cobertura de distribución",
     runtime: "Runtime",
     runtimeDetail: "Motor servido.",
     endpointGate: "Gate del endpoint",
@@ -2640,18 +2657,18 @@ const STRESS_ENGINE_COPY = {
     proxy: "Proxy",
     pytorch: "PyTorch",
     source: "Fuente de input",
-    methodology: "Metodologia",
+    methodology: "Metodología",
     warnings: "Warnings",
     noWarnings: "Sin warnings del runtime.",
     trustRibbon: ({ runId, seed }) =>
-      `Escenarios simulados, no predicciones | Motor: baseline calibrado de stress factorial (v8) | Run ${runId || "-"} | seed ${seed || "-"}`,
+      `Escenarios simulados, no predicciones | Motor: banco factorial FHS validado | Run ${runId || "-"} | seed ${seed || "-"}`,
     chartAria: "Peores rutas acumuladas simuladas",
     histogramAria: "Histograma de retornos terminales simulados",
     regimes: [
       ["baseline", "Mercado calmo", "Condiciones base con volatilidad normal."],
-      ["crisis", "Crisis", "Venta correlacionada y colas mas pesadas."],
-      ["recovery", "Recuperacion", "Mercado mejorando con volatilidad residual."],
-      ["inflation", "Shock inflacionario", "Presion de tasas e inflacion sobre activos."],
+      ["crisis", "Crisis", "Venta correlacionada y colas más pesadas."],
+      ["recovery", "Recuperación", "Mercado mejorando con volatilidad residual."],
+      ["inflation", "Shock inflacionario", "Presión de tasas e inflación sobre activos."],
     ],
   },
 };
@@ -2787,6 +2804,10 @@ function StressEnginePanel({ workspaceId }) {
   const scenarioBankRisk = scenarioBankOverlay?.risk || {};
   const warnings = safeList(simulation?.warnings);
   const multiplierCounts = simulation?.model?.stressMultiplierCounts || deployment?.stressBook?.requestedMultiplierCounts || {};
+  const endpointGateReason = String(validation?.endpointGate?.reason || "-")
+    .replace(/;\s*static scenario books remain diagnostic\.?/gi, ". Daily VaR is validated separately with rolling conditional volatility.")
+    .replace(/static scenario books remain diagnostic/gi, "daily VaR is validated separately")
+    .replace(/unconditional books remain diagnostic until train-only validation clears/gi, "daily VaR is validated separately with rolling conditional volatility");
   const currentRegime = copy.regimes.find(([id]) => id === regime) || copy.regimes[1];
   const regimeLabel = simulation?.regimeLabel || currentRegime?.[1] || copy.preparing;
   const answer = copy.answer({
@@ -2947,10 +2968,10 @@ function StressEnginePanel({ workspaceId }) {
           </summary>
           <p>{copy.diagnosticsHint}</p>
           <div className={styles.stressDiagnosticsGrid}>
-            <PlainMetric definitionKey="mmd" detail={baselineComparison?.championModel || "V8 champion baseline diagnostic."} language={language} plain={copy.mmdRatio} techLabel="MMD" tone="warn" value={Number.isFinite(mmdRatio) ? `${mmdRatio.toFixed(2)}x` : baselineComparison?.ddpmVsChampionMmdRatioLabel || baselineComparison?.gaussianMmdRatioLabel || "-"} />
+            <PlainMetric definitionKey="mmd" detail={baselineComparison?.championModel || "Champion baseline diagnostic."} language={language} plain={copy.mmdRatio} techLabel="MMD" tone="warn" value={Number.isFinite(mmdRatio) ? `${mmdRatio.toFixed(2)}x` : baselineComparison?.ddpmVsChampionMmdRatioLabel || baselineComparison?.gaussianMmdRatioLabel || "-"} />
             <PlainMetric definitionKey="correlationFidelity" detail="Sampler convergence against the runtime target matrix." language={language} plain={copy.corrFidelity} techLabel={copy.corrFidelity} value={diagnostics.correlationFidelityLabel || "-"} />
             <PlainMetric definitionKey="distributionCoverage" detail="Internal dispersion bin occupancy." language={language} plain={copy.coverage} techLabel={copy.coverage} value={diagnostics.distributionCoverageLabel || "-"} />
-            <PlainMetric definitionKey="endpointGate" detail={validation?.endpointGate?.reason || "-"} language={language} plain={copy.endpointGate} techLabel="Gate" tone={validation?.endpointGate?.ready ? "good" : "warn"} value={validation?.endpointGate?.statusLabel || "-"} />
+            <PlainMetric definitionKey="endpointGate" detail={endpointGateReason} language={language} plain={copy.endpointGate} techLabel="Gate" tone={validation?.endpointGate?.ready ? "good" : "warn"} value={validation?.endpointGate?.statusLabel || "-"} />
             <PlainMetric definitionKey="calibratedStressEngine" detail={copy.runtimeDetail} language={language} plain={copy.runtime} techLabel={simulation?.model?.championModel || "-"} tone="good" value={simulation?.model?.trainedCheckpointServed ? copy.pytorch : copy.proxy} />
             <PlainMetric detail={simulation?.inputSources?.universePolicy || "-"} language={language} plain={copy.source} techLabel={copy.source} value={simulation?.inputSources?.correlationSource || "-"} />
           </div>
@@ -3029,7 +3050,7 @@ function HoldingsPanel({
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Posiciones</p>
-          <h2>{holdings.length ? "Todas las posiciones conectadas" : "Tus posiciones aparecerÃ¡n aquÃ­"}</h2>
+          <h2>{holdings.length ? "Todas las posiciones conectadas" : "Tus posiciones aparecerán aquí"}</h2>
           <p className={styles.supportText}>Revisa ticker, rol, peso, valor y precio en una sola vista.</p>
         </div>
         <ToneBadge tone="neutral">{holdings.length} posiciones</ToneBadge>
@@ -3042,7 +3063,7 @@ function HoldingsPanel({
             <span>Tema</span>
             <span>Peso</span>
             <span>Valor</span>
-            <span>AcciÃ³n</span>
+            <span>Acción</span>
           </div>
           <div className={styles.tableBody}>
             {holdings.map((holding) => (
@@ -3060,7 +3081,7 @@ function HoldingsPanel({
           </div>
         </div>
       ) : (
-        <p className={styles.emptyCopy}>Agrega una nota de operaciÃ³n o sincroniza tus posiciones privadas para armar la lista.</p>
+        <p className={styles.emptyCopy}>Agrega una nota de operación o sincroniza tus posiciones privadas para armar la lista.</p>
       )}
 
       <form
@@ -3071,9 +3092,9 @@ function HoldingsPanel({
         }}
       >
         <div className={styles.tradeCopy}>
-          <p className={styles.kicker}>EdiciÃ³n directa</p>
-          <h3>Define una posiciÃ³n directamente</h3>
-          <p>Ingresa un ticker y acciones objetivo o valor objetivo en USD. Usa 0 para eliminar una posiciÃ³n limpiamente.</p>
+          <p className={styles.kicker}>Edición directa</p>
+          <h3>Define una posición directamente</h3>
+          <p>Ingresa un ticker y acciones objetivo o valor objetivo en USD. Usa 0 para eliminar una posición limpiamente.</p>
         </div>
         <div className={styles.holdingQuickGrid}>
           <label className={styles.fieldStack}>
@@ -3088,7 +3109,7 @@ function HoldingsPanel({
           </label>
           <div className={styles.fieldStack}>
             <span>Modo de entrada</span>
-            <div className={styles.segmentedControl} role="tablist" aria-label="Modo de entrada de posiciÃ³n">
+            <div className={styles.segmentedControl} role="tablist" aria-label="Modo de entrada de posición">
               <button
                 className={styles.segmentButton}
                 role="tab"
@@ -3136,9 +3157,9 @@ function HoldingsPanel({
         </div>
         <div className={styles.holdingQuickActions}>
           <button className={styles.primaryButton} disabled={pendingTrade || !draftReady} type="submit">
-            {pendingTrade ? "Guardando..." : "Guardar posiciÃ³n"}
+            {pendingTrade ? "Guardando..." : "Guardar posición"}
           </button>
-          <p className={styles.supportHint}>Esta ruta actualiza la posiciÃ³n final directamente, sin intentar inferir una nota de operaciÃ³n.</p>
+          <p className={styles.supportHint}>Esta ruta actualiza la posición final directamente, sin intentar inferir una nota de operación.</p>
         </div>
         {tradeError ? <p className={styles.errorText}>{tradeError}</p> : null}
       </form>
@@ -3151,7 +3172,7 @@ function HoldingsPanel({
         }}
       >
         <div className={styles.tradeCopy}>
-          <p className={styles.kicker}>ActualizaciÃ³n avanzada</p>
+          <p className={styles.kicker}>Actualización avanzada</p>
           <h3>Usa lenguaje simple para compras y ventas</h3>
           <p>Ejemplos: <em>compre 100 USD de NVDA</em> o <em>vendi 2 acciones de AAPL</em>.</p>
         </div>
@@ -3420,12 +3441,12 @@ function DiversificationClockCard({
       <svg
         className={styles.divClockSvg}
         viewBox={`0 0 ${W} ${H}`}
-        aria-label={`Visible ${visiblePct ?? "â€”"} Real ${realPct ?? "â€”"} Brecha ${gapPct !== null ? `${gapPct}%` : "â€”"}`}
+        aria-label={`Visible ${visiblePct ?? "—"} Real ${realPct ?? "—"} Brecha ${gapPct !== null ? `${gapPct}%` : "—"}`}
       >
         {rows.map((row, i) => {
           const y = i * (ROW_H + ROW_GAP);
           const barW = row.pct === null ? 3 : Math.max(3, (row.pct / 100) * TRACK_W);
-          const numStr = row.pct === null ? "â€”" : `${row.pct}`;
+          const numStr = row.pct === null ? "—" : `${row.pct}`;
           return (
             <g key={row.label}>
               <text x={0} y={y + ROW_H - 5} fontSize={11} fill="rgba(255,255,255,0.38)" fontFamily="inherit">{row.label}</text>
@@ -3439,11 +3460,11 @@ function DiversificationClockCard({
 
       <div className={styles.diversificationClockCopy}>
         <p className={styles.kicker}>Solapamiento real</p>
-        <h3>{realPct !== null ? realPct : "â€”"} de independencia real</h3>
+        <h3>{realPct !== null ? realPct : "—"} de independencia real</h3>
         <p>
           {holdingsCount ? `${holdingsCount} posiciones` : "Sin posiciones"}
-          {topCarrier ? ` Â· ${topCarrier} explica parte de la brecha` : ""}
-          {" Â· "}
+          {topCarrier ? ` · ${topCarrier} explica parte de la brecha` : ""}
+          {" · "}
           {structuralRiskLabel(actualStructuralRisk)} riesgo estructural
         </p>
       </div>
@@ -3467,8 +3488,8 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
     }))
     : [
       { ticker: "E036", reason: "Buen impulso, calidad aceptable y volatilidad controlada.", score: "84%" },
-      { ticker: "E001", reason: "Puntaje balanceado; necesita revisiÃ³n de riesgo.", score: "71%" },
-      { ticker: "E017", reason: "Candidato dÃ©bil; aparece solo como referencia.", score: "56%" },
+      { ticker: "E001", reason: "Puntaje balanceado; necesita revisión de riesgo.", score: "71%" },
+      { ticker: "E017", reason: "Candidato débil; aparece solo como referencia.", score: "56%" },
     ];
   const rules = [
     {
@@ -3479,7 +3500,7 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
     {
       id: "quality",
       title: "Calidad",
-      body: "Premia seÃ±ales de negocio mÃ¡s estables, como margen, deuda y flujo de caja.",
+      body: "Premia señales de negocio más estables, como margen, deuda y flujo de caja.",
     },
     {
       id: "risk",
@@ -3494,24 +3515,24 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Candidatos</p>
-          <h2>Â¿QuÃ© vale la pena considerar?</h2>
+          <h2>¿Qué vale la pena considerar?</h2>
           <p className={styles.supportText}>
-            Candidatos filtrados con reglas revisables. Descarta cÃ¡lculos que usen datos posteriores a la fecha de decisiÃ³n.
+            Candidatos filtrados con reglas revisables. Descarta cálculos que usen datos posteriores a la fecha de decisión.
           </p>
         </div>
         <div className={styles.segmentedControl} role="tablist" aria-label="Modo de candidatos">
           <button aria-selected={mode === "ranked"} data-active={mode === "ranked"} onClick={() => setMode("ranked")} role="tab" type="button">Ranking</button>
-          <button aria-selected={mode === "refusal"} data-active={mode === "refusal"} onClick={() => setMode("refusal")} role="tab" type="button">SeÃ±ales rechazadas</button>
+          <button aria-selected={mode === "refusal"} data-active={mode === "refusal"} onClick={() => setMode("refusal")} role="tab" type="button">Señales rechazadas</button>
         </div>
       </div>
 
       <div className={styles.factorLabGrid}>
         <aside className={styles.factorLabExplainer}>
-          <h3>CÃ³mo funciona</h3>
+          <h3>Cómo funciona</h3>
           <ol>
-            <li>Elige una seÃ±al de filtro.</li>
+            <li>Elige una señal de filtro.</li>
             <li>Calcula candidatos solo con datos disponibles al momento de decidir.</li>
-            <li>Muestra por quÃ© algo aparece, baja o queda descartado.</li>
+            <li>Muestra por qué algo aparece, baja o queda descartado.</li>
           </ol>
         </aside>
 
@@ -3551,10 +3572,10 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
             </>
           ) : (
             <div className={styles.factorLabRefusal}>
-              <p className={styles.kicker}>SeÃ±al descartada</p>
-              <h3>No se acepta una seÃ±al que usa datos del futuro.</h3>
+              <p className={styles.kicker}>Señal descartada</p>
+              <h3>No se acepta una señal que usa datos del futuro.</h3>
               <p>
-                Ejemplo: una regla tipo <code>lead()</code> usa datos posteriores a la fecha de decisiÃ³n. Se descarta para que el anÃ¡lisis sea honesto: la seÃ±al no habrÃ­a estado disponible cuando decidiste.
+                Ejemplo: una regla tipo <code>lead()</code> usa datos posteriores a la fecha de decisión. Se descarta para que el análisis sea honesto: la señal no habría estado disponible cuando decidiste.
               </p>
             </div>
           )}
@@ -3614,7 +3635,7 @@ function ResearchLoopPanel({ workspaceId }) {
         <article className={styles.researchLoopHero}>
           <p className={styles.kicker}>{loop?.status || "preparando"}</p>
           <h3>{loop?.headline || "Preparando la primera iteracion"}</h3>
-          <p>{loop?.stopCondition?.reason || "El loop leera acciones, alertas, posiciones y candidatos antes de redactar cualquier memo."}</p>
+          <p>{loop?.stopCondition?.reason || "El loop leerá acciones, alertas, posiciones y candidatos antes de redactar cualquier memo."}</p>
           <div className={styles.researchLoopMeta}>
             <ToneBadge tone={loop?.status === "ready" ? "good" : loop?.status === "blocked" ? "bad" : loop?.status === "review" ? "warn" : "neutral"}>
               {loop?.stopCondition?.label || "Esperando"}
@@ -3709,7 +3730,7 @@ function useMacroBrainLiveSnapshot() {
         loading: false,
         error: friendlyWorkspaceMessage(
           requestError?.message || requestError,
-          "No pude leer Macro Brain en vivo. Se usa la Ãºltima foto guardada.",
+          "No pude leer Macro Brain en vivo. Se usa la última foto guardada.",
         ),
       }));
     }
@@ -3750,7 +3771,7 @@ function MacroBrainWorkspacePanel() {
         <div className={styles.macroBrainLead}>
           <div>
             <p className={styles.kicker}>Macro Brain</p>
-            <h2>Ãšltima lectura macro</h2>
+            <h2>Última lectura macro</h2>
             <p>{snapshot.shortRead}</p>
             <div className={styles.macroBrainSource}>
               <strong>{snapshot.sourceLabel}</strong>
@@ -3771,7 +3792,7 @@ function MacroBrainWorkspacePanel() {
             <span><strong>{snapshot.seriesCount}</strong> series</span>
             <span><strong>{observationLabel}</strong> datos</span>
             <span><strong>{openIdeas}</strong> abiertas</span>
-            <span><strong>{watchedIdeas}</strong> en revisiÃ³n</span>
+            <span><strong>{watchedIdeas}</strong> en revisión</span>
           </div>
         </div>
 
@@ -3788,7 +3809,7 @@ function MacroBrainWorkspacePanel() {
 
         <div className={styles.macroBrainGrid}>
           <article>
-            <h3>QuÃ© cambiÃ³</h3>
+            <h3>Qué cambió</h3>
             {safeList(snapshot.impulseChanges).slice(0, 5).map((item) => (
               <div className={styles.macroBrainRow} data-direction={item.direction} key={item.label}>
                 <strong>{item.label}</strong>
@@ -3808,7 +3829,7 @@ function MacroBrainWorkspacePanel() {
           </article>
 
           <article>
-            <h3>PrÃ³ximos datos</h3>
+            <h3>Próximos datos</h3>
             {safeList(snapshot.nextChecks).slice(0, 4).map((item) => (
               <div className={styles.macroBrainRow} key={item.event}>
                 <strong>{item.event}</strong>
@@ -3818,7 +3839,7 @@ function MacroBrainWorkspacePanel() {
           </article>
 
           <article>
-            <h3>EstrÃ©s</h3>
+            <h3>Estrés</h3>
             <p>{snapshot.stability.read}</p>
             <div className={styles.macroBrainStatus}>
               <span>{snapshot.stability.status}</span>
@@ -3871,7 +3892,7 @@ function useMosaicLiveSnapshot() {
         loading: false,
         error: friendlyWorkspaceMessage(
           requestError?.message || requestError,
-          "No pude leer MOSAIC en vivo. Se usa la Ãºltima foto guardada.",
+          "No pude leer MOSAIC en vivo. Se usa la última foto guardada.",
         ),
       }));
     }
@@ -3934,11 +3955,11 @@ function MosaicObservatoryPanel() {
         {error ? <p className={styles.macroBrainError}>{error}</p> : null}
 
         <div className={styles.mosaicPlainNote}>
-          <strong>QuÃ© significa la primera alerta</strong>
+          <strong>Qué significa la primera alerta</strong>
           <span>{snapshot.glossary?.gridEquipment}</span>
         </div>
 
-        <div className={styles.mosaicGuide} aria-label="GuÃ­a de puntajes MOSAIC">
+        <div className={styles.mosaicGuide} aria-label="Guía de puntajes MOSAIC">
           {scoreGuide.map((item) => (
             <div className={styles.mosaicGuideItem} key={item.range}>
               <strong>{item.range}</strong>
@@ -3952,7 +3973,7 @@ function MosaicObservatoryPanel() {
 
         <div className={styles.mosaicLayout}>
           <article className={styles.mosaicMain}>
-            <h3>PresiÃ³n arriba</h3>
+            <h3>Presión arriba</h3>
             <div className={styles.mosaicRows}>
               {topMarkets.map((item) => (
                 <div className={styles.mosaicRow} data-tone={mosaicTone(item.score)} key={item.id}>
@@ -4023,7 +4044,7 @@ function RecoverabilityMapFigure({ items }) {
     return (
       <div className={styles.truthMapEmpty}>
         <strong>Resumen pendiente.</strong>
-        <p>Agrega posiciones o ideas y aquÃ­ aparecerÃ¡ quÃ© estÃ¡ firme, quÃ© vigilar y quÃ© queda bloqueado.</p>
+        <p>Agrega posiciones o ideas y aquí aparecerá qué está firme, qué vigilar y qué queda bloqueado.</p>
       </div>
     );
   }
@@ -4037,7 +4058,7 @@ function RecoverabilityMapFigure({ items }) {
         </div>
         <div>
           <strong>{counts.watch || 0}</strong>
-          <span>En revisiÃ³n</span>
+          <span>En revisión</span>
         </div>
         <div>
           <strong>{counts.blocked || 0}</strong>
@@ -4050,12 +4071,12 @@ function RecoverabilityMapFigure({ items }) {
           <article className={styles.truthMapRow} data-filter={item.kind} key={item.id}>
             <div className={styles.truthMapRowHead}>
               <strong>{item.label}</strong>
-              <span>{item.kind === "holdings" ? "PosiciÃ³n" : item.kind === "watch" ? "En revisiÃ³n" : "Bloqueado"}</span>
+              <span>{item.kind === "holdings" ? "Posición" : item.kind === "watch" ? "En revisión" : "Bloqueado"}</span>
             </div>
             <p>{item.meta}</p>
             <div className={styles.truthMapBars}>
               <span>
-                RecuperaciÃ³n
+                Recuperación
                 <i><b style={{ "--bar-width": `${Math.round(item.recovery * 100)}%` }} /></i>
               </span>
               <span>
@@ -4127,8 +4148,8 @@ function TruthInterfacePanel({
   const targetCoverage = personalFinance?.metrics?.targetCoverage;
   const portfolioAnalytics = portfolioModule?.analytics || {};
   const suggestionPrompts = [
-    "Â¿CuÃ¡nto puedo invertir este mes?",
-    "Â¿DÃ³nde estÃ¡ el mayor solapamiento?",
+    "¿Cuánto puedo invertir este mes?",
+    "¿Dónde está el mayor solapamiento?",
     "Resume la lectura actual.",
   ];
   const briefNotes = safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3);
@@ -4136,19 +4157,19 @@ function TruthInterfacePanel({
     {
       title: "Portafolio",
       detail: holdingsCount
-        ? `${holdingsCount} ${holdingsCount === 1 ? "posiciÃ³n conectada" : "posiciones conectadas"}${portfolioAnalytics.chartSource ? ` Â· ${portfolioAnalytics.chartSource}` : ""}.`
+        ? `${holdingsCount} ${holdingsCount === 1 ? "posición conectada" : "posiciones conectadas"}${portfolioAnalytics.chartSource ? ` · ${portfolioAnalytics.chartSource}` : ""}.`
         : "Agrega posiciones para desbloquear la lectura en vivo.",
     },
     {
       title: "Foto de mercado",
-      detail: dashboard?.workspace_summary?.market_data_label || dashboard?.workspace_summary?.last_updated_label || "SesiÃ³n actual",
+      detail: dashboard?.workspace_summary?.market_data_label || dashboard?.workspace_summary?.last_updated_label || "Sesión actual",
     },
     {
       title: "Lectura actual",
       detail: cleanWorkspaceCopy(
         briefNotes[0]
         || frontier?.subhead
-        || "La lectura aparece aquÃ­ cuando la evidencia queda ensamblada.",
+        || "La lectura aparece aquí cuando la evidencia queda ensamblada.",
       ),
     },
   ];
@@ -4158,9 +4179,9 @@ function TruthInterfacePanel({
     || stateSummary?.decisionSummary
     || balanceSheet?.headlineState
     || frontier?.subhead
-    || "El espacio mostrarÃ¡ aquÃ­ la respuesta actual mÃ¡s clara.",
+    || "El espacio mostrará aquí la respuesta actual más clara.",
   );
-  const reserveCopy = cleanWorkspaceCopy(balanceSheet?.spendRule || "Sin cambios hasta que el riesgo sea mÃ¡s claro.");
+  const reserveCopy = cleanWorkspaceCopy(balanceSheet?.spendRule || "Sin cambios hasta que el riesgo sea más claro.");
   const investableDisplay = formatMoney(investableCash, personalFinance?.inputs?.baseCurrency);
   const realIndependenceLabel = formatScoreValue(structuralScore);
   const visibleIndependenceLabel = formatScoreValue(visibleScore);
@@ -4238,7 +4259,7 @@ function TruthInterfacePanel({
                   Decisiones
                 </button>
                 <button className={styles.secondaryButton} onClick={() => onSelectSection("risk")} type="button">
-                  Mayor riesgo
+                  Abrir Stress Engine
                 </button>
                 <button className={styles.primaryButton} onClick={onToggleChat} type="button">
                   {showChat ? "Cerrar" : "Explicar"}
@@ -4259,7 +4280,7 @@ function TruthInterfacePanel({
                   <div>
                     <span>Amplitud real</span>
                     <strong>{realIndependenceLabel}</strong>
-                    <small>La parte que resiste bajo estrÃ©s.</small>
+                    <small>La parte que resiste bajo estrés.</small>
                   </div>
                   <div>
                     <span>Margen</span>
@@ -4352,35 +4373,35 @@ function normalizeWorkspaceCopyInput(value) {
 
 function cleanWorkspaceCopy(value) {
   return normalizeWorkspaceCopyInput(value)
-    .replace(/\bphantom diversification\b/gi, "diversificaciÃ³n aparente")
+    .replace(/\bphantom diversification\b/gi, "diversificación aparente")
     .replace(/\bphantom breadth\b/gi, "amplitud no probada")
-    .replace(/\bphantom diversifier\b/gi, "posiciÃ³n con protecciÃ³n frÃ¡gil")
-    .replace(/\bdiversification\b/gi, "diversificaciÃ³n")
-    .replace(/\bconcentration\b/gi, "concentraciÃ³n")
-    .replace(/\brecoverability\b/gi, "capacidad de recuperaciÃ³n")
-    .replace(/\bhealing velocity\b/gi, "velocidad de recuperaciÃ³n")
+    .replace(/\bphantom diversifier\b/gi, "posición con protección frágil")
+    .replace(/\bdiversification\b/gi, "diversificación")
+    .replace(/\bconcentration\b/gi, "concentración")
+    .replace(/\brecoverability\b/gi, "capacidad de recuperación")
+    .replace(/\bhealing velocity\b/gi, "velocidad de recuperación")
     .replace(/\bphantom\b/gi, "oculto")
     .replace(/\bfantasma\b/gi, "oculto")
     .replace(/\bFactorLab\b/g, "candidatos")
     .replace(/\bMacro Brain\b/gi, "contexto macro")
-    .replace(/\blookahead bias\b/gi, "seÃ±al con datos invÃ¡lidos")
-    .replace(/\blookahead\b/gi, "datos futuros invÃ¡lidos")
-    .replace(/\bKeep\s+[A-Z0-9.-]+\s+as\s+(?:a\s+)?cash buffer\b/gi, "MantÃ©n esa parte como caja aparte por ahora")
-    .replace(/\bkeep\s+uup(?:\s+as\s+(?:a\s+)?cash buffer)?\.?/gi, "MantÃ©n esa parte como caja aparte por ahora")
-    .replace(/\b[A-Z0-9.-]+\s+is the sleeve keeping room to act later\.?/gi, "Esa parte mantiene margen para actuar despuÃ©s.")
+    .replace(/\blookahead bias\b/gi, "señal con datos inválidos")
+    .replace(/\blookahead\b/gi, "datos futuros inválidos")
+    .replace(/\bKeep\s+[A-Z0-9.-]+\s+as\s+(?:a\s+)?cash buffer\b/gi, "Mantén esa parte como caja aparte por ahora")
+    .replace(/\bkeep\s+uup(?:\s+as\s+(?:a\s+)?cash buffer)?\.?/gi, "Mantén esa parte como caja aparte por ahora")
+    .replace(/\b[A-Z0-9.-]+\s+is the sleeve keeping room to act later\.?/gi, "Esa parte mantiene margen para actuar después.")
     .replace(/\bReview again after healing velocity positive and budget recovers\.?/gi, "Revisar cuando mejore la tendencia y se recupere el presupuesto.")
     .replace(/\bremaining budget falls below ([0-9.]+%)\.?/gi, "el presupuesto restante cae bajo $1.")
     .replace(/\bDo not spend optionality on broad risk adds right now\.?/gi, "No uses el margen flexible para sumar riesgo amplio ahora.")
     .replace(/\bdo not spend optionality\b/gi, "no usar el margen flexible")
     .replace(/\bballast\b/gi, "caja aparte")
     .replace(/\bkeep risk elevated\b/gi, "Mantener riesgo alto, pero selectivo")
-    .replace(/\bbroad beta\b/gi, "exposiciÃ³n amplia de mercado")
+    .replace(/\bbroad beta\b/gi, "exposición amplia de mercado")
     .replace(/\bKeep cash flexible\b/gi, "Mantener caja disponible")
     .replace(/\bNo change is needed here unless a cleaner use for that capital appears\.?/gi, "Sin cambios hasta que aparezca un mejor uso para esa caja.")
-    .replace(/\bWait for a cleaner state before spending optionality on new risk\.?/gi, "Sin cambios hasta que el riesgo sea mÃ¡s claro.")
+    .replace(/\bWait for a cleaner state before spending optionality on new risk\.?/gi, "Sin cambios hasta que el riesgo sea más claro.")
     .replace(/\bWait for a cleaner state\b/gi, "Sin cambios por ahora")
-    .replace(/\bEspera una seÃ±al mÃ¡s clara antes de sumar riesgo\.?/gi, "Sin cambios por ahora.")
-    .replace(/\bCurrent session\b/gi, "SesiÃ³n actual")
+    .replace(/\bEspera una señal más clara antes de sumar riesgo\.?/gi, "Sin cambios por ahora.")
+    .replace(/\bCurrent session\b/gi, "Sesión actual")
     .replace(/\bAvailable to invest\b/gi, "Disponible para invertir")
     .replace(/\bMonthly income\b/gi, "Ingreso mensual")
     .replace(/\bFixed costs\b/gi, "Costos fijos")
@@ -4389,7 +4410,7 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bVariable expenses\b/gi, "Gasto variable")
     .replace(/\bCash buffer\b/gi, "Reserva disponible")
     .replace(/\bTarget contribution\b/gi, "Aporte objetivo")
-    .replace(/\bSavings rate\b/gi, "Ritmo de inversiÃ³n")
+    .replace(/\bSavings rate\b/gi, "Ritmo de inversión")
     .replace(/\bTarget coverage\b/gi, "Cobertura objetivo")
     .replace(/\bPreserve the reserve sleeve\b/gi, "Mantener reserva disponible")
     .replace(/\bPreserve the reserve\b/gi, "Mantener reserva disponible")
@@ -4403,12 +4424,12 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bTake higher risk\b/gi, "Riesgo alto, selectivo")
     .replace(/\bDo not add risk yet\b/gi, "No sumar riesgo")
     .replace(/\bNo valid repair is open\b/gi, "No hay ajuste claro abierto")
-    .replace(/\bWatch for confirmation before adding risk\b/gi, "Esperar confirmaciÃ³n antes de sumar riesgo")
+    .replace(/\bWatch for confirmation before adding risk\b/gi, "Esperar confirmación antes de sumar riesgo")
     .replace(/\bStart small and keep changes funded\b/gi, "Empezar chico y financiado")
     .replace(/\bRisk can be added selectively\b/gi, "Se puede agregar riesgo de forma selectiva")
     .replace(/\bLive read\b/gi, "Lectura en vivo")
     .replace(/\bUsable evidence\b/gi, "Evidencia usable")
-    .replace(/\bStressed\b/gi, "Bajo estrÃ©s")
+    .replace(/\bStressed\b/gi, "Bajo estrés")
     .replace(/\bThin\b/gi, "Limitada")
     .replace(/\bMixed\b/gi, "Mixta")
     .replace(/\bMedium\b/gi, "Medio")
@@ -4416,30 +4437,30 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bLow\b/gi, "Bajo")
     .replace(/\bContained\b/gi, "Contenido")
     .replace(/\bUnknown\b/gi, "Sin dato")
-    .replace(/\bRecovery\b/gi, "RecuperaciÃ³n")
-    .replace(/\bStructural pressure\b/gi, "PresiÃ³n estructural")
-    .replace(/\bShock pressure\b/gi, "PresiÃ³n de shock")
-    .replace(/\bNeed more confirmation\b/gi, "Hace falta mÃ¡s confirmaciÃ³n")
+    .replace(/\bRecovery\b/gi, "Recuperación")
+    .replace(/\bStructural pressure\b/gi, "Presión estructural")
+    .replace(/\bShock pressure\b/gi, "Presión de shock")
+    .replace(/\bNeed more confirmation\b/gi, "Hace falta más confirmación")
     .replace(/\bnone material\b/gi, "nada material")
     .replace(/\bCounterfactual ledger\b/gi, "Historial de decisiones")
     .replace(/\bSaved to Neon\b/gi, "Guardado")
     .replace(/\bPrivate workspace\b/gi, "Espacio privado")
     .replace(/\bConnecting live data\b/gi, "Conectando datos")
-    .replace(/\bLive sync paused\b/gi, "SincronizaciÃ³n pausada")
-    .replace(/\bAwaiting refresh\b/gi, "Esperando actualizaciÃ³n")
+    .replace(/\bLive sync paused\b/gi, "Sincronización pausada")
+    .replace(/\bAwaiting refresh\b/gi, "Esperando actualización")
     .replace(/\bLive\b/gi, "En vivo")
-    .replace(/\bdespues\b/gi, "despuÃ©s")
-    .replace(/\bestres\b/gi, "estrÃ©s")
-    .replace(/\bmas\b/gi, "mÃ¡s")
-    .replace(/\baun\b/gi, "aÃºn")
-    .replace(/\btodavia\b/gi, "todavÃ­a");
+    .replace(/\bdespues\b/gi, "después")
+    .replace(/\bestres\b/gi, "estrés")
+    .replace(/\bmas\b/gi, "más")
+    .replace(/\baun\b/gi, "aún")
+    .replace(/\btodavia\b/gi, "todavía");
 }
 
 function friendlyWorkspaceMessage(value, fallback = "") {
   const text = cleanWorkspaceCopy(value).trim();
   if (!text) return fallback;
   if (isTechnicalWorkspaceMessage(text)) {
-    return fallback || "La actualizaciÃ³n de mercado aÃºn estÃ¡ alcanzando. Por ahora se usa la Ãºltima sesiÃ³n completa.";
+    return fallback || "La actualización de mercado aún está alcanzando. Por ahora se usa la última sesión completa.";
   }
   return text;
 }
@@ -4476,9 +4497,9 @@ function ComplianceNotice({ copy }) {
   return (
     <section className={styles.legalNotice}>
       <div>
-        <strong>Para planificaciÃ³n e investigaciÃ³n.</strong>
+        <strong>Para planificación e investigación.</strong>
         <p>
-          Este espacio ayuda a ordenar caja, contexto de portafolio e investigaciÃ³n. No reemplaza asesorÃ­a individual de inversiÃ³n, impuestos o legal.
+          Este espacio ayuda a ordenar caja, contexto de portafolio e investigación. No reemplaza asesoría individual de inversión, impuestos o legal.
         </p>
       </div>
       <Link className={styles.secondaryLink} href="/terms">{copy.terms}</Link>
@@ -4554,18 +4575,18 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Resumen actual</p>
-          <h2>{cleanWorkspaceCopy(stateSummary?.stance || "Esperar seÃ±al mÃ¡s clara")}</h2>
-          <p className={styles.supportText}>La postura actual en lenguaje simple, junto con la evidencia que todavÃ­a la sostiene.</p>
+          <h2>{cleanWorkspaceCopy(stateSummary?.stance || "Esperar señal más clara")}</h2>
+          <p className={styles.supportText}>La postura actual en lenguaje simple, junto con la evidencia que todavía la sostiene.</p>
         </div>
       </div>
       <p className={styles.lead}>
         {cleanWorkspaceCopy(
           stateSummary?.decisionSummary
-          || "El espacio seguirÃ¡ mostrando la acciÃ³n mÃ¡s clara a medida que se actualice el anÃ¡lisis.",
+          || "El espacio seguirá mostrando la acción más clara a medida que se actualice el análisis.",
         )}
       </p>
       <InlineList
-        emptyLabel="Aun no hay notas de evidencia disponibles."
+        emptyLabel="Aún no hay notas de evidencia disponibles."
         items={safeList(dashboard?.evidence_drawer?.currentRead).slice(0, 3)}
       />
     </section>
@@ -4603,7 +4624,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </div>
         </article>
       )}
-      title={`${escrowItems.length} acciÃ³n${escrowItems.length === 1 ? "" : "es"} guardada${escrowItems.length === 1 ? "" : "s"} para despuÃ©s`}
+      title={`${escrowItems.length} acción${escrowItems.length === 1 ? "" : "es"} guardada${escrowItems.length === 1 ? "" : "s"} para después`}
     />
   ) : null;
 
@@ -4656,8 +4677,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               renderItem={(item) => (
                 <article className={styles.compactRow} key={item.id || item.title}>
                   <div>
-                    <strong>{item.title || "DecisiÃ³n registrada"}</strong>
-                    <p>{item.summary || item.note || "El resultado todavÃ­a se estÃ¡ asentando."}</p>
+                    <strong>{item.title || "Decisión registrada"}</strong>
+                    <p>{item.summary || item.note || "El resultado todavía se está asentando."}</p>
                     <span>{formatDateTime(item.occurredAt)}</span>
                   </div>
                   <ToneBadge tone={responseTone(item.userResponse || item.response || "noted")}>
@@ -4678,6 +4699,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             compact
             onRangeChange={setPortfolioRange}
             language={language}
+            onOpenRisk={() => selectWorkspaceSection("risk")}
             portfolioModule={portfolioModule}
             range={portfolioRange}
             showAuroraAction
@@ -4720,8 +4742,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               renderItem={(item) => (
                 <article className={styles.compactRow} key={item.id || item.title}>
                   <div>
-                    <strong>{item.title || "Evento de decisiÃ³n"}</strong>
-                    <p>{item.summary || item.note || "El resultado todavÃ­a se estÃ¡ asentando."}</p>
+                    <strong>{item.title || "Evento de decisión"}</strong>
+                    <p>{item.summary || item.note || "El resultado todavía se está asentando."}</p>
                     <span>{formatDateTime(item.occurredAt)}</span>
                   </div>
                   <ToneBadge tone={responseTone(item.userResponse || item.response || "noted")}>
@@ -4812,10 +4834,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       __refreshMessage:
         latestWorkspace?.workspace_summary?.last_updated
         && latestWorkspace.workspace_summary.last_updated !== dashboard?.workspace_summary?.last_updated
-          ? "SesiÃ³n de mercado actualizada."
+          ? "Sesión de mercado actualizada."
           : friendlyWorkspaceMessage(
             refreshPayload?.message,
-            "Actualizando la Ãºltima sesiÃ³n de mercado en segundo plano.",
+            "Actualizando la última sesión de mercado en segundo plano.",
           ),
     };
   }
@@ -4834,7 +4856,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       const nextBanner = payload?.__refreshMessage || successMessage;
       await applyWorkspacePayload(payload, nextBanner);
     } catch (requestError) {
-      setError(friendlyWorkspaceMessage(requestError?.message || requestError, "La solicitud fallo."));
+      setError(friendlyWorkspaceMessage(requestError?.message || requestError, "La solicitud falló."));
     } finally {
       setPendingKey(null);
     }
@@ -4844,19 +4866,19 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     await runWorkspaceAction(
       "refresh",
       requestLiveRefresh,
-      "Actualizando la Ãºltima sesiÃ³n de mercado.",
+      "Actualizando la última sesión de mercado.",
     );
   }
 
   useEffect(() => {
     if (!workspaceId || autoRefreshRef.current || !needsAutoRefresh(dashboard?.workspace_summary)) return;
     autoRefreshRef.current = true;
-    setBanner("Sincronizando la Ãºltima sesiÃ³n de mercado...");
+    setBanner("Sincronizando la última sesión de mercado...");
 
     void requestLiveRefresh()
-      .then((payload) => applyWorkspacePayload(payload, payload?.__refreshMessage || "SesiÃ³n de mercado actualizada."))
+      .then((payload) => applyWorkspacePayload(payload, payload?.__refreshMessage || "Sesión de mercado actualizada."))
       .catch(() => {
-        setBanner("No se pudo actualizar al entrar. Por ahora se usa la Ãºltima sesiÃ³n completa.");
+        setBanner("No se pudo actualizar al entrar. Por ahora se usa la última sesión completa.");
       });
   }, [
     dashboard?.workspace_summary?.last_updated,
@@ -4929,7 +4951,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Posiciones guardadas.");
       resetHoldingDraft();
     } catch (requestError) {
-      setTradeError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la posiciÃ³n."));
+      setTradeError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la posición."));
     } finally {
       setPendingKey(null);
     }
@@ -4953,7 +4975,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Posiciones guardadas.");
       setTradeInstruction("");
     } catch (requestError) {
-      setTradeError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la operacion."));
+      setTradeError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la operación."));
     } finally {
       setPendingKey(null);
     }
@@ -5081,7 +5103,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 <div className={styles.welcomeGuideHead}>
                   <span className={styles.welcomeGuideBadge}>Primer uso</span>
                   <button
-                    aria-label="Cerrar guÃ­a inicial"
+                    aria-label="Cerrar guía inicial"
                     className={styles.welcomeGuideClose}
                     onClick={() => setShowWelcomeGuide(false)}
                     type="button"
@@ -5089,9 +5111,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     Cerrar
                   </button>
                 </div>
-                <h2 className={styles.welcomeGuideTitle}>Tu espacio de decisiÃ³n</h2>
+                <h2 className={styles.welcomeGuideTitle}>Tu espacio de decisión</h2>
                 <p className={styles.welcomeGuideSubtitle}>
-                  Tres pasos para recibir una lectura clara sin conocimiento tÃ©cnico.
+                  Tres pasos para recibir una lectura clara sin conocimiento técnico.
                 </p>
                 <ol className={styles.welcomeSteps}>
                   <li className={styles.welcomeStep}>
@@ -5105,14 +5127,14 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     <span className={styles.welcomeStepNum}>2</span>
                     <div>
                       <strong>Lee el resumen de hoy</strong>
-                      <p>La lectura en vivo responde quÃ© domina tu portafolio y quÃ© merece atenciÃ³n ahora.</p>
+                      <p>La lectura en vivo responde qué domina tu portafolio y qué merece atención ahora.</p>
                     </div>
                   </li>
                   <li className={styles.welcomeStep}>
                     <span className={styles.welcomeStepNum}>3</span>
                     <div>
                       <strong>Registra tus decisiones</strong>
-                      <p>Guarda lo que decidiste y por quÃ©. RevÃ­salo despuÃ©s para aprender del resultado.</p>
+                      <p>Guarda lo que decidiste y por qué. Revísalo después para aprender del resultado.</p>
                     </div>
                   </li>
                 </ol>
@@ -5129,7 +5151,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     onClick={() => setShowWelcomeGuide(false)}
                     type="button"
                   >
-                    Ocultar guÃ­a
+                    Ocultar guía
                   </button>
                 </div>
               </div>
@@ -5140,7 +5162,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             <div
               className={styles.glossaryOverlay}
               role="dialog"
-              aria-label="Glosario de tÃ©rminos"
+              aria-label="Glosario de términos"
               aria-modal="true"
               onClick={(event) => {
                 if (event.target === event.currentTarget) {
@@ -5161,16 +5183,16 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                     Cerrar glosario
                   </button>
                 </div>
-                <p className={styles.glossaryPanelSub}>Cada tÃ©rmino raro que usa este espacio, explicado sin jerga.</p>
+                <p className={styles.glossaryPanelSub}>Cada término raro que usa este espacio, explicado sin jerga.</p>
                 <dl className={styles.glossaryList}>
                   {[
                     { term: "Solapamiento de riesgo", def: "Cuando posiciones que se ven distintas reaccionan al mismo shock de mercado." },
-                    { term: "DiversificaciÃ³n visible", def: "Lo amplio que parece el portafolio al mirar pesos y cantidad de nombres." },
-                    { term: "DiversificaciÃ³n real", def: "La parte de esa amplitud que sigue funcionando cuando las posiciones empiezan a moverse juntas." },
-                    { term: "Solapamiento oculto", def: "DiversificaciÃ³n que parecÃ­a existir, pero no queda probada bajo estrÃ©s." },
-                    { term: "Candidatos", def: "Ideas filtradas con reglas revisables. Ordenadas por seÃ±al mÃ¡s fuerte; descarta cÃ¡lculos que usen datos del futuro." },
-                    { term: "SeÃ±al rechazada", def: "Un filtro que usarÃ­a informaciÃ³n posterior a la fecha de decisiÃ³n. Se descarta para mantener el anÃ¡lisis honesto." },
-                    { term: "Acciones en espera", def: "Decisiones guardadas para revisar despuÃ©s; no son operaciones ejecutadas." },
+                    { term: "Diversificación visible", def: "Lo amplio que parece el portafolio al mirar pesos y cantidad de nombres." },
+                    { term: "Diversificación real", def: "La parte de esa amplitud que sigue funcionando cuando las posiciones empiezan a moverse juntas." },
+                    { term: "Solapamiento oculto", def: "Diversificación que parecía existir, pero no queda probada bajo estrés." },
+                    { term: "Candidatos", def: "Ideas filtradas con reglas revisables. Ordenadas por señal más fuerte; descarta cálculos que usen datos del futuro." },
+                    { term: "Señal rechazada", def: "Un filtro que usaría información posterior a la fecha de decisión. Se descarta para mantener el análisis honesto." },
+                    { term: "Acciones en espera", def: "Decisiones guardadas para revisar después; no son operaciones ejecutadas." },
                   ].map(({ term, def }) => (
                     <div className={styles.glossaryEntry} key={term}>
                       <dt className={styles.glossaryTerm}>{term}</dt>
@@ -5202,22 +5224,22 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               value={holdingsCount ? `${holdingsCount} nombre${holdingsCount === 1 ? "" : "s"}` : "Sin posiciones"}
             />
             <MetricTile
-              detail="Ãšltima fecha de mercado cargada."
+              detail="Última fecha de mercado cargada."
               label="Foto de mercado"
               tone="neutral"
               value={dashboard?.workspace_summary?.market_data_label || "Sin fecha"}
             />
             <MetricTile
-              detail={cleanWorkspaceCopy(stateSummary?.decisionSummary || connection.detail || "Listo para la prÃ³xima decisiÃ³n.")}
+              detail={cleanWorkspaceCopy(stateSummary?.decisionSummary || connection.detail || "Listo para la próxima decisión.")}
               label="Postura"
               tone={statusTone(primaryAction?.status || connection.status || "neutral")}
               value={cleanWorkspaceCopy(stateSummary?.stance || connection.label || "En vivo")}
             />
             <MetricTile
-              detail={escrowItems.length ? "Guardadas para despuÃ©s." : "Sin acciones en espera."}
+              detail={escrowItems.length ? "Guardadas para después." : "Sin acciones en espera."}
               label="En espera"
               tone={escrowItems.length ? "warn" : "neutral"}
-              value={escrowItems.length ? `${escrowItems.length} acciÃ³n${escrowItems.length === 1 ? "" : "es"}` : "â€”"}
+              value={escrowItems.length ? `${escrowItems.length} acción${escrowItems.length === 1 ? "" : "es"}` : "—"}
             />
           </section>
 

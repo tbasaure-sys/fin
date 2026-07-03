@@ -5,7 +5,7 @@ import { useEffect, useId, useState } from "react";
 
 import styles from "@/components/stress-account-gate.module.css";
 
-export const PORTFOLIO_WORKSPACE_HREF = "/app#holdings";
+export const PORTFOLIO_WORKSPACE_HREF = "/app#risk";
 
 const COPY = {
   en: {
@@ -18,9 +18,9 @@ const COPY = {
     close: "Close",
   },
   es: {
-    eyebrow: "Workspace de cartera",
+    eyebrow: "Espacio de cartera",
     title: "Stress necesita tus posiciones primero.",
-    body: "Crea una cuenta o inicia sesi\u00f3n, agrega tus posiciones y corre el motor de stress sobre la cartera que realmente tienes.",
+    body: "Crea una cuenta o inicia sesi\u00f3n, agrega tus posiciones y abre el panel de riesgo para correr el motor sobre la cartera que realmente tienes.",
     create: "Crear cuenta",
     signIn: "Iniciar sesi\u00f3n",
     aurora: "Usar AURORA sin cuenta",

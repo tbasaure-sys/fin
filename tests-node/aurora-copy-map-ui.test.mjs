@@ -47,9 +47,10 @@ test("public Stress Engine CTAs gate into the portfolio workspace instead of val
   assert.match(homeSource, /title:\s*"Stress Engine"[\s\S]*requiresAccount:\s*true/);
   assert.match(homeSource, /<StressAccountGate/);
   assert.match(stressSource, /<StressAccountGate/);
-  assert.match(gateSource, /PORTFOLIO_WORKSPACE_HREF\s*=\s*"\/app#holdings"/);
+  assert.match(stressSource, /<StressAccountGate className=\{styles\.actionButton\}/);
+  assert.match(gateSource, /PORTFOLIO_WORKSPACE_HREF\s*=\s*"\/app#risk"/);
   assert.match(gateSource, /\/login\?intent=\$\{intent\}&lang=\$\{language/);
-  assert.match(loginSource, /DEFAULT_NEXT\s*=\s*"\/app#holdings"/);
+  assert.match(loginSource, /DEFAULT_NEXT\s*=\s*"\/app#risk"/);
   assert.match(loginSource, /href="\/aurora"/);
   assert.match(terminalSource, /stress:\s*"risk"/);
   assert.match(terminalSource, /positions:\s*"holdings"/);

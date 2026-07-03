@@ -4,7 +4,7 @@ import styles from "@/app/login-page.module.css";
 
 export const dynamic = "force-dynamic";
 
-const DEFAULT_NEXT = "/app#holdings";
+const DEFAULT_NEXT = "/app#risk";
 
 const COPY = {
   en: {
@@ -21,8 +21,8 @@ const COPY = {
     signinEyebrow: "Welcome back",
     signupTitle: "Create your account",
     signinTitle: "Sign in to your workspace",
-    signupSub: "Your account opens directly on holdings, where Stress Engine gets the portfolio it needs.",
-    signinSub: "Sign in and continue directly to holdings.",
+    signupSub: "Your account opens directly on the risk panel; add holdings first if the portfolio is empty.",
+    signinSub: "Sign in and continue directly to the risk panel.",
     name: "Name",
     namePlaceholder: "Your name",
     email: "Email",
@@ -48,8 +48,8 @@ const COPY = {
     signinEyebrow: "Bienvenido de vuelta",
     signupTitle: "Crea tu cuenta",
     signinTitle: "Entra a tu workspace",
-    signupSub: "Tu cuenta abre directo en posiciones, donde Stress Engine obtiene la cartera que necesita.",
-    signinSub: "Inicia sesión y continúa directo a posiciones.",
+    signupSub: "Tu cuenta abre directo en el panel de riesgo; si la cartera está vacía, primero agrega posiciones.",
+    signinSub: "Inicia sesión y continúa directo al panel de riesgo.",
     name: "Nombre",
     namePlaceholder: "Tu nombre",
     email: "Email",

@@ -192,6 +192,9 @@ export function StressEnginePublicPage() {
         <h2>{copy.subtitle}</h2>
         <span>{copy.body}</span>
         <div className={styles.heroActions}>
+          <StressAccountGate className={styles.actionButton} language={language}>
+            {copy.workspaceCta}
+          </StressAccountGate>
           <Link className={styles.actionButton} href="#what-you-get">
             {copy.primary}
           </Link>
