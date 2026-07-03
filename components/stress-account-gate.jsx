@@ -20,9 +20,9 @@ const COPY = {
   es: {
     eyebrow: "Workspace de cartera",
     title: "Stress necesita tus posiciones primero.",
-    body: "Crea una cuenta o inicia sesión, agrega tus posiciones y corre el motor de stress sobre la cartera que realmente tienes.",
+    body: "Crea una cuenta o inicia sesi\u00f3n, agrega tus posiciones y corre el motor de stress sobre la cartera que realmente tienes.",
     create: "Crear cuenta",
-    signIn: "Iniciar sesión",
+    signIn: "Iniciar sesi\u00f3n",
     aurora: "Usar AURORA sin cuenta",
     close: "Cerrar",
   },
@@ -62,7 +62,7 @@ export function StressAccountGate({ children, className = "", language = "es" })
             role="dialog"
           >
             <button aria-label={copy.close} className={styles.closeButton} onClick={() => setOpen(false)} type="button">
-              ×
+              {"\u00d7"}
             </button>
             <p className={styles.eyebrow}>{copy.eyebrow}</p>
             <h2 id={titleId}>{copy.title}</h2>
