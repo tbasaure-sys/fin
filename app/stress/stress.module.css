@@ -69,6 +69,7 @@
 }
 
 .hero p,
+.explainer p,
 .split p,
 .methodology p:first-child {
   margin: 0;
@@ -100,6 +101,7 @@
 
 .hero span,
 .hero small,
+.explainer span,
 .split span,
 .split small,
 .methodology span,
@@ -118,6 +120,64 @@
 .cta small {
   color: rgba(246, 239, 228, 0.52);
   font-size: 0.8rem;
+}
+
+.explainer {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(320px, 1.15fr);
+  gap: clamp(1rem, 4vw, 4rem);
+  padding: clamp(2.5rem, 8vh, 5rem) 0;
+  border-top: 1px solid rgba(246, 239, 228, 0.09);
+  border-bottom: 1px solid rgba(246, 239, 228, 0.09);
+}
+
+.explainer > div {
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+}
+
+.explainer h2 {
+  max-width: 14ch;
+  margin: 0;
+  color: #fff8ec;
+  font-size: clamp(2rem, 4.2vw, 3.8rem);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+}
+
+.explainer ol {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: rgba(246, 239, 228, 0.1);
+  border: 1px solid rgba(246, 239, 228, 0.1);
+}
+
+.explainer li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.35rem 1rem;
+  min-height: 7.8rem;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  background: rgba(4, 5, 7, 0.96);
+}
+
+.explainer li em {
+  grid-row: span 2;
+  color: rgba(240, 184, 78, 0.9);
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+}
+
+.explainer li strong {
+  color: #fff8ec;
+  font-size: clamp(1.1rem, 2vw, 1.45rem);
+  line-height: 1.1;
 }
 
 .metrics {
@@ -250,6 +310,7 @@
 
 @media (max-width: 860px) {
   .topbar,
+  .explainer,
   .split,
   .methodology {
     grid-template-columns: 1fr;

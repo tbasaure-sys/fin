@@ -10,17 +10,26 @@ import { PlainMetric } from "@/components/ui/plain-metric";
 const COPY = {
   en: {
     back: "BL'S",
-    navPrimary: "Run in workspace",
+    navPrimary: "What it shows",
     navSecondary: "Methodology",
     label: "03 - Portfolio Risk",
     title: "Stress Engine",
-    subtitle: "See where your portfolio breaks under adverse market scenarios.",
+    subtitle: "Before you add risk, see what breaks first.",
     body:
-      "BLS Prime projects a point-in-time factor scenario bank onto your actual holdings, then shows the simulated loss, the chance of pain, and the positions doing the damage.",
-    primary: "Run in workspace",
+      "Stress Engine takes the positions you own, runs them through thousands of harsh market scenarios, and shows the loss, the weak spots, and the names doing the damage.",
+    primary: "See what it shows",
+    workspaceCta: "Run on my portfolio",
     secondary: "Read methodology",
     disclaimer: "Research software. Not financial advice.",
     metricsLabel: "What you get",
+    explainerTitle: "What happens when you run it",
+    explainerBody:
+      "You do not need to understand factor models. The product answers one practical question: if markets get ugly, where does this portfolio hurt?",
+    steps: [
+      ["Add holdings", "Enter tickers and weights once. Cash and unmatched tickers stay visible instead of being hidden."],
+      ["Run adverse scenarios", "The engine projects a validated point-in-time factor bank onto the positions it can match."],
+      ["Read the damage", "You get the bad-case loss, the chance of pain, and the positions responsible for the tail."],
+    ],
     metrics: [
       {
         plain: "If the next 30 days go badly, how much does the portfolio lose?",
@@ -80,17 +89,26 @@ const COPY = {
   },
   es: {
     back: "BL'S",
-    navPrimary: "Abrir mi espacio",
+    navPrimary: "Qu\u00e9 muestra",
     navSecondary: "Metodolog\u00eda",
     label: "03 - Riesgo de cartera",
     title: "Stress Engine",
-    subtitle: "Mira d\u00f3nde se rompe tu cartera bajo escenarios adversos de mercado.",
+    subtitle: "Antes de sumar riesgo, mira qu\u00e9 se rompe primero.",
     body:
-      "BLS Prime proyecta un banco factorial point-in-time sobre tus posiciones reales y te muestra la p\u00e9rdida simulada, la frecuencia de da\u00f1o y qu\u00e9 posiciones hacen el da\u00f1o.",
-    primary: "Probar mi cartera",
+      "Stress Engine toma las posiciones que tienes, las somete a miles de escenarios duros de mercado y muestra la p\u00e9rdida, los puntos fr\u00e1giles y los nombres que hacen el da\u00f1o.",
+    primary: "Ver qu\u00e9 muestra",
+    workspaceCta: "Probar mi cartera",
     secondary: "Leer metodolog\u00eda",
     disclaimer: "Software de an\u00e1lisis. No es asesor\u00eda financiera.",
     metricsLabel: "Qu\u00e9 recibes",
+    explainerTitle: "Qu\u00e9 pasa cuando lo corres",
+    explainerBody:
+      "No necesitas entender modelos factoriales. El producto responde una pregunta pr\u00e1ctica: si el mercado se pone feo, \u00bfd\u00f3nde duele esta cartera?",
+    steps: [
+      ["Agregas posiciones", "Ingresas tickers y pesos una vez. Caja y tickers sin cobertura quedan visibles en vez de esconderse."],
+      ["Corres escenarios adversos", "El motor proyecta un banco factorial point-in-time validado sobre las posiciones que puede calzar."],
+      ["Lees el da\u00f1o", "Recibes la p\u00e9rdida de caso malo, la frecuencia de dolor y las posiciones responsables de la cola."],
+    ],
     metrics: [
       {
         plain: "Si los pr\u00f3ximos 30 d\u00edas salen mal, \u00bfcu\u00e1nto pierde la cartera?",
@@ -161,9 +179,9 @@ export function StressEnginePublicPage() {
           {copy.back}
         </Link>
         <nav aria-label="Stress Engine links">
-          <StressAccountGate className={styles.actionButton} language={language}>
+          <Link className={styles.actionButton} href="#what-you-get">
             {copy.navPrimary}
-          </StressAccountGate>
+          </Link>
           <Link href="#methodology">{copy.navSecondary}</Link>
         </nav>
       </header>
@@ -174,12 +192,29 @@ export function StressEnginePublicPage() {
         <h2>{copy.subtitle}</h2>
         <span>{copy.body}</span>
         <div className={styles.heroActions}>
-          <StressAccountGate className={styles.actionButton} language={language}>
+          <Link className={styles.actionButton} href="#what-you-get">
             {copy.primary}
-          </StressAccountGate>
+          </Link>
           <Link href="#methodology">{copy.secondary}</Link>
         </div>
         <small>{copy.disclaimer}</small>
+      </section>
+
+      <section className={styles.explainer} id="what-you-get">
+        <div>
+          <p>{copy.metricsLabel}</p>
+          <h2>{copy.explainerTitle}</h2>
+          <span>{copy.explainerBody}</span>
+        </div>
+        <ol>
+          {copy.steps.map(([title, body], index) => (
+            <li key={title}>
+              <em>{String(index + 1).padStart(2, "0")}</em>
+              <strong>{title}</strong>
+              <span>{body}</span>
+            </li>
+          ))}
+        </ol>
       </section>
 
       <section className={styles.metrics} aria-label={copy.metricsLabel}>
@@ -239,7 +274,7 @@ export function StressEnginePublicPage() {
         <h2>{copy.ctaTitle}</h2>
         <p>{copy.ctaBody}</p>
         <StressAccountGate className={styles.ctaButton} language={language}>
-          {copy.primary}
+          {copy.workspaceCta}
         </StressAccountGate>
         <small>{copy.disclaimer}</small>
       </section>

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import styles from "@/app/home-page.module.css";
 import { LANGUAGE_STORAGE_KEY, writeStoredLanguage } from "@/components/language-layer";
-import { StressAccountGate } from "@/components/stress-account-gate";
 
 const COPY = {
   es: {
@@ -38,8 +37,7 @@ const COPY = {
         label: "Riesgo de cartera",
         body: "\u00bfQu\u00e9 tan mal puede salir? Miles de escenarios adversos contra tu cartera real.",
         href: "/stress",
-        requiresAccount: true,
-        cta: "Probar mi cartera",
+        cta: "Ver Stress Engine",
       },
     ],
   },
@@ -73,8 +71,7 @@ const COPY = {
         label: "Portfolio Risk",
         body: "How bad can it get? Thousands of adverse scenarios run against your actual portfolio.",
         href: "/stress",
-        requiresAccount: true,
-        cta: "Run stress test",
+        cta: "See Stress Engine",
       },
     ],
   },
@@ -143,11 +140,7 @@ export function PublicHomeExperience() {
               </>
             );
 
-            return module.requiresAccount ? (
-              <StressAccountGate className={styles.moduleButton} key={module.title} language={language}>
-                {content}
-              </StressAccountGate>
-            ) : (
+            return (
               <Link className={styles.moduleButton} href={module.href} key={module.title}>
                 {content}
               </Link>
