@@ -2,8 +2,11 @@ node_modules
 .next
 .git
 .pytest_cache
+.pytest_tmp
 .playwright-cli
 .claude
+.local_colab_drive
+_local_data
 
 .env
 .env.*
@@ -13,7 +16,12 @@ node_modules
 /output
 /tmp
 /cloud_data
-/artifacts
+/artifacts/*
+!/artifacts/market_simulation/
+!/artifacts/market_simulation/latest/
+!/artifacts/market_simulation/latest/contract.json
+!/artifacts/market_simulation/latest/scenario_bank/
+!/artifacts/market_simulation/latest/scenario_bank/**
 /data
 /datasets
 /analysis
