@@ -149,6 +149,45 @@ test("market simulator can ground covariance and volatility in historical price 
   assert.equal(result.warnings.some((warning) => warning.includes("Real-return covariance was unavailable")), false);
 });
 
+test("market simulator bounds non-PSD covariance fallback outputs", () => {
+  const historicalReturnModel = {
+    source: "test_bad_covariance",
+    matrix: [
+      [1, 0.95, -0.95],
+      [0.95, 1, 0.95],
+      [-0.95, 0.95, 1],
+    ],
+    assetStats: new Map([
+      ["ASML", { sufficient: true, rows: 120, dailyVol: 0.09, dailyMean: 0 }],
+      ["MSFT", { sufficient: true, rows: 120, dailyVol: 0.09, dailyMean: 0 }],
+      ["SGOV", { sufficient: true, rows: 120, dailyVol: 0.09, dailyMean: 0 }],
+    ]),
+    sufficientAssets: 3,
+    includedAssets: 3,
+    realPairCount: 3,
+    fallbackPairCount: 0,
+    limitedHistoryTickers: [],
+    coverageRatio: 1,
+  };
+
+  const result = buildDiffusionMarketSimulation(dashboard, {
+    regime: "crisis",
+    nScenarios: 300,
+    horizonDays: 20,
+    seed: "bad-covariance",
+    historicalReturnModel,
+  });
+
+  assert.equal(Number.isFinite(result.risk.cvar5), true);
+  assert.equal(Number.isFinite(result.risk.worstReturn), true);
+  assert.ok(result.risk.cvar5 >= -0.95);
+  assert.ok(result.risk.worstReturn >= -0.95);
+  assert.ok(result.risk.worstReturn <= 2.5);
+  assert.equal(result.tailContributors.every((row) => Number.isFinite(row.contribution)), true);
+  assert.equal(result.samplePaths.every((path) => Number.isFinite(path.portfolioReturn)), true);
+  assert.equal(result.samplePaths.every((path) => path.cumulativePath.every((value) => Number.isFinite(value) && value >= -0.95 && value <= 2.5)), true);
+});
+
 test("async builder uses provided history without requiring network", async () => {
   const result = await buildDiffusionMarketSimulationAsync(dashboard, {
     regime: "baseline",

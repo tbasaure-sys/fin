@@ -4633,8 +4633,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "risk":
       activeWorkspacePanels = (
         <>
-          <PortfolioPanel language={language} onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
           <StressEnginePanel workspaceId={workspaceId} />
+          <PortfolioPanel compact language={language} onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
           <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
         </>
       );
