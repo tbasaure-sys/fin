@@ -60,9 +60,9 @@ const COPY = {
       },
     ],
     trustEyebrow: "Current validation",
-    trustTitle: "The stress engine is ready. The static book is not.",
+    trustTitle: "Validated for adverse scenario testing.",
     trustBody:
-      "The live engine is the v9.7 point-in-time FHS factor stress bank. It beat the classical baselines on distribution fit, kept correlation quality in line with Gaussian covariance, and covered the walk-forward stress episodes. The separate daily VaR check now uses rolling conditional volatility, so a frozen scenario book is no longer treated as the VaR product.",
+      "The live engine is the v9.7 point-in-time FHS factor stress bank. It beat the classical baselines on distribution fit, kept correlation quality in line with Gaussian covariance, and covered the walk-forward stress episodes. Daily VaR is checked separately with rolling conditional volatility, so this page stays focused on adverse portfolio scenarios.",
     replayTitle: "Walk-forward stress coverage",
     replayBody: "We refit before each cutoff, then check whether the stress book covered the next shock:",
     replayCaveat:
@@ -139,9 +139,9 @@ const COPY = {
       },
     ],
     trustEyebrow: "Validaci\u00f3n actual",
-    trustTitle: "El motor de estr\u00e9s est\u00e1 listo. El libro est\u00e1tico no.",
+    trustTitle: "Validado para probar escenarios adversos.",
     trustBody:
-      "El motor en producci\u00f3n es el banco factorial FHS v9.7 point-in-time. Super\u00f3 a los baselines cl\u00e1sicos en ajuste distribucional, mantuvo calidad de correlaci\u00f3n al nivel de la covarianza Gaussian y cubri\u00f3 los episodios walk-forward de estr\u00e9s. El chequeo diario de VaR ahora usa volatilidad condicional rolling, por eso un libro congelado de escenarios ya no se trata como producto VaR.",
+      "El motor en producci\u00f3n es el banco factorial FHS v9.7 point-in-time. Super\u00f3 a los baselines cl\u00e1sicos en ajuste distribucional, mantuvo calidad de correlaci\u00f3n al nivel de la covarianza Gaussian y cubri\u00f3 los episodios walk-forward de estr\u00e9s. El VaR diario se revisa por separado con volatilidad condicional rolling, as\u00ed esta p\u00e1gina se mantiene enfocada en escenarios adversos de cartera.",
     replayTitle: "Cobertura walk-forward de estr\u00e9s",
     replayBody: "Reentrenamos antes de cada corte y verificamos si el libro de estr\u00e9s cubri\u00f3 el shock siguiente:",
     replayCaveat:

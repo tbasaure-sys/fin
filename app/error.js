@@ -10,8 +10,8 @@ const COPY = {
   en: {
     kicker: "Workspace problem",
     title: "We could not open the workspace.",
-    body: "The public pages are still available. Try again, or return to the Stress Engine presentation before signing in.",
-    retry: "Try again",
+    body: "The workspace needs a clean session. Start from the Stress Engine presentation, then sign in only when you are ready to run your portfolio.",
+    retry: "Reload workspace",
     stress: "Stress Engine",
     home: "Home",
   },
@@ -19,8 +19,8 @@ const COPY = {
     kicker: "Problema de workspace",
     title: "No pudimos abrir el workspace.",
     body:
-      "Las p\u00e1ginas p\u00fablicas siguen disponibles. Intenta de nuevo o vuelve a la presentaci\u00f3n de Stress Engine antes de iniciar sesi\u00f3n.",
-    retry: "Intentar de nuevo",
+      "El workspace necesita una sesi\u00f3n limpia. Parte desde la presentaci\u00f3n de Stress Engine e inicia sesi\u00f3n solo cuando quieras correr tu cartera.",
+    retry: "Recargar workspace",
     stress: "Stress Engine",
     home: "Inicio",
   },
@@ -53,15 +53,15 @@ export default function Error({ error, reset }) {
         <h1>{copy.title}</h1>
         <p className="landing-support">{copy.body}</p>
         <div className="hero-cta-row">
-          <button className="primary-button" onClick={() => reset()}>
-            {copy.retry}
-          </button>
-          <Link className="ghost-button" href="/stress">
+          <Link className="primary-button" href="/stress">
             {copy.stress}
           </Link>
           <Link className="ghost-button" href="/">
             {copy.home}
           </Link>
+          <button className="ghost-button" onClick={() => reset()}>
+            {copy.retry}
+          </button>
         </div>
       </div>
     </main>
