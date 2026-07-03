@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 
 
-DEFAULT_RUN_ID = "factor_ddpm_run_20260702_035744"
+DEFAULT_RUN_ID = "fhs_v9_5_run_20260703_003826"
 SCALE_BPS = 10_000
 DAILY_RETURN_CLIP = (-0.80, 1.50)
 TERMINAL_RETURN_CLIP = (-0.95, 2.50)
@@ -25,7 +25,15 @@ def _write_int16_matrix(path: Path, matrix: np.ndarray) -> None:
     path.write_bytes(np.ascontiguousarray(matrix, dtype="<i2").tobytes(order="C"))
 
 
-def build_bank(input_npz: Path, output_dir: Path, run_id: str) -> dict[str, object]:
+def build_bank(
+    input_npz: Path,
+    output_dir: Path,
+    run_id: str,
+    role: str,
+    served_as_primary: bool,
+    primary_engine: str,
+    disclosure: str,
+) -> dict[str, object]:
     payload = np.load(input_npz, allow_pickle=False)
     symbols = [str(value) for value in payload["columns"].tolist()]
     stress_multipliers = payload["stress_multipliers"].astype(np.float32)
@@ -46,13 +54,10 @@ def build_bank(input_npz: Path, output_dir: Path, run_id: str) -> dict[str, obje
         "schemaVersion": 1,
         "runId": run_id,
         "createdFrom": input_npz.name,
-        "role": "ddpm_research_challenger_overlay_not_primary",
-        "servedAsPrimary": False,
-        "primaryEngine": "historical_return_covariance_v8_calibrated_stress_runtime",
-        "disclosure": (
-            "This deployable bank is an auditable v8 DDPM research overlay. "
-            "It is not the served champion because v8 same-stack/FHS/t-copula baselines beat DDPM out of sample."
-        ),
+        "role": role,
+        "servedAsPrimary": bool(served_as_primary),
+        "primaryEngine": primary_engine,
+        "disclosure": disclosure,
         "scenarioCount": int(base_bps.shape[0]),
         "assetCount": int(base_bps.shape[1]),
         "horizonDays": int(payload["synthetic_returns_base"].shape[1]),
@@ -72,8 +77,8 @@ def build_bank(input_npz: Path, output_dir: Path, run_id: str) -> dict[str, obje
         },
         "notes": [
             "Terminal returns are computed from daily paths after clipping invalid/extreme daily model returns.",
-            "Terminal returns are capped before int16 quantization; use this as a stress overlay, not a standalone price forecast.",
-            "Coverage is limited to the v8 usable asset universe exported by the notebook.",
+            "Terminal returns are capped before int16 quantization; use this as an adverse stress book, not a standalone price forecast.",
+            "Endpoint should serve this bank as primary only when matched portfolio-weight coverage is sufficient.",
         ],
     }
     manifest_path = output_dir / "scenario_bank_manifest.json"
@@ -86,9 +91,27 @@ def main() -> None:
     parser.add_argument("--input", required=True, type=Path, help="Path to synthetic_scenarios.npz")
     parser.add_argument("--output-dir", default=Path("artifacts/market_simulation/latest/scenario_bank"), type=Path)
     parser.add_argument("--run-id", default=DEFAULT_RUN_ID)
+    parser.add_argument("--role", default="fhs_v9_stress_served_primary_when_covered")
+    parser.add_argument("--served-as-primary", action=argparse.BooleanOptionalAction, default=True)
+    parser.add_argument("--primary-engine", default="fhs_v9_stress_factor_bank_projection")
+    parser.add_argument(
+        "--disclosure",
+        default=(
+            "This bank is the deployable PIT FHS stress engine for matched portfolio weight. "
+            "It is an adverse scenario book, not a complete unconditional forecast distribution."
+        ),
+    )
     args = parser.parse_args()
 
-    manifest = build_bank(args.input, args.output_dir, args.run_id)
+    manifest = build_bank(
+        args.input,
+        args.output_dir,
+        args.run_id,
+        args.role,
+        args.served_as_primary,
+        args.primary_engine,
+        args.disclosure,
+    )
     print(json.dumps({
         "outputDir": str(args.output_dir),
         "scenarioCount": manifest["scenarioCount"],

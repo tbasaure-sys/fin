@@ -15,9 +15,9 @@ const COPY = {
     category: "Terminal institucional de análisis de acciones.",
     headline: "Tres módulos. Una decisión.",
     body: "Valora una empresa, encuentra candidatas y pon a prueba tu cartera antes de mover capital.",
-    enter: "Entrar",
     login: "Iniciar sesión",
     footer: "Software de análisis. No es asesoría financiera.",
+    terms: "Términos",
     modules: [
       {
         title: "AURORA",
@@ -36,7 +36,7 @@ const COPY = {
       {
         title: "Stress Engine",
         label: "Riesgo de cartera",
-        body: "¿Qué tan mal puede salir? Miles de crisis simuladas contra tu cartera real.",
+        body: "¿Qué tan mal puede salir? Miles de escenarios adversos contra tu cartera real.",
         href: "/stress",
         requiresAccount: true,
         cta: "Probar mi cartera",
@@ -49,10 +49,10 @@ const COPY = {
     kicker: "BLS Prime",
     category: "Institutional research terminal for equity decisions.",
     headline: "Three modules. One decision.",
-    body: "Institutional equity research terminal for valuation, candidate selection, and portfolio stress testing before capital moves.",
-    enter: "Enter",
+    body: "Value companies, surface candidates, and stress test a real portfolio before capital moves.",
     login: "Login",
     footer: "Research software. Not financial advice.",
+    terms: "Terms",
     modules: [
       {
         title: "AURORA",
@@ -71,7 +71,7 @@ const COPY = {
       {
         title: "Stress Engine",
         label: "Portfolio Risk",
-        body: "How bad can it get? Thousands of simulated crises run against your actual portfolio.",
+        body: "How bad can it get? Thousands of adverse scenarios run against your actual portfolio.",
         href: "/stress",
         requiresAccount: true,
         cta: "Run stress test",
@@ -91,7 +91,7 @@ function getInitialLanguage() {
   return window.navigator.language?.toLowerCase().startsWith("en") ? "en" : "es";
 }
 
-export function PublicHomeExperience({ brand }) {
+export function PublicHomeExperience() {
   const [language, setLanguage] = useState("es");
   const [resolved, setResolved] = useState(false);
   const copy = COPY[language];
@@ -157,7 +157,7 @@ export function PublicHomeExperience({ brand }) {
 
         <footer className={styles.footer}>
           <span>{copy.footer}</span>
-          <Link href="/terms">Terms</Link>
+          <Link href="/terms">{copy.terms}</Link>
         </footer>
       </section>
     </main>

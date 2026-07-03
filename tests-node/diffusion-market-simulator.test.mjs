@@ -57,30 +57,33 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.universe.length, 3);
   assert.ok(result.risk.var5 < 0);
   assert.ok(result.risk.cvar5 <= result.risk.var5);
-  assert.equal(result.validation.historicalReplay.coverageLabel, "Floor 3/3");
-  assert.equal(result.validation.historicalReplay.methodologyValidated, false);
-  assert.equal(result.validation.historicalReplay.methodologyStatus, "unconditional_stress_floor");
-  assert.equal(result.validation.baselineComparison.championModel, "gaussian_factor_same_calibration_stack");
-  assert.equal(result.validation.baselineComparison.sameStackChampion, true);
+  assert.equal(result.validation.historicalReplay.coverageLabel, "3/3");
+  assert.equal(result.validation.historicalReplay.methodologyValidated, true);
+  assert.equal(result.validation.historicalReplay.methodologyStatus, "stress_refit_validated");
+  assert.equal(result.validation.baselineComparison.championModel, "fhs_v9_stress");
+  assert.equal(result.validation.baselineComparison.sameStackChampion, false);
+  assert.equal(result.validation.baselineComparison.stressEngineChampion, true);
   assert.equal(result.validation.baselineComparison.ddpmResearchChampion, false);
-  assert.ok(result.validation.baselineComparison.ddpmVsChampionMmdRatio > 8);
+  assert.ok(result.validation.baselineComparison.stressVsSameStackMmdRatio < 1);
   assert.equal(result.validation.baselineComparison.readyForEndpoint, true);
+  assert.equal(result.validation.baselineComparison.readyForStressEndpoint, true);
   assert.ok(result.diagnostics.correlationFidelity > 0.75);
   assert.ok(result.tailContributors.length > 0);
   assert.equal(result.scenarioBankOverlay.servedAsPrimary, false);
-  assert.equal(result.scenarioBankOverlay.role, "ddpm_research_challenger_overlay_not_primary");
-  assert.ok(result.scenarioBankOverlay.warnings.some((warning) => warning.includes("not the served champion")));
-  assert.equal(result.deployment.status, "v8_calibrated_factor_stress_engine");
+  assert.equal(result.scenarioBankOverlay.role, "fhs_v9_stress_served_primary_when_covered");
+  assert.equal(result.deployment.status, "v9_7_fhs_factor_stress_engine_with_conditional_var");
   assert.equal(result.deployment.researchChampion, false);
   assert.equal(result.deployment.ddpmResearchChampion, false);
-  assert.equal(result.deployment.sameStackChampion, true);
+  assert.equal(result.deployment.sameStackChampion, false);
+  assert.equal(result.deployment.stressEngineChampion, true);
   assert.equal(result.deployment.readyForEndpoint, true);
-  assert.equal(result.deployment.runtime.servedEngine, "same_stack_gaussian_factor_stress_engine");
+  assert.equal(result.deployment.readyForStressEndpoint, true);
+  assert.equal(result.deployment.runtime.servedEngine, "fhs_v9_stress_factor_bank_projection");
   assert.equal(result.deployment.runtime.trainedCheckpointServed, false);
   assert.equal(result.deployment.requestPolicy.policyApplied, "aggregated_to_minimum");
 });
 
-test("scenario bank overlay projects matched v8 bank tickers without becoming the primary engine", () => {
+test("scenario bank serves matched v9 bank tickers as the primary stress engine", () => {
   const result = buildDiffusionMarketSimulation(bankCoveredDashboard, {
     regime: "crisis",
     nScenarios: 300,
@@ -90,9 +93,9 @@ test("scenario bank overlay projects matched v8 bank tickers without becoming th
 
   assert.equal(result.scenarioBankOverlay.available, true);
   assert.equal(result.scenarioBankOverlay.status, "available");
-  assert.equal(result.scenarioBankOverlay.servedAsPrimary, false);
+  assert.equal(result.scenarioBankOverlay.servedAsPrimary, true);
   assert.equal(result.scenarioBankOverlay.returnSet, "stress");
-  assert.equal(result.scenarioBankOverlay.sourceRunId, "factor_ddpm_run_20260702_035744");
+  assert.equal(result.scenarioBankOverlay.sourceRunId, "fhs_v9_7_run_20260703_023947");
   assert.equal(result.scenarioBankOverlay.scenarioCount, 5000);
   assert.equal(result.scenarioBankOverlay.matchedWeightCoverage, 1);
   assert.deepEqual(result.scenarioBankOverlay.missingAssets, []);
@@ -100,7 +103,8 @@ test("scenario bank overlay projects matched v8 bank tickers without becoming th
   assert.ok(result.scenarioBankOverlay.risk.cvar5 <= result.scenarioBankOverlay.risk.var5);
   assert.ok(result.scenarioBankOverlay.tailContributors.length > 0);
   assert.equal(result.inputSources.scenarioBankOverlay.available, true);
-  assert.equal(result.inputSources.scenarioBankOverlay.servedAsPrimary, false);
+  assert.equal(result.inputSources.scenarioBankOverlay.servedAsPrimary, true);
+  assert.equal(result.diagnostics.sampler, "v9 PIT FHS factor scenario bank projection");
 });
 
 function buildSyntheticPriceHistory() {
@@ -177,7 +181,7 @@ test("crisis regime is harsher than baseline with the same portfolio", () => {
   assert.ok(crisis.risk.probabilityLoss >= baseline.risk.probabilityLoss);
 });
 
-test("non-stress requests are aggregated to the v8 minimum without stress book", () => {
+test("non-stress requests are aggregated to the v9 minimum without stress book", () => {
   const result = buildDiffusionMarketSimulation(dashboard, {
     regime: "baseline",
     nScenarios: 250,
@@ -190,7 +194,9 @@ test("non-stress requests are aggregated to the v8 minimum without stress book",
   assert.equal(result.deployment.requestPolicy.minimumNScenarios, 2000);
   assert.equal(result.deployment.requestPolicy.policyApplied, "aggregated_to_minimum");
   assert.equal(result.deployment.scorecard.ready_for_endpoint, true);
+  assert.equal(result.deployment.scorecard.ready_for_stress_endpoint, true);
   assert.equal(result.deployment.scorecard.research_champion, false);
   assert.equal(result.deployment.scorecard.ddpm_research_champion, false);
-  assert.equal(result.deployment.scorecard.same_stack_champion, true);
+  assert.equal(result.deployment.scorecard.same_stack_champion, false);
+  assert.equal(result.deployment.scorecard.stress_engine_champion, true);
 });
