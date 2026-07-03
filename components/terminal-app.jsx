@@ -4472,7 +4472,7 @@ function isSettledLedgerItem(item) {
   return hasDecisionSignal(item) && Boolean(item?.occurredAt || item?.title || item?.summary);
 }
 
-function ComplianceNotice() {
+function ComplianceNotice({ copy }) {
   return (
     <section className={styles.legalNotice}>
       <div>
@@ -4481,7 +4481,7 @@ function ComplianceNotice() {
           Este espacio ayuda a ordenar caja, contexto de portafolio e investigaciÃ³n. No reemplaza asesorÃ­a individual de inversiÃ³n, impuestos o legal.
         </p>
       </div>
-          <Link className={styles.secondaryLink} href="/terms">{copy.terms}</Link>
+      <Link className={styles.secondaryLink} href="/terms">{copy.terms}</Link>
     </section>
   );
 }
@@ -5221,7 +5221,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             />
           </section>
 
-          <ComplianceNotice />
+          <ComplianceNotice copy={shellCopy} />
 
           <section className={styles.mainColumn}>
           <div className={styles.workspaceStageHeader}>

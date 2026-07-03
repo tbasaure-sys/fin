@@ -35,7 +35,13 @@ export function middleware(request) {
     return NextResponse.redirect(new URL("/valuation-os-lab", request.url));
   }
 
-  if ((pathname === "/app" || pathname.startsWith("/app/") || pathname === "/legacy") && !hasSession) {
+  if ((pathname === "/app" || pathname.startsWith("/app/")) && !hasSession) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search || ""}`);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (pathname === "/legacy" && !hasSession) {
     return NextResponse.redirect(new URL("/valuation-os-lab", request.url));
   }
 
