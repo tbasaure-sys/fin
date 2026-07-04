@@ -24,6 +24,22 @@ test("parsePortfolioUpdatePayload requires a trade instruction", () => {
   );
 });
 
+test("parsePortfolioUpdatePayload accepts explicit portfolio cash events", () => {
+  assert.deepEqual(parsePortfolioUpdatePayload({
+    cashEvent: {
+      eventType: "Deposit",
+      amountUsd: "2500",
+      note: "monthly funding",
+    },
+  }), {
+    cashEvent: {
+      eventType: "deposit",
+      amountUsd: 2500,
+      note: "monthly funding",
+    },
+  });
+});
+
 test("parseFinancePlanPayload normalizes monthly cashflow fields", () => {
   const payload = parseFinancePlanPayload({
     monthlyIncome: "10000",

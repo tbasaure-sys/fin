@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import {
   buildHistoryPerformanceMetrics,
   buildHistorySeries,
+  signedCashLedgerExternalFlowUsd,
 } from "../lib/server/private-portfolio.js";
 
 test("portfolio history computes TWR after external flows instead of raw value growth", () => {
@@ -30,4 +31,11 @@ test("portfolio history computes TWR after external flows instead of raw value g
   assert.equal(Number.isFinite(metrics.moneyWeightedReturn), true);
   assert.equal(metrics.performanceMethod, "time_weighted_external_flow_adjusted");
   assert.equal(metrics.externalFlowCount, 1);
+});
+
+test("cash ledger treats trades as internal and deposits or withdrawals as external flows", () => {
+  assert.equal(signedCashLedgerExternalFlowUsd({ event_type: "buy", amount_usd: -1000 }), 0);
+  assert.equal(signedCashLedgerExternalFlowUsd({ event_type: "sell", amount_usd: 500 }), 0);
+  assert.equal(signedCashLedgerExternalFlowUsd({ event_type: "deposit", amount_usd: 250 }), 250);
+  assert.equal(signedCashLedgerExternalFlowUsd({ event_type: "withdrawal", amount_usd: -75 }), -75);
 });
