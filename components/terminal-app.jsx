@@ -1836,6 +1836,8 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
   const concentration = portfolioXray.concentration || {};
   const recoveryShare = portfolioXray.recoveryShare || "-";
   const fragileShare = portfolioXray.fragileShare || "-";
+  const performanceIsFlowAdjusted = String(analytics.performanceMethod || "").includes("external_flow");
+  const performanceMethodLabel = performanceIsFlowAdjusted ? "TWR ajustado por flujos" : "TWR sin flujos registrados";
 
   return (
     <section className={styles.panel}>
@@ -1857,12 +1859,12 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
 
       <div className={styles.metricsGrid}>
         <MetricTile
-          detail={hasHoldings ? (analytics.hasPerformanceHistory ? "Basado en fotos guardadas; no ajusta aportes o retiros." : "Valor actual contra costo base guardado.") : "Agrega al menos una posición primero."}
-          label={hasHoldings && analytics.hasPerformanceHistory ? "Cambio anualizado observado" : "Retorno desde costo base"}
+          detail={hasHoldings ? (analytics.hasPerformanceHistory ? performanceMethodLabel : "Valor actual contra costo base guardado.") : "Agrega al menos una posición primero."}
+          label={hasHoldings && analytics.hasPerformanceHistory ? "Retorno anualizado" : "Retorno desde costo base"}
           value={hasHoldings ? (analytics.hasPerformanceHistory ? analytics.annualReturnLabel : currentGainLabel) : "Sin posiciones"}
         />
         <MetricTile
-          detail={hasHoldings && analytics.historySessions ? `${analytics.historySessions} observaciones guardadas` : "El historial empieza cuando las posiciones quedan conectadas."}
+          detail={hasHoldings && analytics.historySessions ? `${analytics.historySessions} observaciones · ${performanceMethodLabel}` : "El historial empieza cuando las posiciones quedan conectadas."}
           label="Desde inicio del seguimiento"
           value={hasHoldings ? (analytics.totalReturnLabel || "Historial limitado") : "Esperando"}
         />
@@ -2081,6 +2083,8 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
   const transactions = safeList(portfolio.transactions);
   const hasHoldings = holdings.length > 0;
   const chartSeries = hasHoldings ? filterPortfolioSeries(portfolio?.charts?.growthComparison, range) : [];
+  const performanceIsFlowAdjusted = String(analytics.performanceMethod || "").includes("external_flow");
+  const performanceMethodLabel = performanceIsFlowAdjusted ? "TWR ajustado por flujos" : "TWR sin flujos registrados";
   const returnBreakdown = hasHoldings ? (portfolio?.returns || {}) : {};
   const portfolioXray = xray || {};
   const concentration = portfolioXray.concentration || {};
@@ -2152,14 +2156,14 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           <div className={styles.portfolioSectionHead}>
             <div>
               <p className={styles.kicker}>Historial</p>
-              <h3>Histórico guardado vs {analytics.benchmarkSymbol || "SPY"}</h3>
+              <h3>{performanceMethodLabel} vs {analytics.benchmarkSymbol || "SPY"}</h3>
             </div>
             <RangeTabs language={language} onChange={onRangeChange} value={range} />
           </div>
           <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
           <p className={styles.supportText}>
             {analytics.hasPerformanceHistory
-              ? `Serie basada en ${analytics.historySessions} fotos guardadas del valor de cartera. Los aportes y retiros se muestran como historial de valor, no como TWR puro.`
+              ? `Serie basada en ${analytics.historySessions} fotos guardadas. ${performanceIsFlowAdjusted ? `Ajusta ${analytics.externalFlowCount || 0} flujo${analytics.externalFlowCount === 1 ? "" : "s"} externo${analytics.externalFlowCount === 1 ? "" : "s"}.` : "No hay aportes o retiros registrados en el periodo."}${analytics.moneyWeightedReturnLabel ? ` MWR/XIRR: ${analytics.moneyWeightedReturnLabel}.` : ""}`
               : "Conecta posiciones y guarda más fotos para construir una trayectoria comparable."}
           </p>
         </section>
