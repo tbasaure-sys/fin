@@ -55,6 +55,8 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.inputSources.realReturnData, false);
   assert.equal(result.inputSources.covarianceSource, "limited_history_structural_fallback");
   assert.equal(result.universe.length, 3);
+  assert.equal(result.universe.find((row) => row.ticker === "SGOV")?.assetClass, "cash_like");
+  assert.ok(result.universe.find((row) => row.ticker === "SGOV")?.dailyVol <= 0.002);
   assert.ok(result.risk.var5 < 0);
   assert.ok(result.risk.cvar5 <= result.risk.var5);
   assert.equal(result.validation.historicalReplay.coverageLabel, "3/3");
@@ -81,6 +83,33 @@ test("diffusion market simulator builds crisis scenarios with risk metrics", () 
   assert.equal(result.deployment.runtime.servedEngine, "fhs_v9_stress_factor_bank_projection");
   assert.equal(result.deployment.runtime.trainedCheckpointServed, false);
   assert.equal(result.deployment.requestPolicy.policyApplied, "aggregated_to_minimum");
+});
+
+test("market simulator includes up to 24 runtime holdings and classifies defensive assets", () => {
+  const holdings = Array.from({ length: 30 }, (_, index) => ({
+    ticker: index === 0 ? "SGOV" : index === 1 ? "TLT" : `T${index + 1}`,
+    sector: index === 0 ? "Cash" : index === 1 ? "Treasury" : "Technology",
+    weightValue: 1 / 30,
+    riskScore: 3,
+  }));
+
+  const result = buildDiffusionMarketSimulation({
+    workspace_summary: { id: "large-book" },
+    modules: { portfolio: { holdings } },
+  }, {
+    regime: "crisis",
+    nScenarios: 300,
+    horizonDays: 20,
+    seed: "large-book",
+  });
+
+  assert.equal(result.universe.length, 24);
+  assert.equal(result.inputSources.maxRuntimeUniverse, 24);
+  assert.equal(result.inputSources.sourceHoldings, 30);
+  assert.match(result.inputSources.universePolicy, /Top 24 holdings/);
+  assert.equal(result.universe.find((row) => row.ticker === "SGOV")?.assetClass, "cash_like");
+  assert.equal(result.universe.find((row) => row.ticker === "TLT")?.assetClass, "fixed_income");
+  assert.ok(result.universe.find((row) => row.ticker === "TLT")?.dailyVol > result.universe.find((row) => row.ticker === "SGOV")?.dailyVol);
 });
 
 test("scenario bank serves matched v9 bank tickers as the primary stress engine", () => {

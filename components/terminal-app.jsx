@@ -280,11 +280,13 @@ function PortfolioChart({ series, benchmarkSymbol }) {
   const portfolioPoints = rows.filter((row) => Number.isFinite(row.portfolio));
   const benchmarkPoints = rows.filter((row) => Number.isFinite(row.benchmark));
 
-  if (portfolioPoints.length < 2 && benchmarkPoints.length < 2) {
+  const usablePointCount = Math.max(portfolioPoints.length, benchmarkPoints.length);
+
+  if (usablePointCount < 3) {
     return (
       <div className={styles.chartEmptyState}>
-        <strong>La trayectoria del portafolio aparecerá aquí</strong>
-        <p>Se necesitan fotos guardadas antes de dibujar rendimiento, diferencia contra referencia y dirección de tendencia.</p>
+        <strong>El historial real todavía es corto</strong>
+        <p>Se necesitan al menos tres fotos válidas del valor de cartera antes de dibujar una trayectoria. La serie no inventa retornos faltantes ni convierte huecos en cero.</p>
       </div>
     );
   }
@@ -1931,7 +1933,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
             {!hasHoldings
               ? "No se muestra rendimiento personal hasta conectar posiciones. Así evitamos que una referencia compartida parezca tu retorno."
               : analytics.hasPerformanceHistory
-              ? `El rendimiento se basa en ${analytics.historySessions} fotos guardadas del portafolio.`
+              ? `La serie usa ${analytics.historySessions} fotos guardadas del valor de cartera. Es historial de valor, no TWR puro.`
               : hasCostBasisReturn
                 ? `La ganancia actual es ${currentGainLabel}. El historial aún se está armando, por eso la referencia sigue limitada.`
                 : "Falta costo base. La app necesita costo guardado o más historial antes de confiar en retornos."}
@@ -2150,7 +2152,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           <div className={styles.portfolioSectionHead}>
             <div>
               <p className={styles.kicker}>Historial</p>
-              <h3>Valor normalizado vs {analytics.benchmarkSymbol || "SPY"}</h3>
+              <h3>Histórico guardado vs {analytics.benchmarkSymbol || "SPY"}</h3>
             </div>
             <RangeTabs language={language} onChange={onRangeChange} value={range} />
           </div>
