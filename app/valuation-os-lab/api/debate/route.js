@@ -4,9 +4,11 @@ import { buildValuationContextPack } from "../../../../lib/valuation-context-pac
 import { buildValuationCatalystPack } from "../../../../lib/valuation-catalyst-pack.js";
 import { normalizeValuationDecision, validateValuationDecision } from "../../../../lib/valuation-decision-schema.js";
 import { renderValuationMemo } from "../../../../lib/valuation-memo.js";
+import { buildPreRevenueValuation } from "../../../../lib/valuation-pre-revenue.js";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+// runtime_mode: deterministic committee with optional single LLM call.
 
 const CACHE_TTL_MS = 10 * 60 * 1000;
 const DEFAULT_COOLDOWN_MS = 3 * 60 * 1000;
@@ -192,6 +194,8 @@ function safeContext(body) {
     quality: numberOrNull(body?.quality),
     probabilityAbovePrice: numberOrNull(body?.probabilityAbovePrice),
   };
+  const preRevenueExtras = body?.preRevenueExtras && typeof body.preRevenueExtras === "object" ? body.preRevenueExtras : {};
+  baseContext.preRevenueExtras = preRevenueExtras;
   const clientCatalystPack = body?.catalystPack && typeof body.catalystPack === "object" ? body.catalystPack : null;
   const catalystPack =
     clientCatalystPack?.version === "valuation_catalyst_pack_v1"
@@ -866,10 +870,51 @@ async function callFinalOrchestrator(ctx, agents, verdict, config) {
   }
 }
 
+function runtimeModeDescriptor(finalOrchestrator) {
+  if (!finalOrchestrator.enabled) {
+    return {
+      id: "no_api",
+      label: "Modo sin API",
+      detail: "Debate 100% determinístico local. No se necesita ninguna API de LLM: el veredicto del comité es completo y usable.",
+    };
+  }
+  if (finalOrchestrator.status === "ok") {
+    return {
+      id: "llm_full",
+      label: "Modo LLM completo",
+      detail: "Veredicto determinístico + una sola llamada opcional de revisión final al LLM (presupuesto máximo: 1 llamada).",
+    };
+  }
+  if (finalOrchestrator.status === "rate_limited") {
+    return {
+      id: "llm_degraded",
+      label: "Modo LLM degradado",
+      detail: `El veredicto determinístico está completo. La revisión LLM quedó en pausa por límite de uso${finalOrchestrator.retry_after_ms ? ` (reintento en ~${Math.ceil(finalOrchestrator.retry_after_ms / 60000)} min)` : ""}. Nada del análisis depende de esa llamada.`,
+    };
+  }
+  if (finalOrchestrator.status === "error") {
+    return {
+      id: "llm_degraded",
+      label: "Modo LLM degradado",
+      detail: "La llamada opcional al LLM falló; se muestra el veredicto determinístico completo.",
+    };
+  }
+  return {
+    id: "deterministic",
+    label: "Modo determinístico",
+    detail: "Veredicto local determinístico; la revisión LLM es opcional y no corrió en esta pasada.",
+  };
+}
+
 async function buildDebate(ctx) {
   const researchability = researchabilityAssessment(ctx);
   const quickKill = quickKillChecks(ctx, researchability);
   const agents = buildAgents(ctx, researchability);
+  const preRevenue = buildPreRevenueValuation({
+    drivers: ctx.drivers,
+    snapshot: ctx.snapshot,
+    extras: ctx.preRevenueExtras || {},
+  });
   const deterministic = normalizeValuationDecision(committeeVerdict(ctx, agents, researchability, quickKill));
   const deterministicValidation = validateValuationDecision(deterministic);
   const config = llmConfig();
@@ -962,6 +1007,7 @@ async function buildDebate(ctx) {
   return {
     version: "valuation_os_committee_v2",
     runtime: "deterministic_investment_committee_plus_single_optional_orchestrator",
+    runtime_mode: runtimeModeDescriptor(finalOrchestrator),
     call_budget: finalOrchestrator.call_budget,
     context_pack: contextPackSummary,
     catalyst_pack: catalystPackSummary,
@@ -970,6 +1016,7 @@ async function buildDebate(ctx) {
     researchability,
     quick_kill: quickKill,
     agents,
+    pre_revenue: preRevenue,
     deterministic_verdict: deterministic,
     final_orchestrator: finalOrchestrator,
   };

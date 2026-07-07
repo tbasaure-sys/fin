@@ -117,7 +117,11 @@ const WORKSPACE_SHELL_COPY = {
     refreshing: "Refreshing...",
     refresh: "Refresh",
     logout: "Log out",
-    syncedStatus: ({ count, date }) => `Portfolio synced | ${count} positions | data as of ${date}`,
+    syncedStatus: ({ count, date }) => {
+      const label = String(date || "");
+      const looksLikeStatus = /waiting|update|unavailable|no update|esperando|sin /i.test(label);
+      return `Portfolio synced | ${count} positions | ${looksLikeStatus || !label ? label || "no update time" : `data as of ${label}`}`;
+    },
     nav: {
       today: ["Today", "Read and act", "What should I do today?", "Live read and the move that deserves attention now.", "Start"],
       risk: ["My biggest risk", "Portfolio stress", "What dominates my portfolio?", "Performance, concentration, and real diversification under stress.", "Audit"],
@@ -145,11 +149,15 @@ const WORKSPACE_SHELL_COPY = {
     subtitle: "Lectura clara. Una decisión a la vez.",
     userFallback: "Usuario",
     liveFallback: "En vivo",
-    noUpdate: "Sin hora de actualizacion",
+    noUpdate: "Sin hora de actualización",
     refreshing: "Actualizando...",
     refresh: "Actualizar",
     logout: "Cerrar sesión",
-    syncedStatus: ({ count, date }) => `Portafolio sincronizado | ${count} posiciones | datos al ${date}`,
+    syncedStatus: ({ count, date }) => {
+      const label = String(date || "");
+      const looksLikeStatus = /waiting|update|unavailable|esperando|actualizaci|sin /i.test(label);
+      return `Portafolio sincronizado | ${count} posiciones | ${looksLikeStatus || !label ? label || "sin hora de actualización" : `datos al ${label}`}`;
+    },
     nav: {
       today: ["Hoy", "Leer y actuar", "¿Qué hago hoy?", "La lectura en vivo y el movimiento que merece atención ahora.", "Inicio"],
       risk: ["Mi mayor riesgo", "Stress de cartera", "¿Qué domina mi portafolio?", "Rendimiento, concentración y diversificación real bajo stress.", "Auditar"],
@@ -229,13 +237,12 @@ function RangeTabs({ value, onChange, language = "es" }) {
     : { "1W": "1S", ALL: "Inicio" };
 
   return (
-    <div className={styles.rangeTabs} role="tablist" aria-label="Rango de cartera">
+    <div className={styles.rangeTabs} role="group" aria-label="Rango de cartera">
       {PORTFOLIO_RANGES.map((option) => (
         <button
           key={option}
           className={styles.rangeButton}
-          role="tab"
-          aria-selected={value === option}
+          aria-pressed={value === option}
           data-active={value === option}
           onClick={() => onChange(option)}
           type="button"
@@ -735,6 +742,12 @@ function PortfolioPositionTable({ holdings }) {
   const rows = [...safeList(holdings)]
     .sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left))
     .slice(0, 14);
+  const hasPortfolioDayData = rows.some((holding) => {
+    const dayPnl = Number(holding?.dayPnlUsd);
+    const dayReturn = Number(holding?.dayReturn);
+    return (Number.isFinite(dayPnl) && Math.abs(dayPnl) > 0.005)
+      || (Number.isFinite(dayReturn) && Math.abs(dayReturn) > 0.00005);
+  });
 
   return (
     <section className={styles.portfolioTablePanel}>
@@ -745,30 +758,46 @@ function PortfolioPositionTable({ holdings }) {
         </div>
       </div>
       {rows.length ? (
-        <div className={styles.portfolioMatrix}>
-          <div className={styles.portfolioMatrixHead}>
-            <span>Nombre</span>
-            <span>Tema</span>
-            <span>Peso</span>
-            <span>Valor</span>
-            <span>Ganancia</span>
-            <span>Acción</span>
+        <div aria-label="Resumen de posiciones de cartera" className={styles.portfolioMatrix} role="table">
+          <div className={styles.portfolioMatrixHead} role="row">
+            <span role="columnheader">Nombre</span>
+            <span role="columnheader">Tema</span>
+            <span role="columnheader">Peso</span>
+            <span role="columnheader">Valor</span>
+            <span role="columnheader">Hoy $</span>
+            <span role="columnheader">Hoy %</span>
+            <span role="columnheader">Ganancia</span>
+            <span role="columnheader">Acción</span>
           </div>
-          {rows.map((holding) => (
-            <article className={styles.portfolioMatrixRow} key={`portfolio-matrix-${holding.ticker}`}>
-              <div>
-                <strong>{holding.ticker}</strong>
-                <span>{holdingName(holding)}</span>
-              </div>
-              <span>{cleanPortfolioLabel(holding.theme || holding.sector || holding.region, "-")}</span>
-              <strong>{holding.weight || compactPercent(holdingWeightValue(holding))}</strong>
-              <strong>{compactCurrency(holding.marketValueUsd)}</strong>
-              <strong data-tone={signedMoneyTone(holding.unrealizedPnlUsd)}>
-                {compactCurrency(holding.unrealizedPnlUsd)}
-              </strong>
-              <span>{holdingActionLabel(holding)}</span>
-            </article>
-          ))}
+          <div role="rowgroup">
+            {rows.map((holding) => {
+              const dayPnlValue = Number(holding.dayPnlUsd);
+              const hasDayPnl = hasPortfolioDayData && Number.isFinite(dayPnlValue);
+              const dayReturnValue = Number(holding.dayReturn);
+              const hasDayReturn = hasPortfolioDayData && Number.isFinite(dayReturnValue);
+              return (
+                <article className={styles.portfolioMatrixRow} key={`portfolio-matrix-${holding.ticker}`} role="row">
+                  <div role="cell">
+                    <strong>{holding.ticker}</strong>
+                    <span>{holdingName(holding)}</span>
+                  </div>
+                  <span role="cell">{cleanPortfolioLabel(holding.theme || holding.sector || holding.region, "-")}</span>
+                  <strong role="cell">{holding.weight || compactPercent(holdingWeightValue(holding))}</strong>
+                  <strong role="cell">{compactCurrency(holding.marketValueUsd)}</strong>
+                  <strong data-tone={signedMoneyTone(dayPnlValue)} role="cell">
+                    {hasDayPnl ? formatCurrency(dayPnlValue) : "-"}
+                  </strong>
+                  <strong data-tone={signedMoneyTone(dayReturnValue)} role="cell">
+                    {hasDayReturn ? (holding.dayReturnLabel || compactPercent(dayReturnValue, true)) : "-"}
+                  </strong>
+                  <strong data-tone={signedMoneyTone(holding.unrealizedPnlUsd)} role="cell">
+                    {compactCurrency(holding.unrealizedPnlUsd)}
+                  </strong>
+                  <span role="cell">{holdingActionLabel(holding)}</span>
+                </article>
+              );
+            })}
+          </div>
         </div>
       ) : (
         <p className={styles.emptyCopy}>Agrega posiciones para ver pesos, valor y revisión.</p>
@@ -914,7 +943,7 @@ function PortfolioMoversPanel({ holdings }) {
     <section className={styles.portfolioMiniPanel}>
       <div className={styles.portfolioMiniHead}>
         <p className={styles.kicker}>Hoy</p>
-        <strong>{movers.length || "-"}</strong>
+        <strong>{movers.length ? movers.length : "Sin dato"}</strong>
       </div>
       {movers.length ? (
         <div className={styles.portfolioCompactList}>
@@ -1454,6 +1483,23 @@ function PhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             </div>
           </div>
 
+          {analysis && (analysis?.current?.conditional_fragility_flag || Number(analysis?.current?.phantom_share) >= 0.92) ? (
+            <div className={styles.phantomNarrative} data-tone="bad">
+              <div>
+                <p className={styles.kicker}>Fragilidad condicional</p>
+                <h3>Diversificación sin validar en zona de riesgo</h3>
+              </div>
+              <div className={styles.phantomNarrativeCopy}>
+                <p>
+                  Más del 92% de la amplitud visible de este portafolio no ha sido validada por stress. Según la evidencia del paper de Phantom Diversification, dentro de regímenes calmos ese umbral marca un salto en la probabilidad de drawdowns futuros de mediano plazo (de ~2% a ~11% para caídas de 15% en 63 días). No significa que la crisis ya empezó: significa que la diversificación aparente es menos confiable como mitigación de riesgo justo ahora.
+                </p>
+                <p>
+                  Acción concreta: revisa la tabla de abajo y reemplaza los nombres marcados como solapamiento por exposiciones con drivers distintos, o reduce el tamaño de la apuesta latente común antes de agregar posiciones nuevas.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
           {safeList(analysis?.diagnostics?.proxied_holdings).length ? (
             <div className={styles.phantomNarrative}>
               <div>
@@ -1713,7 +1759,7 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
             </>
           ) : (
             <div className={styles.phantomSimpleEmpty}>
-              <strong>Un clic, tres numeros.</strong>
+              <strong>Un clic, tres números.</strong>
               <p>Apuestas visibles, apuestas probadas y porcentaje de diversificación todavía en riesgo.</p>
             </div>
           )}
@@ -2083,8 +2129,14 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
   const transactions = safeList(portfolio.transactions);
   const hasHoldings = holdings.length > 0;
   const chartSeries = hasHoldings ? filterPortfolioSeries(portfolio?.charts?.growthComparison, range) : [];
+  const performanceReport = portfolio?.performanceReport || null;
+  const performanceIsReconstructed = String(analytics.performanceMethod || "") === "reconstructed_holdings_history";
   const performanceIsFlowAdjusted = String(analytics.performanceMethod || "").includes("external_flow");
-  const performanceMethodLabel = performanceIsFlowAdjusted ? "TWR ajustado por flujos" : "TWR sin flujos registrados";
+  const performanceMethodLabel = performanceIsReconstructed
+    ? "Trayectoria reconstruida (posiciones + precios reales)"
+    : performanceIsFlowAdjusted ? "TWR ajustado por flujos" : "TWR sin flujos registrados";
+  const performanceCopy = PERFORMANCE_READING_COPY[language] || PERFORMANCE_READING_COPY.es;
+  const performanceInputActions = performanceReport?.inputs?.actions || [];
   const returnBreakdown = hasHoldings ? (portfolio?.returns || {}) : {};
   const portfolioXray = xray || {};
   const concentration = portfolioXray.concentration || {};
@@ -2095,6 +2147,14 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
   const totalPnlLabel = Number.isFinite(Number(analytics.totalPnlInclRealizedDividendsUsd))
     ? formatCurrency(analytics.totalPnlInclRealizedDividendsUsd)
     : (returnBreakdown?.totalPnlLabel || "-");
+  const currentPerformanceValue = Number.isFinite(Number(analytics.totalReturnInclDividends))
+    ? Number(analytics.totalReturnInclDividends)
+    : Number.isFinite(Number(analytics.unrealizedReturn))
+      ? Number(analytics.unrealizedReturn)
+      : null;
+  const currentPerformanceLabel = currentPerformanceValue !== null
+    ? formatSignedPct(currentPerformanceValue)
+    : null;
   const topHolding = [...holdings].sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left))[0] || null;
   const reviewQueue = buildReviewQueue(holdings);
   const highRiskCount = reviewQueue.filter((holding) => Number(holding.riskScore) >= 4).length;
@@ -2102,7 +2162,13 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
     const value = Number(holding?.dayPnlUsd);
     return sum + (Number.isFinite(value) ? value : 0);
   }, 0);
-  const hasDayPnl = holdings.some((holding) => Number.isFinite(Number(holding?.dayPnlUsd)));
+  const hasDayPnl = holdings.some((holding) => {
+    const dayPnlValue = Number(holding?.dayPnlUsd);
+    const dayReturnValue = Number(holding?.dayReturn);
+    return (Number.isFinite(dayPnlValue) && Math.abs(dayPnlValue) > 0.005)
+      || (Number.isFinite(dayReturnValue) && Math.abs(dayReturnValue) > 0.00005);
+  });
+  const performanceSeriesWarning = analytics.performanceSeriesWarning;
 
   return (
     <section className={styles.panel}>
@@ -2133,13 +2199,13 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
       <div className={styles.portfolioSummaryRail}>
         <MetricTile detail="Suma de posiciones." label="Valor" value={totalValueLabel} />
         <MetricTile
-          detail={activeCostBasisLabel !== "-" ? `Base ${activeCostBasisLabel}` : "Falta costo base."}
-          label="Resultado"
-          tone={signedMoneyTone(analytics.totalPnlInclRealizedDividendsUsd)}
-          value={totalPnlLabel}
+          detail={currentPerformanceLabel ? `${totalPnlLabel} sobre base ${activeCostBasisLabel}.` : "Falta costo base para calcular performance."}
+          label="Performance"
+          tone={signedMoneyTone(currentPerformanceValue)}
+          value={currentPerformanceLabel || totalPnlLabel}
         />
         <MetricTile
-          detail={hasDayPnl ? "Precio diario cargado." : "Sin precio diario."}
+          detail={hasDayPnl ? "Movimiento intradía cargado." : "Sin dato intradía útil."}
           label="Hoy"
           tone={dayPnl < 0 ? "bad" : dayPnl > 0 ? "good" : "neutral"}
           value={hasDayPnl ? formatCurrency(dayPnl) : "-"}
@@ -2156,16 +2222,110 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           <div className={styles.portfolioSectionHead}>
             <div>
               <p className={styles.kicker}>Historial</p>
-              <h3>{performanceMethodLabel} vs {analytics.benchmarkSymbol || "SPY"}</h3>
+              <h3>{analytics.hasPerformanceHistory ? `${performanceMethodLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "Performance actual"}</h3>
             </div>
             <RangeTabs language={language} onChange={onRangeChange} value={range} />
           </div>
           <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
           <p className={styles.supportText}>
             {analytics.hasPerformanceHistory
-              ? `Serie basada en ${analytics.historySessions} fotos guardadas. ${performanceIsFlowAdjusted ? `Ajusta ${analytics.externalFlowCount || 0} flujo${analytics.externalFlowCount === 1 ? "" : "s"} externo${analytics.externalFlowCount === 1 ? "" : "s"}.` : "No hay aportes o retiros registrados en el periodo."}${analytics.moneyWeightedReturnLabel ? ` MWR/XIRR: ${analytics.moneyWeightedReturnLabel}.` : ""}`
-              : "Conecta posiciones y guarda más fotos para construir una trayectoria comparable."}
+              ? performanceIsReconstructed
+                ? `Serie reconstruida desde tus posiciones (fecha de compra + costo base) con precios históricos reales. No depende de fotos guardadas. El benchmark invierte los mismos aportes en las mismas fechas.`
+                : `Serie basada en ${analytics.historySessions} fotos guardadas. ${performanceIsFlowAdjusted ? `Ajusta ${analytics.externalFlowCount || 0} flujo${analytics.externalFlowCount === 1 ? "" : "s"} externo${analytics.externalFlowCount === 1 ? "" : "s"}.` : "No hay aportes o retiros registrados en el periodo."}${analytics.moneyWeightedReturnLabel ? ` MWR/XIRR: ${analytics.moneyWeightedReturnLabel}.` : ""}`
+              : performanceSeriesWarning
+                ? "Ocultamos la trayectoria histórica porque los snapshots alternan de forma artificial. La performance actual sigue disponible desde costo base."
+              : currentPerformanceLabel
+                ? `Performance actual: ${currentPerformanceLabel} (${totalPnlLabel}). ${performanceInputActions.length ? performanceInputActions[0] : "Todavía no hay trayectoria histórica comparable."}`
+                : performanceInputActions.length
+                  ? performanceInputActions.join(" ")
+                  : "Conecta posiciones con costo base para mostrar performance actual; la fecha de compra permite reconstruir trayectoria y benchmark sin fotos guardadas."}
           </p>
+          {performanceReport?.explanation?.length ? (
+            <div className={styles.performanceExplainer}>
+              <strong>Lectura profesional</strong>
+              <span>{performanceReport.explanation.join(" ")}</span>
+            </div>
+          ) : null}
+          {performanceReport?.reconstructed || performanceReport?.current?.winners?.length || performanceReport?.current?.losers?.length ? (
+            <div className={styles.performanceBenchmarkStrip} aria-label="Métricas profesionales de performance">
+              {performanceReport?.reconstructed ? (
+                <>
+                  <span>
+                    <strong>Anualizado</strong>
+                    <em>{performanceReport.reconstructed.annualizedReturnLabel || "-"}</em>
+                  </span>
+                  <span>
+                    <strong>Drawdown máx.</strong>
+                    <em>{performanceReport.reconstructed.maxDrawdownLabel || "-"}</em>
+                  </span>
+                  <span>
+                    <strong>Volatilidad</strong>
+                    <em>{performanceReport.reconstructed.annualVolatilityLabel || "-"}</em>
+                  </span>
+                  <span>
+                    <strong>vs {performanceReport.benchmarkSymbol || "SPY"}</strong>
+                    <em data-tone={signedMoneyTone(performanceReport.reconstructed.benchmarkSpread)}>{performanceReport.reconstructed.benchmarkSpreadLabel || "-"}</em>
+                  </span>
+                </>
+              ) : null}
+              {performanceReport?.current?.winners?.[0] ? (
+                <span>
+                  <strong>Mejor aporte</strong>
+                  <em>{performanceReport.current.winners[0].ticker} {performanceReport.current.winners[0].contributionLabel || performanceReport.current.winners[0].returnLabel || ""}</em>
+                </span>
+              ) : null}
+              {performanceReport?.current?.losers?.[0] ? (
+                <span>
+                  <strong>Peor aporte</strong>
+                  <em>{performanceReport.current.losers[0].ticker} {performanceReport.current.losers[0].contributionLabel || performanceReport.current.losers[0].returnLabel || ""}</em>
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+          {analytics.hasPerformanceHistory ? (
+            <div className={styles.performanceExplainer}>
+              <strong>{performanceCopy.title}</strong>
+              <span>
+                {performanceCopy.body({
+                  benchmark: analytics.benchmarkSymbol || "SPY",
+                  externalFlows: analytics.externalFlowCount,
+                  moneyWeighted: analytics.moneyWeightedReturnLabel,
+                  sessions: analytics.historySessions,
+                  totalReturn: analytics.totalReturnLabel,
+                })}
+              </span>
+            </div>
+          ) : performanceSeriesWarning ? (
+            <div className={styles.performanceExplainer}>
+              <strong>Trayectoria en revisión</strong>
+              <span>
+                La serie de snapshots no pasa control de calidad para TWR. Mostramos la performance actual, pero no usamos esa trayectoria para comparar contra benchmark hasta corregir los datos históricos.
+              </span>
+            </div>
+          ) : currentPerformanceLabel ? (
+            <div className={styles.performanceExplainer}>
+              <strong>Qué significa esta performance</strong>
+              <span>
+                Es el resultado acumulado de las posiciones cargadas contra su costo base. No es TWR ni compara contra benchmark todavía; sirve para saber si la cartera actual gana o pierde dinero antes de tener suficientes fotos históricas.
+              </span>
+            </div>
+          ) : null}
+          {analytics.hasBenchmarkHistory ? (
+            <div className={styles.performanceBenchmarkStrip} aria-label="Comparación contra referencia de mercado">
+              <span>
+                <strong>{analytics.benchmarkSymbol || "SPY"}</strong>
+                <em>{analytics.benchmarkReturnLabel || "-"}</em>
+              </span>
+              <span>
+                <strong>Diferencia</strong>
+                <em data-tone={signedMoneyTone(analytics.excessReturn)}>{analytics.excessReturnLabel || "-"}</em>
+              </span>
+              <span>
+                <strong>Lectura</strong>
+                <em>{Number(analytics.excessReturn) >= 0 ? "La cartera supera la referencia en este rango." : "La cartera queda bajo la referencia en este rango."}</em>
+              </span>
+            </div>
+          ) : null}
         </section>
 
         <PortfolioDonutPanel holdings={holdings} topHolding={topHolding} />
@@ -2534,6 +2694,24 @@ const STRESS_ENGINE_COPY = {
     error: "Could not run the stress test. Check that the workspace has holdings, then try again.",
     answer: ({ regimeLabel, cvar5, horizonDays }) =>
       `In a simulated ${regimeLabel}, this portfolio loses ${cvar5} in the worst 5% of the next ${horizonDays} days.`,
+    soWhat: "What this means for you",
+    soWhatHighTitle: "Do not add risk casually.",
+    soWhatHighBody: ({ lossValue, horizonDays, topDriver }) =>
+      `The bad-case loss is large for a ${horizonDays}-day window${lossValue ? `: about ${lossValue} on the current portfolio` : ""}. The warning is not that this will happen; it is that the portfolio has little room for a correlated shock${topDriver ? `, with ${topDriver} leading the damage` : ""}.`,
+    soWhatMediumTitle: "Risk can stay, but sizing needs a reason.",
+    soWhatMediumBody: ({ lossValue, horizonDays, topDriver }) =>
+      `The portfolio can absorb normal noise, but the stress run still shows meaningful downside over ${horizonDays} days${lossValue ? `, roughly ${lossValue} in bad scenarios` : ""}${topDriver ? `. Start by reviewing ${topDriver}` : ""}.`,
+    soWhatLowTitle: "The portfolio is not flashing red in this setup.",
+    soWhatLowBody: ({ horizonDays }) =>
+      `This run does not show an urgent stress warning over ${horizonDays} days. Keep watching concentration and rerun the test before adding a large new position.`,
+    warningLabel: "Warning",
+    actionLabel: "Next action",
+    highAction: "Pause new risk, review the top contributors, and reduce or hedge only if the thesis has not changed.",
+    mediumAction: "Keep the position plan selective. Add only where the new idea reduces concentration or clearly earns its risk.",
+    lowAction: "No immediate defensive move from this stress run. Recheck after price moves, new deposits, or portfolio changes.",
+    dollarsAtRisk: "Approx. bad-case dollars",
+    topDrivers: "Main stress drivers",
+    notForecast: "This is an adverse scenario read, not a forecast.",
     testAgainst: "Test against",
     overNext: "Over the next",
     severity: "Severity",
@@ -2611,7 +2789,25 @@ const STRESS_ENGINE_COPY = {
     running: "Simulando 5.000 escenarios...",
     error: "No se pudo correr el stress test. Revisa que el workspace tenga posiciones e intenta de nuevo.",
     answer: ({ regimeLabel, cvar5, horizonDays }) =>
-      `En un ${regimeLabel} simulado, esta cartera pierde ${cvar5} en el peor 5% de los próximos ${horizonDays} días.`,
+      `En un escenario simulado de ${String(regimeLabel || "").toLowerCase()}, esta cartera pierde ${cvar5} en el peor 5% de los próximos ${horizonDays} días.`,
+    soWhat: "Qué significa para ti",
+    soWhatHighTitle: "No conviene sumar riesgo sin una razón muy fuerte.",
+    soWhatHighBody: ({ lossValue, horizonDays, topDriver }) =>
+      `La pérdida de caso malo es grande para una ventana de ${horizonDays} días${lossValue ? `: cerca de ${lossValue} sobre la cartera actual` : ""}. La advertencia no es que esto vaya a pasar; es que la cartera tiene poco margen ante un shock correlacionado${topDriver ? `, con ${topDriver} liderando el daño` : ""}.`,
+    soWhatMediumTitle: "El riesgo puede seguir, pero el tamaño necesita justificación.",
+    soWhatMediumBody: ({ lossValue, horizonDays, topDriver }) =>
+      `La cartera puede tolerar ruido normal, pero el stress todavía muestra una pérdida potencial relevante en ${horizonDays} días${lossValue ? `, cerca de ${lossValue} en escenarios malos` : ""}${topDriver ? `. Parte revisando ${topDriver}` : ""}.`,
+    soWhatLowTitle: "Esta corrida no prende una alerta roja.",
+    soWhatLowBody: ({ horizonDays }) =>
+      `Esta simulación no muestra una alerta urgente de stress en ${horizonDays} días. Mantén vigilancia sobre concentración y vuelve a correrla antes de sumar una posición grande.`,
+    warningLabel: "Advertencia",
+    actionLabel: "Siguiente acción",
+    highAction: "Pausar nuevo riesgo, revisar los principales contribuidores y reducir o cubrir solo si la tesis ya no compensa el daño.",
+    mediumAction: "Mantener una postura selectiva. Agregar solo donde la nueva idea reduzca concentración o pague claramente el riesgo.",
+    lowAction: "No hay una acción defensiva inmediata desde esta corrida. Revisa de nuevo tras movimientos de precio, aportes o cambios de cartera.",
+    dollarsAtRisk: "Dólares aprox. en riesgo",
+    topDrivers: "Principales fuentes de stress",
+    notForecast: "Es una lectura de escenario adverso, no un pronóstico.",
     testAgainst: "Probar contra",
     overNext: "Durante los próximos",
     severity: "Severidad",
@@ -2629,7 +2825,7 @@ const STRESS_ENGINE_COPY = {
     lossChancePlain: "Con qué frecuencia la cartera simulada termina bajo cero.",
     drawdownPlain: "Con qué frecuencia la ruta cae al menos 10% desde un máximo.",
     worstPathPlain: "El peor resultado terminal de la corrida.",
-    loss: "Chance de pérdida",
+    loss: "Probabilidad de pérdida",
     scenarios: "escenarios",
     damageTitle: "Qué duele más en los escenarios malos",
     tailContribution: "empuja {value} de la pérdida de cola",
@@ -2759,7 +2955,31 @@ function StressDistributionStrip({ copy, risk }) {
   );
 }
 
-function StressEnginePanel({ workspaceId }) {
+function buildStressUserMeaning({ copy, risk, tailContributors, portfolioValueUsd, horizonDays }) {
+  const cvar = parseDisplayPercent(risk?.cvar5Label ?? risk?.cvar5);
+  const lossChance = parseDisplayPercent(risk?.probabilityLossLabel ?? risk?.probabilityLoss);
+  const drawdownChance = parseDisplayPercent(risk?.probabilityDrawdown10Label ?? risk?.probabilityDrawdown10);
+  const topDriver = safeList(tailContributors)[0]?.ticker || "";
+  const topDrivers = safeList(tailContributors).slice(0, 3).map((item) => item.ticker).filter(Boolean).join(", ");
+  const lossValue = Number.isFinite(Number(portfolioValueUsd)) && Number.isFinite(cvar)
+    ? formatCurrency(Math.abs(cvar) * Number(portfolioValueUsd))
+    : "";
+  const isHigh = (Number.isFinite(cvar) && cvar <= -0.25)
+    || (Number.isFinite(drawdownChance) && drawdownChance >= 0.6)
+    || (Number.isFinite(lossChance) && lossChance >= 0.55);
+  const isMedium = !isHigh && ((Number.isFinite(cvar) && cvar <= -0.12) || (Number.isFinite(lossChance) && lossChance >= 0.35));
+  const tone = isHigh ? "bad" : isMedium ? "warn" : "good";
+  const title = isHigh ? copy.soWhatHighTitle : isMedium ? copy.soWhatMediumTitle : copy.soWhatLowTitle;
+  const body = isHigh
+    ? copy.soWhatHighBody({ lossValue, horizonDays, topDriver })
+    : isMedium
+      ? copy.soWhatMediumBody({ lossValue, horizonDays, topDriver })
+      : copy.soWhatLowBody({ horizonDays });
+  const action = isHigh ? copy.highAction : isMedium ? copy.mediumAction : copy.lowAction;
+  return { action, body, lossValue, title, tone, topDrivers };
+}
+
+function StressEnginePanel({ portfolioValueUsd, workspaceId }) {
   const [regime, setRegime] = useState("crisis");
   const [horizonDays, setHorizonDays] = useState(20);
   const [severity, setSeverity] = useState("standard");
@@ -2825,6 +3045,13 @@ function StressEnginePanel({ workspaceId }) {
     cvar5: risk.cvar5Label || "-",
     horizonDays,
   });
+  const userMeaning = buildStressUserMeaning({
+    copy,
+    horizonDays,
+    portfolioValueUsd,
+    risk,
+    tailContributors,
+  });
 
   return (
     <section className={styles.panel} data-no-translate id="stress-engine-panel">
@@ -2839,6 +3066,16 @@ function StressEnginePanel({ workspaceId }) {
         </button>
       </div>
 
+      {simulation?.inputSources?.portfolioBasis === "demo_fallback" ? (
+        <article className={styles.stressMeaning} data-tone="warn">
+          <div>
+            <p className={styles.kicker}>{language === "es" ? "Cartera demo" : "Demo portfolio"}</p>
+            <h3>{language === "es" ? "Este resultado no es tu riesgo real" : "This result is not your real risk"}</h3>
+            <span>{simulation.inputSources.portfolioBasisLabel}</span>
+          </div>
+        </article>
+      ) : null}
+
       <article className={styles.stressAnswer}>
         <p>{answer}</p>
         <strong>{risk.cvar5Label || "-"}</strong>
@@ -2848,9 +3085,35 @@ function StressEnginePanel({ workspaceId }) {
         </span>
       </article>
 
+      <article className={styles.stressMeaning} data-tone={userMeaning.tone}>
+        <div>
+          <p className={styles.kicker}>{copy.soWhat}</p>
+          <h3>{userMeaning.title}</h3>
+          <span>{userMeaning.body}</span>
+        </div>
+        <div className={styles.stressMeaningGrid}>
+          <div>
+            <span>{copy.warningLabel}</span>
+            <strong>{copy.notForecast}</strong>
+          </div>
+          <div>
+            <span>{copy.dollarsAtRisk}</span>
+            <strong>{userMeaning.lossValue || "-"}</strong>
+          </div>
+          <div>
+            <span>{copy.topDrivers}</span>
+            <strong>{userMeaning.topDrivers || "-"}</strong>
+          </div>
+          <div>
+            <span>{copy.actionLabel}</span>
+            <strong>{userMeaning.action}</strong>
+          </div>
+        </div>
+      </article>
+
       <div className={styles.stressChipGrid}>
         <PlainMetric definitionKey="probabilityLoss" language={language} plain={copy.lossChancePlain} techLabel={copy.loss} tone="warn" value={risk.probabilityLossLabel || "-"} />
-        <PlainMetric definitionKey="drawdown" language={language} plain={copy.drawdownPlain} techLabel="Drawdown -10%" tone="bad" value={risk.probabilityDrawdown10Label || "-"} />
+        <PlainMetric definitionKey="drawdown" language={language} plain={copy.drawdownPlain} techLabel={language === "es" ? "Caída -10%" : "Drawdown -10%"} tone="bad" value={risk.probabilityDrawdown10Label || "-"} />
         <PlainMetric definitionKey="var1" language={language} plain={copy.worstPathPlain} techLabel="Worst simulated path" tone="bad" value={risk.worstReturnLabel || "-"} />
       </div>
 
@@ -3032,6 +3295,19 @@ function StressEnginePanel({ workspaceId }) {
   );
 }
 
+const PERFORMANCE_READING_COPY = {
+  en: {
+    title: "How to read this chart",
+    body: ({ totalReturn, benchmark, moneyWeighted, sessions, externalFlows }) =>
+      `The line is the portfolio's tracked return from saved snapshots${totalReturn ? ` (${totalReturn})` : ""}${benchmark ? ` versus ${benchmark}` : ""}. MWR/XIRR${moneyWeighted ? ` (${moneyWeighted})` : ""} measures capital timing and cash flows, so do not compare it one-for-one with the line. ${sessions ? `${sessions} snapshots are included.` : ""}${externalFlows ? ` External flows recorded: ${externalFlows}.` : ""}`,
+  },
+  es: {
+    title: "Cómo leer este gráfico",
+    body: ({ totalReturn, benchmark, moneyWeighted, sessions, externalFlows }) =>
+      `La línea muestra el retorno seguido desde fotos guardadas${totalReturn ? ` (${totalReturn})` : ""}${benchmark ? ` contra ${benchmark}` : ""}. MWR/XIRR${moneyWeighted ? ` (${moneyWeighted})` : ""} mide el momento de entrada del capital y los flujos, así que no se compara uno a uno con la línea. ${sessions ? `${sessions} fotos incluidas.` : ""}${externalFlows ? ` Flujos externos registrados: ${externalFlows}.` : ""}`,
+  },
+};
+
 function HoldingsPanel({
   portfolioModule,
   holdingDraft,
@@ -3041,7 +3317,8 @@ function HoldingsPanel({
   onTradeInstructionChange,
   onSubmitTrade,
   pendingTrade,
-  tradeError,
+  holdingDraftError,
+  tradeInstructionError,
 }) {
   const portfolio = portfolioModule || {};
   const holdings = safeList(portfolio.holdings);
@@ -3050,6 +3327,12 @@ function HoldingsPanel({
   const targetValueInput = String(holdingDraft?.targetValueUsd || "");
   const priceValue = String(holdingDraft?.price || "");
   const tickerValue = String(holdingDraft?.ticker || "");
+  const hasHoldingsDayData = holdings.some((holding) => {
+    const dayPnl = Number(holding?.dayPnlUsd);
+    const dayReturn = Number(holding?.dayReturn);
+    return (Number.isFinite(dayPnl) && Math.abs(dayPnl) > 0.005)
+      || (Number.isFinite(dayReturn) && Math.abs(dayReturn) > 0.00005);
+  });
   const draftReady = Boolean(
     tickerValue &&
     ((sizingMode === "shares" && quantityValue !== "") || (sizingMode === "value" && targetValueInput !== "")),
@@ -3067,27 +3350,37 @@ function HoldingsPanel({
       </div>
 
       {holdings.length ? (
-        <div className={styles.tableShell}>
+        <div aria-label="Posiciones conectadas" className={styles.tableShell} role="table">
           <div className={styles.tableHeader} role="row">
-            <span>Ticker</span>
-            <span>Tema</span>
-            <span>Peso</span>
-            <span>Valor</span>
-            <span>Acción</span>
+            <span role="columnheader">Ticker</span>
+            <span role="columnheader">Tema</span>
+            <span role="columnheader">Peso</span>
+            <span role="columnheader">Valor</span>
+            <span role="columnheader">Hoy $</span>
+            <span role="columnheader">Hoy %</span>
+            <span role="columnheader">Acción</span>
           </div>
-          <div className={styles.tableBody}>
-            {holdings.map((holding) => (
-              <article className={styles.tableRow} key={`holding-row-${holding.ticker}`} role="row">
-                <div className={styles.tablePrimary}>
-                  <strong>{holding.ticker}</strong>
-                  <span>{holdingName(holding)}</span>
-                </div>
-                <span>{cleanPortfolioLabel(holding.theme || holding.thesisBucket || holding.industry || holding.region, "Sin tema")}</span>
-                <strong>{holding.weight || "-"}</strong>
-                <strong>{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "-"}</strong>
-                <span>{holdingActionLabel(holding)}</span>
-              </article>
-            ))}
+          <div className={styles.tableBody} role="rowgroup">
+            {holdings.map((holding) => {
+              const dayPnlValue = Number(holding.dayPnlUsd);
+              const hasDayPnl = hasHoldingsDayData && Number.isFinite(dayPnlValue);
+              const dayReturnValue = Number(holding.dayReturn);
+              const hasDayReturn = hasHoldingsDayData && Number.isFinite(dayReturnValue);
+              return (
+                <article className={styles.tableRow} key={`holding-row-${holding.ticker}`} role="row">
+                  <div className={styles.tablePrimary} role="cell">
+                    <strong>{holding.ticker}</strong>
+                    <span>{holdingName(holding)}</span>
+                  </div>
+                  <span role="cell">{cleanPortfolioLabel(holding.theme || holding.thesisBucket || holding.industry || holding.region, "Sin tema")}</span>
+                  <strong role="cell">{holding.weight || "-"}</strong>
+                  <strong role="cell">{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "-"}</strong>
+                  <strong data-tone={signedMoneyTone(dayPnlValue)} role="cell">{hasDayPnl ? formatCurrency(dayPnlValue) : "-"}</strong>
+                  <strong data-tone={signedMoneyTone(dayReturnValue)} role="cell">{hasDayReturn ? (holding.dayReturnLabel || compactPercent(dayReturnValue, true)) : "-"}</strong>
+                  <span role="cell">{holdingActionLabel(holding)}</span>
+                </article>
+              );
+            })}
           </div>
         </div>
       ) : (
@@ -3119,11 +3412,10 @@ function HoldingsPanel({
           </label>
           <div className={styles.fieldStack}>
             <span>Modo de entrada</span>
-            <div className={styles.segmentedControl} role="tablist" aria-label="Modo de entrada de posición">
+            <div className={styles.segmentedControl} role="group" aria-label="Modo de entrada de posición">
               <button
                 className={styles.segmentButton}
-                role="tab"
-                aria-selected={sizingMode === "shares"}
+                aria-pressed={sizingMode === "shares"}
                 data-active={sizingMode === "shares"}
                 onClick={() => onHoldingDraftChange("sizing", "shares")}
                 type="button"
@@ -3132,8 +3424,7 @@ function HoldingsPanel({
               </button>
               <button
                 className={styles.segmentButton}
-                role="tab"
-                aria-selected={sizingMode === "value"}
+                aria-pressed={sizingMode === "value"}
                 data-active={sizingMode === "value"}
                 onClick={() => onHoldingDraftChange("sizing", "value")}
                 type="button"
@@ -3171,7 +3462,7 @@ function HoldingsPanel({
           </button>
           <p className={styles.supportHint}>Esta ruta actualiza la posición final directamente, sin intentar inferir una nota de operación.</p>
         </div>
-        {tradeError ? <p className={styles.errorText}>{tradeError}</p> : null}
+        {holdingDraftError ? <p className={styles.errorText}>{holdingDraftError}</p> : null}
       </form>
 
       <form
@@ -3188,6 +3479,7 @@ function HoldingsPanel({
         </div>
         <div className={styles.tradeForm}>
           <input
+            aria-label="Nota de compra o venta en lenguaje simple"
             className={styles.textInput}
             onChange={(event) => onTradeInstructionChange(event.target.value)}
             placeholder="compre 100 USD de NVDA"
@@ -3198,7 +3490,7 @@ function HoldingsPanel({
             {pendingTrade ? "Actualizando..." : "Actualizar desde texto"}
           </button>
         </div>
-        {tradeError ? <p className={styles.errorText}>{tradeError}</p> : null}
+        {tradeInstructionError ? <p className={styles.errorText}>{tradeInstructionError}</p> : null}
       </form>
     </section>
   );
@@ -3530,9 +3822,9 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
             Candidatos filtrados con reglas revisables. Descarta cálculos que usen datos posteriores a la fecha de decisión.
           </p>
         </div>
-        <div className={styles.segmentedControl} role="tablist" aria-label="Modo de candidatos">
-          <button aria-selected={mode === "ranked"} data-active={mode === "ranked"} onClick={() => setMode("ranked")} role="tab" type="button">Ranking</button>
-          <button aria-selected={mode === "refusal"} data-active={mode === "refusal"} onClick={() => setMode("refusal")} role="tab" type="button">Señales rechazadas</button>
+        <div className={styles.segmentedControl} role="group" aria-label="Modo de candidatos">
+          <button aria-pressed={mode === "ranked"} data-active={mode === "ranked"} onClick={() => setMode("ranked")} type="button">Ranking</button>
+          <button aria-pressed={mode === "refusal"} data-active={mode === "refusal"} onClick={() => setMode("refusal")} type="button">Señales rechazadas</button>
         </div>
       </div>
 
@@ -4545,7 +4837,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   });
   const pendingSectionScrollRef = useRef(null);
   const [tradeInstruction, setTradeInstruction] = useState("");
-  const [tradeError, setTradeError] = useState("");
+  const [holdingDraftError, setHoldingDraftError] = useState("");
+  const [tradeInstructionError, setTradeInstructionError] = useState("");
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -4643,7 +4936,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "risk":
       activeWorkspacePanels = (
         <>
-          <StressEnginePanel workspaceId={workspaceId} />
+          <StressEnginePanel portfolioValueUsd={portfolioModule?.analytics?.totalValueUsd} workspaceId={workspaceId} />
           <PortfolioPanel compact language={language} onRangeChange={setPortfolioRange} portfolioModule={portfolioModule} range={portfolioRange} xray={dashboard?.xray} />
           <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
         </>
@@ -4723,7 +5016,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             onTradeInstructionChange={setTradeInstruction}
             pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
             portfolioModule={portfolioModule}
-            tradeError={tradeError}
+            holdingDraftError={holdingDraftError}
+            tradeInstructionError={tradeInstructionError}
             tradeInstruction={tradeInstruction}
           />
         </>
@@ -4787,6 +5081,16 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     window.addEventListener("hashchange", applyHashSection);
     return () => window.removeEventListener("hashchange", applyHashSection);
   }, []);
+
+  useEffect(() => {
+    if (!portfolioModule || holdingsCount > 0 || activeWorkspaceSection !== "risk") return;
+
+    pendingSectionScrollRef.current = "holdings";
+    setActiveWorkspaceSection("holdings");
+    if (typeof window !== "undefined" && window.location.hash !== "#holdings") {
+      window.history.replaceState(null, "", "#holdings");
+    }
+  }, [activeWorkspaceSection, holdingsCount, portfolioModule]);
 
   useEffect(() => {
     if (pendingSectionScrollRef.current !== activeWorkspaceSection) return;
@@ -4858,7 +5162,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     setPendingKey(key);
     setError("");
     if (!String(key).startsWith("trade:")) {
-      setTradeError("");
+      setHoldingDraftError("");
+      setTradeInstructionError("");
     }
 
     try {
@@ -4944,7 +5249,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     if (!workspaceId || !ticker || !hasSizedValue) return;
 
     setPendingKey(`trade:${ticker}`);
-    setTradeError("");
+    setHoldingDraftError("");
     setError("");
 
     try {
@@ -4961,7 +5266,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Posiciones guardadas.");
       resetHoldingDraft();
     } catch (requestError) {
-      setTradeError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la posición."));
+      setHoldingDraftError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la posición."));
     } finally {
       setPendingKey(null);
     }
@@ -4972,7 +5277,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     if (!workspaceId || !trimmed) return;
 
     setPendingKey(`trade:${trimmed}`);
-    setTradeError("");
+    setTradeInstructionError("");
     setError("");
 
     try {
@@ -4985,7 +5290,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Posiciones guardadas.");
       setTradeInstruction("");
     } catch (requestError) {
-      setTradeError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la operación."));
+      setTradeInstructionError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la operación."));
     } finally {
       setPendingKey(null);
     }
@@ -5005,7 +5310,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         });
         return parseResponse(response);
       },
-      `${action.title} moved into escrow.`,
+      `${action.title} quedó en espera para revisar después.`,
     );
   }
 
@@ -5277,7 +5582,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </div>
       </div>
 
-      {isPending ? <div className={styles.pendingNote}>Aplicando actualizacion...</div> : null}
+      {isPending ? <div className={styles.pendingNote}>Aplicando actualización...</div> : null}
 
       {showChat && (
         <PortfolioChat

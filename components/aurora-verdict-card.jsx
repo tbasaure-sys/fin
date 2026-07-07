@@ -14,8 +14,8 @@ const COPY = {
   es: {
     aria: "Veredicto AURORA",
     reason: "Motivo",
-    nextStep: "Proximo paso",
-    techLabel: "Veredicto de valoracion auditable",
+    nextStep: "Próximo paso",
+    techLabel: "Veredicto de valoración auditable",
   },
 };
 

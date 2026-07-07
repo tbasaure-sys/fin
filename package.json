@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",
@@ -25,6 +25,10 @@
     "snapshots:refresh:dry": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/refresh-live-snapshots.ps1 -SkipGit",
     "snapshots:task:register": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-live-snapshot-task.ps1",
     "snapshots:sync": "node scripts/sync-live-snapshots.mjs",
-    "test:web": "node --conditions=react-server --test tests-node/*.test.mjs"
+    "test:web": "node --conditions=react-server --test tests-node/*.test.mjs",
+    "test:e2e": "playwright test --config tests-e2e/playwright.config.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
   }
 }

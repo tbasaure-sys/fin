@@ -194,7 +194,7 @@ const TEXT_TRANSLATIONS = {
   "Sources": "Fuentes",
   "Changes": "Cambios",
   "Portfolio path will appear here": "La trayectoria del portafolio aparecerá aquí",
-  "Stored snapshots are needed before the app draws performance, benchmark spread, and trend direction.": "Se necesitan snapshots guardados antes de dibujar rendimiento, comparación con benchmark y tendencia.",
+  "Stored snapshots are needed before the app draws a historical path, benchmark spread, and trend direction. Current performance can still be shown from cost basis.": "Se necesitan snapshots guardados antes de dibujar trayectoria histórica, comparación con benchmark y tendencia. La performance actual sí puede mostrarse desde el costo base.",
   "Save holding": "Guardar posición",
   "Saving...": "Guardando...",
   "This path updates the final position directly instead of trying to infer a trade note.": "Esta ruta actualiza la posición final directamente, sin intentar inferir una nota de operación.",
@@ -310,6 +310,13 @@ export function normalizeLanguage(value) {
 
 export function readStoredLanguage() {
   if (typeof window === "undefined") return "en";
+  try {
+    const urlLanguage = new URLSearchParams(window.location.search).get("lang");
+    if (SUPPORTED_LANGUAGES.has(urlLanguage)) {
+      window.localStorage.setItem(LANGUAGE_STORAGE_KEY, urlLanguage);
+      return urlLanguage;
+    }
+  } catch {}
   try {
     const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (SUPPORTED_LANGUAGES.has(stored)) return stored;

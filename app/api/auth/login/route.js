@@ -9,7 +9,7 @@ import {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-function normalizeAuthError(error) {
+function normalizeAuthErrorCode(error) {
   const raw = String(error?.message || error || "");
 
   // Database not configured or unreachable
@@ -21,17 +21,42 @@ function normalizeAuthError(error) {
     raw.includes("password authentication failed") ||
     raw.includes("database") && raw.includes("does not exist") ||
     raw.includes("NeonDbError") ||
-    raw.includes("DATABASE_URL")
+    raw.includes("DATABASE_URL") ||
+    raw.includes("Neon storage must be enabled")
   ) {
-    return "The workspace database is not reachable. Please contact the administrator.";
+    return "service_unavailable";
   }
 
   // Auth secret not set
   if (raw.includes("BLS_PRIME_AUTH_SECRET")) {
-    return "The workspace is not fully configured yet. Please contact the administrator.";
+    return "not_configured";
   }
 
-  return raw || "Could not sign in. Please try again.";
+  if (
+    raw.includes("Enter a valid email address") ||
+    raw.includes("Enter your password") ||
+    raw.includes("at least 8 characters")
+  ) {
+    return "validation";
+  }
+
+  if (raw.includes("already exists")) return "account_exists";
+  if (raw.includes("needs a password")) return "needs_password";
+  if (
+    raw.includes("No account exists") ||
+    raw.includes("Incorrect password")
+  ) {
+    return "invalid_credentials";
+  }
+
+  return "generic";
+}
+
+function safeNextPath(value) {
+  const raw = String(value || "/app");
+  // Solo rutas internas: bloquea "//host" (protocol-relative) y "/\" que algunos
+  // navegadores tratan como inicio de URL absoluta.
+  return raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\") ? raw : "/app";
 }
 
 export async function POST(request) {
@@ -41,11 +66,11 @@ export async function POST(request) {
   const password = String(formData.get("password") || "");
   const intent = String(formData.get("intent") || "signin");
   const language = String(formData.get("lang") || "es") === "en" ? "en" : "es";
-  const next = String(formData.get("next") || "/app");
+  const next = safeNextPath(formData.get("next"));
 
   try {
     const session = await signInWithPassword({ email, name, password, intent });
-    const response = NextResponse.redirect(new URL(next.startsWith("/") ? next : "/app", request.url), 303);
+    const response = NextResponse.redirect(new URL(next, request.url), 303);
     response.cookies.set(
       getSessionCookieName(),
       session.token,
@@ -54,10 +79,10 @@ export async function POST(request) {
     return response;
   } catch (error) {
     const url = new URL("/login", request.url);
-    url.searchParams.set("next", next.startsWith("/") ? next : "/app");
+    url.searchParams.set("next", next);
     url.searchParams.set("intent", intent === "signup" ? "signup" : "signin");
     url.searchParams.set("lang", language);
-    url.searchParams.set("error", normalizeAuthError(error));
+    url.searchParams.set("error", normalizeAuthErrorCode(error));
     return NextResponse.redirect(url, 303);
   }
 }

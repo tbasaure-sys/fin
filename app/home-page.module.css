@@ -148,6 +148,17 @@
   text-transform: uppercase;
 }
 
+.categoryLine {
+  margin: -0.7rem 0 1.15rem;
+  max-width: 38rem;
+  color: var(--paper-faint);
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.45;
+  text-transform: uppercase;
+}
+
 .headline {
   margin: 0;
   max-width: 14ch;

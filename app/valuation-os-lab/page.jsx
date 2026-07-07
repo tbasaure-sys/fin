@@ -473,11 +473,11 @@ function factMoney(value) {
 }
 
 function statusCopy(status) {
-  if (status === "ok") return "Revisión final completa";
-  if (status === "rate_limited") return "Revisión local lista; la revisión final está en pausa por límite de uso";
-  if (status === "error") return "Revisión local lista; falló la revisión final";
-  if (status === "unavailable") return "Revisión local lista; no se requiere llamada externa";
-  return "Revisión local lista";
+  if (status === "ok") return "Modo LLM completo: veredicto determinístico + 1 llamada de revisión final";
+  if (status === "rate_limited") return "Modo LLM degradado: veredicto determinístico completo; revisión LLM en pausa por límite de uso";
+  if (status === "error") return "Modo LLM degradado: veredicto determinístico completo; la llamada LLM falló";
+  if (status === "unavailable") return "Modo sin API: debate 100% determinístico local (no necesita OpenAI)";
+  return "Modo determinístico: veredicto local listo";
 }
 
 function adoptionStatusLabel(status) {
@@ -607,14 +607,14 @@ function operationalVerdict({ missingDrivers, valuationRouter, upside, feasibili
   if (valuationRouter?.abstain) {
     return {
       tier: "ABSTAIN",
-      reason: valuationRouter.decision?.reason || "La mezcla de datos y metodos no da una lectura confiable.",
+      reason: valuationRouter.decision?.reason || "La mezcla de datos y métodos no da una lectura confiable.",
       nextStep: "Revisar fuentes, supuestos y calidad de datos.",
     };
   }
   if (!isFiniteNumber(upside)) {
     return {
       tier: "ABSTAIN",
-      reason: "No hay suficiente informacion para estimar la brecha entre precio y valor.",
+      reason: "No hay suficiente información para estimar la brecha entre precio y valor.",
       nextStep: "Cargar una empresa o completar FCF, precio, WACC y crecimiento.",
     };
   }
@@ -628,8 +628,8 @@ function operationalVerdict({ missingDrivers, valuationRouter, upside, feasibili
   if (feasibility < 0.34 && upside > 0.1) {
     return {
       tier: "RESEARCH",
-      reason: "La brecha de valor sale de una tesis mucho mas optimista que lo que el precio descuenta.",
-      nextStep: "Validar crecimiento, ROIC, margen y reinversion antes de rankearla.",
+      reason: "La brecha de valor sale de una tesis mucho más optimista que lo que el precio descuenta.",
+      nextStep: "Validar crecimiento, ROIC, margen y reinversión antes de rankearla.",
     };
   }
   if (feasibility < 0.34) {
@@ -648,8 +648,8 @@ function operationalVerdict({ missingDrivers, valuationRouter, upside, feasibili
   }
   return {
     tier: "RESEARCH",
-    reason: "La idea tiene elementos interesantes, pero todavia necesita evidencia concreta.",
-    nextStep: "Revisar los puntos criticos antes de darle prioridad.",
+    reason: "La idea tiene elementos interesantes, pero todavía necesita evidencia concreta.",
+    nextStep: "Revisar los puntos críticos antes de darle prioridad.",
   };
 }
 
@@ -677,22 +677,22 @@ function buildOperationalLadder({
   const implied = [
     priceNeedsGrowth
       ? `El precio necesita cerca de ${fmtPct(impliedCagr)} de Revenue CAGR para que la historia cierre.`
-      : `El precio no esta exigiendo crecimiento alto: Revenue CAGR implicito ${fmtPct(impliedCagr)}.`,
+      : `El precio no está exigiendo crecimiento alto: Revenue CAGR implícito ${fmtPct(impliedCagr)}.`,
     `La tesis actual usa ${fmtPct(adjustedDrivers.revenueCagr)} de Revenue CAGR y ${fmtPct(adjustedDrivers.margin)} de Operating margin.`,
     thesisMuchHigherThanPrice
-      ? "La brecha positiva viene de una tesis mucho mas optimista que el precio, no de un precio exigente."
+      ? "La brecha positiva viene de una tesis mucho más optimista que el precio, no de un precio exigente."
       : isFiniteNumber(upside) && upside >= 0
       ? `El valor estimado queda ${fmtPct(upside)} sobre el precio actual.`
-      : `El precio actual ya parece exigir mas que el caso base.`,
+      : `El precio actual ya parece exigir más que el caso base.`,
   ];
 
   const mustTrue = [
     roicBelowHurdle
-      ? `ROIC esta bajo WACC: ${fmtPct(adjustedDrivers.roic)} vs ${fmtPct(adjustedDrivers.wacc)}. Hay que explicar como vuelve a crear valor.`
+      ? `ROIC está bajo WACC: ${fmtPct(adjustedDrivers.roic)} vs ${fmtPct(adjustedDrivers.wacc)}. Hay que explicar cómo vuelve a crear valor.`
       : `ROIC debe mantenerse por encima de WACC: ${fmtPct(adjustedDrivers.roic)} vs ${fmtPct(adjustedDrivers.wacc)}.`,
     reinvestmentHeavy
       ? `La tesis reinvierte casi todo el FCF: ${fmtPct(adjustedDrivers.reinvestment)}. Debe probar retorno incremental alto.`
-      : `La reinversion debe sostener crecimiento sin comerse el FCF: ${fmtPct(adjustedDrivers.reinvestment)} reinvertido.`,
+      : `La reinversión debe sostener crecimiento sin comerse el FCF: ${fmtPct(adjustedDrivers.reinvestment)} reinvertido.`,
     `La ventaja competitiva debe durar cerca de ${fmtValue(adjustedDrivers.moatHalfLife, "yrs")}.`,
   ];
 
@@ -700,25 +700,25 @@ function buildOperationalLadder({
     quality >= 0.62 ? "Datos suficientemente rastreables para una primera lectura." : null,
     adjustedDrivers.thesisQuality >= 0.68 ? "Calidad de tesis por encima del punto medio." : null,
     adjustedDrivers.demandSupply >= 0.65 ? "Oferta/demanda apoya la historia actual." : null,
-    adjustedDrivers.bottleneckPower >= 0.62 ? "Hay senales de escasez o switching cost." : null,
+    adjustedDrivers.bottleneckPower >= 0.62 ? "Hay señales de escasez o switching cost." : null,
   ].filter(Boolean);
 
   const evidenceAgainst = [
-    adjustedDrivers.modelRisk >= 0.4 ? "Desacuerdo alto entre metodos o supuestos." : null,
-    feasibility < 0.5 ? "Factibilidad baja: la tesis necesita validacion antes de rankear." : null,
-    thesisMuchHigherThanPrice ? "La tesis asume mucho mas crecimiento que el precio implicito." : null,
-    roicBelowHurdle ? "ROIC esta por debajo de WACC." : null,
-    reinvestmentHeavy ? "La reinversion consume casi todo el FCF." : null,
-    tripwires.length ? `${tripwires.length} supuestos estan cerca de zona de alerta.` : null,
-    missingDrivers.length ? "Faltan inputs especificos del ticker." : null,
+    adjustedDrivers.modelRisk >= 0.4 ? "Desacuerdo alto entre métodos o supuestos." : null,
+    feasibility < 0.5 ? "Factibilidad baja: la tesis necesita validación antes de rankear." : null,
+    thesisMuchHigherThanPrice ? "La tesis asume mucho más crecimiento que el precio implícito." : null,
+    roicBelowHurdle ? "ROIC está por debajo de WACC." : null,
+    reinvestmentHeavy ? "La reinversión consume casi todo el FCF." : null,
+    tripwires.length ? `${tripwires.length} supuestos están cerca de zona de alerta.` : null,
+    missingDrivers.length ? "Faltan inputs específicos del ticker." : null,
   ].filter(Boolean);
 
   const review = [
     missingDrivers.length ? `Completar: ${missingDrivers.slice(0, 3).join(", ")}.` : null,
-    adjustedDrivers.modelRisk >= 0.35 ? "Revisar por que los metodos discrepan." : null,
-    thesisMuchHigherThanPrice ? "Comprobar si la empresa puede sostener una ruta muy superior a la implicita en precio." : null,
-    roicBelowHurdle ? "Identificar que cambio haria que ROIC vuelva a superar WACC." : null,
-    reinvestmentHeavy ? "Separar reinversion de mantenimiento vs crecimiento real." : null,
+    adjustedDrivers.modelRisk >= 0.35 ? "Revisar por qué los métodos discrepan." : null,
+    thesisMuchHigherThanPrice ? "Comprobar si la empresa puede sostener una ruta muy superior a la implícita en precio." : null,
+    roicBelowHurdle ? "Identificar qué cambio haría que ROIC vuelva a superar WACC." : null,
+    reinvestmentHeavy ? "Separar reinversión de mantenimiento vs crecimiento real." : null,
     adjustedDrivers.demandSupply < 0.62 ? "Buscar evidencia de demanda, capacidad, inventario o pricing." : null,
     liveSnapshot?.coverage?.braveConfigured === false ? "Agregar evidencia externa de noticias o catalizadores." : null,
     valuationRouter?.decision?.reason || null,
@@ -727,7 +727,7 @@ function buildOperationalLadder({
   const breaks = (tripwires.length ? tripwires : []).slice(0, 4).map((item) => item.falsifier);
   if (!breaks.length) {
     breaks.push("Dos reportes seguidos bajo la ruta de crecimiento asumida.");
-    breaks.push("Margen bruto cae mas de 300 bps sin explicacion de mix o pricing.");
+    breaks.push("Margen bruto cae más de 300 bps sin explicación de mix o pricing.");
     breaks.push("ROIC incremental cae bajo WACC.");
   }
 
@@ -1028,7 +1028,7 @@ function EngineConsole({
         ["IRR esperado", fmtPct(expectedIrr)],
       ],
       bullets: [
-        "DCF and ROIC durability are the main checks; other methods show whether the result is fragile.",
+        "DCF y durabilidad de ROIC son los chequeos principales; los otros métodos muestran si el resultado es frágil.",
         `Probability above price: ${fmtPct(distribution.probAbovePrice, 0)}.`,
       ],
     },
@@ -1045,7 +1045,7 @@ function EngineConsole({
         ["Falsificadores", String(tripwires.length)],
       ],
       bullets: [
-        "Use the grid below to see where market expectations become plausible or fragile.",
+        "Usa la grilla de abajo para ver dónde las expectativas del mercado se vuelven plausibles o frágiles.",
         assumptions.wacc ? `WACC queda acotado por la política ${assumptions.industry?.label || "seleccionada"} antes de leer el Reverse DCF.` : null,
         activeFalsifiers[0] || null,
       ],
@@ -1074,14 +1074,14 @@ function EngineConsole({
       plain: "¿La lectura tiene suficientes resultados pasados para ganar confianza?",
       technical: "Combina calidad de datos, desacuerdo, resultados realizados, segmento comparable y revisión final.",
       metrics: [
-        ["Data quality", fmtPct(quality, 0)],
+        ["Calidad de datos", fmtPct(quality, 0)],
         ["Desacuerdo", fmtPct(adjustedDrivers.modelRisk, 0)],
         ["Uso permitido", adoptionStatusLabel(activeCalibrationGate.status)],
         ["Resultados medidos", activeCalibrationGate.evidence?.scoredRecords === undefined ? "Vista previa" : `${activeCalibrationGate.evidence.scoredRecords}/${activeCalibrationGate.evidence.minRecords || "?"}`],
       ],
       bullets: [
-        "The original valuation stays primary until enough past predictions have been scored.",
-        "Calibration is checked by horizon and business type, not only in aggregate.",
+        "La valoración original sigue siendo la primaria hasta que suficientes predicciones pasadas hayan sido evaluadas.",
+        "La calibración se revisa por horizonte y tipo de negocio, no solo en agregado.",
         activeCalibrationGate.memo?.nextStep || "Guardar predicciones y compararlas contra resultados futuros.",
         debate?.final_orchestrator ? statusCopy(debate.final_orchestrator.status) : "Corre la revisión para agregar el veredicto final.",
       ],
@@ -1137,7 +1137,7 @@ function EngineConsole({
           <BulletList items={panel.bullets} />
         </div>
         <div className={styles.engineCard}>
-          <strong>Review status</strong>
+          <strong>Estado de revisión</strong>
           <p>{debateStatus.message || "Corre la revisión final para ver los controles y el veredicto."}</p>
           {debate?.agents?.length ? (
             <div className={styles.agentVotes}>
@@ -1166,14 +1166,49 @@ function EngineConsole({
             <div>
               <span>Revisión final</span>
               <h3>{finalAnalysis?.decision || "Veredicto final"}</h3>
-              <p>{finalAnalysis?.one_line_conclusion || finalAnalysis?.executive_judgment}</p>
+              <p>
+                {finalAnalysis?.one_line_conclusion || finalAnalysis?.executive_judgment}
+                {debate?.runtime_mode?.detail ? ` — ${debate.runtime_mode.detail}` : ""}
+              </p>
             </div>
             <div className={styles.verdictBadges}>
-              <mark>{final ? statusCopy(final.status) : "Veredicto local"}</mark>
+              <mark>{debate?.runtime_mode?.label || (final ? statusCopy(final.status) : "Veredicto local")}</mark>
               {researchability?.grade ? <mark>Ficha {researchability.grade}</mark> : null}
               {finalAnalysis?.composite_score ? <mark>{finalAnalysis.composite_score}/5</mark> : null}
             </div>
           </div>
+          {debate?.pre_revenue?.applicable ? (
+            <div className={styles.committeeStrip}>
+              <div>
+                <span>Lente pre-revenue</span>
+                <strong>{debate.pre_revenue.statusLabel}</strong>
+                <p>{debate.pre_revenue.summary}</p>
+              </div>
+              <div>
+                <span>Runway</span>
+                <strong>{debate.pre_revenue.runway?.runwayLabel || "N/D"}</strong>
+                <p>Probabilidad de fracaso asumida: {Math.round((debate.pre_revenue.failureProbability || 0) * 100)}%. Dilución esperada: {Math.round((debate.pre_revenue.expectedDilution || 0) * 100)}%.</p>
+              </div>
+              <div>
+                <span>Escenarios</span>
+                <strong>
+                  {debate.pre_revenue.scenarios
+                    ? debate.pre_revenue.scenarios.map((s) => `${s.label} ${Math.round(s.probability * 100)}%`).join(" / ")
+                    : "Sin escenarios publicables"}
+                </strong>
+                <p>
+                  {debate.pre_revenue.status === "ok"
+                    ? `Valor ponderado: $${Number(debate.pre_revenue.probabilityWeightedValuePerShare || 0).toFixed(2)} por acción.`
+                    : debate.pre_revenue.impliedExpectations?.note || `Faltan datos: ${(debate.pre_revenue.missingInputs || []).join(", ")}.`}
+                </p>
+              </div>
+              <div>
+                <span>Qué rompería esta lectura</span>
+                <strong>{debate.pre_revenue.falsifiers?.[0] || "Sin falsificadores"}</strong>
+                <p>{debate.pre_revenue.disclaimer}</p>
+              </div>
+            </div>
+          ) : null}
           <div className={styles.committeeStrip}>
             <div>
               <span>Investigabilidad</span>
@@ -1486,7 +1521,7 @@ export default function ValuationOsLabPage() {
     if (!/^[A-Z0-9.-]{1,12}$/.test(ticker)) {
       setLiveStatus({
         state: "error",
-        message: "El ticker debe tener 1-12 letras, numeros, puntos o guiones.",
+        message: "El ticker debe tener 1-12 letras, números, puntos o guiones.",
       });
       return;
     }
@@ -1681,7 +1716,7 @@ export default function ValuationOsLabPage() {
                 {liveStatus.state === "loading" ? "Cargando" : "Cargar empresa"}
               </button>
             </form>
-            <select value={companyKey} onChange={(event) => selectCompany(event.target.value)}>
+            <select aria-label="Empresa de ejemplo o cargada" value={companyKey} onChange={(event) => selectCompany(event.target.value)}>
               <option value="compounder">Ejemplo software de calidad</option>
               <option value="cyclical">Ciclo de semiconductores</option>
               <option value="bank">Ejemplo banco regional</option>
@@ -1736,7 +1771,7 @@ export default function ValuationOsLabPage() {
               <div className={styles.evidenceColumns}>
                 <div>
                   <strong>A favor</strong>
-                  {(operationalLadder.evidenceFor.length ? operationalLadder.evidenceFor : ["No hay evidencia positiva suficiente todavia."]).map((item) => (
+                  {(operationalLadder.evidenceFor.length ? operationalLadder.evidenceFor : ["No hay evidencia positiva suficiente todavía."]).map((item) => (
                     <p key={item}>{item}</p>
                   ))}
                 </div>
@@ -1752,7 +1787,7 @@ export default function ValuationOsLabPage() {
               <span>04</span>
               <h2>{SECTIONS[3].label}</h2>
               <ol>
-                {(operationalLadder.review.length ? operationalLadder.review : ["Revisar el proximo reporte y comparar contra peers."]).map((item) => <li key={item}>{item}</li>)}
+                {(operationalLadder.review.length ? operationalLadder.review : ["Revisar el próximo reporte y comparar contra peers."]).map((item) => <li key={item}>{item}</li>)}
               </ol>
             </article>
             <article className={styles.ladderPanel}>
@@ -1766,7 +1801,7 @@ export default function ValuationOsLabPage() {
         </section>
 
         <details className={styles.fullAnalysis}>
-          <summary>Ver el analisis completo</summary>
+          <summary>Ver el análisis completo</summary>
 
         <section className={styles.orientationStrip} aria-label="Guía de lectura de AURORA">
           <div>

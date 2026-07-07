@@ -32,7 +32,18 @@ const COPY = {
     signIn: "Sign in",
     switchToSignIn: "I already have an account",
     switchToSignup: "Create a new account",
+    forgotPassword: "Forgot password?",
     aurora: "Use AURORA without account",
+    errors: {
+      account_exists: "An account already exists for this email. Sign in instead.",
+      invalid_credentials: "Check your email and password, then try again.",
+      needs_password: "This account still needs a password. Use Create account to finish setup.",
+      service_unavailable: "The workspace service is not reachable right now. Please try again later.",
+      not_configured: "The workspace is not fully configured yet. Please contact the administrator.",
+      validation: "Check the fields and try again.",
+      generic: "Could not sign in. Please try again.",
+      upgrade: "Your plan needs access to continue.",
+    },
   },
   es: {
     back: "Volver a BL'S",
@@ -59,7 +70,18 @@ const COPY = {
     signIn: "Iniciar sesión",
     switchToSignIn: "Ya tengo cuenta",
     switchToSignup: "Crear una cuenta nueva",
+    forgotPassword: "Olvidé mi contraseña",
     aurora: "Usar AURORA sin cuenta",
+    errors: {
+      account_exists: "Ya existe una cuenta con ese email. Inicia sesión.",
+      invalid_credentials: "Revisa tu email y contraseña, e intenta de nuevo.",
+      needs_password: "Esta cuenta todavía necesita contraseña. Usa Crear cuenta para terminar la configuración.",
+      service_unavailable: "El servicio del workspace no está disponible ahora. Intenta de nuevo más tarde.",
+      not_configured: "El workspace todavía no está completamente configurado. Contacta al administrador.",
+      validation: "Revisa los campos e intenta de nuevo.",
+      generic: "No se pudo iniciar sesión. Intenta de nuevo.",
+      upgrade: "Tu plan necesita acceso para continuar.",
+    },
   },
 };
 
@@ -69,7 +91,7 @@ function firstValue(value) {
 
 function safeNext(value) {
   const raw = String(firstValue(value) || DEFAULT_NEXT);
-  return raw.startsWith("/") && !raw.startsWith("//") ? raw : DEFAULT_NEXT;
+  return raw.startsWith("/") && !raw.startsWith("//") && !raw.startsWith("/\\") ? raw : DEFAULT_NEXT;
 }
 
 function safeIntent(value) {
@@ -85,13 +107,19 @@ function switchHref(intent, next, language) {
   return `/login?intent=${other}&lang=${language}&next=${encodeURIComponent(next)}`;
 }
 
+function loginErrorMessage(value, copy) {
+  const code = String(firstValue(value) || "").trim().toLowerCase();
+  if (!code) return "";
+  return copy.errors?.[code] || copy.errors?.generic || "";
+}
+
 export default function LoginPage({ searchParams = {} }) {
   const next = safeNext(searchParams.next);
   const intent = safeIntent(searchParams.intent || searchParams.mode);
   const language = safeLanguage(searchParams.lang);
   const copy = COPY[language];
   const isSignup = intent === "signup";
-  const error = String(firstValue(searchParams.error) || "");
+  const error = loginErrorMessage(searchParams.error, copy);
 
   return (
     <main className={styles.page}>
@@ -171,6 +199,11 @@ export default function LoginPage({ searchParams = {} }) {
             <Link className={styles.textLink} href={switchHref(intent, next, language)}>
               {isSignup ? copy.switchToSignIn : copy.switchToSignup}
             </Link>
+            {!isSignup ? (
+              <Link className={styles.textLink} href={`/forgot-password?lang=${language}`}>
+                {copy.forgotPassword}
+              </Link>
+            ) : null}
             <Link className={styles.textLink} href="/aurora">
               {copy.aurora}
             </Link>

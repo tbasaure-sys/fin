@@ -55,6 +55,8 @@ export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
     let isActive = true;
     let stream = null;
     let pollTimer = null;
+    let reconnectTimer = null;
+    let reconnectAttempt = 0;
 
     const setLive = (status, label, detail) => {
       if (!isActive) return;
@@ -69,10 +71,29 @@ export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
       }
     };
 
+    const scheduleReconnect = () => {
+      if (!isActive || reconnectTimer) return;
+      const delayMs = Math.min(30000, 1500 * (2 ** reconnectAttempt));
+      reconnectAttempt += 1;
+      setLive(
+        "polling",
+        "Reconectando datos",
+        "El canal en vivo se cortó. El espacio seguirá revisando cambios y reintentará la conexión automáticamente.",
+      );
+      reconnectTimer = window.setTimeout(() => {
+        reconnectTimer = null;
+        if (!isActive) return;
+        connect();
+        void triggerRefresh();
+      }, delayMs);
+    };
+
     const connect = () => {
+      if (!isActive || stream) return;
       stream = new EventSource(`/api/v1/workspaces/${workspaceId}/stream`);
 
       stream.addEventListener("open", () => {
+        reconnectAttempt = 0;
         setLive("live", "Sincronización activa", "Escuchando cambios de mercado y del espacio.");
       });
 
@@ -108,9 +129,9 @@ export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
 
       stream.onerror = () => {
         if (!isActive) return;
-        setLive("polling", "Sincronización pausada", "El canal en vivo se cortó. El espacio seguirá revisando cambios periódicamente.");
         stream?.close();
         stream = null;
+        scheduleReconnect();
       };
     };
 
@@ -125,6 +146,7 @@ export function useWorkspaceLiveData({ initialDashboard, workspaceId }) {
     return () => {
       isActive = false;
       if (pollTimer) window.clearInterval(pollTimer);
+      if (reconnectTimer) window.clearTimeout(reconnectTimer);
       stream?.close();
     };
   }, [workspaceId]);

@@ -1169,6 +1169,82 @@
   line-height: 1.45;
 }
 
+.stressMeaning {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.95fr);
+  gap: 1rem;
+  margin-top: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(248, 200, 111, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.stressMeaning[data-tone="bad"] {
+  border-color: rgba(255, 124, 114, 0.32);
+  background:
+    linear-gradient(135deg, rgba(255, 124, 114, 0.08), rgba(255, 255, 255, 0.018)),
+    rgba(255, 255, 255, 0.024);
+}
+
+.stressMeaning[data-tone="warn"] {
+  border-color: rgba(248, 200, 111, 0.32);
+  background:
+    linear-gradient(135deg, rgba(248, 200, 111, 0.08), rgba(255, 255, 255, 0.018)),
+    rgba(255, 255, 255, 0.024);
+}
+
+.stressMeaning[data-tone="good"] {
+  border-color: rgba(122, 210, 194, 0.28);
+  background:
+    linear-gradient(135deg, rgba(122, 210, 194, 0.07), rgba(255, 255, 255, 0.018)),
+    rgba(255, 255, 255, 0.024);
+}
+
+.stressMeaning h3 {
+  margin: 0.1rem 0 0.45rem;
+  color: var(--text);
+  font-size: clamp(1rem, 1.7vw, 1.35rem);
+  font-weight: 760;
+  line-height: 1.25;
+}
+
+.stressMeaning span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.stressMeaningGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.stressMeaningGrid div {
+  min-width: 0;
+  padding: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.14);
+}
+
+.stressMeaningGrid span {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 720;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stressMeaningGrid strong {
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 680;
+  line-height: 1.4;
+}
+
 .stressChipGrid,
 .stressDiagnosticsGrid {
   display: grid;
@@ -2702,6 +2778,66 @@
   color: var(--muted);
 }
 
+.performanceExplainer {
+  display: grid;
+  gap: 0.28rem;
+  margin-top: 0.75rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid rgba(248, 200, 111, 0.16);
+  border-radius: 8px;
+  background: rgba(248, 200, 111, 0.055);
+}
+
+.performanceExplainer strong {
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 760;
+}
+
+.performanceExplainer span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.performanceBenchmarkStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.65rem;
+}
+
+.performanceBenchmarkStrip span {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.72rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.performanceBenchmarkStrip strong {
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 760;
+}
+
+.performanceBenchmarkStrip em {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.performanceBenchmarkStrip em[data-tone="good"] {
+  color: rgba(122, 210, 194, 0.96);
+}
+
+.performanceBenchmarkStrip em[data-tone="bad"] {
+  color: rgba(255, 145, 104, 0.96);
+}
+
 .decisionGrid,
 .metricsGrid {
   display: grid;
@@ -3021,10 +3157,10 @@
 .portfolioMatrixHead,
 .portfolioMatrixRow {
   display: grid;
-  grid-template-columns: minmax(150px, 1.05fr) minmax(160px, 1fr) minmax(72px, 0.42fr) minmax(92px, 0.52fr) minmax(96px, 0.55fr) minmax(130px, 0.8fr);
+  grid-template-columns: minmax(150px, 1.05fr) minmax(150px, 0.92fr) minmax(72px, 0.4fr) minmax(92px, 0.5fr) minmax(92px, 0.5fr) minmax(80px, 0.45fr) minmax(96px, 0.52fr) minmax(130px, 0.72fr);
   gap: 0.85rem;
   align-items: center;
-  min-width: 820px;
+  min-width: 1080px;
 }
 
 .portfolioMatrixHead {
@@ -3777,7 +3913,7 @@
 .tableHeader,
 .tableRow {
   display: grid;
-  grid-template-columns: minmax(120px, 1.1fr) minmax(0, 1fr) minmax(84px, 0.6fr) minmax(92px, 0.8fr) minmax(84px, 0.6fr);
+  grid-template-columns: minmax(120px, 1.1fr) minmax(0, 1fr) minmax(76px, 0.52fr) minmax(92px, 0.7fr) minmax(92px, 0.68fr) minmax(76px, 0.52fr) minmax(84px, 0.6fr);
   gap: 0.7rem;
   align-items: center;
   padding: 0.9rem 1rem;
@@ -3792,6 +3928,14 @@
 
 .tableRow {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tableRow strong[data-tone="good"] {
+  color: rgba(122, 210, 194, 0.96);
+}
+
+.tableRow strong[data-tone="bad"] {
+  color: rgba(255, 145, 104, 0.96);
 }
 
 .tablePrimary {
@@ -5670,10 +5814,14 @@
     grid-template-columns: minmax(96px, 1fr) minmax(88px, 0.75fr) minmax(120px, 1fr) auto;
   }
 
+  .tableHeader > :nth-child(3),
   .tableHeader > :nth-child(4),
   .tableHeader > :nth-child(5),
+  .tableHeader > :nth-child(6),
+  .tableRow > :nth-child(3),
   .tableRow > :nth-child(4),
   .tableRow > :nth-child(5),
+  .tableRow > :nth-child(6),
   .phantomContributorHeader > :nth-child(4),
   .phantomContributorHeader > :nth-child(5),
   .phantomContributorRow > :nth-child(4),
@@ -6779,6 +6927,9 @@
   .diffusionControls,
   .diffusionMetricGrid,
   .diffusionUniverse,
+  .stressMeaning,
+  .stressMeaningGrid,
+  .performanceBenchmarkStrip,
   .stressChipGrid,
   .stressControls,
   .stressDamageGrid,

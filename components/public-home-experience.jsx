@@ -13,6 +13,7 @@ const COPY = {
     languageAria: "Elegir idioma",
     login: "Iniciar sesión",
     kicker: "BLS Prime · Terminal de research institucional",
+    category: "Terminal de research institucional para decisiones de renta variable.",
     headline: "La tesis se prueba antes de mover el capital.",
     subheadline:
       "Valoración fundamental, selección con reglas visibles y estrés de cartera. Un solo sistema disciplinado.",
@@ -46,7 +47,7 @@ const COPY = {
         ["Peor escenario", "worst"],
       ],
       stressFoot: "5.000 escenarios · régimen: crisis · seed 8841",
-      statusline: "banco factorial point-in-time · corrida reproducible · escenarios, no predicciones",
+      statusline: "banco factorial auditado · corrida reproducible · escenarios, no predicciones",
     },
     modulesKicker: "El sistema",
     modulesTitle: "Tres módulos. Una decisión.",
@@ -68,7 +69,7 @@ const COPY = {
         title: "FactorLab",
         question: "¿Qué acciones merecen atención?",
         body: "Candidatas ordenadas con las reglas a la vista. Sin cajas negras, sin señales mágicas.",
-        spec: "ranking point-in-time · reglas visibles",
+        spec: "ranking reproducible · reglas visibles",
         href: "/factorlab",
         cta: "Abrir FactorLab",
       },
@@ -98,6 +99,7 @@ const COPY = {
     languageAria: "Choose language",
     login: "Sign in",
     kicker: "BLS Prime · Institutional research terminal",
+    category: "Institutional research terminal for equity decisions.",
     headline: "Before capital moves, the thesis is tested.",
     subheadline:
       "Fundamental valuation, rule-visible selection, and portfolio stress. One disciplined system.",
@@ -131,7 +133,7 @@ const COPY = {
         ["Worst scenario", "worst"],
       ],
       stressFoot: "5,000 scenarios · regime: crisis · seed 8841",
-      statusline: "point-in-time factor bank · reproducible run · scenarios, not predictions",
+      statusline: "audited factor bank · reproducible run · scenarios, not predictions",
     },
     modulesKicker: "The system",
     modulesTitle: "Three modules. One decision.",
@@ -153,7 +155,7 @@ const COPY = {
         title: "FactorLab",
         question: "Which stocks deserve attention?",
         body: "Candidates ranked with the rules in plain sight. No black boxes, no magic signals.",
-        spec: "point-in-time ranking · visible rules",
+        spec: "reproducible ranking · visible rules",
         href: "/factorlab",
         cta: "Open FactorLab",
       },
@@ -409,6 +411,7 @@ export function PublicHomeExperience({ brand }) {
       <section className={styles.hero} aria-labelledby="home-title">
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>{copy.kicker}</p>
+          <p className={styles.categoryLine}>{copy.category}</p>
           <h1 className={styles.headline} id="home-title">
             {copy.headline}
           </h1>

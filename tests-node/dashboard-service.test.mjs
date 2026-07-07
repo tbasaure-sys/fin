@@ -104,6 +104,48 @@ test("normalizeWorkspaceDashboard drops zero gaps from portfolio performance his
   assert.equal(dashboard.modules.portfolio.analytics.totalReturnLabel, "Historial corto");
 });
 
+test("normalizeWorkspaceDashboard hides suspicious alternating portfolio performance history", () => {
+  const currentMix = Array.from({ length: 32 }, (_, index) => ({
+    date: `2026-06-${String(index + 1).padStart(2, "0")}`,
+    portfolio_growth: index % 2 === 0 ? 1 : 1.24,
+    spy_growth: 1 + (index * 0.001),
+  }));
+
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "alpha-retail",
+    snapshot: {
+      generated_at: "2026-07-06T12:00:00.000Z",
+      overview: {},
+      portfolio: {
+        analytics: {
+          "Total return incl. dividends": 0.12,
+          "Total P&L incl. realized/dividends": 1200,
+          "Active cost basis": 10000,
+        },
+        holdings: [{ ticker: "SPY", weight: 1, market_value_usd: 11200 }],
+        current_mix_vs_spy: currentMix,
+      },
+      screener: { rows: [] },
+      status: { warnings: [], panels: [] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  const portfolioModule = dashboard.modules.portfolio;
+
+  assert.equal(portfolioModule.analytics.hasPerformanceHistory, false);
+  assert.equal(portfolioModule.analytics.performanceSeriesWarning, "suspicious_alternating_snapshots");
+  assert.equal(portfolioModule.analytics.totalReturnLabel, "Historial corto");
+  assert.equal(portfolioModule.analytics.totalReturnInclDividends, 0.12);
+  assert.ok(portfolioModule.charts.growthComparison.every((row) => row.portfolio === null));
+});
+
 test("normalizeWorkspaceDashboard preserves portfolio manager fields for the workspace", () => {
   const dashboard = normalizeWorkspaceDashboard({
     workspaceId: "alpha-retail",

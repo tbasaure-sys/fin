@@ -23,7 +23,7 @@ function escapeRegExp(value) {
 test("AURORA product copy map exposes the verdict ladder", () => {
   assert.deepEqual(Object.keys(VERDICT).sort(), ["ABSTAIN", "PASS", "RANK", "RESEARCH"]);
   assert.equal(SECTIONS.length, 5);
-  assert.equal(SECTIONS[0].label, "Que esta asumiendo el precio");
+  assert.equal(SECTIONS[0].label, "Qué está asumiendo el precio");
 });
 
 test("user-facing AURORA surfaces do not render blocked engine vocabulary", () => {
