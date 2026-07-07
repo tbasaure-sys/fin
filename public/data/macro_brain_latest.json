@@ -1,8 +1,8 @@
 {
-  "generated_on": "2026-07-06T11:45:17.024093+00:00",
-  "run_date": "2026-07-02",
+  "generated_on": "2026-07-07T11:45:15.692901+00:00",
+  "run_date": "2026-07-06",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143258,
+  "observations": 143263,
   "series_count": 25,
   "impulse_changes": [
     {
@@ -32,20 +32,6 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "USDCOP"
-    },
-    {
-      "series_id": "T10YIE",
-      "date": "2026-07-02T00:00:00",
-      "value": 2.23,
-      "transformed": 0.0,
-      "momentum": -0.1299999999999999,
-      "impulse": -0.1599999999999997,
-      "momentum_z": -1.079185215162557,
-      "impulse_z": -1.2646701740186175,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y breakeven"
     },
     {
       "series_id": "LQD",
@@ -104,20 +90,6 @@
       "label": "High yield ETF"
     },
     {
-      "series_id": "EEM",
-      "date": "2026-07-02T00:00:00",
-      "value": 65.69999694824219,
-      "transformed": -0.011802322001909005,
-      "momentum": 0.58121559700432,
-      "impulse": -0.21359271478290864,
-      "momentum_z": 1.331224376035825,
-      "impulse_z": -1.0630528539818374,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Emerging markets ETF"
-    },
-    {
       "series_id": "^MOVE",
       "date": "2026-06-10T00:00:00",
       "value": 73.94999694824219,
@@ -130,6 +102,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "MOVE index"
+    },
+    {
+      "series_id": "T10YIE",
+      "date": "2026-07-06T00:00:00",
+      "value": 2.24,
+      "transformed": 0.010000000000000231,
+      "momentum": -0.08999999999999986,
+      "impulse": -0.11999999999999966,
+      "momentum_z": -0.8093889113719178,
+      "impulse_z": -0.927424794280318,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y breakeven"
     },
     {
       "series_id": "WALCL",
@@ -160,18 +146,32 @@
       "label": "Long Treasury ETF"
     },
     {
-      "series_id": "DGS10",
-      "date": "2026-07-01T00:00:00",
-      "value": 4.48,
-      "transformed": 0.040000000000000036,
-      "momentum": 0.13000000000000078,
-      "impulse": -0.1999999999999993,
-      "momentum_z": 0.17025980336302654,
-      "impulse_z": -0.5718508612953724,
+      "series_id": "MXN=X",
+      "date": "2026-06-10T00:00:00",
+      "value": 17.45401954650879,
+      "transformed": -0.000783438252390134,
+      "momentum": -0.0862141983224749,
+      "impulse": -0.08588403504456465,
+      "momentum_z": -0.24198868745585037,
+      "impulse_z": -0.5584212462865383,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y nominal yield"
+      "label": "USDMXN"
+    },
+    {
+      "series_id": "UUP",
+      "date": "2026-06-11T00:00:00",
+      "value": 28.0049991607666,
+      "transformed": -0.0007032343588262435,
+      "momentum": 0.039472770298898396,
+      "impulse": -0.06213409682736426,
+      "momentum_z": -0.14674157327048962,
+      "impulse_z": -0.5581562790392914,
+      "impulse_sign": -1,
+      "persistent_inflection": true,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "UUP dollar ETF fallback"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": 1.398,
-        "impulse_z": -0.08237167020765758
+        "impulse": 2.0589999999999997,
+        "impulse_z": -0.07159262524985006
       }
     }
   },
@@ -207,10 +207,10 @@
       "title": "USD fuerte vs LatAm FX",
       "status": "live",
       "confidence": 0.62,
-      "amb_display": 0.4,
-      "confirmations": 3,
+      "amb_display": 0.6,
+      "confirmations": 2,
       "neutrals": 0,
-      "contradictions": 2,
+      "contradictions": 3,
       "license_state": "CONDITIONAL",
       "details": [
         {
@@ -224,8 +224,8 @@
           "series_id": "DFII10",
           "expected_sign": 1,
           "label": "US real yields confirm",
-          "observed_sign": 1,
-          "state": "confirming"
+          "observed_sign": -1,
+          "state": "contradicting"
         },
         {
           "series_id": "CLP=X",
@@ -310,10 +310,10 @@
       "title": "BCCh corta antes de Fed",
       "status": "live",
       "confidence": 0.56,
-      "amb_display": 0.5,
-      "confirmations": 1,
+      "amb_display": 0.8333333333333334,
+      "confirmations": 0,
       "neutrals": 1,
-      "contradictions": 1,
+      "contradictions": 2,
       "license_state": "CONDITIONAL",
       "details": [
         {
@@ -334,8 +334,8 @@
           "series_id": "DFII10",
           "expected_sign": 1,
           "label": "Real-yield backdrop restrictive",
-          "observed_sign": 1,
-          "state": "confirming"
+          "observed_sign": -1,
+          "state": "contradicting"
         }
       ],
       "invalidation": [
@@ -356,7 +356,7 @@
         "T2",
         "T3"
       ],
-      "license_value": 3.75
+      "license_value": 4.817
     },
     {
       "release": "China trade / credit impulse",
@@ -366,7 +366,7 @@
         "T2",
         "T3"
       ],
-      "license_value": 3.65
+      "license_value": 4.583
     },
     {
       "release": "US payrolls",
@@ -376,16 +376,7 @@
         "T2",
         "T3"
       ],
-      "license_value": 3.175
-    },
-    {
-      "release": "CFTC positioning",
-      "timing": "Friday lag",
-      "affected_theses": [
-        "T1",
-        "T2"
-      ],
-      "license_value": 2.925
+      "license_value": 4.242
     },
     {
       "release": "Chile CPI / BCCh",
@@ -395,7 +386,16 @@
         "T2",
         "T3"
       ],
-      "license_value": 2.575
+      "license_value": 3.442
+    },
+    {
+      "release": "CFTC positioning",
+      "timing": "Friday lag",
+      "affected_theses": [
+        "T1",
+        "T2"
+      ],
+      "license_value": 3.325
     }
   ],
   "psm": {
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "Which market internal is disagreeing with your favorite macro story?"
+  "question_of_day": "What would make you flip today rather than merely reduce confidence?"
 }
