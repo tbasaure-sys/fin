@@ -584,7 +584,7 @@ function buildPortfolioExposures(holdings, key) {
   const groups = new Map();
   for (const holding of safeList(holdings)) {
     const label = cleanPortfolioLabel(holding?.[key], "Sin clasificar");
-    const value = Number(holding?.marketValueUsd);
+    const value = holdingAnalysisValue(holding);
     const weight = holdingWeightValue(holding);
     const current = groups.get(label) || { label, value: 0, weight: 0, count: 0 };
     current.value += Number.isFinite(value) ? value : 0;
@@ -608,6 +608,8 @@ function buildReviewQueue(holdings) {
       weightValue: holdingWeightValue(holding),
       actionLabel: holdingActionLabel(holding),
       reason: holdingReviewReason(holding),
+      flagLabel: holdingReviewFlag(holding),
+      triggerLabel: holdingReviewTrigger(holding),
       riskValue: Number(holding?.riskScore),
       qualityValue: Number(holding?.qualityScore),
     }))
@@ -626,6 +628,7 @@ function buildPortfolioHorizonRows(analytics, returns, holdings) {
     .filter((row) => row?.label)
     .map((row) => ({
       label: row.label,
+      rawValue: Number.isFinite(Number(row.value)) ? Number(row.value) : null,
       value: Number.isFinite(Number(row.value)) ? formatSignedPct(row.value) : "-",
       tone: Number(row.value) < 0 ? "bad" : Number(row.value) > 0 ? "good" : "neutral",
     }));
@@ -636,12 +639,15 @@ function buildPortfolioHorizonRows(analytics, returns, holdings) {
     return sum + (Number.isFinite(day) ? day * holdingWeightValue(holding) : 0);
   }, 0);
   return [
-    { label: "Hoy", value: weightedDay ? formatSignedPct(weightedDay) : "-", tone: weightedDay < 0 ? "bad" : weightedDay > 0 ? "good" : "neutral" },
-    { label: "1 semana", value: "-", tone: "neutral" },
-    { label: "1 mes", value: "-", tone: "neutral" },
-    { label: "Año", value: "-", tone: "neutral" },
+    { label: "Hoy", rawValue: weightedDay || null, value: weightedDay ? formatSignedPct(weightedDay) : "-", tone: weightedDay < 0 ? "bad" : weightedDay > 0 ? "good" : "neutral" },
+    { label: "1 semana", rawValue: null, value: "-", tone: "neutral" },
+    { label: "1 mes", rawValue: null, value: "-", tone: "neutral" },
+    { label: "Año", rawValue: null, value: "-", tone: "neutral" },
     {
       label: "Desde inicio",
+      rawValue: analytics?.totalReturnInclDividends !== null && analytics?.totalReturnInclDividends !== undefined
+        ? Number(analytics.totalReturnInclDividends)
+        : null,
       value: analytics?.totalReturnInclDividends !== null && analytics?.totalReturnInclDividends !== undefined
         ? formatSignedPct(analytics.totalReturnInclDividends)
         : (analytics?.totalReturnLabel || analytics?.unrealizedReturnLabel || "-"),
@@ -664,6 +670,124 @@ const PORTFOLIO_DONUT_COLORS = [
 function numericValue(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function firstFiniteNumber(...values) {
+  for (const value of values) {
+    const parsed = numericValue(value);
+    if (parsed !== null) return parsed;
+  }
+  return null;
+}
+
+function holdingAnalysisValue(holding) {
+  return firstFiniteNumber(holding?.analysisValueUsd, holding?.marketValueUsd, holding?.brokerValueUsd);
+}
+
+function holdingCostBasis(holding) {
+  return firstFiniteNumber(holding?.costBasisUsd);
+}
+
+function holdingTotalPnlInclDividends(holding) {
+  const direct = firstFiniteNumber(holding?.totalPnlInclDividendsUsd);
+  if (direct !== null) return direct;
+  const unrealized = firstFiniteNumber(holding?.unrealizedPnlUsd);
+  const dividends = firstFiniteNumber(holding?.dividendsReceivedUsd);
+  if (unrealized === null && dividends === null) return null;
+  return (unrealized || 0) + (dividends || 0);
+}
+
+function holdingTotalReturnInclDividends(holding) {
+  const direct = firstFiniteNumber(holding?.totalReturnInclDividends);
+  if (direct !== null) return direct;
+  const costBasis = holdingCostBasis(holding);
+  const pnl = holdingTotalPnlInclDividends(holding);
+  return costBasis && pnl !== null ? pnl / costBasis : null;
+}
+
+function holdingValueSourceLabel(holding) {
+  const source = cleanPortfolioLabel(holding?.valueSource, "");
+  if (/live|google|price|mercado|market/i.test(source)) return "Precio vivo";
+  if (/broker|snapshot|captura/i.test(source)) return "Snapshot broker";
+  if (source) return source;
+  if (firstFiniteNumber(holding?.currentPriceUsd) !== null) return "Precio vivo";
+  if (firstFiniteNumber(holding?.brokerValueUsd) !== null) return "Snapshot broker";
+  return "Sin fuente";
+}
+
+function holdingReviewFlag(holding) {
+  const weight = holdingWeightValue(holding);
+  const risk = Number(holding?.riskScore);
+  if (weight > 0.25) return "Concentración";
+  if (Number.isFinite(risk) && risk >= 4) return "Riesgo alto";
+  return "Normal";
+}
+
+function holdingReviewTrigger(holding) {
+  if (holding?.nextReviewTrigger) return cleanWorkspaceCopy(holding.nextReviewTrigger);
+  const weight = holdingWeightValue(holding);
+  const risk = Number(holding?.riskScore);
+  if (weight > 0.25) return "Revisar tamaño y banda de rebalanceo.";
+  if (Number.isFinite(risk) && risk >= 4) return "Revisar tras resultados o movimiento mayor a 15%.";
+  return "Revisión trimestral.";
+}
+
+function formatMarketCap(value) {
+  const parsed = numericValue(value);
+  if (parsed === null) return "-";
+  if (Math.abs(parsed) >= 1_000_000_000_000) return `${(parsed / 1_000_000_000_000).toFixed(1)} T`;
+  if (Math.abs(parsed) >= 1_000_000_000) return `${(parsed / 1_000_000_000).toFixed(0)} B`;
+  if (Math.abs(parsed) >= 1_000_000) return `${(parsed / 1_000_000).toFixed(0)} M`;
+  return formatCurrency(parsed);
+}
+
+function formatRatio(value, suffix = "x") {
+  const parsed = numericValue(value);
+  if (parsed === null) return "-";
+  return `${parsed.toFixed(Math.abs(parsed) >= 10 ? 1 : 2)}${suffix}`;
+}
+
+function holdingMarketMetaLabel(holding) {
+  const parts = [];
+  if (firstFiniteNumber(holding?.marketCapUsd) !== null) parts.push(`Cap ${formatMarketCap(holding.marketCapUsd)}`);
+  if (firstFiniteNumber(holding?.peRatio) !== null) parts.push(`P/E ${formatRatio(holding.peRatio)}`);
+  if (firstFiniteNumber(holding?.eps) !== null) parts.push(`EPS ${formatCurrency(holding.eps)}`);
+  return parts.join(" · ");
+}
+
+function formatFxRate(value) {
+  const parsed = numericValue(value);
+  if (parsed === null) return "-";
+  return new Intl.NumberFormat("es-CL", { maximumFractionDigits: 0 }).format(parsed);
+}
+
+function buildPortfolioExecutiveRead({ analytics, holdings, hasDayPnl, dayPnl, topHolding, reviewQueue }) {
+  if (!safeList(holdings).length) return [];
+  const totalValue = firstFiniteNumber(analytics?.totalValueUsd);
+  const totalReturn = firstFiniteNumber(analytics?.totalReturnInclDividends, analytics?.unrealizedReturn);
+  const liveCount = safeList(holdings).filter((holding) => holdingValueSourceLabel(holding) === "Precio vivo").length;
+  const snapshotCount = safeList(holdings).filter((holding) => holdingValueSourceLabel(holding) === "Snapshot broker").length;
+  const bullets = [];
+  bullets.push(
+    totalReturn !== null
+      ? `La cartera vale ${compactCurrency(totalValue)} y acumula ${formatSignedPct(totalReturn)} incluyendo dividendos y P&L realizado cuando está disponible.`
+      : `La cartera vale ${compactCurrency(totalValue)}; falta costo base suficiente para calcular retorno total confiable.`,
+  );
+  if (topHolding) {
+    const weight = holdingWeightValue(topHolding);
+    bullets.push(`${topHolding.ticker} es el mayor peso (${compactPercent(weight)}). ${weight > 0.25 ? "Requiere revisión de concentración." : "No supera el umbral crítico de 25%."}`);
+  }
+  if (hasDayPnl) {
+    bullets.push(`El movimiento intradía agregado es ${formatCurrency(dayPnl)}; úsalo solo como lectura táctica, no como tesis.`);
+  } else {
+    bullets.push("No hay movimiento intradía útil; la pantalla no convierte datos ausentes en 0%.");
+  }
+  if (liveCount || snapshotCount) {
+    bullets.push(`${liveCount} posiciones usan precio vivo y ${snapshotCount} usan snapshot del broker; la fuente queda visible por holding.`);
+  }
+  const reviewCount = safeList(reviewQueue).filter((holding) => holding.flagLabel !== "Normal").length;
+  if (reviewCount) bullets.push(`${reviewCount} posiciones entran a revisión por concentración o riesgo alto.`);
+  return bullets.slice(0, 5);
 }
 
 function signedMoneyTone(value) {
@@ -690,9 +814,7 @@ function buildPortfolioDonut(holdings) {
     };
   }
 
-  const top = rows.slice(0, 7);
-  const otherWeight = rows.slice(7).reduce((sum, row) => sum + row.weight, 0);
-  const segments = otherWeight > 0 ? [...top, { ticker: "Otros", weight: otherWeight }] : top;
+  const segments = rows;
   const total = segments.reduce((sum, row) => sum + row.weight, 0) || 1;
   let cursor = 0;
   const gradientStops = segments.map((row, index) => {
@@ -717,6 +839,12 @@ function PortfolioDonutPanel({ holdings, topHolding }) {
   const donut = buildPortfolioDonut(holdings);
   return (
     <section className={styles.portfolioDonutPanel}>
+      <div className={styles.portfolioMiniHead}>
+        <div>
+          <p className={styles.kicker}>Asignación</p>
+          <strong>{donut.rows.length ? "Por holding" : "-"}</strong>
+        </div>
+      </div>
       <div className={styles.portfolioDonutWrap}>
         <div className={styles.portfolioDonut} style={{ background: donut.background }}>
           <div>
@@ -742,19 +870,13 @@ function PortfolioPositionTable({ holdings }) {
   const rows = [...safeList(holdings)]
     .sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left))
     .slice(0, 14);
-  const hasPortfolioDayData = rows.some((holding) => {
-    const dayPnl = Number(holding?.dayPnlUsd);
-    const dayReturn = Number(holding?.dayReturn);
-    return (Number.isFinite(dayPnl) && Math.abs(dayPnl) > 0.005)
-      || (Number.isFinite(dayReturn) && Math.abs(dayReturn) > 0.00005);
-  });
 
   return (
     <section className={styles.portfolioTablePanel}>
       <div className={styles.portfolioSectionHead}>
         <div>
-          <p className={styles.kicker}>Posiciones</p>
-          <h3>{holdings.length ? `${holdings.length} conectadas` : "Sin posiciones"}</h3>
+          <p className={styles.kicker}>Top holdings</p>
+          <h3>{holdings.length ? "Valor, retorno y próxima acción" : "Sin posiciones"}</h3>
         </div>
       </div>
       {rows.length ? (
@@ -764,17 +886,15 @@ function PortfolioPositionTable({ holdings }) {
             <span role="columnheader">Tema</span>
             <span role="columnheader">Peso</span>
             <span role="columnheader">Valor</span>
-            <span role="columnheader">Hoy $</span>
-            <span role="columnheader">Hoy %</span>
-            <span role="columnheader">Ganancia</span>
+            <span role="columnheader">Costo</span>
+            <span role="columnheader">Retorno total</span>
+            <span role="columnheader">Fuente</span>
             <span role="columnheader">Acción</span>
           </div>
           <div role="rowgroup">
             {rows.map((holding) => {
-              const dayPnlValue = Number(holding.dayPnlUsd);
-              const hasDayPnl = hasPortfolioDayData && Number.isFinite(dayPnlValue);
-              const dayReturnValue = Number(holding.dayReturn);
-              const hasDayReturn = hasPortfolioDayData && Number.isFinite(dayReturnValue);
+              const totalReturn = holdingTotalReturnInclDividends(holding);
+              const totalPnl = holdingTotalPnlInclDividends(holding);
               return (
                 <article className={styles.portfolioMatrixRow} key={`portfolio-matrix-${holding.ticker}`} role="row">
                   <div role="cell">
@@ -783,16 +903,12 @@ function PortfolioPositionTable({ holdings }) {
                   </div>
                   <span role="cell">{cleanPortfolioLabel(holding.theme || holding.sector || holding.region, "-")}</span>
                   <strong role="cell">{holding.weight || compactPercent(holdingWeightValue(holding))}</strong>
-                  <strong role="cell">{compactCurrency(holding.marketValueUsd)}</strong>
-                  <strong data-tone={signedMoneyTone(dayPnlValue)} role="cell">
-                    {hasDayPnl ? formatCurrency(dayPnlValue) : "-"}
+                  <strong role="cell">{compactCurrency(holdingAnalysisValue(holding))}</strong>
+                  <span role="cell">{compactCurrency(holdingCostBasis(holding))}</span>
+                  <strong data-tone={signedMoneyTone(totalPnl)} role="cell">
+                    {totalReturn !== null ? `${formatSignedPct(totalReturn)} (${compactCurrency(totalPnl)})` : "-"}
                   </strong>
-                  <strong data-tone={signedMoneyTone(dayReturnValue)} role="cell">
-                    {hasDayReturn ? (holding.dayReturnLabel || compactPercent(dayReturnValue, true)) : "-"}
-                  </strong>
-                  <strong data-tone={signedMoneyTone(holding.unrealizedPnlUsd)} role="cell">
-                    {compactCurrency(holding.unrealizedPnlUsd)}
-                  </strong>
+                  <span role="cell">{holdingValueSourceLabel(holding)}</span>
                   <span role="cell">{holdingActionLabel(holding)}</span>
                 </article>
               );
@@ -808,10 +924,11 @@ function PortfolioPositionTable({ holdings }) {
 
 function PortfolioHorizonPanel({ analytics, holdings, returns }) {
   const rows = buildPortfolioHorizonRows(analytics, returns, holdings);
+  const maxAbs = Math.max(...rows.map((row) => Math.abs(row.rawValue || 0)), 0.01);
   return (
     <section className={styles.portfolioMiniPanel}>
       <div className={styles.portfolioMiniHead}>
-        <p className={styles.kicker}>Retorno</p>
+        <p className={styles.kicker}>Retornos</p>
         <strong>{analytics?.totalReturnInclDividends !== null && analytics?.totalReturnInclDividends !== undefined ? formatSignedPct(analytics.totalReturnInclDividends) : analytics?.totalReturnLabel || "-"}</strong>
       </div>
       <div className={styles.portfolioHorizonRows}>
@@ -819,6 +936,9 @@ function PortfolioHorizonPanel({ analytics, holdings, returns }) {
           <div className={styles.portfolioHorizonRow} data-tone={row.tone} key={`horizon-${row.label}`}>
             <span>{row.label}</span>
             <strong>{row.value}</strong>
+            <div className={styles.portfolioBarTrack} aria-hidden="true">
+              <span style={{ width: row.rawValue === null ? "0%" : `${Math.max(3, Math.min(100, (Math.abs(row.rawValue) / maxAbs) * 100))}%` }} />
+            </div>
           </div>
         ))}
       </div>
@@ -865,7 +985,7 @@ function PortfolioHoldingsPanel({ holdings }) {
 function PortfolioExposurePanel({ holdings }) {
   const groups = [
     ["sector", "Sector"],
-    ["region", "Region"],
+    ["region", "Región"],
     ["theme", "Tema"],
   ];
 
@@ -916,12 +1036,13 @@ function PortfolioReviewPanel({ holdings }) {
                 <span>{cleanPortfolioLabel(holding.theme, holdingName(holding))}</span>
               </div>
               <div className={styles.portfolioScoreStrip}>
+                <ToneBadge tone={holding.flagLabel === "Concentración" || holding.flagLabel === "Riesgo alto" ? "warn" : "neutral"}>{holding.flagLabel}</ToneBadge>
                 <ToneBadge tone={scoreTone(holding.qualityScore)}>Calidad {scoreLabel(holding.qualityScore)}</ToneBadge>
                 <ToneBadge tone={scoreTone(holding.riskScore, true)}>Riesgo {scoreLabel(holding.riskScore)}</ToneBadge>
               </div>
               <div className={styles.portfolioReviewAction}>
                 <strong>{holding.actionLabel}</strong>
-                <span>{holding.reason}</span>
+                <span>{holding.triggerLabel}</span>
               </div>
             </article>
           ))}
@@ -935,7 +1056,12 @@ function PortfolioReviewPanel({ holdings }) {
 
 function PortfolioMoversPanel({ holdings }) {
   const movers = safeList(holdings)
-    .filter((holding) => Number.isFinite(Number(holding?.dayPnlUsd)) || Number.isFinite(Number(holding?.dayReturn)))
+    .filter((holding) => {
+      const dayPnl = Number(holding?.dayPnlUsd);
+      const dayReturn = Number(holding?.dayReturn);
+      return (Number.isFinite(dayPnl) && Math.abs(dayPnl) > 0.005)
+        || (Number.isFinite(dayReturn) && Math.abs(dayReturn) > 0.00005);
+    })
     .sort((left, right) => Math.abs(Number(right.dayPnlUsd || right.dayReturn || 0)) - Math.abs(Number(left.dayPnlUsd || left.dayReturn || 0)))
     .slice(0, 5);
 
@@ -2140,13 +2266,30 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
   const returnBreakdown = hasHoldings ? (portfolio?.returns || {}) : {};
   const portfolioXray = xray || {};
   const concentration = portfolioXray.concentration || {};
-  const totalValueLabel = hasHoldings && analytics.totalValueUsd ? formatCurrency(analytics.totalValueUsd) : "-";
-  const activeCostBasisLabel = Number.isFinite(Number(analytics.activeCostBasisUsd))
-    ? formatCurrency(analytics.activeCostBasisUsd)
-    : "-";
+  const totalValueLabel = hasHoldings && firstFiniteNumber(analytics.totalValueUsd) !== null ? formatCurrency(analytics.totalValueUsd) : "-";
+  const hasHoldingCostBasisData = holdings.some((holding) => holdingCostBasis(holding) !== null);
+  const activeCostBasisValue = firstFiniteNumber(analytics.activeCostBasisUsd) !== null
+    ? firstFiniteNumber(analytics.activeCostBasisUsd)
+    : hasHoldingCostBasisData
+      ? holdings.reduce((sum, holding) => sum + (holdingCostBasis(holding) || 0), 0)
+      : null;
+  const activeCostBasisLabel = activeCostBasisValue !== null ? formatCurrency(activeCostBasisValue) : "-";
   const totalPnlLabel = Number.isFinite(Number(analytics.totalPnlInclRealizedDividendsUsd))
     ? formatCurrency(analytics.totalPnlInclRealizedDividendsUsd)
     : (returnBreakdown?.totalPnlLabel || "-");
+  const hasUnrealizedPnlData = Number.isFinite(Number(analytics.unrealizedPnlUsd))
+    || holdings.some((holding) => numericValue(holding?.unrealizedPnlUsd) !== null);
+  const unrealizedPnlValue = Number.isFinite(Number(analytics.unrealizedPnlUsd))
+    ? Number(analytics.unrealizedPnlUsd)
+    : holdings.reduce((sum, holding) => sum + (numericValue(holding?.unrealizedPnlUsd) || 0), 0);
+  const unrealizedPnlLabel = hasUnrealizedPnlData
+    ? formatCurrency(unrealizedPnlValue)
+    : "-";
+  const realizedDividendValue = firstFiniteNumber(analytics.realizedPnlUsd) !== null || firstFiniteNumber(analytics.dividendsUsd) !== null
+    ? (firstFiniteNumber(analytics.realizedPnlUsd) || 0) + (firstFiniteNumber(analytics.dividendsUsd) || 0)
+    : null;
+  const realizedDividendLabel = realizedDividendValue !== null ? formatCurrency(realizedDividendValue) : "-";
+  const usdClpLabel = firstFiniteNumber(analytics.usdClp) !== null ? formatFxRate(analytics.usdClp) : "-";
   const currentPerformanceValue = Number.isFinite(Number(analytics.totalReturnInclDividends))
     ? Number(analytics.totalReturnInclDividends)
     : Number.isFinite(Number(analytics.unrealizedReturn))
@@ -2169,6 +2312,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
       || (Number.isFinite(dayReturnValue) && Math.abs(dayReturnValue) > 0.00005);
   });
   const performanceSeriesWarning = analytics.performanceSeriesWarning;
+  const executiveRead = buildPortfolioExecutiveRead({ analytics, holdings, hasDayPnl, dayPnl, topHolding, reviewQueue });
 
   return (
     <section className={styles.panel}>
@@ -2197,25 +2341,52 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
       </div>
 
       <div className={styles.portfolioSummaryRail}>
-        <MetricTile detail="Suma de posiciones." label="Valor" value={totalValueLabel} />
+        <MetricTile detail="Suma de posiciones activas." label="Valor total" value={totalValueLabel} />
+        <MetricTile detail="Capital invertido en posiciones activas." label="Costo base" value={activeCostBasisLabel} />
         <MetricTile
-          detail={currentPerformanceLabel ? `${totalPnlLabel} sobre base ${activeCostBasisLabel}.` : "Falta costo base para calcular performance."}
-          label="Performance"
+          detail="Resultado abierto de las posiciones actuales."
+          label="P&L no realizado"
+          tone={hasUnrealizedPnlData ? signedMoneyTone(unrealizedPnlValue) : "neutral"}
+          value={unrealizedPnlLabel}
+        />
+        <MetricTile
+          detail="Ganancias cerradas más dividendos cargados."
+          label="Realizado + dividendos"
+          tone={signedMoneyTone(realizedDividendValue)}
+          value={realizedDividendLabel}
+        />
+        <MetricTile
+          detail={currentPerformanceLabel ? `Sobre base ${activeCostBasisLabel}.` : "Falta costo base para calcular performance."}
+          label="P&L total"
           tone={signedMoneyTone(currentPerformanceValue)}
-          value={currentPerformanceLabel || totalPnlLabel}
+          value={totalPnlLabel}
         />
         <MetricTile
-          detail={hasDayPnl ? "Movimiento intradía cargado." : "Sin dato intradía útil."}
-          label="Hoy"
-          tone={dayPnl < 0 ? "bad" : dayPnl > 0 ? "good" : "neutral"}
-          value={hasDayPnl ? formatCurrency(dayPnl) : "-"}
+          detail="Incluye dividendos cuando están cargados."
+          label="Retorno total"
+          tone={signedMoneyTone(currentPerformanceValue)}
+          value={currentPerformanceLabel || "-"}
         />
         <MetricTile
-          detail={topHolding ? holdingName(topHolding) : "Sin dato."}
-          label="Mayor peso"
-          value={topHolding ? `${topHolding.ticker} ${topHolding.weight || compactPercent(holdingWeightValue(topHolding))}` : "-"}
+          detail={firstFiniteNumber(analytics.totalValueClp) !== null ? `Valor CLP ${formatFxRate(analytics.totalValueClp)}.` : "Conversión local si está cargada."}
+          label="USD/CLP"
+          value={usdClpLabel}
         />
       </div>
+
+      {executiveRead.length ? (
+        <section className={styles.portfolioExecutiveRead}>
+          <div>
+            <p className={styles.kicker}>Lectura ejecutiva</p>
+            <h3>Qué significan estos números</h3>
+          </div>
+          <ul>
+            {executiveRead.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <div className={styles.portfolioDeskGrid}>
         <section className={styles.chartPanel}>
@@ -3327,12 +3498,6 @@ function HoldingsPanel({
   const targetValueInput = String(holdingDraft?.targetValueUsd || "");
   const priceValue = String(holdingDraft?.price || "");
   const tickerValue = String(holdingDraft?.ticker || "");
-  const hasHoldingsDayData = holdings.some((holding) => {
-    const dayPnl = Number(holding?.dayPnlUsd);
-    const dayReturn = Number(holding?.dayReturn);
-    return (Number.isFinite(dayPnl) && Math.abs(dayPnl) > 0.005)
-      || (Number.isFinite(dayReturn) && Math.abs(dayReturn) > 0.00005);
-  });
   const draftReady = Boolean(
     tickerValue &&
     ((sizingMode === "shares" && quantityValue !== "") || (sizingMode === "value" && targetValueInput !== "")),
@@ -3343,29 +3508,30 @@ function HoldingsPanel({
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Posiciones</p>
-          <h2>{holdings.length ? "Todas las posiciones conectadas" : "Tus posiciones aparecerán aquí"}</h2>
-          <p className={styles.supportText}>Revisa ticker, rol, peso, valor y precio en una sola vista.</p>
+          <h2>{holdings.length ? "Análisis de holdings" : "Tus posiciones aparecerán aquí"}</h2>
+          <p className={styles.supportText}>Valor, costo base, fuente de precio, exposición y próxima acción por posición.</p>
         </div>
         <ToneBadge tone="neutral">{holdings.length} posiciones</ToneBadge>
       </div>
 
       {holdings.length ? (
-        <div aria-label="Posiciones conectadas" className={styles.tableShell} role="table">
+        <div aria-label="Posiciones conectadas" className={`${styles.tableShell} ${styles.holdingsAnalysisTable}`} role="table">
           <div className={styles.tableHeader} role="row">
             <span role="columnheader">Ticker</span>
             <span role="columnheader">Tema</span>
-            <span role="columnheader">Peso</span>
+            <span role="columnheader">Sector</span>
+            <span role="columnheader">Región</span>
+            <span role="columnheader">Acciones</span>
+            <span role="columnheader">Costo prom.</span>
             <span role="columnheader">Valor</span>
-            <span role="columnheader">Hoy $</span>
-            <span role="columnheader">Hoy %</span>
+            <span role="columnheader">Retorno total</span>
+            <span role="columnheader">Fuente</span>
             <span role="columnheader">Acción</span>
           </div>
           <div className={styles.tableBody} role="rowgroup">
-            {holdings.map((holding) => {
-              const dayPnlValue = Number(holding.dayPnlUsd);
-              const hasDayPnl = hasHoldingsDayData && Number.isFinite(dayPnlValue);
-              const dayReturnValue = Number(holding.dayReturn);
-              const hasDayReturn = hasHoldingsDayData && Number.isFinite(dayReturnValue);
+            {[...holdings].sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left)).map((holding) => {
+              const totalReturn = holdingTotalReturnInclDividends(holding);
+              const totalPnl = holdingTotalPnlInclDividends(holding);
               return (
                 <article className={styles.tableRow} key={`holding-row-${holding.ticker}`} role="row">
                   <div className={styles.tablePrimary} role="cell">
@@ -3373,10 +3539,18 @@ function HoldingsPanel({
                     <span>{holdingName(holding)}</span>
                   </div>
                   <span role="cell">{cleanPortfolioLabel(holding.theme || holding.thesisBucket || holding.industry || holding.region, "Sin tema")}</span>
-                  <strong role="cell">{holding.weight || "-"}</strong>
-                  <strong role="cell">{holding.marketValueUsd ? formatCurrency(holding.marketValueUsd) : "-"}</strong>
-                  <strong data-tone={signedMoneyTone(dayPnlValue)} role="cell">{hasDayPnl ? formatCurrency(dayPnlValue) : "-"}</strong>
-                  <strong data-tone={signedMoneyTone(dayReturnValue)} role="cell">{hasDayReturn ? (holding.dayReturnLabel || compactPercent(dayReturnValue, true)) : "-"}</strong>
+                  <span role="cell">{cleanPortfolioLabel(holding.sector, "-")}</span>
+                  <span role="cell">{cleanPortfolioLabel(holding.region, "-")}</span>
+                  <strong role="cell">{firstFiniteNumber(holding.shares, holding.quantity) !== null ? firstFiniteNumber(holding.shares, holding.quantity).toFixed(4).replace(/\.?0+$/, "") : "-"}</strong>
+                  <span role="cell">{compactCurrency(holding.avgCostUsd)}</span>
+                  <strong role="cell">{compactCurrency(holdingAnalysisValue(holding))}</strong>
+                  <strong data-tone={signedMoneyTone(totalPnl)} role="cell">
+                    {totalReturn !== null ? `${formatSignedPct(totalReturn)} (${compactCurrency(totalPnl)})` : "-"}
+                  </strong>
+                  <span role="cell">
+                    {holdingValueSourceLabel(holding)}
+                    {holdingMarketMetaLabel(holding) ? ` · ${holdingMarketMetaLabel(holding)}` : ""}
+                  </span>
                   <span role="cell">{holdingActionLabel(holding)}</span>
                 </article>
               );

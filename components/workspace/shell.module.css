@@ -3029,6 +3029,32 @@
   margin-top: 1rem;
 }
 
+.portfolioExecutiveRead {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.42fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid rgba(248, 200, 111, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.portfolioExecutiveRead h3 {
+  margin: 0.1rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.25;
+}
+
+.portfolioExecutiveRead ul {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .portfolioDeskGrid {
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.72fr);
   margin-top: 1rem;
@@ -3126,6 +3152,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem 0.75rem;
+  max-height: 10rem;
+  overflow: auto;
   color: var(--muted);
   font-size: 0.82rem;
 }
@@ -3317,6 +3345,11 @@
   gap: 0.75rem;
   padding: 0.65rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.portfolioHorizonRow .portfolioBarTrack {
+  grid-column: 1 / -1;
+  height: 0.36rem;
 }
 
 .portfolioHorizonRow:last-child {
@@ -3940,6 +3973,26 @@
 
 .tablePrimary {
   min-width: 0;
+}
+
+.holdingsAnalysisTable {
+  overflow-x: auto;
+}
+
+.holdingsAnalysisTable .tableHeader,
+.holdingsAnalysisTable .tableRow {
+  grid-template-columns:
+    minmax(130px, 1fr)
+    minmax(150px, 0.9fr)
+    minmax(120px, 0.82fr)
+    minmax(110px, 0.72fr)
+    minmax(82px, 0.52fr)
+    minmax(92px, 0.58fr)
+    minmax(96px, 0.62fr)
+    minmax(132px, 0.82fr)
+    minmax(180px, 1fr)
+    minmax(130px, 0.82fr);
+  min-width: 1320px;
 }
 
 .tradeComposer {
@@ -7117,6 +7170,39 @@
 .welcomeStep,
 .glossaryPanel {
   border-radius: 8px;
+}
+
+@media (max-width: 1180px) {
+  .portfolioExecutiveRead {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .holdingsAnalysisTable .tableHeader,
+  .holdingsAnalysisTable .tableRow {
+    grid-template-columns:
+      minmax(130px, 1fr)
+      minmax(150px, 0.9fr)
+      minmax(120px, 0.82fr)
+      minmax(110px, 0.72fr)
+      minmax(82px, 0.52fr)
+      minmax(92px, 0.58fr)
+      minmax(96px, 0.62fr)
+      minmax(132px, 0.82fr)
+      minmax(180px, 1fr)
+      minmax(130px, 0.82fr);
+    min-width: 1320px;
+  }
+
+  .holdingsAnalysisTable .tableHeader > *,
+  .holdingsAnalysisTable .tableRow > * {
+    display: block;
+  }
+
+  .holdingsAnalysisTable .tablePrimary {
+    display: grid;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

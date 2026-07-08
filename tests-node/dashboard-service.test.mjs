@@ -171,10 +171,15 @@ test("normalizeWorkspaceDashboard preserves portfolio manager fields for the wor
             quantity: 2.05,
             avg_cost_usd: 83.55,
             dividends_received_usd: 0,
+            analysis_value_usd: 475.76,
             broker_value_usd: 475.76,
             broker_total_gain_usd: 303.75,
             broker_day_gain_usd: 4.25,
             broker_day_pct: 0.009,
+            value_source: "Broker snapshot",
+            market_cap_usd: 12_400_000_000,
+            pe_ratio: 18.6,
+            eps: 2.14,
             quality_score: 3,
             risk_score: 5,
             analyst_thesis: "High-beta AI infrastructure exposure.",
@@ -217,6 +222,13 @@ test("normalizeWorkspaceDashboard preserves portfolio manager fields for the wor
   assert.equal(holding.currentAction, "Watch sizing");
   assert.equal(holding.thesis, "High-beta AI infrastructure exposure.");
   assert.equal(holding.dayReturnLabel, "+0.9%");
+  assert.equal(holding.analysisValueUsd, 475.76);
+  assert.equal(holding.valueSource, "Broker snapshot");
+  assert.equal(holding.marketCapUsd, 12_400_000_000);
+  assert.equal(holding.peRatio, 18.6);
+  assert.equal(holding.eps, 2.14);
+  assert.equal(holding.totalPnlInclDividendsUsd, 303.75);
+  assert.equal(holding.totalReturnInclDividendsLabel, "+177.3%");
   assert.equal(dashboard.modules.portfolio.transactions[0].action, "Buy");
   assert.equal(dashboard.modules.portfolio.analytics.totalReturnInclDividends, 0.319);
 });
