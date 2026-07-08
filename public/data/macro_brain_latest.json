@@ -1,8 +1,8 @@
 {
-  "generated_on": "2026-07-07T11:45:15.692901+00:00",
-  "run_date": "2026-07-06",
+  "generated_on": "2026-07-08T14:22:00.888209+00:00",
+  "run_date": "2026-07-08",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143263,
+  "observations": 143272,
   "series_count": 25,
   "impulse_changes": [
     {
@@ -46,6 +46,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Investment grade ETF"
+    },
+    {
+      "series_id": "EEM",
+      "date": "2026-07-08T00:00:00",
+      "value": 65.66000366210938,
+      "transformed": -0.0009133438960988727,
+      "momentum": 0.34415852513863143,
+      "impulse": -0.2348417295313716,
+      "momentum_z": 0.5084117627247501,
+      "impulse_z": -1.1602158247778418,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Emerging markets ETF"
     },
     {
       "series_id": "CLP=X",
@@ -104,20 +118,6 @@
       "label": "MOVE index"
     },
     {
-      "series_id": "T10YIE",
-      "date": "2026-07-06T00:00:00",
-      "value": 2.24,
-      "transformed": 0.010000000000000231,
-      "momentum": -0.08999999999999986,
-      "impulse": -0.11999999999999966,
-      "momentum_z": -0.8093889113719178,
-      "impulse_z": -0.927424794280318,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y breakeven"
-    },
-    {
       "series_id": "WALCL",
       "date": "2026-07-01T00:00:00",
       "value": 6724564.0,
@@ -146,32 +146,32 @@
       "label": "Long Treasury ETF"
     },
     {
-      "series_id": "MXN=X",
-      "date": "2026-06-10T00:00:00",
-      "value": 17.45401954650879,
-      "transformed": -0.000783438252390134,
-      "momentum": -0.0862141983224749,
-      "impulse": -0.08588403504456465,
-      "momentum_z": -0.24198868745585037,
-      "impulse_z": -0.5584212462865383,
+      "series_id": "T10YIE",
+      "date": "2026-07-07T00:00:00",
+      "value": 2.25,
+      "transformed": 0.009999999999999787,
+      "momentum": -0.08999999999999986,
+      "impulse": -0.08000000000000007,
+      "momentum_z": -0.8093889113719178,
+      "impulse_z": -0.5901794145420223,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "USDMXN"
+      "label": "US 10Y breakeven"
     },
     {
-      "series_id": "UUP",
-      "date": "2026-06-11T00:00:00",
-      "value": 28.0049991607666,
-      "transformed": -0.0007032343588262435,
-      "momentum": 0.039472770298898396,
-      "impulse": -0.06213409682736426,
-      "momentum_z": -0.14674157327048962,
-      "impulse_z": -0.5581562790392914,
+      "series_id": "DGS10",
+      "date": "2026-07-06T00:00:00",
+      "value": 4.48,
+      "transformed": -0.009999999999999787,
+      "momentum": 0.1900000000000004,
+      "impulse": -0.20999999999999908,
+      "momentum_z": 0.337245379738298,
+      "impulse_z": -0.5865137038926894,
       "impulse_sign": -1,
-      "persistent_inflection": true,
+      "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "UUP dollar ETF fallback"
+      "label": "US 10Y nominal yield"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": 2.0589999999999997,
-        "impulse_z": -0.07159262524985006
+        "impulse": 2.8019999999999996,
+        "impulse_z": -0.05991896371346096
       }
     }
   },
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "What would make you flip today rather than merely reduce confidence?"
+  "question_of_day": "Where are you confusing a level with an impulse?"
 }
