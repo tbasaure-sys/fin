@@ -208,9 +208,9 @@ const WORKSPACE_PRIMARY_NAV_COPY = {
     mosaic: ["MOSAIC", "External context", "What is changing outside?", "Macro Brain, global pressure, liquidity, theses, event risks, and sources.", "Macro"],
   },
   es: {
-    holdings: ["Holdings", "Cartera y stress", "¿Qué domina mi riesgo?", "Cartera, posiciones, decisiones y stress test.", "Cartera"],
-    aurora: ["AURORA", "Research de compañías", "¿Cuánto vale este negocio?", "Valoración, research, candidatos y juicio por compañía.", "Valoración"],
-    mosaic: ["MOSAIC", "Contexto externo", "¿Qué está cambiando afuera?", "Macro Brain, presión global, liquidez, tesis, datos críticos y fuentes.", "Macro"],
+    holdings: ["Cartera", "Posiciones y stress", "¿Qué domina mi riesgo?", "Posiciones, rendimiento, decisiones y stress test.", "Cartera"],
+    aurora: ["AURORA", "Valoración y research", "¿Cuánto vale este negocio?", "Valuation OS, investigación multiagente, candidatos y juicio por compañía.", "Compañías"],
+    mosaic: ["MOSAIC", "Macro y liquidez", "¿Qué está cambiando afuera?", "Macro Brain, presión global, liquidez, tesis, datos críticos y fuentes.", "Contexto"],
   },
 };
 
@@ -4105,6 +4105,21 @@ function FactorLabWorkspacePanel({ portfolioModule }) {
   );
 }
 
+function researchLoopRoleLabel(value, fallback) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "research_maker") return "Analista redactor";
+  if (normalized === "research_checker") return "Revisor crítico";
+  return cleanWorkspaceCopy(value || fallback);
+}
+
+function researchLoopTaskTypeLabel(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "decision_review") return "Decisión";
+  if (normalized === "position_review") return "Posición";
+  if (normalized === "candidate_review") return "Candidato";
+  return cleanWorkspaceCopy(value || "Tarea");
+}
+
 function ResearchLoopPanel({ workspaceId }) {
   const [loop, setLoop] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -4138,14 +4153,14 @@ function ResearchLoopPanel({ workspaceId }) {
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Research loop</p>
+          <p className={styles.kicker}>Loop de investigación</p>
           <h2>Sistema maker/checker para ideas</h2>
           <p className={styles.supportText}>
             Convierte el workspace en una cola verificable: un agente redacta, otro rechaza o aprueba, y nada se promueve sin criterio de parada.
           </p>
         </div>
         <button className={styles.primaryButton} disabled={loading || !workspaceId} onClick={runLoop} type="button">
-          {loading ? "Corriendo..." : "Correr iteracion"}
+          {loading ? "Corriendo..." : "Correr iteración"}
         </button>
       </div>
 
@@ -4154,11 +4169,11 @@ function ResearchLoopPanel({ workspaceId }) {
       <div className={styles.researchLoopGrid}>
         <article className={styles.researchLoopHero}>
           <p className={styles.kicker}>{loop?.status || "preparando"}</p>
-          <h3>{loop?.headline || "Preparando la primera iteracion"}</h3>
-          <p>{loop?.stopCondition?.reason || "El loop leerá acciones, alertas, posiciones y candidatos antes de redactar cualquier memo."}</p>
+          <h3>{cleanWorkspaceCopy(loop?.headline || "Preparando la primera iteración")}</h3>
+          <p>{cleanWorkspaceCopy(loop?.stopCondition?.reason || "El loop leerá acciones, alertas, posiciones y candidatos antes de redactar cualquier memo.")}</p>
           <div className={styles.researchLoopMeta}>
             <ToneBadge tone={loop?.status === "ready" ? "good" : loop?.status === "blocked" ? "bad" : loop?.status === "review" ? "warn" : "neutral"}>
-              {loop?.stopCondition?.label || "Esperando"}
+              {cleanWorkspaceCopy(loop?.stopCondition?.label || "Esperando")}
             </ToneBadge>
             <ToneBadge tone="neutral">{queue.length} tarea{queue.length === 1 ? "" : "s"}</ToneBadge>
           </div>
@@ -4167,39 +4182,39 @@ function ResearchLoopPanel({ workspaceId }) {
         <article className={styles.researchLoopCard}>
           <h3>Arquitectura</h3>
           <div className={styles.researchLoopStack}>
-            <span><strong>Heartbeat</strong>{architecture.heartbeat || "Disparo manual o por refresh."}</span>
-            <span><strong>Memoria</strong>{architecture.memory || "Estado escrito fuera del prompt."}</span>
-            <span><strong>Isolation</strong>{architecture.isolation || "Una linea por tarea."}</span>
+            <span><strong>Ritmo</strong>{cleanWorkspaceCopy(architecture.heartbeat || "Disparo manual o por actualización.")}</span>
+            <span><strong>Memoria</strong>{cleanWorkspaceCopy(architecture.memory || "Estado escrito fuera del prompt.")}</span>
+            <span><strong>Aislamiento</strong>{cleanWorkspaceCopy(architecture.isolation || "Una línea por tarea.")}</span>
           </div>
         </article>
 
         <article className={styles.researchLoopCard}>
-          <h3>Maker / checker</h3>
+          <h3>Redactor / revisor</h3>
           <div className={styles.researchLoopAgents}>
             <span>
-              <strong>{loop?.agents?.maker?.role || "research_maker"}</strong>
-              {loop?.agents?.maker?.objective || "Redacta el memo minimo util."}
+              <strong>{researchLoopRoleLabel(loop?.agents?.maker?.role, "Analista redactor")}</strong>
+              {cleanWorkspaceCopy(loop?.agents?.maker?.objective || "Redacta el memo mínimo útil.")}
             </span>
             <span>
-              <strong>{loop?.agents?.checker?.role || "research_checker"}</strong>
-              {loop?.agents?.checker?.stopCondition || "Rechaza si falta evidencia, hay leakage o no hay stop condition."}
+              <strong>{researchLoopRoleLabel(loop?.agents?.checker?.role, "Revisor crítico")}</strong>
+              {cleanWorkspaceCopy(loop?.agents?.checker?.stopCondition || "Rechaza si falta evidencia, hay datos futuros inválidos o no hay criterio de parada.")}
             </span>
           </div>
         </article>
 
         <article className={styles.researchLoopCard}>
-          <h3>Gates externos</h3>
+          <h3>Controles externos</h3>
           {gates.length ? (
             <div className={styles.researchLoopGates}>
               {gates.map((gate) => (
                 <div data-status={gate.status} key={gate.id}>
-                  <strong>{gate.label}</strong>
-                  <span>{gate.detail}</span>
+                  <strong>{cleanWorkspaceCopy(gate.label)}</strong>
+                  <span>{cleanWorkspaceCopy(gate.detail)}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className={styles.emptyCopy}>Los gates aparecen despues de la primera iteracion.</p>
+            <p className={styles.emptyCopy}>Los controles aparecen después de la primera iteración.</p>
           )}
         </article>
 
@@ -4209,9 +4224,9 @@ function ResearchLoopPanel({ workspaceId }) {
             <div className={styles.researchLoopQueue}>
               {queue.slice(0, 5).map((task) => (
                 <div key={task.id}>
-                  <span>{task.type}</span>
-                  <strong>{task.ticker}: {task.title}</strong>
-                  <small>{task.hypothesis}</small>
+                  <span>{researchLoopTaskTypeLabel(task.type)}</span>
+                  <strong>{task.ticker}: {cleanWorkspaceCopy(task.title)}</strong>
+                  <small>{cleanWorkspaceCopy(task.hypothesis)}</small>
                 </div>
               ))}
             </div>
@@ -4292,11 +4307,11 @@ function MacroBrainWorkspacePanel() {
           <div>
             <p className={styles.kicker}>Macro Brain</p>
             <h2>Última lectura macro</h2>
-            <p>{snapshot.shortRead}</p>
+            <p>{macroPlainText(snapshot.shortRead)}</p>
             <div className={styles.macroBrainSource}>
-              <strong>{snapshot.sourceLabel}</strong>
-              <span>{snapshot.freshnessLabel || runLabel}</span>
-              <small>{loading ? "Actualizando..." : snapshot.dataStatus}</small>
+              <strong>{macroPlainText(snapshot.sourceLabel)}</strong>
+              <span>{macroPlainText(snapshot.freshnessLabel || runLabel)}</span>
+              <small>{loading ? "Actualizando..." : macroPlainText(snapshot.dataStatus)}</small>
               <button
                 className={styles.macroBrainRefresh}
                 disabled={loading}
@@ -4307,6 +4322,10 @@ function MacroBrainWorkspacePanel() {
               </button>
             </div>
             {error ? <p className={styles.macroBrainError}>{error}</p> : null}
+            <div className={styles.macroBrainPlainRead}>
+              <strong>En simple</strong>
+              <span>{macroSignalMeaning(safeList(snapshot.impulseChanges)[0])}</span>
+            </div>
           </div>
           <div className={styles.macroBrainStats}>
             <span><strong>{snapshot.seriesCount}</strong> series</span>
@@ -4322,7 +4341,7 @@ function MacroBrainWorkspacePanel() {
               data-direction={item.direction}
               key={`macro-pulse-${item.label}`}
               style={{ "--bar-height": item.height, "--macro-delay": item.delay }}
-              title={`${item.label}: ${item.plain}`}
+              title={`${macroPlainText(item.label)}: ${macroPlainText(item.plain)}`}
             />
           ))}
         </div>
@@ -4332,8 +4351,8 @@ function MacroBrainWorkspacePanel() {
             <h3>Qué cambió</h3>
             {safeList(snapshot.impulseChanges).slice(0, 5).map((item) => (
               <div className={styles.macroBrainRow} data-direction={item.direction} key={item.label}>
-                <strong>{item.label}</strong>
-                <span>{item.plain}</span>
+                <strong>{macroPlainText(item.label)}</strong>
+                <span>{macroPlainText(item.plain)}</span>
               </div>
             ))}
           </article>
@@ -4342,7 +4361,7 @@ function MacroBrainWorkspacePanel() {
             <h3>Tesis</h3>
             {safeList(snapshot.theses).map((item) => (
               <div className={styles.macroBrainIdea} key={item.id}>
-                <strong>{item.title}</strong>
+                <strong>{macroPlainText(item.title)}</strong>
                 <span>{item.state === "open" ? "Sigue abierta" : "Mirar de cerca"}</span>
               </div>
             ))}
@@ -4352,17 +4371,17 @@ function MacroBrainWorkspacePanel() {
             <h3>Próximos datos</h3>
             {safeList(snapshot.nextChecks).slice(0, 4).map((item) => (
               <div className={styles.macroBrainRow} key={item.event}>
-                <strong>{item.event}</strong>
-                <span>{item.timing}</span>
+                <strong>{macroPlainText(item.event)}</strong>
+                <span>{macroPlainText(item.timing)}</span>
               </div>
             ))}
           </article>
 
           <article>
             <h3>Estrés</h3>
-            <p>{snapshot.stability.read}</p>
+            <p>{macroPlainText(snapshot.stability.read)}</p>
             <div className={styles.macroBrainStatus}>
-              <span>{snapshot.stability.status}</span>
+              <span>{macroPlainText(snapshot.stability.status)}</span>
               <strong>{snapshot.stability.pressure}%</strong>
             </div>
           </article>
@@ -4396,6 +4415,117 @@ function macroSignedLabel(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return "-";
   return parsed > 0 ? `+${Math.round(parsed)}` : `${Math.round(parsed)}`;
+}
+
+function macroSignalMeaning(signal) {
+  const label = String(signal?.label || "").toLowerCase();
+  const plain = String(signal?.plain || "").toLowerCase();
+  if (label.includes("oro") && (plain.includes("débil") || plain.includes("debil") || signal?.direction === "down")) {
+    return "Oro más débil suele indicar menos demanda por refugio o inflación. No es una alerta roja solo; importa si coincide con dólar fuerte, tasas reales o presión en LatAm.";
+  }
+  if (label.includes("emerging") || label.includes("emergente")) {
+    return signal?.direction === "up"
+      ? "El ETF emergente subiendo sugiere mejor apetito por riesgo fuera de EE.UU.; ayuda a LatAm si no viene acompañado de dólar fuerte."
+      : "El ETF emergente cayendo suele señalar menor apetito por riesgo; cuidado con posiciones expuestas a liquidez global.";
+  }
+  if (label.includes("breakeven")) {
+    return "El breakeven baja cuando el mercado descuenta menos inflación futura; eso puede aliviar tasas, pero también puede reflejar demanda más floja.";
+  }
+  if (label.includes("oas") || label.includes("crédito") || label.includes("credito")) {
+    return signal?.direction === "down"
+      ? "Spreads de crédito bajando indican menos estrés financiero inmediato."
+      : "Spreads de crédito subiendo son una señal de alerta porque el mercado exige más prima por riesgo.";
+  }
+  if (label.includes("yield") || label.includes("tasa")) {
+    return "Tasas largas bajando alivian valuaciones, pero hay que distinguir si bajan por menor inflación o por miedo a crecimiento.";
+  }
+  if (label.includes("fx")) {
+    return "La lectura FX muestra si la presión sobre monedas emergentes está subiendo o bajando; importa para cobre, Chile y activos LatAm.";
+  }
+  return `${signal?.label || "La señal principal"} ${signal?.plain || "cambió"}. Léela como contexto, no como orden de inversión: pide confirmación con tasas, crédito y liquidez.`;
+}
+
+function macroStressMeaning(stability) {
+  const pressure = Number(stability?.pressure);
+  if (!Number.isFinite(pressure)) return "Sin puntaje de estrés comparable todavía.";
+  if (pressure < 25) return `Estrés ${Math.round(pressure)}%: monitoreo normal. No prende alerta roja; sirve para confirmar que no hay ruptura macro inmediata.`;
+  if (pressure < 50) return `Estrés ${Math.round(pressure)}%: vigilancia. No es crisis, pero conviene esperar confirmación antes de aumentar riesgo amplio.`;
+  if (pressure < 75) return `Estrés ${Math.round(pressure)}%: alerta amarilla. Hay presión suficiente para revisar tamaño, concentración y caja.`;
+  return `Estrés ${Math.round(pressure)}%: alerta roja. Priorizar defensa, liquidez y revisión de exposiciones sensibles.`;
+}
+
+function macroAlertSummary(macro, mosaic) {
+  const pressure = Number(macro?.stability?.pressure);
+  const topMarket = safeList(mosaic?.markets)
+    .slice()
+    .sort((left, right) => Number(right.score || 0) - Number(left.score || 0))[0];
+  if (topMarket && Number(topMarket.score) >= 55) {
+    return `La alerta útil está en ${macroPlainText(topMarket.name)}: ${macroPlainText(topMarket.reading)}. Eso no exige actuar hoy, pero sí revisar empresas o insumos expuestos a ese cuello de botella.`;
+  }
+  if (Number.isFinite(pressure) && pressure >= 50) {
+    return `La alerta viene del estrés macro: ${macroStressMeaning(macro?.stability)}`;
+  }
+  return "No hay alerta roja. La lectura actual es de vigilancia: mirar si las señales se acumulan antes de cambiar cartera.";
+}
+
+function macroWatchSummary(macro, mosaic) {
+  const checks = safeList(macro?.nextChecks).slice(0, 2).map((item) => macroPlainText(item.event)).filter(Boolean);
+  const gap = macroPlainText(safeList(mosaic?.gaps)[0]?.missing);
+  if (checks.length && gap) return `Próximos datos: ${checks.join(" y ")}. Dato que falta mejorar: ${gap}.`;
+  if (checks.length) return `Próximos datos que pueden cambiar la lectura: ${checks.join(" y ")}.`;
+  if (gap) return `Dato que falta mejorar antes de confiar más: ${gap}.`;
+  return "Mirar confirmación en tasas, crédito, liquidez y precios sensibles al crecimiento.";
+}
+
+function macroPlainText(value) {
+  const text = cleanWorkspaceCopy(value).trim();
+  if (!text) return "";
+
+  const sourceMatch = text.match(/^(\d+)\s+series used,\s+(\d+)\s+manual,\s+(\d+)\s+warming,\s+(\d+)\s+watch errors\.?$/i);
+  if (sourceMatch) {
+    return `${sourceMatch[1]} series usadas; ${sourceMatch[2]} manuales; ${sourceMatch[3]} en calentamiento; ${sourceMatch[4]} errores de vigilancia.`;
+  }
+
+  const freshnessMatch = text.match(/^Newest\s+([0-9-]+);\s+oldest used source age\s+(\d+)\s+days\.\s+FRED cache\s+(\d+);\s+public cache\s+(\d+)\.?$/i);
+  if (freshnessMatch) {
+    return `Fuente más nueva: ${freshnessMatch[1]}. Fuente más antigua usada: ${freshnessMatch[2]} días. Cache: ${freshnessMatch[3]} FRED y ${freshnessMatch[4]} públicas.`;
+  }
+
+  return text
+    .replace(/\bUS net liquidity impulse is negative\.?/gi, "La liquidez neta de EE.UU. está drenando. Es viento en contra para activos de riesgo.")
+    .replace(/\bEmerging markets ETF\b/gi, "ETF de mercados emergentes")
+    .replace(/\bUS 10Y breakeven\b/gi, "Inflación implícita EE.UU. 10 años")
+    .replace(/\bUS 10Y nominal yield\b/gi, "Tasa nominal EE.UU. 10 años")
+    .replace(/\bUS HY OAS\b/gi, "Spreads high yield EE.UU.")
+    .replace(/\bFX Colombia\b/gi, "Peso colombiano")
+    .replace(/\bFed balance sheet\b/gi, "Balance de la Fed")
+    .replace(/\bTreasury General Account\b/gi, "Cuenta del Tesoro")
+    .replace(/\bOvernight reverse repo\b/gi, "Reverse repo overnight")
+    .replace(/\bus_net_liquidity\b/gi, "Liquidez neta EE.UU.")
+    .replace(/\bTransformer-specific lead times and utility\/procurement order books\b/gi, "Tiempos de entrega de transformadores y pedidos de empresas eléctricas")
+    .replace(/\bRoute-specific Asia-Europe freight-rate history\b/gi, "Historia de fletes Asia-Europa por ruta")
+    .replace(/\bLatAm physical import volumes and local fertilizer availability\b/gi, "Importaciones físicas LatAm y disponibilidad local de fertilizantes")
+    .replace(/\bLNG terminal utilization and pipeline capacity constraints\b/gi, "Uso de terminales LNG y restricciones de gasoductos")
+    .replace(/\bCity-level inventory and developer balance-sheet detail\b/gi, "Inventario por ciudad y balances de desarrolladores")
+    .replace(/\bUS real-yield impulse turns negative for five sessions\b/gi, "Las tasas reales de EE.UU. caen durante cinco sesiones")
+    .replace(/\bChina impulse deteriorates for six weeks\b/gi, "El impulso de China se deteriora durante seis semanas")
+    .replace(/\bChile inflation impulse reaccelerates\b/gi, "La inflación chilena vuelve a acelerar");
+}
+
+function macroExpressionText(value) {
+  const text = macroPlainText(value);
+  if (!text) return "Sin expresión de mercado";
+  if (/^Long DXY$/i.test(text)) return "Apuesta: dólar fuerte.";
+  if (/^Long DXY \/ long USDCLP-USDBRL basket$/i.test(text)) {
+    return "Apuesta: dólar fuerte frente a LatAm (DXY y canasta USDCLP-USDBRL).";
+  }
+  if (/^Long copper \/ long Chile-linked beta$/i.test(text)) {
+    return "Apuesta: cobre y activos chilenos sensibles al ciclo.";
+  }
+  if (/^Chile rates lower relative to US front-end$/i.test(text)) {
+    return "Apuesta: tasas chilenas bajan más rápido que el tramo corto de EE.UU.";
+  }
+  return `Expresión: ${text}`;
 }
 
 function useMosaicLiveSnapshot() {
@@ -4459,7 +4589,7 @@ function MosaicObservatoryPanel() {
           <div>
             <p className={styles.kicker}>MOSAIC</p>
             <h2>Presiones globales</h2>
-            <p>{snapshot.headline}</p>
+            <p>{macroPlainText(snapshot.headline)}</p>
           </div>
           <div className={styles.mosaicDial} aria-label={`Indice MOSAIC ${snapshot.index}`}>
             <strong>{snapshot.index}</strong>
@@ -4468,11 +4598,11 @@ function MosaicObservatoryPanel() {
         </div>
 
         <div className={styles.mosaicSummary}>
-          <span>{snapshot.sourceLine}</span>
-          <span>{snapshot.freshness}</span>
-          <span>{providerText}</span>
+          <span>{macroPlainText(snapshot.sourceLine)}</span>
+          <span>{macroPlainText(snapshot.freshness)}</span>
+          <span>{macroPlainText(providerText)}</span>
           <span>
-            {loading ? "Actualizando..." : snapshot.dataStatus || "Live"}
+            {loading ? "Actualizando..." : macroPlainText(snapshot.dataStatus || "Live")}
             <button
               className={styles.macroBrainRefresh}
               disabled={loading}
@@ -4488,20 +4618,20 @@ function MosaicObservatoryPanel() {
 
         <div className={styles.mosaicPlainNote}>
           <strong>Qué significa la primera alerta</strong>
-          <span>{snapshot.glossary?.gridEquipment}</span>
+          <span>{macroPlainText(snapshot.glossary?.gridEquipment)}</span>
         </div>
 
         <div className={styles.mosaicGuide} aria-label="Guía de puntajes MOSAIC">
           {scoreGuide.map((item) => (
             <div className={styles.mosaicGuideItem} key={item.range}>
               <strong>{item.range}</strong>
-              <span>{item.label}</span>
-              <small>{item.meaning}</small>
+              <span>{macroPlainText(item.label)}</span>
+              <small>{macroPlainText(item.meaning)}</small>
             </div>
           ))}
         </div>
 
-        <p className={styles.mosaicScoreNote}>{snapshot.scoreExample}</p>
+        <p className={styles.mosaicScoreNote}>{macroPlainText(snapshot.scoreExample)}</p>
 
         <div className={styles.mosaicLayout}>
           <article className={styles.mosaicMain}>
@@ -4510,12 +4640,12 @@ function MosaicObservatoryPanel() {
               {topMarkets.map((item) => (
                 <div className={styles.mosaicRow} data-tone={mosaicTone(item.score)} key={item.id}>
                   <div>
-                    <strong>{item.name}</strong>
-                    <span>{item.why}</span>
+                    <strong>{macroPlainText(item.name)}</strong>
+                    <span>{macroPlainText(item.why)}</span>
                   </div>
                   <div>
                     <strong>{mosaicScoreLabel(item.score)}</strong>
-                    <span>{item.reading}</span>
+                    <span>{macroPlainText(item.reading)}</span>
                   </div>
                 </div>
               ))}
@@ -4527,7 +4657,7 @@ function MosaicObservatoryPanel() {
               <h3>Demanda floja</h3>
               {softMarkets.map((item) => (
                 <div className={styles.mosaicMiniRow} key={item.id}>
-                  <span>{item.name}</span>
+                  <span>{macroPlainText(item.name)}</span>
                   <strong>{mosaicScoreLabel(item.score)}</strong>
                 </div>
               ))}
@@ -4537,13 +4667,69 @@ function MosaicObservatoryPanel() {
               <h3>Falta mejorar</h3>
               {safeList(snapshot.gaps).map((item) => (
                 <div className={styles.mosaicGap} key={item.market}>
-                  <strong>{item.market}</strong>
-                  <span>{item.missing}</span>
+                  <strong>{macroPlainText(item.market)}</strong>
+                  <span>{macroPlainText(item.missing)}</span>
                 </div>
               ))}
             </div>
           </aside>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function AuroraCommandCenter() {
+  const lanes = [
+    {
+      label: "Valuation OS",
+      title: "Valoración AURORA",
+      copy: "Comité de valoración con escenarios, DCF inverso, margen de seguridad y scorecard multiagente.",
+      cta: "Abrir valoración",
+      href: "/aurora",
+      primary: true,
+    },
+    {
+      label: "Research multiagente",
+      title: "Análisis de compañía",
+      copy: "Memo con estados, fuentes, valoración, debate, editor final y auditoría reproducible.",
+      cta: "Ver análisis",
+      href: "#aurora-research-desk",
+    },
+    {
+      label: "Discovery",
+      title: "Candidatos",
+      copy: "FactorLab y cola de investigación para decidir qué merece trabajo profundo.",
+      cta: "Ver candidatos",
+      href: "#aurora-discovery",
+    },
+  ];
+
+  return (
+    <section className={`${styles.panel} ${styles.auroraCommandPanel}`}>
+      <div className={styles.auroraCommandHead}>
+        <div>
+          <p className={styles.kicker}>AURORA</p>
+          <h2>Valoración primero; research después.</h2>
+          <p className={styles.supportText}>
+            El Valuation OS completo sigue vivo. Esta pestaña reúne ese motor con el análisis multiagente de compañías y la cola de candidatos.
+          </p>
+        </div>
+        <Link className={styles.primaryButton} href="/aurora">Abrir Valuation OS</Link>
+      </div>
+      <div className={styles.auroraLaneGrid}>
+        {lanes.map((lane) => (
+          <article className={styles.auroraLaneCard} data-primary={lane.primary ? "true" : "false"} key={lane.label}>
+            <span>{lane.label}</span>
+            <strong>{lane.title}</strong>
+            <p>{lane.copy}</p>
+            {lane.href.startsWith("/") ? (
+              <Link className={lane.primary ? styles.primaryButton : styles.secondaryButton} href={lane.href}>{lane.cta}</Link>
+            ) : (
+              <a className={styles.secondaryButton} href={lane.href}>{lane.cta}</a>
+            )}
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -4560,16 +4746,16 @@ function MacroLiquidityPanel({ snapshot }) {
           <p className={styles.kicker}>Liquidez</p>
           <h3>Liquidez macro</h3>
         </div>
-        <span>{liquidity.status || "Sin lectura"}</span>
+        <span>{macroPlainText(liquidity.status || "Sin lectura")}</span>
       </div>
       <p className={styles.mosaicCommandCopy}>
-        {liquidity.summary || "La lectura de liquidez todavía no está disponible."}
+        {macroPlainText(liquidity.summary || "La lectura de liquidez todavía no está disponible.")}
       </p>
       <div className={styles.mosaicCommandRows}>
         {rows.length ? rows.map((item) => (
           <div className={styles.mosaicCommandRow} key={item.label}>
-            <strong>{item.label}</strong>
-            <span>{item.stance}</span>
+            <strong>{macroPlainText(item.label)}</strong>
+            <span>{macroPlainText(item.stance)}</span>
           </div>
         )) : (
           <p className={styles.emptyCopy}>Sin componentes de liquidez disponibles.</p>
@@ -4595,8 +4781,8 @@ function MacroThesisPanel({ snapshot }) {
         {rows.length ? rows.map((item) => (
           <article className={styles.mosaicThesisCard} key={item.id}>
             <div>
-              <strong>{item.title}</strong>
-              <span>{item.expression || "Sin expresión de mercado"}</span>
+              <strong>{macroPlainText(item.title)}</strong>
+              <span>{macroExpressionText(item.expression)}</span>
             </div>
             <div className={styles.mosaicThesisStats}>
               <span>{item.state === "open" ? "Abierta" : "En revisión"}</span>
@@ -4604,7 +4790,7 @@ function MacroThesisPanel({ snapshot }) {
               <span>{item.confirmations || 0} a favor</span>
               <span>{item.contradictions || 0} en contra</span>
             </div>
-            <p>{item.canBreak || item.why || "Falta una condición clara que cambie la lectura."}</p>
+            <p>{macroPlainText(item.canBreak || item.why || "Falta una condición clara que cambie la lectura.")}</p>
           </article>
         )) : (
           <p className={styles.emptyCopy}>No hay tesis macro activas en la foto actual.</p>
@@ -4632,8 +4818,8 @@ function MacroEventRiskPanel({ snapshot }) {
         {rows.length ? rows.map((item) => (
           <div className={styles.mosaicCommandRow} key={`${item.event}-${item.timing}`}>
             <div>
-              <strong>{item.event}</strong>
-              <small>{item.timing}</small>
+              <strong>{macroPlainText(item.event)}</strong>
+              <small>{macroPlainText(item.timing)}</small>
             </div>
             <span>{macroSignedLabel(item.value)}</span>
           </div>
@@ -4661,26 +4847,26 @@ function MacroSourcesPanel({ macro, mosaic }) {
       <div className={styles.mosaicSourcesGrid}>
         <div>
           <strong>Macro Brain</strong>
-          <p>{macro?.sourceLabel || "Fuente macro guardada."}</p>
-          <span>{macro?.dataStatus || macro?.freshnessLabel || "Sin estado de fuente."}</span>
+          <p>{macroPlainText(macro?.sourceLabel || "Fuente macro guardada.")}</p>
+          <span>{macroPlainText(macro?.dataStatus || macro?.freshnessLabel || "Sin estado de fuente.")}</span>
         </div>
         <div>
           <strong>MOSAIC</strong>
-          <p>{mosaic?.sourceLine || "Fuente MOSAIC guardada."}</p>
-          <span>{mosaic?.freshness || mosaic?.dataStatus || "Sin frescura reportada."}</span>
+          <p>{macroPlainText(mosaic?.sourceLine || "Fuente MOSAIC guardada.")}</p>
+          <span>{macroPlainText(mosaic?.freshness || mosaic?.dataStatus || "Sin frescura reportada.")}</span>
         </div>
       </div>
       <div className={styles.mosaicCommandRows}>
         {providers.map((item) => (
           <div className={styles.mosaicCommandRow} key={item.name}>
-            <strong>{item.name}</strong>
-            <span>{item.used} series</span>
+            <strong>{macroPlainText(item.name)}</strong>
+            <span>{macroPlainText(`${item.used} series`)}</span>
           </div>
         ))}
         {gaps.map((item) => (
           <div className={styles.mosaicCommandRow} key={`${item.market}-${item.missing}`}>
-            <strong>{item.market}</strong>
-            <span>{item.missing}</span>
+            <strong>{macroPlainText(item.market)}</strong>
+            <span>{macroPlainText(item.missing)}</span>
           </div>
         ))}
       </div>
@@ -4692,7 +4878,11 @@ function MosaicCommandCenter() {
   const macro = useMacroBrainLiveSnapshot();
   const mosaic = useMosaicLiveSnapshot();
   const pressure = Number(macro.snapshot?.stability?.pressure);
-  const headline = macro.snapshot?.shortRead || mosaic.snapshot?.headline || "Lectura macro en preparacion.";
+  const headline = macroPlainText(macro.snapshot?.shortRead || mosaic.snapshot?.headline || "Lectura macro en preparación.");
+  const topSignal = safeList(macro.snapshot?.impulseChanges)[0];
+  const meaning = topSignal ? macroSignalMeaning(topSignal) : macroStressMeaning(macro.snapshot?.stability);
+  const alert = macroAlertSummary(macro.snapshot, mosaic.snapshot);
+  const watch = macroWatchSummary(macro.snapshot, mosaic.snapshot);
 
   return (
     <div className={styles.mosaicCommandCenter}>
@@ -4704,10 +4894,24 @@ function MosaicCommandCenter() {
             <p>{headline}</p>
           </div>
           <div className={styles.mosaicCommandStats}>
-            <span><strong>{mosaic.snapshot?.index ?? "-"}</strong> desequilibrio</span>
-            <span><strong>{mosaic.snapshot?.conflict ?? "-"}</strong> conflicto</span>
-            <span><strong>{macroPercentLabel(pressure)}</strong> estrés monitor</span>
+            <span><strong>{mosaic.snapshot?.index ?? "-"}</strong> presión global</span>
+            <span><strong>{mosaic.snapshot?.conflict ?? "-"}</strong> señales mixtas</span>
+            <span><strong>{macroPercentLabel(pressure)}</strong> estrés macro</span>
           </div>
+        </div>
+        <div className={styles.mosaicExplainGrid}>
+          <article>
+            <span>Qué significa</span>
+            <p>{meaning}</p>
+          </article>
+          <article>
+            <span>Cuál es la alerta</span>
+            <p>{alert}</p>
+          </article>
+          <article>
+            <span>Qué mirar</span>
+            <p>{watch}</p>
+          </article>
         </div>
         {macro.error || mosaic.error ? (
           <p className={styles.macroBrainError}>{macro.error || mosaic.error}</p>
@@ -5150,6 +5354,22 @@ function cleanWorkspaceCopy(value) {
     .replace(/\bStructural pressure\b/gi, "Presión estructural")
     .replace(/\bShock pressure\b/gi, "Presión de shock")
     .replace(/\bNeed more confirmation\b/gi, "Hace falta más confirmación")
+    .replace(/\bAll gates passed\.?/gi, "Todos los controles pasaron.")
+    .replace(/\bReady for human review\b/gi, "Listo para revisión humana")
+    .replace(/\bRun after each market refresh or on a daily schedule\.?/gi, "Correr después de cada actualización de mercado o una vez al día.")
+    .replace(/\bNo durable research events yet; this iteration starts a memory trail\.?/gi, "Todavía no hay eventos de investigación guardados; esta iteración inicia el registro.")
+    .replace(/\bEach task is treated as an isolated research lane before promotion\.?/gi, "Cada tarea se revisa como una línea separada antes de promoverla.")
+    .replace(/\bDraft the smallest useful research pass for ([A-Z0-9.-]+)\.?/gi, "Redactar el pase de investigación mínimo útil para $1.")
+    .replace(/\bReady for human review, not execution\.?/gi, "Listo para revisión humana, no para ejecución.")
+    .replace(/\bMarket snapshot freshness\b/gi, "Frescura de mercado")
+    .replace(/\bMinimum evidence floor\b/gi, "Piso mínimo de evidencia")
+    .replace(/\bNo future-data leakage\b/gi, "Sin datos futuros inválidos")
+    .replace(/\bHuman stop condition\b/gi, "Criterio de parada humano")
+    .replace(/\b0h since latest workspace snapshot\.?/gi, "0h desde la última foto del espacio.")
+    .replace(/\b([0-9]+) evidence items attached\.?/gi, "$1 evidencias adjuntas.")
+    .replace(/\bTask is reviewed before any model output can become a candidate\.?/gi, "La tarea se revisa antes de que cualquier salida del modelo pueda volverse candidata.")
+    .replace(/\bLoop can draft research, but cannot place trades or mark itself final\.?/gi, "El loop puede redactar investigación, pero no ejecutar operaciones ni declararse final.")
+    .replace(/\bThis position may deserve a fresh thesis, sizing, or risk review\.?/gi, "Esta posición puede necesitar tesis, tamaño o revisión de riesgo actualizada.")
     .replace(/\bnone material\b/gi, "nada material")
     .replace(/\bCounterfactual ledger\b/gi, "Historial de decisiones")
     .replace(/\bSaved to Neon\b/gi, "Guardado")
@@ -5343,7 +5563,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "aurora":
       activeWorkspacePanels = (
         <>
-          <FactorLabWorkspacePanel portfolioModule={portfolioModule} />
+          <AuroraCommandCenter />
+          <div id="aurora-discovery">
+            <FactorLabWorkspacePanel portfolioModule={portfolioModule} />
+          </div>
           <ResearchLoopPanel workspaceId={workspaceId} />
           <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
         </>

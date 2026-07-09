@@ -800,7 +800,7 @@ function renderAudit(research) {
   );
 }
 
-export default function EquityResearchPanel({ dashboard, workspaceId }) {
+export default function EquityResearchPanel({ dashboard, id = "aurora-research-desk", workspaceId }) {
   const suggestions = useMemo(() => findSuggestedTickers(dashboard), [dashboard]);
   const [ticker, setTicker] = useState(suggestions[0] || "");
   const [mode, setMode] = useState("quick");
@@ -972,7 +972,7 @@ export default function EquityResearchPanel({ dashboard, workspaceId }) {
   }
 
   return (
-    <section className={`${styles.panel} ${styles.researchPanel}`}>
+    <section className={`${styles.panel} ${styles.researchPanel}`} id={id}>
       <div className={styles.researchCommandSurface}>
         <div className={styles.researchIdentity}>
           <p className={styles.kicker}>Investigación</p>
