@@ -125,7 +125,7 @@ def build_sector_opportunity_map(
     proxy["sector"] = proxy["ticker"].map({ticker: sector for sector, ticker in sector_lookup.items()})
     sector_frame = sector_stats.merge(proxy, on="sector", how="outer")
     sector_frame["proxy_ticker"] = sector_frame["sector"].map(sector_lookup)
-    sector_frame["coverage"] = sector_frame["coverage"].fillna(0).astype(int)
+    sector_frame["coverage"] = pd.to_numeric(sector_frame["coverage"], errors="coerce").fillna(0).astype(int)
 
     signal = (
         0.35 * _percentile_score(sector_frame["avg_selection_score"])

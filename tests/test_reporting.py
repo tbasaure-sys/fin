@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -58,6 +60,24 @@ def test_build_sector_opportunity_map_prefers_stronger_sector() -> None:
     assert not sector_map.empty
     assert sector_map.iloc[0]["sector"] == "Technology"
     assert {"opportunity_score", "signal_score", "defense_fit"}.issubset(sector_map.columns)
+
+
+def test_build_sector_opportunity_map_does_not_emit_pandas_future_warning() -> None:
+    settings = ResearchSettings()
+    latest_state = pd.Series({"tail_risk_score": 0.35, "crash_prob": 0.35})
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always", FutureWarning)
+        sector_map = build_sector_opportunity_map(
+            _latest_scored(),
+            _proxy_prices(),
+            pd.Timestamp("2025-05-06"),
+            latest_state,
+            settings,
+        )
+
+    assert not sector_map.empty
+    assert not [warning for warning in caught if issubclass(warning.category, FutureWarning)]
 
 
 def test_build_hedge_ranking_can_prefer_treasuries() -> None:
