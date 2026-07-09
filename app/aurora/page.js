@@ -1,7 +1,12 @@
-import { redirect } from "next/navigation";
+import ValuationOsLabPage from "@/app/valuation-os-lab/page";
 
-export default function AuroraPage({ searchParams }) {
-  const ticker = String(searchParams?.ticker || "").trim().toUpperCase();
-  const query = /^[A-Z0-9.-]{1,12}$/.test(ticker) ? `?ticker=${encodeURIComponent(ticker)}` : "";
-  redirect(`/valuation-os-lab${query}`);
+export const metadata = {
+  title: "AURORA Valuation Engine",
+  description:
+    "Auditable intrinsic-value research with explicit assumptions, bear/base/bull ranges, ROIC, free cash flow, and margin of safety.",
+  alternates: { canonical: "/aurora" },
+};
+
+export default function AuroraPage() {
+  return <ValuationOsLabPage />;
 }

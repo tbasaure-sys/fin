@@ -9,7 +9,7 @@ import { PlainMetric } from "@/components/ui/plain-metric";
 
 const COPY = {
   en: {
-    back: "BL'S",
+    back: "BLS Prime",
     navPrimary: "What it shows",
     navSecondary: "Methodology",
     label: "03 - Portfolio Risk",
@@ -88,7 +88,7 @@ const COPY = {
     ctaBody: "Open the workspace, choose the market regime, and run the stress test on the book you own.",
   },
   es: {
-    back: "BL'S",
+    back: "BLS Prime",
     navPrimary: "Qu\u00e9 muestra",
     navSecondary: "Metodolog\u00eda",
     label: "03 - Riesgo de cartera",

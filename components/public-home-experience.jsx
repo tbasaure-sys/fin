@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import styles from "@/app/home-page.module.css";
-import { LANGUAGE_STORAGE_KEY, writeStoredLanguage } from "@/components/language-layer";
+import { writeStoredLanguage } from "@/components/language-layer";
 import { StressAccountGate } from "@/components/stress-account-gate";
 
 const COPY = {
@@ -17,13 +17,14 @@ const COPY = {
     headline: "La tesis se prueba antes de mover el capital.",
     subheadline:
       "Valoración fundamental, selección con reglas visibles y estrés de cartera. Un solo sistema disciplinado.",
-    ctaPrimary: "Entrar a la terminal",
+    ctaPrimary: "Crear espacio de trabajo",
     ctaSecondary: "Ver los módulos",
+    sampleDisclosure: "Ejemplo ilustrativo con datos no en vivo.",
     footer: "Software de análisis. No es asesoría financiera.",
     terms: "Términos",
     terminal: {
       title: "BLS PRIME · RESEARCH",
-      meta: "sesión auditada",
+      meta: "Ejemplo ilustrativo · datos no en vivo",
       pane1Title: "Valoración",
       pane1Tag: "AURORA",
       ticker: "TXN",
@@ -103,13 +104,14 @@ const COPY = {
     headline: "Before capital moves, the thesis is tested.",
     subheadline:
       "Fundamental valuation, rule-visible selection, and portfolio stress. One disciplined system.",
-    ctaPrimary: "Enter the terminal",
+    ctaPrimary: "Create workspace",
     ctaSecondary: "See the modules",
+    sampleDisclosure: "Illustrative sample with non-live data.",
     footer: "Research software. Not financial advice.",
     terms: "Terms",
     terminal: {
       title: "BLS PRIME · RESEARCH",
-      meta: "audited session",
+      meta: "Illustrative sample · not live data",
       pane1Title: "Valuation",
       pane1Tag: "AURORA",
       ticker: "TXN",
@@ -200,13 +202,6 @@ const METRIC_BANDS = {
 
 function normalizeLanguage(value) {
   return value === "en" ? "en" : "es";
-}
-
-function getInitialLanguage() {
-  if (typeof window === "undefined") return "es";
-  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  if (stored === "en" || stored === "es") return stored;
-  return window.navigator.language?.toLowerCase().startsWith("en") ? "en" : "es";
 }
 
 function usePrefersReducedMotion() {
@@ -376,21 +371,15 @@ function TerminalSim({ copy, reducedMotion }) {
   );
 }
 
-export function PublicHomeExperience({ brand }) {
-  const [language, setLanguage] = useState("es");
-  const [resolved, setResolved] = useState(false);
+export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
+  const [language, setLanguage] = useState(() => normalizeLanguage(initialLanguage));
   const reducedMotion = usePrefersReducedMotion();
   const copy = COPY[language];
-  const displayBrand = "BL'S";
+  const displayBrand = brand || "BLS Prime";
 
   useEffect(() => {
-    setLanguage(getInitialLanguage());
-    setResolved(true);
-  }, []);
-
-  useEffect(() => {
-    if (resolved) writeStoredLanguage(language);
-  }, [language, resolved]);
+    writeStoredLanguage(language);
+  }, [language]);
 
   useReveal();
 
@@ -402,7 +391,7 @@ export function PublicHomeExperience({ brand }) {
         </Link>
         <div className={styles.topActions}>
           <LanguageToggle copy={copy} language={language} onChange={setLanguage} />
-          <Link className={styles.loginLink} href={`/login?lang=${language}`}>
+          <Link className={styles.loginLink} href={"/login?intent=signin&lang=" + language}>
             {copy.login}
           </Link>
         </div>
@@ -417,7 +406,7 @@ export function PublicHomeExperience({ brand }) {
           </h1>
           <p className={styles.subheadline}>{copy.subheadline}</p>
           <div className={styles.ctaRow}>
-            <Link className={styles.ctaPrimary} href={`/login?lang=${language}`}>
+            <Link className={styles.ctaPrimary} href={"/login?intent=signup&lang=" + language}>
               {copy.ctaPrimary}
             </Link>
             <a className={styles.ctaSecondary} href="#modules">
@@ -426,6 +415,7 @@ export function PublicHomeExperience({ brand }) {
           </div>
         </div>
         <div className={styles.terminalWrap}>
+          <p className={styles.visuallyHidden}>{copy.sampleDisclosure}</p>
           <TerminalSim copy={copy} reducedMotion={reducedMotion} />
         </div>
       </section>
@@ -483,7 +473,7 @@ export function PublicHomeExperience({ brand }) {
         </ol>
         <p className={`${styles.closing} ${styles.reveal}`}>{copy.workflowClosing}</p>
         <div className={`${styles.closingCtaRow} ${styles.reveal}`}>
-          <Link className={styles.ctaPrimary} href={`/login?lang=${language}`}>
+          <Link className={styles.ctaPrimary} href={"/login?intent=signup&lang=" + language}>
             {copy.ctaPrimary}
           </Link>
         </div>
@@ -491,7 +481,7 @@ export function PublicHomeExperience({ brand }) {
 
       <footer className={styles.footer}>
         <span>{copy.footer}</span>
-        <Link href="/terms">{copy.terms}</Link>
+        <Link href={"/terms?lang=" + language}>{copy.terms}</Link>
       </footer>
     </main>
   );

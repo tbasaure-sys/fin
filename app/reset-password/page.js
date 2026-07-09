@@ -4,6 +4,11 @@ import styles from "@/app/login-page.module.css";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Reset password",
+  robots: { index: false, follow: false },
+};
+
 const COPY = {
   en: {
     back: "Back to sign in",
