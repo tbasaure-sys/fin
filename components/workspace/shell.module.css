@@ -1990,6 +1990,196 @@
   padding-top: 0;
 }
 
+.mosaicCommandCenter {
+  display: grid;
+  gap: 1rem;
+}
+
+.mosaicCommandHero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.52fr);
+  gap: 1rem;
+  align-items: end;
+}
+
+.mosaicCommandHero h2 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 0.98;
+}
+
+.mosaicCommandHero p {
+  max-width: 46rem;
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.mosaicCommandStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.mosaicCommandStats span,
+.mosaicCommandPanel {
+  min-width: 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.mosaicCommandStats span {
+  display: grid;
+  gap: 0.16rem;
+  padding: 0.8rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.mosaicCommandStats strong {
+  color: var(--text);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.mosaicCommandGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.mosaicCommandPanel {
+  padding: 0.95rem;
+}
+
+.mosaicCommandPanelHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mosaicCommandPanelHead h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.mosaicCommandPanelHead > span {
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 760;
+  text-align: right;
+}
+
+.mosaicCommandCopy {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.mosaicCommandRows {
+  display: grid;
+  gap: 0;
+  margin-top: 0.75rem;
+}
+
+.mosaicCommandRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.62rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mosaicCommandRow:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.mosaicCommandRow span,
+.mosaicCommandRow small,
+.mosaicThesisCard span,
+.mosaicThesisCard p,
+.mosaicSourcesGrid p,
+.mosaicSourcesGrid span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.mosaicCommandRow span {
+  text-align: right;
+}
+
+.mosaicCommandRow small {
+  display: block;
+  margin-top: 0.14rem;
+}
+
+.mosaicThesisCard {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.mosaicThesisCard:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.mosaicThesisCard > div:first-child {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.mosaicThesisStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.mosaicThesisStats span {
+  padding: 0.32rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.mosaicThesisCard p {
+  margin: 0;
+  line-height: 1.48;
+}
+
+.mosaicSourcesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.mosaicSourcesGrid > div {
+  min-width: 0;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.mosaicSourcesGrid p {
+  margin: 0.35rem 0 0;
+  line-height: 1.45;
+}
+
+.mosaicSourcesGrid span {
+  display: block;
+  margin-top: 0.35rem;
+  line-height: 1.45;
+}
+
 .answerSourcesCard {
   gap: 0.85rem;
   align-content: start;
@@ -6863,6 +7053,9 @@
   .mosaicGuide,
   .mosaicPlainNote,
   .mosaicLayout,
+  .mosaicCommandHero,
+  .mosaicCommandGrid,
+  .mosaicSourcesGrid,
   .truthHeroGrid,
   .truthScoreRail,
   .truthClusterGrid,
@@ -6949,7 +7142,8 @@
   }
 
   .headerMeta,
-  .buttonRow {
+  .buttonRow,
+  .mosaicCommandStats {
     width: 100%;
     display: grid;
     grid-template-columns: 1fr;

@@ -36,9 +36,9 @@ test.describe("Rutas públicas", () => {
     expect(stored).toBe("es");
   });
 
-  test("/app sin sesión redirige a login con next=/app#risk", async ({ page }) => {
+  test("/app sin sesión redirige a login con next=/app#holdings", async ({ page }) => {
     await page.goto("/app");
-    await expect(page).toHaveURL(/\/login\?.*next=%2Fapp%23risk/);
+    await expect(page).toHaveURL(/\/login\?.*next=%2Fapp%23holdings/);
   });
 
   test("/terms renderiza las 7 secciones", async ({ page }) => {

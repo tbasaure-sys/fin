@@ -20,7 +20,7 @@ test.describe("Workspace autenticado", () => {
       if (msg.type() === "error") consoleErrors.push(msg.text());
     });
 
-    for (const section of ["risk", "macro", "candidates", "decisions"]) {
+    for (const section of ["holdings", "aurora", "mosaic"]) {
       await page.goto(`/app#${section}`);
       await expect(page.locator(`#${section}`)).toBeVisible();
     }
@@ -29,7 +29,7 @@ test.describe("Workspace autenticado", () => {
   });
 
   test("stress engine corre y muestra CVaR", async ({ page }) => {
-    await page.goto("/app#risk");
+    await page.goto("/app#holdings");
     const panel = page.locator("#stress-engine-panel");
     await expect(panel).toBeVisible();
     // El CVaR aparece como valor fuerte dentro del panel de respuesta.
@@ -52,7 +52,7 @@ test.describe("Workspace autenticado", () => {
   });
 
   test("refresh manual no rompe la sesión", async ({ page }) => {
-    await page.goto("/app#today");
+    await page.goto("/app#holdings");
     await page.getByRole("button", { name: /Actualizar$|Refresh$/ }).first().click();
     await expect(page.locator("main")).not.toContainText(/Traceback|Internal Server Error/i);
     await expect(page).toHaveURL(/\/app/);
@@ -63,7 +63,7 @@ test.describe("Workspace autenticado", () => {
     page.on("response", (res) => {
       if (res.status() >= 500) failures.push(`${res.status()} ${res.url()}`);
     });
-    await page.goto("/app#today");
+    await page.goto("/app#holdings");
     await page.waitForLoadState("networkidle").catch(() => {});
     expect(failures, failures.join("; ")).toHaveLength(0);
   });

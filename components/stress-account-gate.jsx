@@ -5,7 +5,7 @@ import { useEffect, useId, useState } from "react";
 
 import styles from "@/components/stress-account-gate.module.css";
 
-export const PORTFOLIO_WORKSPACE_HREF = "/app#risk";
+export const PORTFOLIO_WORKSPACE_HREF = "/app#holdings";
 
 const COPY = {
   en: {

@@ -4,7 +4,7 @@ import styles from "@/app/login-page.module.css";
 
 export const dynamic = "force-dynamic";
 
-const DEFAULT_NEXT = "/app#risk";
+const DEFAULT_NEXT = "/app#holdings";
 
 const COPY = {
   en: {

@@ -38,7 +38,7 @@ export function middleware(request) {
   if ((pathname === "/app" || pathname.startsWith("/app/")) && !hasSession) {
     const loginUrl = new URL("/login", request.url);
     const appNext = `${request.nextUrl.pathname}${request.nextUrl.search || ""}`;
-    loginUrl.searchParams.set("next", appNext === "/app" ? "/app#risk" : appNext);
+    loginUrl.searchParams.set("next", appNext === "/app" ? "/app#holdings" : appNext);
     return NextResponse.redirect(loginUrl);
   }
 

@@ -19,7 +19,7 @@ test.describe("Autenticación", () => {
     await expect(page).toHaveURL(/error=(invalid_credentials|generic|validation)/);
   });
 
-  test("login correcto aterriza en /app#risk y logout vuelve al público", async ({ page }) => {
+  test("login correcto aterriza en /app#holdings y logout vuelve al público", async ({ page }) => {
     test.skip(!EMAIL || !PASSWORD, "Define BLS_E2E_EMAIL y BLS_E2E_PASSWORD");
     await page.goto("/login?intent=signin&lang=es");
     await page.getByLabel(/Email/i).fill(EMAIL);
@@ -35,7 +35,7 @@ test.describe("Autenticación", () => {
   test("open redirect bloqueado: next=//evil.com se descarta", async ({ page }) => {
     await page.goto("/login?intent=signin&lang=es&next=%2F%2Fevil.com");
     const hiddenNext = await page.locator('input[name="next"]').inputValue();
-    expect(hiddenNext).toBe("/app#risk");
+    expect(hiddenNext).toBe("/app#holdings");
   });
 
   test("recuperación de contraseña: la página existe y acepta un email", async ({ page }) => {

@@ -32,10 +32,10 @@ import { mosaicObservatorySnapshot } from "@/lib/mosaic-observatory-snapshot";
 
 const RAW_APP_NAME = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
 const DEFAULT_APP_NAME = /allocator workspace/i.test(RAW_APP_NAME) ? "BLS Prime" : RAW_APP_NAME;
-const WORKSPACE_NAV = [
+const WORKSPACE_NAV_LEGACY = [
   {
     id: "today",
-    href: "#today",
+    href: "#holdings",
     label: "Resumen hoy",
     priority: "Inicio",
     detail: "Lectura y acción",
@@ -44,7 +44,7 @@ const WORKSPACE_NAV = [
   },
   {
     id: "risk",
-    href: "#risk",
+    href: "#holdings",
     label: "Mi mayor riesgo",
     priority: "Auditar",
     detail: "Portafolio y solapamiento",
@@ -53,7 +53,7 @@ const WORKSPACE_NAV = [
   },
   {
     id: "macro",
-    href: "#macro",
+    href: "#mosaic",
     label: "Macro",
     priority: "Contexto",
     detail: "MOSAIC y tesis",
@@ -62,7 +62,7 @@ const WORKSPACE_NAV = [
   },
   {
     id: "candidates",
-    href: "#candidates",
+    href: "#aurora",
     label: "Candidatos",
     priority: "Explorar",
     detail: "Filtros e investigación",
@@ -71,7 +71,7 @@ const WORKSPACE_NAV = [
   },
   {
     id: "decisions",
-    href: "#decisions",
+    href: "#holdings",
     label: "Decisiones",
     priority: "Registrar",
     detail: "Historial y pendientes",
@@ -80,7 +80,7 @@ const WORKSPACE_NAV = [
   },
 ];
 
-const WORKSPACE_NAV_ADVANCED = [
+const WORKSPACE_NAV_ADVANCED_LEGACY = [
   {
     id: "holdings",
     href: "#holdings",
@@ -91,6 +91,38 @@ const WORKSPACE_NAV_ADVANCED = [
     body: "Revisa, agrega y edita posiciones conectadas al espacio.",
   },
 ];
+
+const WORKSPACE_NAV = [
+  {
+    id: "holdings",
+    href: "#holdings",
+    label: "Holdings",
+    priority: "Portfolio",
+    detail: "Positions and stress",
+    title: "Holdings",
+    body: "Portfolio, performance, holdings, decisions, and stress testing.",
+  },
+  {
+    id: "aurora",
+    href: "#aurora",
+    label: "AURORA",
+    priority: "Valuation",
+    detail: "Company research",
+    title: "AURORA",
+    body: "Valuation, research, candidates, and company-level judgment.",
+  },
+  {
+    id: "mosaic",
+    href: "#mosaic",
+    label: "MOSAIC",
+    priority: "Macro",
+    detail: "External context",
+    title: "MOSAIC",
+    body: "Macro Brain, global pressure, liquidity, theses, event risks, and sources.",
+  },
+];
+
+const WORKSPACE_NAV_ADVANCED = [];
 
 const ALL_NAV_IDS = [...WORKSPACE_NAV, ...WORKSPACE_NAV_ADVANCED].map((item) => item.id);
 
@@ -169,10 +201,24 @@ const WORKSPACE_SHELL_COPY = {
   },
 };
 
+const WORKSPACE_PRIMARY_NAV_COPY = {
+  en: {
+    holdings: ["Holdings", "Positions and stress", "What owns my risk?", "Portfolio, positions, decisions, and stress testing.", "Portfolio"],
+    aurora: ["AURORA", "Company research", "What is this business worth?", "Valuation, research, candidates, and company-level judgment.", "Valuation"],
+    mosaic: ["MOSAIC", "External context", "What is changing outside?", "Macro Brain, global pressure, liquidity, theses, event risks, and sources.", "Macro"],
+  },
+  es: {
+    holdings: ["Holdings", "Cartera y stress", "¿Qué domina mi riesgo?", "Cartera, posiciones, decisiones y stress test.", "Cartera"],
+    aurora: ["AURORA", "Research de compañías", "¿Cuánto vale este negocio?", "Valoración, research, candidatos y juicio por compañía.", "Valoración"],
+    mosaic: ["MOSAIC", "Contexto externo", "¿Qué está cambiando afuera?", "Macro Brain, presión global, liquidez, tesis, datos críticos y fuentes.", "Macro"],
+  },
+};
+
 function localizedWorkspaceNav(baseItems, language) {
   const copy = WORKSPACE_SHELL_COPY[language] || WORKSPACE_SHELL_COPY.es;
+  const primaryCopy = WORKSPACE_PRIMARY_NAV_COPY[language] || WORKSPACE_PRIMARY_NAV_COPY.es;
   return baseItems.map((item) => {
-    const [label, detail, title, body, priority] = copy.nav[item.id] || [];
+    const [label, detail, title, body, priority] = primaryCopy[item.id] || copy.nav[item.id] || [];
     return {
       ...item,
       body: body || item.body,
@@ -185,18 +231,23 @@ function localizedWorkspaceNav(baseItems, language) {
 }
 
 const LEGACY_HASH_REDIRECT = {
-  cashflow: "today",
-  money: "today",
-  portfolio: "risk",
-  diversification: "risk",
-  stress: "risk",
-  "stress-engine": "risk",
-  research: "candidates",
-  factorlab: "candidates",
-  macrobrain: "macro",
-  mosaic: "macro",
+  today: "holdings",
+  cashflow: "holdings",
+  money: "holdings",
+  portfolio: "holdings",
+  risk: "holdings",
+  diversification: "holdings",
+  stress: "holdings",
+  "stress-engine": "holdings",
+  decisions: "holdings",
   positions: "holdings",
   cartera: "holdings",
+  candidates: "aurora",
+  research: "aurora",
+  factorlab: "aurora",
+  macro: "mosaic",
+  macrobrain: "mosaic",
+  mosaic: "mosaic",
 };
 
 function ToneBadge({ tone = "neutral", children }) {
@@ -3719,15 +3770,6 @@ function WorkspaceSidebar({
         <p className={styles.supportText}>{copy.sidebarSupport}</p>
       </div>
 
-      <Link className={styles.valuationOsLaunch} href="/aurora">
-        <span className={styles.valuationOsLaunchIndex}>01</span>
-        <div>
-          <strong>AURORA</strong>
-          <small>{copy.auroraDetail}</small>
-        </div>
-        <em>{copy.principal}</em>
-      </Link>
-
       <nav className={styles.workspaceSidebarNav} aria-label={copy.sidebarAria}>
         {navItems.map((item, index) => (
           <button
@@ -3738,7 +3780,7 @@ function WorkspaceSidebar({
             onClick={() => onSelectSection(item.id)}
             type="button"
           >
-            <span className={styles.workspaceSidebarIndex}>{String(index + 2).padStart(2, "0")}</span>
+            <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
             <div>
               <span>{item.label}</span>
               <small>{item.detail}</small>
@@ -3792,14 +3834,16 @@ function WorkspaceSidebar({
           <button className={styles.welcomeTrigger} onClick={onOpenGuide} type="button">
             {copy.guide}
           </button>
-          <button
-            className={styles.glossaryTrigger}
-            data-active={showAdvanced}
-            onClick={() => setShowAdvanced((v) => !v)}
-            type="button"
-          >
-            {showAdvanced ? copy.hideAdvanced : copy.advanced}
-          </button>
+          {advancedItems.length ? (
+            <button
+              className={styles.glossaryTrigger}
+              data-active={showAdvanced}
+              onClick={() => setShowAdvanced((v) => !v)}
+              type="button"
+            >
+              {showAdvanced ? copy.hideAdvanced : copy.advanced}
+            </button>
+          ) : null}
         </div>
         <div className={styles.workspaceSidebarLinks}>
           <Link className={styles.secondaryLink} href="/terms">{copy.terms}</Link>
@@ -4342,6 +4386,18 @@ function mosaicScoreLabel(score) {
   return value > 0 ? `+${Math.round(value)}` : `${Math.round(value)}`;
 }
 
+function macroPercentLabel(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return "-";
+  return `${Math.round(parsed)}%`;
+}
+
+function macroSignedLabel(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return "-";
+  return parsed > 0 ? `+${Math.round(parsed)}` : `${Math.round(parsed)}`;
+}
+
 function useMosaicLiveSnapshot() {
   const [state, setState] = useState({
     snapshot: mosaicObservatorySnapshot,
@@ -4490,6 +4546,183 @@ function MosaicObservatoryPanel() {
         </div>
       </div>
     </section>
+  );
+}
+
+function MacroLiquidityPanel({ snapshot }) {
+  const liquidity = snapshot?.liquidity || {};
+  const rows = safeList(liquidity.components);
+
+  return (
+    <section className={styles.mosaicCommandPanel}>
+      <div className={styles.mosaicCommandPanelHead}>
+        <div>
+          <p className={styles.kicker}>Liquidez</p>
+          <h3>Liquidez macro</h3>
+        </div>
+        <span>{liquidity.status || "Sin lectura"}</span>
+      </div>
+      <p className={styles.mosaicCommandCopy}>
+        {liquidity.summary || "La lectura de liquidez todavía no está disponible."}
+      </p>
+      <div className={styles.mosaicCommandRows}>
+        {rows.length ? rows.map((item) => (
+          <div className={styles.mosaicCommandRow} key={item.label}>
+            <strong>{item.label}</strong>
+            <span>{item.stance}</span>
+          </div>
+        )) : (
+          <p className={styles.emptyCopy}>Sin componentes de liquidez disponibles.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MacroThesisPanel({ snapshot }) {
+  const rows = safeList(snapshot?.theses);
+
+  return (
+    <section className={styles.mosaicCommandPanel}>
+      <div className={styles.mosaicCommandPanelHead}>
+        <div>
+          <p className={styles.kicker}>Tesis</p>
+          <h3>Tesis macro</h3>
+        </div>
+        <span>{rows.length} activas</span>
+      </div>
+      <div className={styles.mosaicCommandRows}>
+        {rows.length ? rows.map((item) => (
+          <article className={styles.mosaicThesisCard} key={item.id}>
+            <div>
+              <strong>{item.title}</strong>
+              <span>{item.expression || "Sin expresión de mercado"}</span>
+            </div>
+            <div className={styles.mosaicThesisStats}>
+              <span>{item.state === "open" ? "Abierta" : "En revisión"}</span>
+              <span>{macroPercentLabel(item.confidence)} confianza</span>
+              <span>{item.confirmations || 0} a favor</span>
+              <span>{item.contradictions || 0} en contra</span>
+            </div>
+            <p>{item.canBreak || item.why || "Falta una condición clara que cambie la lectura."}</p>
+          </article>
+        )) : (
+          <p className={styles.emptyCopy}>No hay tesis macro activas en la foto actual.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MacroEventRiskPanel({ snapshot }) {
+  const rows = safeList(snapshot?.nextChecks)
+    .slice()
+    .sort((left, right) => Number(right.value || 0) - Number(left.value || 0));
+
+  return (
+    <section className={styles.mosaicCommandPanel}>
+      <div className={styles.mosaicCommandPanelHead}>
+        <div>
+          <p className={styles.kicker}>Próximos datos</p>
+          <h3>Datos críticos</h3>
+        </div>
+        <span>{rows.length} pendientes</span>
+      </div>
+      <div className={styles.mosaicCommandRows}>
+        {rows.length ? rows.map((item) => (
+          <div className={styles.mosaicCommandRow} key={`${item.event}-${item.timing}`}>
+            <div>
+              <strong>{item.event}</strong>
+              <small>{item.timing}</small>
+            </div>
+            <span>{macroSignedLabel(item.value)}</span>
+          </div>
+        )) : (
+          <p className={styles.emptyCopy}>No hay datos críticos marcados para la próxima lectura.</p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function MacroSourcesPanel({ macro, mosaic }) {
+  const providers = safeList(mosaic?.providers).slice(0, 6);
+  const gaps = safeList(mosaic?.gaps).slice(0, 4);
+
+  return (
+    <section className={styles.mosaicCommandPanel}>
+      <div className={styles.mosaicCommandPanelHead}>
+        <div>
+          <p className={styles.kicker}>Fuentes</p>
+          <h3>Fuentes y frescura</h3>
+        </div>
+        <span>{macro?.live && mosaic?.live ? "En vivo" : "Con respaldo"}</span>
+      </div>
+      <div className={styles.mosaicSourcesGrid}>
+        <div>
+          <strong>Macro Brain</strong>
+          <p>{macro?.sourceLabel || "Fuente macro guardada."}</p>
+          <span>{macro?.dataStatus || macro?.freshnessLabel || "Sin estado de fuente."}</span>
+        </div>
+        <div>
+          <strong>MOSAIC</strong>
+          <p>{mosaic?.sourceLine || "Fuente MOSAIC guardada."}</p>
+          <span>{mosaic?.freshness || mosaic?.dataStatus || "Sin frescura reportada."}</span>
+        </div>
+      </div>
+      <div className={styles.mosaicCommandRows}>
+        {providers.map((item) => (
+          <div className={styles.mosaicCommandRow} key={item.name}>
+            <strong>{item.name}</strong>
+            <span>{item.used} series</span>
+          </div>
+        ))}
+        {gaps.map((item) => (
+          <div className={styles.mosaicCommandRow} key={`${item.market}-${item.missing}`}>
+            <strong>{item.market}</strong>
+            <span>{item.missing}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function MosaicCommandCenter() {
+  const macro = useMacroBrainLiveSnapshot();
+  const mosaic = useMosaicLiveSnapshot();
+  const pressure = Number(macro.snapshot?.stability?.pressure);
+  const headline = macro.snapshot?.shortRead || mosaic.snapshot?.headline || "Lectura macro en preparacion.";
+
+  return (
+    <div className={styles.mosaicCommandCenter}>
+      <section className={styles.panel}>
+        <div className={styles.mosaicCommandHero}>
+          <div>
+            <p className={styles.kicker}>MOSAIC</p>
+            <h2>Contexto externo</h2>
+            <p>{headline}</p>
+          </div>
+          <div className={styles.mosaicCommandStats}>
+            <span><strong>{mosaic.snapshot?.index ?? "-"}</strong> desequilibrio</span>
+            <span><strong>{mosaic.snapshot?.conflict ?? "-"}</strong> conflicto</span>
+            <span><strong>{macroPercentLabel(pressure)}</strong> estrés monitor</span>
+          </div>
+        </div>
+        {macro.error || mosaic.error ? (
+          <p className={styles.macroBrainError}>{macro.error || mosaic.error}</p>
+        ) : null}
+      </section>
+
+      <MosaicObservatoryPanel />
+      <MacroBrainWorkspacePanel />
+      <div className={styles.mosaicCommandGrid}>
+        <MacroLiquidityPanel snapshot={macro.snapshot} />
+        <MacroThesisPanel snapshot={macro.snapshot} />
+        <MacroEventRiskPanel snapshot={macro.snapshot} />
+        <MacroSourcesPanel macro={macro.snapshot} mosaic={mosaic.snapshot} />
+      </div>
+    </div>
   );
 }
 
@@ -5107,6 +5340,20 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
 
   let activeWorkspacePanels = null;
   switch (activeWorkspaceSection) {
+    case "aurora":
+      activeWorkspacePanels = (
+        <>
+          <FactorLabWorkspacePanel portfolioModule={portfolioModule} />
+          <ResearchLoopPanel workspaceId={workspaceId} />
+          <EquityResearchPanel dashboard={dashboard} workspaceId={workspaceId} />
+        </>
+      );
+      break;
+    case "mosaic":
+      activeWorkspacePanels = (
+        <MosaicCommandCenter />
+      );
+      break;
     case "risk":
       activeWorkspacePanels = (
         <>
@@ -5176,12 +5423,14 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             compact
             onRangeChange={setPortfolioRange}
             language={language}
-            onOpenRisk={() => selectWorkspaceSection("risk")}
+            onOpenRisk={() => selectWorkspaceSection("holdings")}
             portfolioModule={portfolioModule}
             range={portfolioRange}
             showAuroraAction
             xray={dashboard?.xray}
           />
+          <StressEnginePanel portfolioValueUsd={portfolioModule?.analytics?.totalValueUsd} workspaceId={workspaceId} />
+          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
           <HoldingsPanel
             holdingDraft={holdingDraft}
             onHoldingDraftChange={updateHoldingDraft}
@@ -5194,6 +5443,16 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             tradeInstructionError={tradeInstructionError}
             tradeInstruction={tradeInstruction}
           />
+          <TodayDecisionPanel
+            blockedAction={blockedAction}
+            onDefer={(action) => recordDecision(action, "deferred")}
+            onReject={(action) => recordDecision(action, "rejected")}
+            onStage={stageAction}
+            pendingKey={pendingKey}
+            primaryAction={primaryAction}
+            stateSummary={stateSummary}
+          />
+          {escrowPanel}
         </>
       );
       break;
