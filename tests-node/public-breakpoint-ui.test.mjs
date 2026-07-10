@@ -14,15 +14,15 @@ test("public homepage promotes a no-account Breakpoint entry without removing th
   assert.match(hero, /<form/);
   assert.match(hero, /api\/public\/breakpoints/);
   assert.match(hero, /aria-live/);
-  assert.match(hero, /Ver el punto de quiebre/);
+  assert.match(hero, /Ver qu[eé] necesita el precio/);
 });
 
 test("Breakpoint result gives sources, limits and terminal bridge a first-class place", () => {
   const result = source("components/breakpoint/breakpoint-result.jsx");
   const page = source("app/breakpoint/[ticker]/[runId]/page.js");
   assert.match(result, /Data and provenance|Datos y procedencia/);
-  assert.match(result, /Limitations|Limitaciones/);
-  assert.match(result, /Open full terminal|Abrir terminal completa/);
+  assert.match(result, /What this reading cannot tell you|Lo que esta lectura no puede decir/);
+  assert.match(result, /See full valuation|Ver valoración completa/);
   assert.match(result, /aria-live/);
   assert.match(page, /BreakpointResult/);
 });

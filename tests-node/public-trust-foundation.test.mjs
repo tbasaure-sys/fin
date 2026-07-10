@@ -70,8 +70,8 @@ test("public entry points distinguish sign in, workspace creation, and sample da
   const home = source("components/public-home-experience.jsx");
   assert.match(home, /intent=signin/);
   assert.match(home, /intent=signup/);
-  assert.match(home, /Illustrative sample/);
-  assert.match(home, /Ejemplo ilustrativo/);
+  assert.match(home, /Illustrative example with sample data/);
+  assert.match(home, /Ejemplo con datos ilustrativos/);
   assert.doesNotMatch(home, /const displayBrand = "BL'S"/);
 });
 

@@ -7,8 +7,8 @@ import styles from "./breakpoint.module.css";
 import { localizeBreakpointDriver, localizeBreakpointSourceCategory, localizeBreakpointStatus } from "@/lib/breakpoint/presentation";
 
 const COPY = {
-  es: { loading: "Cargando corrida inmutable…", unavailable: "Esta corrida no está disponible.", eyebrow: "BLS BREAKPOINT · CORRIDA AUDITABLE", priceRequires: "Lo que el precio requiere", bull: "Para defenderlo", bear: "Para romperlo", monitor: "Qué vigilar", provenance: "Datos y procedencia", limitations: "Limitaciones", terminal: "Abrir terminal completa", disclaimer: "Software de research. No constituye asesoría financiera.", dataDate: "Fecha de datos", hurdle: "Hurdle 5 años", feasibility: "FACTIBILIDAD", growth: "CAGR DE INGRESOS", margin: "MARGEN OPERATIVO", primary: "DRIVER PRINCIPAL", flip: "Escenarios que cambian la decisión" },
-  en: { loading: "Loading immutable run…", unavailable: "This run is unavailable.", eyebrow: "BLS BREAKPOINT · AUDITABLE RUN", priceRequires: "What the price requires", bull: "To defend it", bear: "To break it", monitor: "What to monitor", provenance: "Data and provenance", limitations: "Limitations", terminal: "Open full terminal", disclaimer: "Research software. Not financial advice.", dataDate: "Data date", hurdle: "5-year hurdle", feasibility: "FEASIBILITY", growth: "REVENUE CAGR", margin: "OPERATING MARGIN", primary: "PRIMARY LEVER", flip: "Decision flip scenarios" },
+  es: { loading: "Cargando lectura…", unavailable: "Esta lectura no está disponible.", eyebrow: "BLS BREAKPOINT · LECTURA DE EMPRESA", priceRequires: "Lo que el precio necesita", bull: "Si la empresa cumple", bear: "Si la empresa falla", monitor: "Qué conviene vigilar", provenance: "Datos y procedencia", limitations: "Lo que esta lectura no puede decir", terminal: "Ver valoración completa", disclaimer: "Software de análisis. No constituye asesoría financiera.", dataDate: "Fecha de datos", requiredReturn: "Retorno exigido a 5 años", feasibility: "SUPUESTOS", growth: "CRECIMIENTO DE INGRESOS", margin: "MARGEN OPERATIVO", primary: "FACTOR PRINCIPAL", flip: "Dos caminos posibles" },
+  en: { loading: "Loading company reading…", unavailable: "This reading is unavailable.", eyebrow: "BLS BREAKPOINT · COMPANY READING", priceRequires: "What the price needs", bull: "If the company delivers", bear: "If the company falls short", monitor: "What to monitor", provenance: "Data and sources", limitations: "What this reading cannot tell you", terminal: "See full valuation", disclaimer: "Research software. Not financial advice.", dataDate: "Data date", requiredReturn: "5-year required return", feasibility: "ASSUMPTIONS", growth: "REVENUE GROWTH", margin: "OPERATING MARGIN", primary: "MAIN DRIVER", flip: "Two possible paths" },
 };
 
 function percent(value) { return Number.isFinite(Number(value)) ? `${(Number(value) * 100).toFixed(1)}%` : "—"; }
@@ -40,7 +40,7 @@ export function BreakpointResult({ runId, language = "es" }) {
       <h1 id="breakpoint-result-title">{attention ? copy.unavailable : run.market.family.narrative}</h1>
       {!attention && <p className={styles.leadText}>{run.market.family.fragility}</p>}
       <div className={styles.metricStrip}>
-        <div><span>{copy.hurdle}</span><strong>{percent(run.hurdle?.rate)}</strong></div>
+        <div><span>{copy.requiredReturn}</span><strong>{percent(run.hurdle?.rate)}</strong></div>
         <div><span>{copy.dataDate}</span><strong>{date(run.provenance?.asOf)}</strong></div>
         <div><span>{copy.feasibility}</span><strong>{localizeBreakpointStatus(run.market?.feasibility?.contourClass, language)}</strong></div>
       </div>

@@ -78,48 +78,48 @@ const companies = {
 const assumptionSchema = [
   {
     key: "revenueCagr",
-    label: "Revenue growth, años 1-5",
+    label: "Crecimiento de ingresos, años 1-5",
     fmt: "pct",
     low: 0.01,
     high: 0.18,
     falsifier: "El crecimiento queda bajo esta ruta por dos reportes seguidos.",
-    source: "Ventas por segmento, backlog, demanda de clientes",
+    source: "Ventas, pedidos y demanda de clientes",
   },
   {
     key: "margin",
-    label: "Operating margin, año 5",
+    label: "Margen operativo, año 5",
     fmt: "pct",
     low: 0.08,
     high: 0.42,
-    falsifier: "Los márgenes caen aunque mix, escala o pricing deberían ayudar.",
-    source: "Operating profit después de ajustes contables",
+    falsifier: "El margen cae aunque la mezcla de productos, la escala o los precios deberían ayudar.",
+    source: "Resultado operativo después de ajustes contables",
   },
   {
     key: "roic",
-    label: "ROIC, año 5",
+    label: "Rentabilidad sobre el capital (ROIC), año 5",
     fmt: "pct",
     low: 0.06,
     high: 0.34,
-    falsifier: "La nueva inversión gana menos que WACC por varios períodos.",
-    source: "NOPAT e invested capital",
+    falsifier: "La nueva inversión rinde menos que el retorno mínimo exigido durante varios períodos.",
+    source: "Resultado operativo y capital invertido",
   },
   {
     key: "terminalRoic",
-    label: "ROIC de largo plazo",
+    label: "Rentabilidad sobre el capital a largo plazo",
     fmt: "pct",
     low: 0.06,
     high: 0.24,
-    falsifier: "Entra competencia y el pricing power no resiste.",
-    source: "Historia, peers y estructura competitiva",
+    falsifier: "La competencia aumenta y la empresa ya no puede mantener sus precios.",
+    source: "Historia, empresas comparables y competencia",
   },
   {
     key: "wacc",
-    label: "Retorno exigido (WACC)",
+    label: "Retorno mínimo exigido (WACC)",
     fmt: "pct",
     low: 0.055,
     high: 0.14,
-    falsifier: "Tasas, leverage o riesgo del negocio cambian el retorno exigido.",
-    source: "Risk-free rate, beta, credit spread, deuda",
+    falsifier: "Las tasas, la deuda o el riesgo del negocio cambian el retorno mínimo exigido.",
+    source: "Tasas, riesgo del mercado y deuda",
   },
   {
     key: "terminalGrowth",
@@ -136,8 +136,8 @@ const assumptionSchema = [
     fmt: "pct",
     low: 0.15,
     high: 0.72,
-    falsifier: "El crecimiento sigue en papel mientras capex o working capital se contraen.",
-    source: "Capex, working capital, adquisiciones",
+    falsifier: "El crecimiento queda en el papel mientras la inversión o el capital de trabajo se reducen.",
+    source: "Inversión, capital de trabajo y adquisiciones",
   },
   {
     key: "dilution",
@@ -145,8 +145,8 @@ const assumptionSchema = [
     fmt: "pct",
     low: -0.02,
     high: 0.035,
-    falsifier: "Los buybacks no impiden que suba el share count.",
-    source: "SBC, buybacks, opciones, RSUs",
+    falsifier: "Las recompras no impiden que aumente el número de acciones.",
+    source: "Compensación en acciones, recompras y opciones",
   },
   {
     key: "thesisQuality",
@@ -154,8 +154,8 @@ const assumptionSchema = [
     fmt: "score",
     low: 0.2,
     high: 0.95,
-    falsifier: "Clientes, ventaja de producto o unit economics empeoran pese a la tesis.",
-    source: "Moat, demanda de clientes, ejecución, optionality",
+    falsifier: "Los clientes, el producto o la rentabilidad por cliente empeoran.",
+    source: "Ventaja competitiva, clientes y ejecución",
   },
   {
     key: "demandSupply",
@@ -163,8 +163,8 @@ const assumptionSchema = [
     fmt: "score",
     low: 0.15,
     high: 0.95,
-    falsifier: "La demanda desacelera o la oferta nueva llega antes de que pricing ajuste.",
-    source: "Backlog, capacidad, utilización, inventario, pricing",
+    falsifier: "La demanda se desacelera o aparece nueva oferta antes de que la empresa ajuste sus precios.",
+    source: "Pedidos, capacidad, inventario y precios",
   },
   {
     key: "bottleneckPower",
@@ -173,7 +173,7 @@ const assumptionSchema = [
     low: 0.1,
     high: 0.98,
     falsifier: "Los clientes encuentran sustitutos o la capacidad deja de ser escasa.",
-    source: "Escasez, sustitutos, switching cost, lead times",
+    source: "Escasez, sustitutos, costos de cambio y plazos de entrega",
   },
   {
     key: "moatHalfLife",
@@ -189,24 +189,24 @@ const assumptionSchema = [
 const engines = [
   ["truth", "Fuentes", "¿Los datos son completos y rastreables?"],
   ["accounting", "Caja y retornos", "¿El negocio gana más que su WACC?"],
-  ["twin", "Drivers", "¿Qué tendría que ser cierto?"],
+  ["twin", "Qué debe ser cierto", "¿Qué tendría que ser cierto para que funcione?"],
   ["bayes", "Escenarios", "¿Cuánta incertidumbre hay que admitir?"],
   ["value", "Valor", "¿Hay margen de seguridad suficiente?"],
-  ["expect", "Precio implícito", "¿Qué CAGR y ROIC descuenta el mercado?"],
-  ["flows", "Presión de mercado", "¿Puede moverse por flujos y no por valor?"],
-  ["calibration", "Calibración", "¿La lectura ya tiene historial suficiente?"],
+  ["expect", "Expectativas del precio", "¿Qué crecimiento y rentabilidad ya supone el precio?"],
+  ["flows", "Factores que mueven el precio", "¿Qué puede mover la acción aunque el negocio no cambie?"],
+  ["calibration", "Confianza de la lectura", "¿Qué tan confiable es esta lectura?"],
 ];
 
 const SIMPLE_MODEL_LABELS = {
-  dcf: "Valor por caja futura (DCF)",
-  roicFade: "Durabilidad de ROIC",
+  dcf: "Valor por caja futura",
+  roicFade: "Duración de la rentabilidad",
   reverseDcf: "Expectativas implícitas",
-  residualIncome: "Retorno sobre book value",
+  residualIncome: "Retorno sobre el capital contable",
   assetValue: "Piso de activos",
-  unitEconomics: "Unit economics",
+  unitEconomics: "Rentabilidad por cliente",
   bottleneck: "Ventaja por escasez",
-  realOptions: "Opcionalidad futura",
-  ownerEarnings: "Owner earnings",
+  realOptions: "Posibles oportunidades futuras",
+  ownerEarnings: "Caja que queda para el dueño",
   capitalCycle: "Ciclo de oferta",
 };
 
@@ -408,7 +408,7 @@ function Surface({ surface, price }) {
   const hasValidSurface = surface.flat().some((cell) => isFiniteNumber(cell.v) && isFiniteNumber(price));
   return (
     <div className={styles.surfaceWrap}>
-      <div className={styles.yAxis}>Long-run ROIC</div>
+      <div className={styles.yAxis}>Rentabilidad de largo plazo</div>
       <div className={`${styles.surfaceGrid} ${hasValidSurface ? "" : styles.surfaceGridDisabled}`}>
         {surface.flat().map((cell) => {
           const validCell = isFiniteNumber(cell.v) && isFiniteNumber(price);
@@ -473,22 +473,22 @@ function factMoney(value) {
 }
 
 function statusCopy(status) {
-  if (status === "ok") return "Modo LLM completo: veredicto determinístico + 1 llamada de revisión final";
-  if (status === "rate_limited") return "Modo LLM degradado: veredicto determinístico completo; revisión LLM en pausa por límite de uso";
-  if (status === "error") return "Modo LLM degradado: veredicto determinístico completo; la llamada LLM falló";
-  if (status === "unavailable") return "Modo sin API: debate 100% determinístico local (no necesita OpenAI)";
-  return "Modo determinístico: veredicto local listo";
+  if (status === "ok") return "Lectura completa: revisión final disponible";
+  if (status === "rate_limited") return "Lectura disponible; la revisión final está temporalmente pausada";
+  if (status === "error") return "Lectura disponible; la revisión final no pudo completarse";
+  if (status === "unavailable") return "Lectura local disponible; no hay revisión externa conectada";
+  return "Lectura inicial disponible";
 }
 
 function adoptionStatusLabel(status) {
   return (
     {
-      ready: "Usar calibrado",
-      guardrailed: "Usar con limites",
-      shadow: "Mostrar como comparacion",
-      observe: "Juntar resultados",
-      blocked: "No usar",
-      missing: "Sin contrato",
+      ready: "Usar como lectura principal",
+      guardrailed: "Usar con cautela",
+      shadow: "Mostrar como referencia",
+      observe: "Seguir reuniendo resultados",
+      blocked: "No usar para decidir",
+      missing: "Aún no disponible",
     }[status] || "Revisar"
   );
 }
@@ -496,7 +496,7 @@ function adoptionStatusLabel(status) {
 function branchLabel(branch) {
   return (
     {
-      calibrated: "Valor calibrado",
+      calibrated: "Valor ajustado",
       raw: "Valor original",
       none: "Sin rama secundaria",
     }[branch] || String(branch || "Valor original").replaceAll("_", " ")
@@ -582,7 +582,7 @@ function buildLocalAdoptionPreview({ adjustedDrivers, feasibility, quality, mode
     warnings: ["Preview local: el permiso real requiere historial de resultados."],
     memo: {
       headline: `${adoptionStatusLabel(status)}; vista preliminar.`,
-      explanation: "Este modo muestra como funcionara la calibracion, pero no reemplaza resultados reales.",
+      explanation: "Esta vista muestra cómo cambia la lectura, pero no reemplaza resultados reales.",
       nextStep: "Guardar predicciones y comparar contra resultados futuros.",
     },
   };
@@ -628,27 +628,27 @@ function operationalVerdict({ missingDrivers, valuationRouter, upside, feasibili
   if (feasibility < 0.34 && upside > 0.1) {
     return {
       tier: "RESEARCH",
-      reason: "La brecha de valor sale de una tesis mucho más optimista que lo que el precio descuenta.",
-      nextStep: "Validar crecimiento, ROIC, margen y reinversión antes de rankearla.",
+      reason: "La diferencia positiva depende de una tesis mucho más optimista que lo que el precio supone.",
+      nextStep: "Revisar crecimiento, rentabilidad, margen y reinversión antes de darle prioridad.",
     };
   }
   if (feasibility < 0.34) {
     return {
       tier: "ABSTAIN",
-      reason: "La historia necesita demasiadas cosas saliendo bien y la brecha de valor no compensa esa fragilidad.",
+      reason: "La empresa tendría que cumplir demasiados supuestos y la diferencia de valor no compensa ese riesgo.",
       nextStep: "Revisar supuestos antes de tomar una postura.",
     };
   }
   if (upside > 0.16 && feasibility > 0.58 && quality > 0.58 && tripwires.length <= 3) {
     return {
       tier: "RANK",
-      reason: "La brecha, la factibilidad y la calidad de datos permiten compararla contra otras ideas.",
-      nextStep: "Rankearla contra la watchlist y definir falsificadores.",
+      reason: "La diferencia frente al precio y la calidad de los datos permiten compararla con otras empresas.",
+      nextStep: "Compararla con otras empresas y definir qué te haría cambiar de opinión.",
     };
   }
   return {
     tier: "RESEARCH",
-    reason: "La idea tiene elementos interesantes, pero todavía necesita evidencia concreta.",
+    reason: "La empresa tiene aspectos interesantes, pero todavía necesita datos concretos.",
     nextStep: "Revisar los puntos críticos antes de darle prioridad.",
   };
 }
@@ -676,9 +676,9 @@ function buildOperationalLadder({
   const reinvestmentHeavy = isFiniteNumber(adjustedDrivers.reinvestment) && adjustedDrivers.reinvestment >= 0.85;
   const implied = [
     priceNeedsGrowth
-      ? `El precio necesita cerca de ${fmtPct(impliedCagr)} de Revenue CAGR para que la historia cierre.`
-      : `El precio no está exigiendo crecimiento alto: Revenue CAGR implícito ${fmtPct(impliedCagr)}.`,
-    `La tesis actual usa ${fmtPct(adjustedDrivers.revenueCagr)} de Revenue CAGR y ${fmtPct(adjustedDrivers.margin)} de Operating margin.`,
+      ? `El precio necesita cerca de ${fmtPct(impliedCagr)} de crecimiento anual de ingresos para que la historia cierre.`
+      : `El precio no está exigiendo crecimiento alto: crecimiento anual implícito ${fmtPct(impliedCagr)}.`,
+    `La tesis actual usa ${fmtPct(adjustedDrivers.revenueCagr)} de crecimiento anual de ingresos y ${fmtPct(adjustedDrivers.margin)} de margen operativo.`,
     thesisMuchHigherThanPrice
       ? "La brecha positiva viene de una tesis mucho más optimista que el precio, no de un precio exigente."
       : isFiniteNumber(upside) && upside >= 0
@@ -700,12 +700,12 @@ function buildOperationalLadder({
     quality >= 0.62 ? "Datos suficientemente rastreables para una primera lectura." : null,
     adjustedDrivers.thesisQuality >= 0.68 ? "Calidad de tesis por encima del punto medio." : null,
     adjustedDrivers.demandSupply >= 0.65 ? "Oferta/demanda apoya la historia actual." : null,
-    adjustedDrivers.bottleneckPower >= 0.62 ? "Hay señales de escasez o switching cost." : null,
+    adjustedDrivers.bottleneckPower >= 0.62 ? "Hay señales de escasez o de que cambiar de proveedor sería costoso." : null,
   ].filter(Boolean);
 
   const evidenceAgainst = [
     adjustedDrivers.modelRisk >= 0.4 ? "Desacuerdo alto entre métodos o supuestos." : null,
-    feasibility < 0.5 ? "Factibilidad baja: la tesis necesita validación antes de rankear." : null,
+    feasibility < 0.5 ? "Los supuestos son poco razonables: revisa la tesis antes de compararla." : null,
     thesisMuchHigherThanPrice ? "La tesis asume mucho más crecimiento que el precio implícito." : null,
     roicBelowHurdle ? "ROIC está por debajo de WACC." : null,
     reinvestmentHeavy ? "La reinversión consume casi todo el FCF." : null,
@@ -719,7 +719,7 @@ function buildOperationalLadder({
     thesisMuchHigherThanPrice ? "Comprobar si la empresa puede sostener una ruta muy superior a la implícita en precio." : null,
     roicBelowHurdle ? "Identificar qué cambio haría que ROIC vuelva a superar WACC." : null,
     reinvestmentHeavy ? "Separar reinversión de mantenimiento vs crecimiento real." : null,
-    adjustedDrivers.demandSupply < 0.62 ? "Buscar evidencia de demanda, capacidad, inventario o pricing." : null,
+    adjustedDrivers.demandSupply < 0.62 ? "Buscar datos de demanda, capacidad, inventario o precios." : null,
     liveSnapshot?.coverage?.braveConfigured === false ? "Agregar evidencia externa de noticias o catalizadores." : null,
     valuationRouter?.decision?.reason || null,
   ].filter(Boolean).slice(0, 4);
@@ -727,7 +727,7 @@ function buildOperationalLadder({
   const breaks = (tripwires.length ? tripwires : []).slice(0, 4).map((item) => item.falsifier);
   if (!breaks.length) {
     breaks.push("Dos reportes seguidos bajo la ruta de crecimiento asumida.");
-    breaks.push("Margen bruto cae más de 300 bps sin explicación de mix o pricing.");
+    breaks.push("El margen bruto cae más de 3 puntos sin explicación de productos o precios.");
     breaks.push("ROIC incremental cae bajo WACC.");
   }
 
@@ -746,13 +746,12 @@ function EngineMetric({ label, value, tone }) {
 function RouterPanel({ router }) {
   if (!router) return null;
   return (
-    <section className={styles.routerPanel} aria-label="Valuation method mix">
+    <section className={styles.routerPanel} aria-label="Cómo se calcula">
       <div>
-        <span>Mezcla de métodos</span>
-        <h2>Por qué usa estos lentes</h2>
+        <span>Cómo se calcula</span>
+        <h2>Por qué se usan estas referencias</h2>
         <p>
-          No todas las empresas se leen igual. Un banco, una compañía de software y un proveedor
-          de semiconductores no deberían pasar por el mismo DCF fijo.
+          No todas las empresas se valoran igual. Una entidad financiera, una compañía de software y un fabricante industrial necesitan referencias distintas.
         </p>
       </div>
       <div className={styles.routerGrid}>
@@ -766,7 +765,7 @@ function RouterPanel({ router }) {
           ))}
         </article>
         <article>
-          <strong>Métodos usados</strong>
+          <strong>Referencias usadas</strong>
           {router.topModels.map((item) => (
             <div className={styles.routerRow} key={item.key}>
               <span>{SIMPLE_MODEL_LABELS[item.key] || MODEL_LABELS[item.key] || item.label}</span>
@@ -814,7 +813,7 @@ function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, deba
     {
       label: "Permiso actual",
       value: adoptionStatusLabel(gate.status),
-      note: gate.memo?.explanation || "Define si la lectura calibrada puede usarse, verse solo como comparación o bloquearse.",
+        note: gate.memo?.explanation || "Define si la lectura ajustada puede usarse, verse solo como comparación o bloquearse.",
     },
     {
       label: "Grupo comparable",
@@ -829,13 +828,12 @@ function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, deba
   ];
 
   return (
-    <div className={styles.calibrationContract} aria-label="Contrato de calibracion contextual">
+    <div className={styles.calibrationContract} aria-label="Confianza de la lectura">
       <div>
-        <span>Permiso de calibracion</span>
+        <span>Confianza de la lectura</span>
         <strong>{adoptionStatusLabel(gate.status)}</strong>
         <p>
-          Este panel decide si el ajuste calibrado puede cambiar la lectura o si debe quedar solo como
-          comparacion. Sin resultados reales suficientes, el valor original sigue siendo la lectura principal.
+          Este panel muestra qué tan confiable es la lectura y si debe usarse como referencia o como base principal. Sin resultados suficientes, el valor original sigue siendo la lectura principal.
         </p>
         <div className={styles.branchMix}>
           <div>
@@ -843,7 +841,7 @@ function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, deba
             <strong>{branchLabel(primaryBranch)}</strong>
           </div>
           <div>
-            <span>Peso calibrado</span>
+            <span>Peso ajustado</span>
             <strong>{fmtPct(calibratedWeight, 0)}</strong>
           </div>
           <div>
@@ -851,7 +849,7 @@ function CalibrationContract({ adjustedDrivers, feasibility, quality, mode, deba
             <strong>{fmtPct(rawWeight, 0)}</strong>
           </div>
           <div>
-            <span>Solo comparacion</span>
+            <span>Solo como referencia</span>
             <strong>{fmtPct(shadowWeight, 0)}</strong>
           </div>
           <div>
@@ -915,32 +913,32 @@ function EngineConsole({
   const activeFalsifiers = tripwires.map((item) => item.falsifier || item.label);
   const panels = {
     truth: {
-      eyebrow: "Confiabilidad de inputs",
+      eyebrow: "Confiabilidad de los datos",
       title: "Fuentes y trazabilidad",
       copy:
         missingDrivers.length > 0
-          ? "Faltan inputs en vivo, por lo que la valoración debe leerse como borrador."
-          : "Los inputs centrales están presentes y se pueden rastrear a sus fuentes.",
+          ? "Faltan datos actuales, por lo que la valoración debe leerse como borrador."
+          : "Los datos principales están presentes y se pueden rastrear a sus fuentes.",
       plain: "¿Podemos confiar en los números antes de leer la valoración?",
-      technical: "Revisa SEC companyfacts, precio de mercado, tasa libre de riesgo, campos faltantes y linaje de fuentes.",
+      technical: "Revisa la fecha, la fuente del precio, la tasa utilizada y los datos que faltan.",
       metrics: [
-        ["Filing SEC", liveSnapshot ? `${liveSnapshot.company?.form || "SEC"} / FY${fiscalYear}` : "Datos de ejemplo"],
+        ["Último informe", liveSnapshot ? `${liveSnapshot.company?.form || "SEC"} / FY${fiscalYear}` : "Datos de ejemplo"],
         ["Política sectorial", assumptions.industry?.label || "Supuesto de ejemplo"],
         ["Precio", coverage.quoteSource || "Faltante"],
         ["Calidad de datos", fmtPct(quality, 0), quality >= 0.65 ? "good" : "warn"],
       ],
       bullets: [
         liveSnapshot
-          ? `SEC companyfacts: ${coverage.secCompanyFacts ? "cargado" : "no cargado"}`
+          ? `Datos financieros: ${coverage.secCompanyFacts ? "cargados" : "no cargados"}`
           : "Se usa una empresa de ejemplo hasta cargar un snapshot SEC real.",
         assumptions.riskFree
-          ? `Ancla risk-free: ${fmtOptional(assumptions.riskFree.value, fmtPct)} desde ${assumptions.riskFree.source}.`
+          ? `Tasa de referencia: ${fmtOptional(assumptions.riskFree.value, fmtPct)} desde ${assumptions.riskFree.source}.`
           : coverage.fredConfigured
             ? "La fuente de tasa libre de riesgo está configurada."
             : "La fuente de tasa libre de riesgo no está configurada.",
-        assumptions.industry?.sicDescription ? `Industria SEC: ${assumptions.industry.sicDescription}.` : null,
+        assumptions.industry?.sicDescription ? `Industria: ${assumptions.industry.sicDescription}.` : null,
         coverage.quoteSource ? `Fuente de precio disponible: ${coverage.quoteSource}.` : "La fuente de precio falta o no respondió.",
-        isFiniteNumber(facts.revenue) ? `Revenue: ${factMoney(facts.revenue)}` : null,
+        isFiniteNumber(facts.revenue) ? `Ingresos: ${factMoney(facts.revenue)}` : null,
         missingDrivers.length ? `Faltante: ${missingDrivers.join(", ")}` : null,
       ],
     },
@@ -950,46 +948,46 @@ function EngineConsole({
       copy:
         "Los estados financieros se traducen a caja, márgenes y retorno sobre capital.",
       plain: "¿El negocio produce caja valiosa?",
-      technical: "Compara FCF por acción, margen, ROIC, WACC, reinversión y crecimiento de largo plazo.",
+      technical: "Compara caja, margen, rentabilidad, reinversión y crecimiento de largo plazo.",
       metrics: [
-        ["FCF / share", fmtMoney(adjustedDrivers.baseFcf)],
-        ["Revenue CAGR", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
+        ["Caja por acción", fmtMoney(adjustedDrivers.baseFcf)],
+        ["Crecimiento de ingresos", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
         ["Margen", fmtOptional(adjustedDrivers.margin, fmtPct)],
-        ["ROIC - WACC", fmtOptional(adjustedDrivers.roic - adjustedDrivers.wacc, fmtPct), adjustedDrivers.roic >= adjustedDrivers.wacc ? "good" : "bad"],
+        ["Rentabilidad - retorno mínimo", fmtOptional(adjustedDrivers.roic - adjustedDrivers.wacc, fmtPct), adjustedDrivers.roic >= adjustedDrivers.wacc ? "good" : "bad"],
       ],
       bullets: [
         assumptions.wacc && isFiniteNumber(assumptions.wacc.beta)
           ? `WACC build: beta ${assumptions.wacc.beta.toFixed(2)}, ERP ${fmtPct(assumptions.wacc.equityRiskPremium)}, debt weight ${fmtPct(assumptions.wacc.debtWeight)}.`
           : null,
-        `Reinvestment rate: ${fmtOptional(adjustedDrivers.reinvestment, fmtPct)}.`,
-        `Terminal growth: ${fmtOptional(adjustedDrivers.terminalGrowth, fmtPct)}.`,
+        `Porcentaje reinvertido: ${fmtOptional(adjustedDrivers.reinvestment, fmtPct)}.`,
+        `Crecimiento de largo plazo: ${fmtOptional(adjustedDrivers.terminalGrowth, fmtPct)}.`,
         isFiniteNumber(adjustedDrivers.roic) && isFiniteNumber(adjustedDrivers.wacc) && adjustedDrivers.roic < adjustedDrivers.wacc
           ? "Alerta contable: ROIC no supera WACC."
           : "El negocio supera el umbral básico de ROIC.",
-        isFiniteNumber(facts.operatingCashFlow) ? `Operating cash flow: ${factMoney(facts.operatingCashFlow)}.` : null,
-        isFiniteNumber(facts.capex) ? `Capex: ${factMoney(facts.capex)}.` : null,
+        isFiniteNumber(facts.operatingCashFlow) ? `Caja de operaciones: ${factMoney(facts.operatingCashFlow)}.` : null,
+        isFiniteNumber(facts.capex) ? `Inversión: ${factMoney(facts.capex)}.` : null,
       ],
     },
     twin: {
       eyebrow: "Lógica del negocio",
       title: "Drivers de tesis",
       copy:
-        "La tesis se separa en drivers que se pueden cambiar, probar y falsificar.",
+        "La tesis se separa en factores que se pueden cambiar, probar y revisar.",
       plain: "¿Qué tendría que ser cierto para que esta inversión funcione?",
-      technical: "Conecta crecimiento, reinversión, ROIC fade, durabilidad de ventaja y pruebas de alerta.",
+      technical: "Relaciona crecimiento, reinversión, rentabilidad y duración de la ventaja competitiva.",
       metrics: [
         ["Escenario", mode],
-        ["Evidencia de negocio", fmtValue(adjustedDrivers.thesisQuality, "score")],
-        ["Demand / supply", fmtValue(adjustedDrivers.demandSupply, "score")],
+        ["Calidad del negocio", fmtValue(adjustedDrivers.thesisQuality, "score")],
+        ["Demanda y oferta", fmtValue(adjustedDrivers.demandSupply, "score")],
         ["Ventaja por escasez", fmtValue(adjustedDrivers.bottleneckPower, "score")],
         ["Alertas", String(tripwires.length), tripwires.length > 3 ? "warn" : "neutral"],
       ],
       bullets: [
-        `Current value path: ${fmtMoney(valuation)} versus price ${fmtMoney(adjustedDrivers.price)}.`,
-        `Long-run ROIC ${fmtOptional(adjustedDrivers.terminalRoic, fmtPct)} is compared with WACC ${fmtOptional(adjustedDrivers.wacc, fmtPct)}.`,
-        `Business evidence ${fmtValue(adjustedDrivers.thesisQuality, "score")} adjusts confidence in how long high ROIC can last.`,
-        `Scarcity advantage ${fmtValue(adjustedDrivers.bottleneckPower, "score")} asks whether customers have good substitutes.`,
-        activeFalsifiers[0] || "No warning test is currently at the edge of its range.",
+        `El valor estimado es ${fmtMoney(valuation)} frente a un precio de ${fmtMoney(adjustedDrivers.price)}.`,
+        `La rentabilidad de largo plazo (${fmtOptional(adjustedDrivers.terminalRoic, fmtPct)}) se compara con el retorno mínimo exigido (${fmtOptional(adjustedDrivers.wacc, fmtPct)}).`,
+        `La calidad del negocio (${fmtValue(adjustedDrivers.thesisQuality, "score")}) ayuda a estimar cuánto puede durar su rentabilidad.`,
+        `La ventaja por escasez (${fmtValue(adjustedDrivers.bottleneckPower, "score")}) pregunta si los clientes tienen buenos sustitutos.`,
+        activeFalsifiers[0] || "No hay una alerta cercana al límite de su rango.",
         activeFalsifiers[1] || null,
       ],
     },
@@ -999,19 +997,19 @@ function EngineConsole({
       copy:
         "Compara tu tesis con los supuestos que el precio ya trae dentro.",
       plain: "¿Cuánta confianza corresponde después de admitir incertidumbre?",
-      technical: "Usa factibilidad, crecimiento implícito, probabilidad sobre precio y penalización por desacuerdo.",
+      technical: "Compara los supuestos con la historia del negocio y muestra dónde hay más incertidumbre.",
       metrics: [
-        ["Factibilidad", fmtPct(feasibility, 0), feasibility >= 0.55 ? "good" : "warn"],
+        ["Supuestos razonables", fmtPct(feasibility, 0), feasibility >= 0.55 ? "good" : "warn"],
         ["Sobre precio", fmtPct(distribution.probAbovePrice, 0)],
         ["CAGR implícito", fmtPct(impliedCagr)],
-        ["Soporte de negocio", fmtValue((adjustedDrivers.thesisQuality + adjustedDrivers.demandSupply + adjustedDrivers.bottleneckPower) / 3, "score")],
+        ["Respaldo del negocio", fmtValue((adjustedDrivers.thesisQuality + adjustedDrivers.demandSupply + adjustedDrivers.bottleneckPower) / 3, "score")],
       ],
       bullets: [
-        `Expected 5Y IRR: ${fmtPct(expectedIrr)}.`,
-        `Upside/downside: ${fmtPct(upside)}.`,
+        `Retorno esperado a 5 años: ${fmtPct(expectedIrr)}.`,
+        `Diferencia frente al precio: ${fmtPct(upside)}.`,
         isFiniteNumber(impliedCagr) && isFiniteNumber(adjustedDrivers.revenueCagr) && impliedCagr > adjustedDrivers.revenueCagr
-          ? "El crecimiento implícito del mercado supera el input de tesis."
-          : "Thesis growth is not below market-implied growth.",
+          ? "El crecimiento implícito del mercado supera los supuestos de la tesis."
+          : "El crecimiento de la tesis no está por debajo del que supone el precio.",
         missingDrivers.length ? "El rango debe mantenerse amplio porque faltan datos en vivo." : null,
       ],
     },
@@ -1020,16 +1018,16 @@ function EngineConsole({
       title: "Estimación de valor",
       copy: "El valor estimado se compara con precio, retorno esperado y desacuerdo entre métodos.",
       plain: "¿El precio actual deja margen de seguridad suficiente?",
-      technical: "Ancla en DCF y ROIC fade; luego contrasta book value, piso de activos, owner earnings y downside.",
+      technical: "Compara caja futura, rentabilidad, activos y el posible descenso del precio.",
       metrics: [
         ["Valor / acción", fmtMoney(valuation)],
         ["Precio", fmtMoney(adjustedDrivers.price)],
         ["Upside", fmtPct(upside), upside >= 0 ? "good" : "bad"],
-        ["IRR esperado", fmtPct(expectedIrr)],
+        ["Retorno esperado", fmtPct(expectedIrr)],
       ],
       bullets: [
         "DCF y durabilidad de ROIC son los chequeos principales; los otros métodos muestran si el resultado es frágil.",
-        `Probability above price: ${fmtPct(distribution.probAbovePrice, 0)}.`,
+        `Probabilidad de superar el precio: ${fmtPct(distribution.probAbovePrice, 0)}.`,
       ],
     },
     expect: {
@@ -1037,11 +1035,11 @@ function EngineConsole({
       title: "Lo que exige el precio",
       copy: "Muestra el crecimiento y ROIC necesarios para justificar el precio actual.",
       plain: "¿Qué supone ya el precio de la acción?",
-      technical: "Reverse DCF despeja crecimiento implícito contra ROIC de largo plazo y WACC.",
+      technical: "Muestra qué crecimiento y rentabilidad ya supone el precio actual.",
       metrics: [
-        ["CAGR implícito", fmtPct(impliedCagr)],
-        ["CAGR tesis", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
-        ["Factibilidad", fmtPct(feasibility, 0)],
+        ["Crecimiento implícito", fmtPct(impliedCagr)],
+        ["Crecimiento de la tesis", fmtOptional(adjustedDrivers.revenueCagr, fmtPct)],
+        ["Supuestos razonables", fmtPct(feasibility, 0)],
         ["Falsificadores", String(tripwires.length)],
       ],
       bullets: [
@@ -1051,11 +1049,11 @@ function EngineConsole({
       ],
     },
     flows: {
-      eyebrow: "Presión de mercado",
+      eyebrow: "Factores que pueden mover el precio",
       title: "Flujos y contexto",
       copy: "La mecánica de mercado se mantiene separada del valor económico del negocio.",
       plain: "¿La acción puede moverse por razones ajenas al valor del negocio?",
-      technical: "Sigue beta, dilución/buybacks, presión pasiva, short interest y liquidez.",
+      technical: "Revisa movimientos de fondos, nuevas acciones, recompras, posiciones cortas y liquidez.",
       metrics: [
         ["Beta", isFiniteNumber(adjustedDrivers.beta) ? adjustedDrivers.beta.toFixed(2) : "N/A"],
         ["Proxy de buyback", adjustedDrivers.dilution < 0 ? "Apoya" : "Dilutivo"],
@@ -1068,11 +1066,11 @@ function EngineConsole({
       ],
     },
     calibration: {
-      eyebrow: "Calibración",
+      eyebrow: "Confianza de la lectura",
       title: "Permiso de uso",
-      copy: "La calibración decide si la lectura ajustada puede usarse, compararse o bloquearse.",
+      copy: "Esta sección muestra qué tan confiable es la lectura y qué información todavía falta.",
       plain: "¿La lectura tiene suficientes resultados pasados para ganar confianza?",
-      technical: "Combina calidad de datos, desacuerdo, resultados realizados, segmento comparable y revisión final.",
+      technical: "Compara calidad de datos, diferencias entre métodos y resultados anteriores cuando existen.",
       metrics: [
         ["Calidad de datos", fmtPct(quality, 0)],
         ["Desacuerdo", fmtPct(adjustedDrivers.modelRisk, 0)],
@@ -1081,7 +1079,7 @@ function EngineConsole({
       ],
       bullets: [
         "La valoración original sigue siendo la primaria hasta que suficientes predicciones pasadas hayan sido evaluadas.",
-        "La calibración se revisa por horizonte y tipo de negocio, no solo en agregado.",
+        "La confianza se revisa por plazo y tipo de negocio, no mezclando empresas distintas.",
         activeCalibrationGate.memo?.nextStep || "Guardar predicciones y compararlas contra resultados futuros.",
         debate?.final_orchestrator ? statusCopy(debate.final_orchestrator.status) : "Corre la revisión para agregar el veredicto final.",
       ],
@@ -1104,7 +1102,7 @@ function EngineConsole({
   const engineIndex = engines.findIndex(([key]) => key === activeEngine);
 
   return (
-    <section className={styles.engineConsole} aria-label="Valuation engine console">
+    <section className={styles.engineConsole} aria-label="Explicación de la valoración">
       <div className={styles.engineConsoleTop}>
         <div>
           <span>{panel.eyebrow}</span>
@@ -1121,9 +1119,9 @@ function EngineConsole({
         </div>
         <div className={styles.debateActions}>
           <button type="button" onClick={onRunDebate} disabled={debateStatus.state === "loading"}>
-            {debateStatus.state === "loading" ? "Revisando" : "Correr revisión final"}
+            {debateStatus.state === "loading" ? "Revisando" : "Revisar ahora"}
           </button>
-          <small>Primero revisión local / máximo una llamada final</small>
+          <small>Primero revisión local; una consulta adicional como máximo</small>
         </div>
       </div>
       <div className={styles.engineMetrics}>
@@ -1180,12 +1178,12 @@ function EngineConsole({
           {debate?.pre_revenue?.applicable ? (
             <div className={styles.committeeStrip}>
               <div>
-                <span>Lente pre-revenue</span>
+                <span>Análisis de empresa sin ventas</span>
                 <strong>{debate.pre_revenue.statusLabel}</strong>
                 <p>{debate.pre_revenue.summary}</p>
               </div>
               <div>
-                <span>Runway</span>
+                <span>Meses de caja</span>
                 <strong>{debate.pre_revenue.runway?.runwayLabel || "N/D"}</strong>
                 <p>Probabilidad de fracaso asumida: {Math.round((debate.pre_revenue.failureProbability || 0) * 100)}%. Dilución esperada: {Math.round((debate.pre_revenue.expectedDilution || 0) * 100)}%.</p>
               </div>
@@ -1211,17 +1209,17 @@ function EngineConsole({
           ) : null}
           <div className={styles.committeeStrip}>
             <div>
-              <span>Investigabilidad</span>
+              <span>Facilidad de revisión</span>
               <strong>{researchability?.label || "Ficha de fuentes pendiente"}</strong>
               <p>{researchability?.strategy || "Carga una empresa y corre la revisión final."}</p>
             </div>
             <div>
-              <span>Bloqueos</span>
+              <span>Puntos que impiden avanzar</span>
               <strong>{quickKill?.hard_fail ? "Bloqueo activado" : `${quickKill?.tally?.fail || 0} fallas / ${quickKill?.tally?.warn || 0} alertas`}</strong>
               <p>{quickKill?.hard_fail ? "La lectura bloquea tamaño hasta reparar el punto señalado." : "Sin bloqueo duro; lee las alertas antes de definir tamaño."}</p>
             </div>
             <div>
-              <span>Evidencia próxima</span>
+              <span>Datos a buscar</span>
               <strong>{catalystPack?.aggregateScore !== undefined ? fmtPct(catalystPack.aggregateScore, 0) : "Pendiente"}</strong>
               <p>
                 {catalystItems.length
@@ -1232,7 +1230,7 @@ function EngineConsole({
               </p>
             </div>
             <div>
-              <span>Seguimiento</span>
+              <span>Cambios desde la última lectura</span>
               <strong>{changeLog?.status || "Base pendiente"}</strong>
               <p>
                 {changeLog?.changes?.length
@@ -1257,14 +1255,14 @@ function EngineConsole({
               <span>Vista final</span>
               <p>{finalAnalysis?.executive_judgment}</p>
               <div>
-                <strong>Caso bull</strong>
+                <strong>Caso favorable</strong>
                 <BulletList items={bullCase} />
               </div>
             </article>
             <article className={styles.orchestratorCard}>
               <span>Cuestionamiento</span>
               <div>
-                <strong>Caso bear</strong>
+                <strong>Caso desfavorable</strong>
                 <BulletList items={bearCase} />
               </div>
               <div>
@@ -1462,28 +1460,28 @@ export default function ValuationOsLabPage() {
   const assumptionCards = assumptionPolicy
     ? [
         {
-          label: "Industry policy",
+          label: "Criterio sectorial",
           value: assumptionPolicy.industry?.label || "Empresa operativa amplia",
           note: assumptionPolicy.industry?.sicDescription || "Ticker y perfil SEC",
         },
         {
-          label: "Risk-free anchor",
+          label: "Tasa de referencia",
           value: fmtOptional(assumptionPolicy.riskFree?.value, fmtPct),
           note: assumptionPolicy.riskFree?.date
             ? `${assumptionPolicy.riskFree.source} / ${assumptionPolicy.riskFree.date}`
             : assumptionPolicy.riskFree?.source || "Fallback explícito",
         },
         {
-          label: "WACC build",
+          label: "Retorno mínimo exigido",
           value: fmtOptional(assumptionPolicy.wacc?.value, fmtPct),
           note: isFiniteNumber(assumptionPolicy.wacc?.beta)
             ? `Beta ${assumptionPolicy.wacc.beta.toFixed(2)} + ERP ${fmtPct(assumptionPolicy.wacc.equityRiskPremium)}`
-            : "Rate, beta, spread, tax",
+            : "Tasa, beta, diferencial e impuestos",
         },
         {
-          label: "Policy confidence",
+          label: "Confianza del criterio",
           value: fmtOptional(assumptionPolicy.industry?.confidence, (value) => fmtPct(value, 0)),
-          note: "Facts cargados + ciclicidad sectorial",
+          note: "Datos cargados y ciclo del sector",
         },
       ]
     : [];
@@ -1644,15 +1642,15 @@ export default function ValuationOsLabPage() {
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
           <span>AURORA</span>
-          <strong>Valuation OS</strong>
+          <strong>Valoración de empresas</strong>
         </div>
         <div className={styles.companyCard}>
-          <span>Company</span>
+          <span>Empresa</span>
           <strong>{adjustedDrivers.ticker}</strong>
           <small>{adjustedDrivers.name}</small>
           <em>{adjustedDrivers.sector}</em>
         </div>
-        <nav className={styles.engineNav} aria-label="Valuation engines">
+        <nav className={styles.engineNav} aria-label="Preguntas de valoración">
           {engines.map(([key, label, description], index) => (
             <button
               key={key}
@@ -1670,7 +1668,7 @@ export default function ValuationOsLabPage() {
           <span>Lectura actual</span>
           <strong>{plainRead}</strong>
           <p>
-            Combina brecha de valor, factibilidad, calidad de fuentes, evidencia de negocio, oferta/demanda y alertas.
+            Reúne la diferencia entre precio y valor estimado, la calidad de los datos y los principales riesgos.
           </p>
           <dl>
             <div>
@@ -1678,7 +1676,7 @@ export default function ValuationOsLabPage() {
               <dd>{tripwires.length} / {assumptionSchema.length}</dd>
             </div>
             <div>
-              <dt>Factibilidad</dt>
+              <dt>Supuestos razonables</dt>
               <dd>{fmtPct(feasibility, 0)}</dd>
             </div>
             <div>
@@ -1692,7 +1690,7 @@ export default function ValuationOsLabPage() {
       <section className={styles.workspace}>
         <header className={styles.topbar}>
           <div>
-            <h1>AURORA Valuation OS</h1>
+            <h1>AURORA · Valoración de empresas</h1>
             <p>
               Una mesa de valoración que muestra qué cree el precio, qué debe demostrar el negocio
               y qué evidencia debilitaría la tesis.
@@ -1700,8 +1698,8 @@ export default function ValuationOsLabPage() {
             <div className={styles.heroSummary}>
               <span>Lectura</span>
               <strong>{plainRead}</strong>
-              <span>{fmtPct(upside)} brecha de valor</span>
-              <span>{fmtPct(feasibility, 0)} ajuste de tesis</span>
+              <span>Diferencia entre precio y valor estimado: {fmtPct(upside)}</span>
+              <span>{fmtPct(feasibility, 0)} supuestos razonables</span>
             </div>
           </div>
           <div className={styles.controls}>
@@ -1713,7 +1711,7 @@ export default function ValuationOsLabPage() {
                 placeholder="AAPL"
               />
               <button type="submit" disabled={liveStatus.state === "loading"}>
-                {liveStatus.state === "loading" ? "Cargando" : "Cargar empresa"}
+                {liveStatus.state === "loading" ? "Cargando" : "Ver empresa"}
               </button>
             </form>
             <select aria-label="Empresa de ejemplo o cargada" value={companyKey} onChange={(event) => selectCompany(event.target.value)}>
@@ -1806,7 +1804,7 @@ export default function ValuationOsLabPage() {
         <section className={styles.orientationStrip} aria-label="Guía de lectura de AURORA">
           <div>
             <span>1 Fuentes</span>
-            <strong>Filings, precio, tasas</strong>
+            <strong>Informes públicos, precio, tasas</strong>
             <p>Verifica si los datos son usables.</p>
           </div>
           <div>
@@ -1821,7 +1819,7 @@ export default function ValuationOsLabPage() {
           </div>
           <div>
             <span>4 Decisión</span>
-            <strong>Supuestos + falsificadores</strong>
+            <strong>Supuestos + razones para cambiar de opinión</strong>
             <p>Muestra qué debe salir bien y qué rompería la tesis.</p>
           </div>
         </section>
@@ -1968,7 +1966,7 @@ export default function ValuationOsLabPage() {
                 <h3>{adjustedDrivers.moatHalfLife.toFixed(1)} años</h3>
                 <p>Cuánto tiempo se asume que la empresa mantiene ROIC sobre WACC.</p>
               </div>
-              <mark>ROIC fade</mark>
+              <mark>Duración de la rentabilidad</mark>
             </div>
             <MiniLine points={fadePath} />
             <p>
@@ -1980,7 +1978,7 @@ export default function ValuationOsLabPage() {
             <div className={styles.panelHead}>
               <div>
                 <span>Retorno del nuevo capital</span>
-                <h3>{fmtPct(adjustedDrivers.roic)} Y5 ROIC</h3>
+                <h3>{fmtPct(adjustedDrivers.roic)} rentabilidad año 5</h3>
                 <p>Revisa si la nueva inversion puede financiar el crecimiento supuesto.</p>
               </div>
               <mark>Calidad del crecimiento</mark>
@@ -2004,12 +2002,12 @@ export default function ValuationOsLabPage() {
             <table className={styles.compactTable}>
               <tbody>
                 <tr>
-                  <th>Revenue CAGR</th>
+                  <th>Crecimiento de ingresos</th>
                   <td>{fmtPct(impliedCagr)}</td>
                   <td>{fmtPct(adjustedDrivers.revenueCagr)}</td>
                 </tr>
                 <tr>
-                  <th>Terminal ROIC</th>
+                  <th>Rentabilidad de largo plazo</th>
                   <td>{fmtPct(adjustedDrivers.terminalRoic * 0.86)}</td>
                   <td>{fmtPct(adjustedDrivers.terminalRoic)}</td>
                 </tr>
@@ -2048,11 +2046,11 @@ export default function ValuationOsLabPage() {
           <article className={styles.metricPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Confiabilidad de inputs</span>
-                <h3>{fmtPct(quality, 0)} usable</h3>
+              <span>Confiabilidad de los datos</span>
+                <h3>{fmtPct(quality, 0)} con datos suficientes</h3>
                 <p>Muestra si la lectura usa datos vivos y rastreables.</p>
               </div>
-              <mark>Latest SEC</mark>
+              <mark>Último informe</mark>
             </div>
             <div className={styles.qualityDial} style={{ "--score": `${quality * 100}%` }}>
               <strong>{fmtPct(quality, 0)}</strong>
@@ -2061,11 +2059,11 @@ export default function ValuationOsLabPage() {
             {liveSnapshot ? (
               <div className={styles.coverageList}>
                 <div>
-                  <span>SEC companyfacts</span>
+                  <span>Datos financieros</span>
                   <strong>cargado</strong>
                 </div>
                 <div>
-                  <span>FRED</span>
+                  <span>Fuente de tasas</span>
                   <strong>{liveSnapshot.coverage?.fredConfigured ? "configurado" : "faltante"}</strong>
                 </div>
                 <div>
@@ -2073,12 +2071,12 @@ export default function ValuationOsLabPage() {
                   <strong>{liveSnapshot.coverage?.quoteSource || "faltante"}</strong>
                 </div>
                 <div>
-                  <span>FMP key</span>
+                <span>Fuente financiera</span>
                   <strong>{liveSnapshot.coverage?.fmpConfigured ? "configurada" : "key local faltante"}</strong>
                 </div>
               </div>
             ) : (
-              <p>Los filings SEC son la fuente primaria; los feeds auxiliares son secundarios.</p>
+              <p>Los informes regulatorios son la fuente principal; las fuentes auxiliares sirven como apoyo.</p>
             )}
           </article>
         </section>
@@ -2088,8 +2086,8 @@ export default function ValuationOsLabPage() {
             <div className={styles.panelHead}>
               <div>
                 <span>Lectura</span>
-                <h2>Qué está diciendo ahora</h2>
-                <p>The read combines price gap, thesis fit, input quality, and active warnings.</p>
+                <h2>Lectura actual</h2>
+                <p>Resume la diferencia frente al valor estimado, la calidad de los datos y las alertas activas.</p>
               </div>
               <mark>{selectedEngine?.[1]}</mark>
             </div>
@@ -2099,15 +2097,15 @@ export default function ValuationOsLabPage() {
                 <strong>{fmtMoney(valuation)}</strong>
               </div>
               <div data-tone={isFiniteNumber(upside) && upside >= 0 ? "good" : "bad"}>
-                <span>Brecha de valor</span>
+                <span>Diferencia entre precio y valor estimado</span>
                 <strong>{fmtPct(upside)}</strong>
               </div>
               <div>
-                <span>IRR esperado 5Y</span>
+                <span>Retorno esperado a 5 años</span>
                 <strong>{fmtPct(expectedIrr)}</strong>
               </div>
               <div>
-                <span>Factibilidad</span>
+                <span>Supuestos razonables</span>
                 <strong>{fmtPct(feasibility, 0)}</strong>
               </div>
               <div>
@@ -2116,24 +2114,24 @@ export default function ValuationOsLabPage() {
               </div>
             </div>
             <p>
-              Esto no es un target price único. Muestra qué exige el mercado, qué supuestos sostienen la tesis y qué alerta conviene vigilar primero.
+              No es un precio objetivo único. Muestra qué supone el precio, qué sostiene la lectura y qué conviene revisar primero.
             </p>
           </article>
 
           <article className={styles.flowPanel}>
             <div className={styles.panelHead}>
               <div>
-                <span>Presión de mercado</span>
-                <h2>Separada del valor del negocio</h2>
+                <span>Factores que pueden mover el precio</span>
+                <h2>Separados del valor del negocio</h2>
               </div>
-              <mark>Contexto de trading</mark>
+              <mark>Contexto de mercado</mark>
             </div>
             <div className={styles.flowStack}>
               {[
-                ["ETF / compras pasivas", "Neutral", 0.48],
-                ["Insiders / nuevas acciones", "Vigilar", 0.38],
-                ["Soporte de buybacks", "Positivo", 0.64],
-                ["Short interest / opciones", "Elevado", 0.57],
+                ["Fondos indexados y compras pasivas", "Neutral", 0.48],
+                ["Compras internas y nuevas acciones", "Vigilar", 0.38],
+                ["Recompras de acciones", "Positivo", 0.64],
+                ["Posiciones cortas y opciones", "Elevado", 0.57],
               ].map(([label, state, score]) => (
                 <div key={label} className={styles.flowRow}>
                   <span>{label}</span>

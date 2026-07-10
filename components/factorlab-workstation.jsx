@@ -9,49 +9,50 @@ import { factorLabSampleUniverse, runFactorLab } from "@/lib/factorlab-engine";
 
 const COPY = {
   en: {
-    navAria: "FactorLab navigation",
-    nav: { builder: "Search", results: "Files", audit: "Audit" },
+    navAria: "Opportunity search navigation",
+    nav: { builder: "Search", results: "Companies", audit: "How it works" },
     aurora: "AURORA",
     language: "Language",
     hero: {
       kicker: "FactorLab",
-      title: "Find neglected asymmetric research files before they become obvious.",
+      title: "Find companies worth reviewing before you spend hours on them.",
       body:
-        "A research triage engine for small and microcaps: hard gates first, opportunity type second, evidence score last.",
-      cta: "Run discovery",
-      secondary: "Open AURORA",
+        "Use a few visible filters to find opportunities, understand why they appear, and see what deserves caution.",
+      cta: "See companies to review",
+      secondary: "Open valuation",
+      disclosure: "Illustrative example; connect your workspace for live company data.",
     },
     status: {
-      universe: "Universe",
-      eligible: "Researchable",
-      returned: "Returned",
-      held: "Held back",
-      topScore: "Top score",
-      accepted: "Accepted",
-      refused: "Refused",
+      universe: "Companies considered",
+      eligible: "Enough data",
+      returned: "Shown",
+      held: "Set aside",
+      topScore: "Top priority",
+      accepted: "Ready to review",
+      refused: "No result",
       high: "High priority",
-      open: "Open files",
+      open: "Companies to review",
     },
     builder: {
-      title: "Search controls",
+      title: "Search filters",
       body:
-        "This does not decide what to buy. It decides whether the information channel is strong enough to justify human research.",
-      asof: "As of",
-      universe: "Universe",
-      topK: "Files returned",
-      minAdv: "Min daily value traded",
-      maxMarketCap: "Max market cap",
-      maxResidualVol: "Max residual volatility",
-      includeDiagnostics: "Show held-back diagnostics",
-      futureSignal: "Use future return",
-      futureHelp: "Invalid by design. It proves the screen refuses look-ahead leakage.",
+        "This does not decide what to buy. It helps you decide which companies deserve a closer look.",
+      asof: "Date",
+      universe: "Company group",
+      topK: "Companies shown",
+      minAdv: "Minimum daily trading value",
+      maxMarketCap: "Maximum market value",
+      maxResidualVol: "Maximum unusual volatility",
+      includeDiagnostics: "Show companies set aside",
+      futureSignal: "Include future information",
+      futureHelp: "Disabled: a live search must not use information from the future.",
     },
     universeOptions: {
-      tradable: "Tradable small/microcaps",
+      tradable: "Liquid smaller companies",
       us: "US-listed only",
       micro: "Microcap focus",
       inflection: "Improvement stories",
-      diagnostics: "Held-back diagnostics",
+      diagnostics: "Companies set aside",
     },
     weights: {
       quality: "Quality",
@@ -62,106 +63,107 @@ const COPY = {
       valuation: "Valuation",
     },
     model: [
-      ["Hard gates first", "Liquidity, future data, cash runway, and severe red flags are checked before any score exists."],
-      ["Type before score", "A quality compounder, an inflection, a discounted asset, and an option-like file are not ranked by one generic recipe."],
-      ["Null test pending", "The composite must still beat size, value, and momentum before the weights become trusted."],
+      ["Basic filters first", "Liquidity, available data, cash needs, and major warning signs are checked before a company is shown."],
+      ["Reason before priority", "A profitable compounder, a turnaround, and a discounted asset need different questions."],
+      ["Comparison still pending", "The priority is a starting point for review, not proof that one method is better than the others."],
     ],
     pipeline: {
       selected: "Selected step",
-      handle: "Handle",
-      input: "Input",
-      params: "Params",
-      meaning: "Plain meaning",
+      handle: "Internal name",
+      input: "Input data",
+      params: "Settings",
+      meaning: "In plain words",
     },
     results: {
-      label: "Research files",
-      validTitle: "Authorized for human work",
-      refusedTitle: "Structured refusal",
-      rank: "Type rank",
-      file: "File",
-      score: "Evidence score",
-      completeness: "Completeness",
-      setup: "Setup",
+      label: "Companies to review",
+      validTitle: "Ready for a closer look",
+      refusedTitle: "No company met the filters",
+      rank: "Priority within group",
+      file: "Company",
+      score: "Review priority",
+      completeness: "Data available",
+      setup: "Current situation",
       why: "Why now",
       kill: "What kills it",
-      next: "Research status",
-      aurora: "Open in AURORA",
-      empty: "No research files returned.",
+      next: "Review status",
+      aurora: "See valuation",
+      empty: "No company met the selected filters.",
       questions: "Questions",
     },
     stats: {
-      marketCap: "Market cap",
-      adv: "ADV",
-      fcfYield: "FCF yield",
-      dilution: "Dilution TTM",
-      analysts: "Analysts",
-      news: "News 90d",
+      marketCap: "Market value",
+      adv: "Daily trading value",
+      fcfYield: "Cash return",
+      dilution: "Dilution, last 12 months",
+      analysts: "Analyst coverage",
+      news: "News, last 90 days",
       completeness: "Data",
     },
     spec: {
-      title: "Runnable spec",
-      subtitle: "User-safe JSON",
-      copy: "Copy spec",
+      title: "Search details",
+      subtitle: "Filters used in this search",
+      copy: "Copy filters",
       copied: "Copied",
     },
     audit: {
-      title: "Audit trail",
+      title: "What this search records",
       body:
-        "Every run records the as-of date, adapters, gates, held-back count, and refusal reason. Research software, not financial advice.",
+        "Each search records its date, filters, companies set aside, and reason for an empty result. Analysis software, not financial advice.",
     },
     refusal: {
-      lookaheadMessage: "Future return is only valid as a label for training, not as an input for a live screen.",
-      lookaheadFix: "Turn off the future-return signal and rerun the screen.",
-      coverageMessage: "No research file survived the point-in-time filters.",
-      coverageFix: "Relax liquidity, volatility, market cap, universe, or as-of date.",
+      lookaheadMessage: "Future returns cannot be used in a live search.",
+      lookaheadFix: "Turn off future returns and run the search again.",
+      coverageMessage: "No company had enough data for these filters.",
+      coverageFix: "Adjust liquidity, volatility, market value, company group, or date.",
     },
-    footer:
-      "Research prioritization only. No financial advice. Every file still needs primary filings, a thesis, a bear/base/bull model, and invalidation criteria.",
+      footer:
+        "This only prioritizes what to review. It is not financial advice. Each company still needs public reports, a clear thesis, scenarios, and reasons to change your mind.",
   },
   es: {
-    navAria: "Navegación de FactorLab",
-    nav: { builder: "Búsqueda", results: "Archivos", audit: "Auditoría" },
+    navAria: "Navegación de búsqueda de oportunidades",
+    nav: { builder: "Búsqueda", results: "Empresas", audit: "Cómo funciona" },
     aurora: "AURORA",
     language: "Idioma",
     hero: {
       kicker: "FactorLab",
-      title: "Encuentra archivos de investigación asimétrica antes de que sean obvios.",
+      title: "Encuentra empresas que vale la pena revisar antes de dedicarles horas.",
       body:
-        "Un motor de autorización para small y microcaps: primero filtros duros, después tipo de oportunidad, al final puntaje de evidencia.",
-      cta: "Correr búsqueda",
-      secondary: "Abrir AURORA",
+        "Usa filtros visibles para encontrar oportunidades, entender por qué aparecen y ver qué requiere cuidado.",
+      cta: "Ver empresas para revisar",
+      secondary: "Ver valoración",
+      disclosure: "Ver ejemplo con datos ilustrativos; conecta tu espacio para trabajar con datos vivos.",
     },
     status: {
-      universe: "Universo",
-      eligible: "Investigables",
-      returned: "Devueltos",
-      held: "Retenidos",
-      topScore: "Mejor puntaje",
-      accepted: "Aceptado",
-      refused: "Rechazado",
+      universe: "Empresas consideradas",
+      eligible: "Datos suficientes",
+      returned: "Mostradas",
+      held: "Apartadas",
+      topScore: "Mayor prioridad",
+      accepted: "Listas para revisar",
+      refused: "Sin resultado",
       high: "Prioridad alta",
-      open: "Archivos abiertos",
+      open: "Empresas para revisar",
     },
     builder: {
-      title: "Controles de búsqueda",
+      title: "Filtros de búsqueda",
       body:
-        "Esto no decide qué comprar. Decide si el canal de información alcanza para justificar investigación humana.",
+        "Esto no decide qué comprar. Ayuda a decidir qué empresas merecen una revisión más cercana.",
       asof: "Fecha de corte",
       universe: "Universo",
-      topK: "Archivos devueltos",
-      minAdv: "Valor transado mínimo diario",
-      maxMarketCap: "Market cap máximo",
-      maxResidualVol: "Volatilidad residual máx.",
-      includeDiagnostics: "Mostrar diagnósticos retenidos",
-      futureSignal: "Usar retorno futuro",
-      futureHelp: "Inválido a propósito. Prueba que el filtro rechaza look-ahead.",
+      topK: "Empresas mostradas",
+      minAdv: "Valor mínimo transado al día",
+      maxMarketCap: "Valor máximo de mercado",
+      maxResidualVol: "Volatilidad inusual máxima",
+      includeDiagnostics: "Mostrar empresas apartadas",
+      futureSignal: "Incluir información futura",
+      futureHelp: "Desactivado: una búsqueda real no debe usar información del futuro.",
     },
     universeOptions: {
-      tradable: "Small/microcaps transables",
+      tradable: "Empresas pequeñas con liquidez",
       us: "Solo listadas en EE. UU.",
       micro: "Foco microcap",
       inflection: "Historias de mejora",
-      diagnostics: "Diagnósticos retenidos",
+      diagnostics: "Empresas apartadas",
     },
     weights: {
       quality: "Calidad",
@@ -172,61 +174,61 @@ const COPY = {
       valuation: "Valoración",
     },
     model: [
-      ["Filtros primero", "Liquidez, datos futuros, runway de caja y red flags severos se revisan antes de que exista un puntaje."],
-      ["Tipo antes que score", "Una calidad reinvertible, una mejora operacional, un activo descontado y una opción frágil no usan la misma receta."],
-      ["Null pendiente", "El compuesto todavía debe ganarle a size, value y momentum antes de confiar en los pesos."],
+      ["Filtros básicos primero", "Liquidez, datos disponibles, necesidades de caja y alertas importantes se revisan antes de mostrar una empresa."],
+      ["Razón antes que prioridad", "Una empresa rentable, una mejora operacional y un activo descontado necesitan preguntas distintas."],
+      ["Comparación pendiente", "La prioridad es un punto de partida para revisar, no una prueba de que un método sea mejor que otro."],
     ],
     pipeline: {
       selected: "Paso seleccionado",
       handle: "Nombre",
-      input: "Input",
+      input: "Dato de entrada",
       params: "Parámetros",
       meaning: "En simple",
     },
     results: {
-      label: "Archivos de investigación",
-      validTitle: "Autorizados para trabajo humano",
-      refusedTitle: "Rechazo estructurado",
-      rank: "Rank por tipo",
-      file: "Archivo",
-      score: "Puntaje de evidencia",
-      completeness: "Completitud",
-      setup: "Setup",
+      label: "Empresas para revisar",
+      validTitle: "Listas para una revisión cercana",
+      refusedTitle: "Ninguna empresa cumplió los filtros",
+      rank: "Prioridad dentro del grupo",
+      file: "Empresa",
+      score: "Prioridad de revisión",
+      completeness: "Datos disponibles",
+      setup: "Situación actual",
       why: "Por qué ahora",
       kill: "Qué lo mata",
-      next: "Estado de research",
-      aurora: "Abrir en AURORA",
-      empty: "No hubo archivos devueltos.",
+      next: "Estado de revisión",
+      aurora: "Ver valoración",
+      empty: "Ninguna empresa cumplió los filtros elegidos.",
       questions: "Preguntas",
     },
     stats: {
-      marketCap: "Market cap",
-      adv: "ADV",
-      fcfYield: "FCF yield",
-      dilution: "Dilución TTM",
-      analysts: "Analistas",
-      news: "Noticias 90d",
+      marketCap: "Valor de mercado",
+      adv: "Valor transado al día",
+      fcfYield: "Rendimiento de caja",
+      dilution: "Dilución, últimos 12 meses",
+      analysts: "Cobertura de analistas",
+      news: "Noticias, últimos 90 días",
       completeness: "Datos",
     },
     spec: {
-      title: "Spec ejecutable",
-      subtitle: "JSON seguro para usuario",
-      copy: "Copiar spec",
+      title: "Detalles de la búsqueda",
+      subtitle: "Filtros usados en esta búsqueda",
+      copy: "Copiar filtros",
       copied: "Copiado",
     },
     audit: {
-      title: "Registro de auditoría",
+      title: "Qué registra esta búsqueda",
       body:
-        "Cada corrida deja fecha de corte, adaptadores, filtros, archivos retenidos y motivo de rechazo. Software de research, no asesoría financiera.",
+        "Cada búsqueda guarda su fecha, filtros, empresas apartadas y motivo si no hay resultados. Software de análisis, no asesoría financiera.",
     },
     refusal: {
-      lookaheadMessage: "El retorno futuro sirve como etiqueta de entrenamiento, no como input de una búsqueda en vivo.",
-      lookaheadFix: "Apaga la señal de retorno futuro y vuelve a correr.",
-      coverageMessage: "Ningún archivo sobrevivió los filtros point-in-time.",
-      coverageFix: "Relaja liquidez, volatilidad, market cap, universo o fecha de corte.",
+      lookaheadMessage: "Los retornos futuros no se pueden usar como dato en una búsqueda real.",
+      lookaheadFix: "Desactiva los retornos futuros y vuelve a buscar.",
+      coverageMessage: "Ninguna empresa tuvo datos suficientes para estos filtros.",
+      coverageFix: "Ajusta liquidez, volatilidad, valor de mercado, grupo de empresas o fecha.",
     },
-    footer:
-      "Solo priorización de investigación. No es asesoría financiera. Cada archivo requiere filings primarios, tesis, modelo bear/base/bull y criterios de invalidación.",
+      footer:
+      "Solo prioriza qué revisar. No es asesoría financiera. Cada empresa necesita informes públicos, una tesis clara, escenarios y razones para cambiar de opinión.",
   },
 };
 
@@ -254,14 +256,72 @@ function fmtMoney(value) {
 function pipelineText(step, language) {
   if (language === "es") {
     if (step.id === "asof") return "Elimina datos que no eran observables en la fecha de corte.";
-    if (step.id === "gates") return "Retiene trampas de liquidez, caja crítica y red flags antes del scoring.";
-    if (step.id === "type") return "Clasifica el tipo de oportunidad antes de aplicar pesos.";
-    if (step.id === "score") return "Usa breakpoints fijos y neglect real; no percentiles del batch.";
-    if (step.id === "null") return "Exporta el compuesto para probarlo contra size, value y momentum.";
-    if (step.id === "memo") return "Devuelve preguntas de investigación, no una lista de compra.";
-    if (step.id === "future") return "Esto filtraría datos futuros dentro de la búsqueda.";
+    if (step.id === "gates") return "Aparta problemas de liquidez, caja crítica y alertas importantes antes de ordenar las empresas.";
+    if (step.id === "type") return "Clasifica la situación de cada empresa antes de asignar prioridades.";
+    if (step.id === "score") return "Compara cada empresa con umbrales fijos y con el nivel de atención que recibe.";
+    if (step.id === "null") return "Permite comparar la prioridad con otros criterios sencillos.";
+    if (step.id === "memo") return "Devuelve preguntas para revisar, no una lista de compras.";
+    if (step.id === "future") return "Evita que la búsqueda use datos que todavía no existían.";
   }
-  return step.plain;
+  const plain = {
+    asof: "Removes information that was not available on the selected date.",
+    gates: "Sets aside liquidity problems, critical cash needs, and major warnings before ranking companies.",
+    type: "Groups each company by situation before assigning review priority.",
+    score: "Compares each company with fixed rules and the level of attention it receives.",
+    null: "Compares the priority with other simple criteria.",
+    memo: "Returns questions to review, not a list of stocks to buy.",
+    future: "Stops the search from using information that did not exist yet.",
+  };
+  return plain[step.id] || step.plain;
+}
+
+function pipelineLabel(step, language) {
+  const labels = language === "es"
+    ? { asof: "Fecha de corte", gates: "Filtros básicos", type: "Tipo de empresa", score: "Prioridad", null: "Comparación", memo: "Preguntas para revisar", future: "Información futura" }
+    : { asof: "Cut-off date", gates: "Basic filters", type: "Company type", score: "Review priority", null: "Comparison", memo: "Review questions", future: "Future information" };
+  return labels[step.id] || step.op;
+}
+
+function pipelineStatusLabel(status, language) {
+  const labels = language === "es" ? { pass: "Listo", safe: "Listo", warn: "Revisar", fail: "Apartado", pending: "Pendiente" } : { pass: "Ready", safe: "Ready", warn: "Review", fail: "Set aside", pending: "Pending" };
+  return labels[status] || status;
+}
+
+function pipelineDetail(step, field, language) {
+  const details = language === "es"
+    ? {
+        asof: { input: "Fecha seleccionada", params: "Solo datos disponibles hasta esa fecha" },
+        gates: { input: "Liquidez, caja y alertas", params: "Filtros básicos antes de ordenar" },
+        type: { input: "Situación de la empresa", params: "Preguntas distintas para cada grupo" },
+        score: { input: "Datos financieros y atención del mercado", params: "Reglas fijas y datos faltantes visibles" },
+        null: { input: "Otros criterios sencillos", params: "Comparación pendiente" },
+        memo: { input: "Resultados y señales de cuidado", params: "Preguntas para la revisión" },
+        future: { input: "Datos posteriores a la fecha", params: "Desactivado en una búsqueda real" },
+      }
+    : {
+        asof: { input: "Selected date", params: "Only information available by that date" },
+        gates: { input: "Liquidity, cash, and warnings", params: "Basic filters before ranking" },
+        type: { input: "Company situation", params: "Different questions for each group" },
+        score: { input: "Financial data and market attention", params: "Fixed rules and missing data stay visible" },
+        null: { input: "Other simple criteria", params: "Comparison still pending" },
+        memo: { input: "Results and caution points", params: "Questions for the review" },
+        future: { input: "Information after the selected date", params: "Disabled in a live search" },
+      };
+  return details[step.id]?.[field] || (field === "input" ? step.input : step.params);
+}
+
+function reviewStatusLabel(row, language) {
+  const source = String(row?.tierLabel?.[language] || "").toLowerCase();
+  if (source.includes("research") || source.includes("investig")) return language === "es" ? "Revisión pendiente" : "Review needed";
+  return language === "es" ? "Lista para revisar" : "Ready to review";
+}
+
+function opportunityTypeLabel(row, language) {
+  const source = String(row?.opportunityTypeLabel?.[language] || row?.opportunityType || "").toLowerCase();
+  if (source.includes("reinvestment") || source.includes("compounder") || source.includes("rentabilidad")) return language === "es" ? "Empresa rentable" : "Profitable business";
+  if (source.includes("inflection") || source.includes("operational") || source.includes("mejora")) return language === "es" ? "Mejora operacional" : "Operational improvement";
+  if (source.includes("discounted") || source.includes("descontado")) return language === "es" ? "Activo con descuento" : "Discounted asset";
+  return row?.opportunityTypeLabel?.[language] || row?.opportunityType || (language === "es" ? "Empresa para revisar" : "Company to review");
 }
 
 function refusalMessage(refusal, copy) {
@@ -278,16 +338,22 @@ function refusalFix(refusal, copy) {
   return refusal.fix;
 }
 
+function refusalLabel(refusal, language) {
+  if (refusal?.errorType === "LookaheadError") return language === "es" ? "Datos futuros no permitidos" : "Future data not allowed";
+  if (refusal?.errorType === "CoverageError") return language === "es" ? "Datos insuficientes" : "Not enough data";
+  return language === "es" ? "Búsqueda sin resultado" : "Search returned no result";
+}
+
 function auditText(item, language) {
   if (language === "en") return item;
   return item
     .replace("Screen date", "Fecha de corte")
-    .replace("files cleared hard gates and evidence threshold.", "archivos pasaron filtros duros y umbral de evidencia.")
-    .replace("files were held back before research triage.", "archivos fueron retenidos antes del triage de investigación.")
-    .replace("Scores use fixed breakpoints, quarterly TTM features, and real neglect variables.", "Los puntajes usan breakpoints fijos, datos trimestrales TTM y variables reales de baja atención.")
-    .replace("Composite weights remain provisional until the factor-null export beats size, value, and momentum.", "Los pesos del compuesto siguen provisionales hasta ganarle al null de size, value y momentum.")
-    .replace("research files returned.", "archivos de investigación devueltos.")
-    .replace("Spec parsed.", "Spec leído.");
+    .replace("files cleared hard gates and evidence threshold.", "empresas pasaron los filtros y el nivel mínimo de datos.")
+    .replace("files were held back before research triage.", "empresas fueron apartadas antes de la revisión.")
+    .replace("Scores use fixed breakpoints, quarterly TTM features, and real neglect variables.", "Las prioridades usan umbrales fijos, datos recientes y el nivel de atención que recibe cada empresa.")
+    .replace("Composite weights remain provisional until the factor-null export beats size, value, and momentum.", "La prioridad sigue siendo orientativa hasta compararla con otros criterios sencillos.")
+    .replace("research files returned.", "empresas mostradas.")
+    .replace("Spec parsed.", "Filtros leídos.");
 }
 
 function strongestBlocks(row, language, copy) {
@@ -306,10 +372,10 @@ function strongestBlocks(row, language, copy) {
 function displaySpec(run) {
   return {
     ...run.spec,
-    typeWeights: "type-specific scorecards are mapped in the engine and not rendered as internal labels",
+    typeWeights: "Cada grupo usa preguntas distintas; aquí se muestran solo las etiquetas útiles para revisar",
     factorNull: {
       ...run.spec.factorNull,
-      status: run.summary.factorNullRequired ? "required before trusting composite weights" : "not required",
+      status: run.summary.factorNullRequired ? "comparación pendiente" : "no necesaria en esta búsqueda",
     },
   };
 }
@@ -391,6 +457,7 @@ export function FactorLabWorkstation() {
             <a className={styles.primaryButton} href="#results">{copy.hero.cta}</a>
             <Link className={styles.secondaryButton} href="/aurora">{copy.hero.secondary}</Link>
           </div>
+          <small>{copy.hero.disclosure}</small>
         </div>
 
         <div className={styles.thesisPlane} aria-label="FactorLab model">
@@ -507,7 +574,7 @@ export function FactorLabWorkstation() {
             <div className={styles.panelTopline}>
               <div>
                 <span>{copy.builder.title}</span>
-                <strong>neglected_opportunity_triage</strong>
+                <strong>{language === "es" ? "Filtros visibles · prioridad de revisión" : "Visible filters · review priority"}</strong>
               </div>
               <mark data-state={run.accepted ? "accepted" : "refused"}>
                 {run.accepted ? copy.status.accepted : copy.status.refused}
@@ -534,7 +601,7 @@ export function FactorLabWorkstation() {
                   type="button"
                 >
                   <span>{String(index + 1).padStart(2, "0")}</span>
-                  <strong>{step.op}</strong>
+                  <strong>{pipelineLabel(step, language)}</strong>
                   <small>{pipelineText(step, language)}</small>
                 </button>
               ))}
@@ -545,23 +612,23 @@ export function FactorLabWorkstation() {
             <div className={styles.panelTopline}>
               <div>
                 <span>{copy.pipeline.selected}</span>
-                <strong>{activeStep.op}</strong>
+                <strong>{pipelineLabel(activeStep, language)}</strong>
               </div>
-              <mark data-state={activeStep.status}>{activeStep.status}</mark>
+              <mark data-state={activeStep.status}>{pipelineStatusLabel(activeStep.status, language)}</mark>
             </div>
 
             <dl className={styles.nodeDetail}>
               <div>
                 <dt>{copy.pipeline.handle}</dt>
-                <dd>{activeStep.id}</dd>
+                <dd>{pipelineLabel(activeStep, language)}</dd>
               </div>
               <div>
                 <dt>{copy.pipeline.input}</dt>
-                <dd>{activeStep.input}</dd>
+                <dd>{pipelineDetail(activeStep, "input", language)}</dd>
               </div>
               <div>
                 <dt>{copy.pipeline.params}</dt>
-                <dd>{activeStep.params}</dd>
+                <dd>{pipelineDetail(activeStep, "params", language)}</dd>
               </div>
               <div>
                 <dt>{copy.pipeline.meaning}</dt>
@@ -572,7 +639,7 @@ export function FactorLabWorkstation() {
             {topFile ? (
               <div className={styles.topCandidate}>
                 <span>{copy.results.next}</span>
-                <strong>{topFile.ticker}: {topFile.tierLabel[language]}</strong>
+                <strong>{topFile.ticker}: {reviewStatusLabel(topFile, language)}</strong>
                 <p>{topFile.whyNow}</p>
               </div>
             ) : null}
@@ -585,7 +652,7 @@ export function FactorLabWorkstation() {
                 <strong>{run.accepted ? copy.results.validTitle : copy.results.refusedTitle}</strong>
               </div>
               <mark data-state={run.accepted ? "accepted" : "refused"}>
-                {run.accepted ? `${copy.status.returned}: ${run.summary.returned}` : run.refusal?.errorType}
+                {run.accepted ? `${copy.status.returned}: ${run.summary.returned}` : refusalLabel(run.refusal, language)}
               </mark>
             </div>
 
@@ -601,9 +668,9 @@ export function FactorLabWorkstation() {
                       <div className={styles.candidateHead}>
                         <div>
                           <strong>{row.ticker}</strong>
-                          <span>{row.name} · {row.opportunityTypeLabel[language]}</span>
+                          <span>{row.name} · {opportunityTypeLabel(row, language)}</span>
                         </div>
-                        <mark data-tier={row.tier}>{row.tierLabel[language]}</mark>
+                        <mark data-tier={row.tier}>{reviewStatusLabel(row, language)}</mark>
                       </div>
                       <p className={styles.thesisText}>{row.thesis}</p>
                       <div className={styles.reasonGrid}>
@@ -641,8 +708,8 @@ export function FactorLabWorkstation() {
               </div>
             ) : (
               <div className={styles.refusal}>
-                <span>{run.refusal?.errorType}</span>
-                <strong>{run.refusal?.op}: {refusalMessage(run.refusal, copy)}</strong>
+                <span>{refusalLabel(run.refusal, language)}</span>
+                <strong>{refusalMessage(run.refusal, copy)}</strong>
                 <p>{refusalFix(run.refusal, copy)}</p>
                 <pre>{JSON.stringify(run.refusal, null, 2)}</pre>
               </div>
