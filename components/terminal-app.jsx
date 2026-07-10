@@ -3538,6 +3538,11 @@ function HoldingsPanel({
   tradeInstruction,
   onTradeInstructionChange,
   onSubmitTrade,
+  tradePreview,
+  tradeDate,
+  onTradeDateChange,
+  onConfirmTrade,
+  onCancelTrade,
   pendingTrade,
   holdingDraftError,
   tradeInstructionError,
@@ -3620,9 +3625,9 @@ function HoldingsPanel({
         }}
       >
         <div className={styles.tradeCopy}>
-          <p className={styles.kicker}>Edición directa</p>
-          <h3>Define una posición directamente</h3>
-          <p>Ingresa un ticker y acciones objetivo o valor objetivo en USD. Usa 0 para eliminar una posición limpiamente.</p>
+          <p className={styles.kicker}>Edición manual</p>
+          <h3>Corrige una posición existente</h3>
+          <p>Usa esta opción solo si prefieres definir el resultado final directamente. Para registrar una compra o venta, usa el campo simple de abajo.</p>
         </div>
         <div className={styles.holdingQuickGrid}>
           <label className={styles.fieldStack}>
@@ -3698,23 +3703,60 @@ function HoldingsPanel({
         }}
       >
         <div className={styles.tradeCopy}>
-          <p className={styles.kicker}>Actualización avanzada</p>
-          <h3>Usa lenguaje simple para compras y ventas</h3>
-          <p>Ejemplos: <em>compre 100 USD de NVDA</em> o <em>vendi 2 acciones de AAPL</em>.</p>
+          <p className={styles.kicker}>Registrar una operación</p>
+          <h3>Escribe lo que hiciste</h3>
+          <p>Por ejemplo: <em>compré USD 200 de NVDA</em> o <em>vendí 2 acciones de AAPL</em>. Primero te pediremos la fecha y te mostraremos el precio antes de guardar.</p>
         </div>
         <div className={styles.tradeForm}>
           <input
             aria-label="Nota de compra o venta en lenguaje simple"
             className={styles.textInput}
             onChange={(event) => onTradeInstructionChange(event.target.value)}
-            placeholder="compre 100 USD de NVDA"
+            placeholder="compré USD 200 de NVDA"
             type="text"
             value={tradeInstruction}
           />
           <button className={styles.secondaryButton} disabled={pendingTrade || !String(tradeInstruction || "").trim()} type="submit">
-            {pendingTrade ? "Actualizando..." : "Actualizar desde texto"}
+            {pendingTrade ? "Revisando..." : "Continuar"}
           </button>
         </div>
+        {tradePreview?.status === "needs_date" ? (
+          <div className={styles.tradePreview} role="status">
+            <p>{tradePreview.message}</p>
+            <div className={styles.tradePreviewActions}>
+              <label className={styles.fieldStack}>
+                <span>Fecha de la operación</span>
+                <input
+                  className={styles.textInput}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(event) => onTradeDateChange(event.target.value)}
+                  type="date"
+                  value={tradeDate}
+                />
+              </label>
+              <button className={styles.primaryButton} disabled={pendingTrade || !tradeDate} onClick={onSubmitTrade} type="button">
+                Buscar precio y revisar
+              </button>
+              <button className={styles.tertiaryButton} disabled={pendingTrade} onClick={onCancelTrade} type="button">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : null}
+        {tradePreview?.status === "ready" ? (
+          <div className={styles.tradePreview} role="status">
+            <p><strong>Revisa antes de guardar.</strong> {tradePreview.side === "buy" ? "Compra" : "Venta"} de {Number(tradePreview.quantity || 0).toLocaleString("es-CL", { maximumFractionDigits: 4 })} acciones de {tradePreview.ticker} por USD {Number(tradePreview.price || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.</p>
+            <small>{tradePreview.priceSource === "historical_close" ? `Cierre disponible del ${tradePreview.priceDate}.` : "Precio ingresado manualmente."} Esta acción aún no modifica tu cartera.</small>
+            <div className={styles.tradePreviewActions}>
+              <button className={styles.primaryButton} disabled={pendingTrade} onClick={onConfirmTrade} type="button">
+                {pendingTrade ? "Guardando..." : "Confirmar y guardar"}
+              </button>
+              <button className={styles.tertiaryButton} disabled={pendingTrade} onClick={onCancelTrade} type="button">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : null}
         {tradeInstructionError ? <p className={styles.errorText}>{tradeInstructionError}</p> : null}
       </form>
     </section>
@@ -5388,6 +5430,13 @@ function cleanWorkspaceCopy(value) {
 function friendlyWorkspaceMessage(value, fallback = "") {
   const text = cleanWorkspaceCopy(value).trim();
   if (!text) return fallback;
+  const missingPrice = text.match(/No current price found for\s+([A-Z0-9.-]+)/i);
+  if (missingPrice) {
+    return `No encontramos un precio para ${missingPrice[1].toUpperCase()}. Indica la fecha de la operación o agrega el precio manualmente.`;
+  }
+  if (/Could not parse a buy\/sell instruction/i.test(text)) {
+    return "No pudimos entender la operación. Prueba con ‘compré USD 200 de NVDA’ o ‘vendí 2 acciones de AAPL’.";
+  }
   if (isTechnicalWorkspaceMessage(text)) {
     return fallback || "La actualización de mercado aún está alcanzando. Por ahora se usa la última sesión completa.";
   }
@@ -5464,6 +5513,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   });
   const pendingSectionScrollRef = useRef(null);
   const [tradeInstruction, setTradeInstruction] = useState("");
+  const [tradeDate, setTradeDate] = useState("");
+  const [tradePreview, setTradePreview] = useState(null);
   const [holdingDraftError, setHoldingDraftError] = useState("");
   const [tradeInstructionError, setTradeInstructionError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -5659,7 +5710,16 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             onHoldingDraftChange={updateHoldingDraft}
             onSubmitHoldingDraft={submitHoldingDraft}
             onSubmitTrade={submitTradeInstruction}
-            onTradeInstructionChange={setTradeInstruction}
+            onTradeInstructionChange={(value) => {
+              setTradeInstruction(value);
+              setTradePreview(null);
+              setTradeInstructionError("");
+            }}
+            tradePreview={tradePreview}
+            tradeDate={tradeDate}
+            onTradeDateChange={setTradeDate}
+            onConfirmTrade={confirmTradeInstruction}
+            onCancelTrade={resetTradeInstruction}
             pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
             portfolioModule={portfolioModule}
             holdingDraftError={holdingDraftError}
@@ -5940,13 +6000,47 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ instruction: trimmed }),
+        body: JSON.stringify({ instruction: trimmed, preview: true, ...(tradeDate ? { tradeDate } : {}) }),
+      });
+      const payload = await parseResponse(response);
+      setTradePreview(payload);
+    } catch (requestError) {
+      setTradeInstructionError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la operación."));
+    } finally {
+      setPendingKey(null);
+    }
+  }
+
+  function resetTradeInstruction() {
+    setTradePreview(null);
+    setTradeDate("");
+    setTradeInstructionError("");
+  }
+
+  async function confirmTradeInstruction() {
+    const trimmed = String(tradeInstruction || "").trim();
+    if (!workspaceId || !trimmed || tradePreview?.status !== "ready") return;
+
+    setPendingKey(`trade:${trimmed}`);
+    setTradeInstructionError("");
+    setError("");
+
+    try {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instruction: trimmed,
+          price: tradePreview.price,
+          ...(tradeDate ? { tradeDate } : {}),
+        }),
       });
       const payload = await parseResponse(response);
       await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Posiciones guardadas.");
       setTradeInstruction("");
+      resetTradeInstruction();
     } catch (requestError) {
-      setTradeInstructionError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la operación."));
+      setTradeInstructionError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo guardar la operación."));
     } finally {
       setPendingKey(null);
     }

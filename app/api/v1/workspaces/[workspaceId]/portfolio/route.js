@@ -1,4 +1,4 @@
-import { getWorkspacePortfolio, updateWorkspaceHoldings } from "@/lib/server/dashboard-service";
+import { getWorkspacePortfolio, previewWorkspaceHoldingInstruction, updateWorkspaceHoldings } from "@/lib/server/dashboard-service";
 import { requireApiWorkspaceSession } from "@/lib/server/auth/session";
 import { errorResponse, parsePortfolioUpdatePayload } from "@/lib/server/workspace-action-validation";
 
@@ -19,6 +19,10 @@ export async function POST(request, { params }) {
   try {
     const body = await request.json();
     const input = parsePortfolioUpdatePayload(body);
+    if (input.preview) {
+      const payload = await previewWorkspaceHoldingInstruction(params.workspaceId, input);
+      return Response.json(payload, { headers: { "Cache-Control": "no-store" } });
+    }
     const payload = await updateWorkspaceHoldings(params.workspaceId, input);
     return Response.json(payload, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {

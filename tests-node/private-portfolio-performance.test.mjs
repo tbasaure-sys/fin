@@ -4,8 +4,24 @@ import assert from "node:assert/strict";
 import {
   buildHistoryPerformanceMetrics,
   buildHistorySeries,
+  previewHoldingsInstruction,
   signedCashLedgerExternalFlowUsd,
 } from "../lib/server/private-portfolio.js";
+
+test("plain-language trades ask for a date before any portfolio change", async () => {
+  const preview = await previewHoldingsInstruction({}, { instruction: "compré USD 200 de NVDA" });
+
+  assert.equal(preview.status, "needs_date");
+  assert.equal(preview.ticker, "NVDA");
+  assert.match(preview.message, /Cuándo hiciste esta operación/);
+});
+
+test("plain-language trades reject multiple tickers instead of guessing", async () => {
+  await assert.rejects(
+    previewHoldingsInstruction({}, { instruction: "vendí 2 acciones de ZVRA y ADUL" }),
+    /una compra o venta por vez/i,
+  );
+});
 
 test("portfolio history computes TWR after external flows instead of raw value growth", () => {
   const rows = [
