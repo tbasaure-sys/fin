@@ -606,10 +606,8 @@ function deriveDrivers(facts, quote, riskFree, metadata = {}) {
   };
 }
 
-export async function GET(request) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const tickerInfo = await findTicker(searchParams.get("ticker") || "AAPL");
+export async function buildValuationSnapshot(ticker = "AAPL") {
+  const tickerInfo = await findTicker(ticker);
     const catalystEvidencePromise = fetchValuationCatalystEvidence({
       ticker: tickerInfo.ticker,
       companyName: tickerInfo.name,
@@ -671,19 +669,25 @@ export async function GET(request) {
       builtAt: new Date().toISOString(),
     });
 
-    return Response.json({
-      ok: true,
-      asOf: new Date().toISOString(),
-      ...derived,
-      company,
-      quote,
-      riskFree,
-      coverage,
-      catalystEvidence,
-      catalystPack,
-      contextPack,
-      ...calibrationPreview,
-    });
+  return {
+    ok: true,
+    asOf: new Date().toISOString(),
+    ...derived,
+    company,
+    quote,
+    riskFree,
+    coverage,
+    catalystEvidence,
+    catalystPack,
+    contextPack,
+    ...calibrationPreview,
+  };
+}
+
+export async function GET(request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    return Response.json(await buildValuationSnapshot(searchParams.get("ticker") || "AAPL"));
   } catch (error) {
     return Response.json(
       {

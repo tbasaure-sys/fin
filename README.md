@@ -125,6 +125,21 @@ npm run db:neon:apply
 
 The first Neon-backed state path is watchlists plus command history, while holdings remain on the current overlay until the auth migration is complete.
 
+### Public BLS Breakpoint
+
+`/` now includes a no-account Breakpoint flow: enter a ticker and BLS records the
+market-clearing operating path, its smallest decision flips, sources and explicit
+limitations. In production, public result URLs are durable only with Neon enabled.
+
+Set:
+
+- `DATABASE_URL`
+- `BLS_PRIME_STORAGE_BACKEND=neon`
+- `BLS_PRIME_BREAKPOINT_FORK_SECRET` (a long random server-side secret for signed parameter forks)
+
+Apply `db/migrations/0015_public_breakpoint_runs.sql` through `npm run db:neon:apply`.
+Without Neon in local development, runs use an explicitly non-durable in-memory store.
+
 ### Private workspace auth
 
 The app now supports a public homepage plus a private `/app` workspace.

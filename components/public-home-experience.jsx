@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import styles from "@/app/home-page.module.css";
 import { writeStoredLanguage } from "@/components/language-layer";
 import { StressAccountGate } from "@/components/stress-account-gate";
+import { BreakpointHero } from "@/components/breakpoint/breakpoint-hero";
 
 const COPY = {
   es: {
@@ -396,6 +397,8 @@ export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
           </Link>
         </div>
       </header>
+
+      <BreakpointHero language={language} />
 
       <section className={styles.hero} aria-labelledby="home-title">
         <div className={styles.heroCopy}>
