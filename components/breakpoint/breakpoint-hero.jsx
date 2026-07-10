@@ -48,8 +48,8 @@ export function BreakpointHero({ language = "es" }) {
       const result = await response.json();
       if (!response.ok || !result?.ok || !result?.runId) throw new Error(result?.message || copy.error);
       router.push(`/breakpoint/${encodeURIComponent(result.ticker)}/${encodeURIComponent(result.runId)}?lang=${language}`);
-    } catch (error) {
-      setState({ status: "error", message: error instanceof Error ? error.message : copy.error });
+    } catch {
+      setState({ status: "error", message: copy.error });
     }
   }
 

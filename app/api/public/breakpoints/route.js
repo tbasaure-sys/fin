@@ -35,6 +35,7 @@ function isRateLimited(request) {
 }
 
 export async function POST(request) {
+  let locale = "es";
   if (isRateLimited(request)) {
     return noStoreJson({ ok: false, code: "RATE_LIMITED", message: "Please wait a minute before running another breakpoint." }, { status: 429 });
   }
@@ -46,6 +47,8 @@ export async function POST(request) {
     return noStoreJson({ ok: false, code: "INVALID_REQUEST", message: "Send a JSON body with a ticker." }, { status: 400 });
   }
 
+  locale = payload?.locale === "en" ? "en" : "es";
+
   const ticker = cleanBreakpointTicker(payload?.ticker);
   const hurdleRate = payload?.hurdleRate === undefined ? 0.1 : Number(payload.hurdleRate);
   if (!ticker || !isSupportedBreakpointHurdle(hurdleRate)) {
@@ -53,7 +56,7 @@ export async function POST(request) {
   }
 
   try {
-    const result = await getLiveBreakpointService().run({ ticker, hurdleRate, locale: payload?.locale === "en" ? "en" : "es" });
+    const result = await getLiveBreakpointService().run({ ticker, hurdleRate, locale });
     const run = await appendPublicBreakpointRun({
       ticker,
       status: result.status,
@@ -66,7 +69,9 @@ export async function POST(request) {
     return noStoreJson({
       ok: false,
       code: "DATA_UNAVAILABLE",
-      message: "BLS could not establish a current breakpoint from the available public data.",
+      message: locale === "en"
+        ? "We could not build this reading from current public data. Try another SEC-covered ticker."
+        : "No pudimos construir esta lectura con datos públicos actuales. Prueba otra empresa con cobertura SEC.",
       detail: process.env.NODE_ENV === "production" ? undefined : error instanceof Error ? error.message : String(error),
     }, { status: 503 });
   }

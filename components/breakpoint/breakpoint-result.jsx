@@ -25,7 +25,7 @@ export function BreakpointResult({ runId, language = "es" }) {
         if (!response.ok || !body?.ok) throw new Error(body?.message || copy.unavailable);
         if (active) setState({ status: "ready", run: body.run, message: "" });
       })
-      .catch((error) => active && setState({ status: "error", run: null, message: error instanceof Error ? error.message : copy.unavailable }));
+      .catch(() => active && setState({ status: "error", run: null, message: copy.unavailable }));
     return () => { active = false; };
   }, [runId, copy.unavailable]);
 

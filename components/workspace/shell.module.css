@@ -4785,6 +4785,37 @@
   color: #ffb7af;
 }
 
+.tradePreview {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid rgba(122, 210, 194, 0.28);
+  border-radius: 1rem;
+  background: rgba(122, 210, 194, 0.06);
+}
+
+.tradePreview p,
+.tradePreview small {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tradePreview small {
+  color: var(--muted);
+}
+
+.tradePreviewActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.65rem;
+}
+
+.tradePreviewActions .fieldStack {
+  min-width: min(100%, 16rem);
+  flex: 1 1 15rem;
+}
+
 .inlineList {
   margin: 0;
   padding-left: 1rem;

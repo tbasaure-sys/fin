@@ -40,3 +40,12 @@ test("public copy calls samples examples and does not promise unavailable work",
   assert.match(home, /Illustrative example with sample data/);
   assert.match(factorlab, /Ver ejemplo|Pr[oó]ximamente|Solicitar acceso/);
 });
+
+test("Breakpoint keeps localized failure copy at both the API and UI boundaries", () => {
+  const hero = source("components/breakpoint/breakpoint-hero.jsx");
+  const result = source("components/breakpoint/breakpoint-result.jsx");
+  const route = source("app/api/public/breakpoints/route.js");
+  assert.doesNotMatch(hero, /error instanceof Error \? error\.message/);
+  assert.doesNotMatch(result, /error instanceof Error \? error\.message/);
+  assert.match(route, /No pudimos construir esta lectura con datos públicos actuales/);
+});

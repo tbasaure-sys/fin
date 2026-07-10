@@ -24,6 +24,23 @@ test("parsePortfolioUpdatePayload requires a trade instruction", () => {
   );
 });
 
+test("parsePortfolioUpdatePayload preserves the date and preview request for a plain-language trade", () => {
+  assert.deepEqual(parsePortfolioUpdatePayload({
+    instruction: "compré USD 200 de NVDA",
+    tradeDate: "2026-06-15",
+    preview: true,
+  }), {
+    instruction: "compré USD 200 de NVDA",
+    tradeDate: "2026-06-15",
+    preview: true,
+  });
+
+  assert.throws(
+    () => parsePortfolioUpdatePayload({ instruction: "compré USD 200 de NVDA", tradeDate: "15/06/2026" }),
+    (error) => error instanceof RequestValidationError && /YYYY-MM-DD/.test(error.message),
+  );
+});
+
 test("parsePortfolioUpdatePayload accepts explicit portfolio cash events", () => {
   assert.deepEqual(parsePortfolioUpdatePayload({
     cashEvent: {
