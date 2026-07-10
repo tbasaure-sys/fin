@@ -15,6 +15,13 @@ test("public Breakpoint API is no-auth, no-store and delegates to the live servi
   assert.doesNotMatch(post, /requireSession|ensureAuthenticated/);
 });
 
+test("public Breakpoint returns a usable temporary run when saving the result fails", () => {
+  const post = source("app/api/public/breakpoints/route.js");
+  assert.match(post, /createEphemeralBreakpointRun/);
+  assert.match(post, /storageWarning/);
+  assert.match(post, /run:\s*result/);
+});
+
 test("public Breakpoint retrieval and forks have bounded contracts", () => {
   const get = source("app/api/public/breakpoints/[runId]/route.js");
   const fork = source("app/api/public/breakpoints/[runId]/fork/route.js");

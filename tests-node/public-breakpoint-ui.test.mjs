@@ -17,6 +17,13 @@ test("public homepage promotes a no-account Breakpoint entry without removing th
   assert.match(hero, /Ver qu[eé] necesita el precio/);
 });
 
+test("Breakpoint shows a temporary reading instead of a failure when storage is unavailable", () => {
+  const hero = source("components/breakpoint/breakpoint-hero.jsx");
+  assert.match(hero, /result\?\.run/);
+  assert.match(hero, /temporaryRun/);
+  assert.match(hero, /La lectura está lista/);
+});
+
 test("Breakpoint result gives sources, limits and terminal bridge a first-class place", () => {
   const result = source("components/breakpoint/breakpoint-result.jsx");
   const page = source("app/breakpoint/[ticker]/[runId]/page.js");

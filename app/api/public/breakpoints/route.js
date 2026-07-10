@@ -1,7 +1,7 @@
 import { cleanBreakpointTicker } from "@/lib/breakpoint/contract";
 import { isSupportedBreakpointHurdle } from "@/lib/breakpoint/compose";
 import { getLiveBreakpointService } from "@/lib/server/breakpoint-service";
-import { appendPublicBreakpointRun } from "@/lib/server/data/public-breakpoint-runs";
+import { appendPublicBreakpointRun, createEphemeralBreakpointRun } from "@/lib/server/data/public-breakpoint-runs";
 
 export const dynamic = "force-dynamic";
 
@@ -55,16 +55,9 @@ export async function POST(request) {
     return noStoreJson({ ok: false, code: "INVALID_INPUT", message: "Use a valid ticker and an 8%, 10%, or 12% hurdle." }, { status: 422 });
   }
 
+  let result;
   try {
-    const result = await getLiveBreakpointService().run({ ticker, hurdleRate, locale });
-    const run = await appendPublicBreakpointRun({
-      ticker,
-      status: result.status,
-      payload: result,
-      sourceSnapshot: result.provenance,
-      assumptions: { hurdle: result.hurdle, model: result.model || {} },
-    });
-    return noStoreJson({ ok: true, runId: run.id, ticker: run.ticker, status: run.status, durable: run.durable, url: `/breakpoint/${run.ticker}/${encodeURIComponent(run.id)}` });
+    result = await getLiveBreakpointService().run({ ticker, hurdleRate, locale });
   } catch (error) {
     return noStoreJson({
       ok: false,
@@ -74,5 +67,36 @@ export async function POST(request) {
         : "No pudimos construir esta lectura con datos públicos actuales. Prueba otra empresa con cobertura SEC.",
       detail: process.env.NODE_ENV === "production" ? undefined : error instanceof Error ? error.message : String(error),
     }, { status: 503 });
+  }
+
+  try {
+    const run = await appendPublicBreakpointRun({
+      ticker,
+      status: result.status,
+      payload: result,
+      sourceSnapshot: result.provenance,
+      assumptions: { hurdle: result.hurdle, model: result.model || {} },
+    });
+    return noStoreJson({ ok: true, runId: run.id, ticker: run.ticker, status: run.status, durable: run.durable, url: `/breakpoint/${run.ticker}/${encodeURIComponent(run.id)}` });
+  } catch (error) {
+    const run = createEphemeralBreakpointRun({
+      ticker,
+      status: result.status,
+      payload: result,
+      sourceSnapshot: result.provenance,
+      assumptions: { hurdle: result.hurdle, model: result.model || {} },
+    });
+    return noStoreJson({
+      ok: true,
+      runId: run.id,
+      ticker: run.ticker,
+      status: run.status,
+      durable: false,
+      run: result,
+      storageWarning: locale === "en"
+        ? "This reading is ready, but it could not be saved for a shareable link."
+        : "La lectura está lista, pero no se pudo guardar para crear un enlace compartible.",
+      detail: process.env.NODE_ENV === "production" ? undefined : error instanceof Error ? error.message : String(error),
+    });
   }
 }

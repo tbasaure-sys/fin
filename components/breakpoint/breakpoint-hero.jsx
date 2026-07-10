@@ -16,6 +16,11 @@ const COPY = {
     loading: "Revisando la empresa…",
     helper: "Sin cuenta. Datos públicos y supuestos visibles.",
     error: "No pudimos construir un punto de quiebre con datos actuales. Prueba otro ticker en cobertura SEC.",
+    temporaryReady: "La lectura está lista.",
+    temporaryTitle: "Lectura inicial",
+    requirements: "Lo que el precio necesitaría",
+    risk: "Lo que podría romper la lectura",
+    temporaryNotice: "No se guardó un enlace compartible; puedes revisar esta lectura ahora mismo.",
   },
   en: {
     eyebrow: "BLS BREAKPOINT · FIRST READING",
@@ -27,6 +32,11 @@ const COPY = {
     loading: "Reviewing the company…",
     helper: "No account. Public data and visible assumptions.",
     error: "BLS could not establish a breakpoint from current data. Try another SEC-covered ticker.",
+    temporaryReady: "The reading is ready.",
+    temporaryTitle: "First reading",
+    requirements: "What the price would need",
+    risk: "What could break the reading",
+    temporaryNotice: "A shareable link was not saved; you can review this reading now.",
   },
 };
 
@@ -35,9 +45,11 @@ export function BreakpointHero({ language = "es" }) {
   const copy = COPY[language] || COPY.es;
   const [ticker, setTicker] = useState("ASML");
   const [state, setState] = useState({ status: "idle", message: "" });
+  const [temporaryRun, setTemporaryRun] = useState(null);
 
   async function onSubmit(event) {
     event.preventDefault();
+    setTemporaryRun(null);
     setState({ status: "loading", message: copy.loading });
     try {
       const response = await fetch("/api/public/breakpoints", {
@@ -46,7 +58,13 @@ export function BreakpointHero({ language = "es" }) {
         body: JSON.stringify({ ticker, hurdleRate: 0.1, locale: language }),
       });
       const result = await response.json();
-      if (!response.ok || !result?.ok || !result?.runId) throw new Error(result?.message || copy.error);
+      if (!response.ok || !result?.ok) throw new Error(result?.message || copy.error);
+      if (result?.run && result?.durable === false) {
+        setTemporaryRun(result.run);
+        setState({ status: "ready", message: result.storageWarning || copy.temporaryReady });
+        return;
+      }
+      if (!result?.runId) throw new Error(result?.message || copy.error);
       router.push(`/breakpoint/${encodeURIComponent(result.ticker)}/${encodeURIComponent(result.runId)}?lang=${language}`);
     } catch {
       setState({ status: "error", message: copy.error });
@@ -68,6 +86,21 @@ export function BreakpointHero({ language = "es" }) {
           <p className={styles.helper}>{copy.helper}</p>
           <p className={styles.status} aria-live="polite" data-error={state.status === "error"}>{state.message}</p>
         </form>
+        {temporaryRun ? (
+          <section className={styles.status} aria-live="polite">
+            <p>{copy.temporaryTitle} · {temporaryRun.ticker}</p>
+            <h2>{temporaryRun.market?.family?.narrative || temporaryRun.limitations?.[0] || copy.temporaryReady}</h2>
+            <div>
+              <span>{copy.requirements}</span>
+              <strong>{temporaryRun.breakpoint?.bull?.statement || "-"}</strong>
+            </div>
+            <div>
+              <span>{copy.risk}</span>
+              <strong>{temporaryRun.breakpoint?.bear?.statement || temporaryRun.monitor?.falsifier || "-"}</strong>
+            </div>
+            <small>{copy.temporaryNotice}</small>
+          </section>
+        ) : null}
       </div>
       <div className={styles.surface} aria-hidden="true">
         <div className={styles.surfaceHeader}><span>{language === "en" ? "WHAT THE PRICE NEEDS" : "LO QUE EL PRECIO NECESITA"}</span><span>{language === "en" ? "5 YEARS · 10%" : "5 AÑOS · 10%"}</span></div>
