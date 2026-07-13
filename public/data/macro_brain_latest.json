@@ -1,5 +1,5 @@
 {
-  "generated_on": "2026-07-12T20:13:34.888562+00:00",
+  "generated_on": "2026-07-13T11:45:15.310867+00:00",
   "run_date": "2026-07-10",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
   "observations": 143295,
@@ -40,8 +40,8 @@
       "transformed": 0.0017953737065008468,
       "momentum": 0.30954144786843685,
       "impulse": -0.2710752498062341,
-      "momentum_z": 0.3877049788421936,
-      "impulse_z": -1.3171580281689557,
+      "momentum_z": 0.3877042131061512,
+      "impulse_z": -1.317155140646569,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
