@@ -137,6 +137,7 @@ const WORKSPACE_SHELL_COPY = {
     ask: "Ask workspace",
     glossary: "Glossary",
     guide: "Guide",
+    channels: "Channel map",
     hideAdvanced: "Hide advanced",
     advanced: "Advanced",
     terms: "Terms",
@@ -173,6 +174,7 @@ const WORKSPACE_SHELL_COPY = {
     ask: "Preguntar al espacio",
     glossary: "Glosario",
     guide: "Guía",
+    channels: "Mapa de canales",
     hideAdvanced: "Ocultar avanzado",
     advanced: "Avanzado",
     terms: "Términos",
@@ -3888,6 +3890,7 @@ function WorkspaceSidebar({
           ) : null}
         </div>
         <div className={styles.workspaceSidebarLinks}>
+          <Link className={styles.secondaryLink} href="/channels">{copy.channels}</Link>
           <Link className={styles.secondaryLink} href="/terms">{copy.terms}</Link>
           <Link className={styles.secondaryLink} href="/">{copy.home}</Link>
         </div>

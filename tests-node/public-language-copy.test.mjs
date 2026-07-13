@@ -6,11 +6,11 @@ import test from "node:test";
 const root = path.resolve(import.meta.dirname, "..");
 const source = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("landing and Breakpoint use the four-question decision narrative", () => {
+test("landing and Breakpoint use the five-question decision narrative", () => {
   const home = source("components/public-home-experience.jsx");
   const hero = source("components/breakpoint/breakpoint-hero.jsx");
   const result = source("components/breakpoint/breakpoint-result.jsx");
-  assert.match(home, /Antes de invertir, responde cuatro preguntas/);
+  assert.match(home, /Antes de invertir, responde cinco preguntas/);
   assert.match(home, /\u00bfQu[eé] valor tiene\?/i);
   assert.match(home, /B[uú]squeda de oportunidades/);
   assert.match(hero, /Lo que el precio necesita/i);

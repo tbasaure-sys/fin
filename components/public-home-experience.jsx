@@ -52,8 +52,18 @@ const COPY = {
       statusline: "Ejemplo con datos ilustrativos · reglas y supuestos visibles",
     },
     modulesKicker: "El proceso",
-    modulesTitle: "Antes de invertir, responde cuatro preguntas.",
+    modulesTitle: "Antes de invertir, responde cinco preguntas.",
     modulesSub: "BLS Prime no decide por ti. Ordena la información para que puedas decidir mejor.",
+    channel: {
+      index: "00",
+      label: "Mapa de canales",
+      title: "Mapa de canales",
+      question: "¿Dónde podrías ver algo antes o mejor que el mercado?",
+      body:
+        "Un diagnóstico público de 8 preguntas convierte tu experiencia, contexto y acceso legítimo en hipótesis de canales que vale la pena investigar.",
+      note: "Hipótesis, no ventajas validadas · sin cuenta · tus respuestas quedan en este navegador",
+      cta: "Descubrir mis canales",
+    },
     modules: [
       {
         index: "01",
@@ -90,6 +100,7 @@ const COPY = {
     ],
     workflowKicker: "La decisión completa",
     workflowSteps: [
+      ["00", "¿Dónde puedes tener una señal investigable?"],
       ["01", "¿Qué valor tiene?"],
       ["02", "¿Merece atención?"],
       ["03", "¿Qué puede salir mal?"],
@@ -139,8 +150,18 @@ const COPY = {
       statusline: "Illustrative example · visible rules and assumptions",
     },
     modulesKicker: "The process",
-    modulesTitle: "Before investing, answer four questions.",
+    modulesTitle: "Before investing, answer five questions.",
     modulesSub: "BLS Prime does not decide for you. It organizes the information so you can decide better.",
+    channel: {
+      index: "00",
+      label: "Channel map",
+      title: "Channel Map",
+      question: "Where might you see something before or better than the market?",
+      body:
+        "A public 8-question diagnostic turns your experience, context, and lawful access into channel hypotheses worth investigating.",
+      note: "Hypotheses, not validated edges · no account required · answers stay in this browser",
+      cta: "Discover my channels",
+    },
     modules: [
       {
         index: "01",
@@ -177,6 +198,7 @@ const COPY = {
     ],
     workflowKicker: "The full decision",
     workflowSteps: [
+      ["00", "Where might you have a researchable signal?"],
       ["01", "What is it worth?"],
       ["02", "Does it deserve attention?"],
       ["03", "What can go wrong?"],
@@ -429,6 +451,30 @@ export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
           <h2 className={styles.sectionTitle}>{copy.modulesTitle}</h2>
           <p className={styles.sectionSub}>{copy.modulesSub}</p>
         </div>
+
+        <Link
+          className={`${styles.channelStrip} ${styles.reveal}`}
+          href={`/channels?lang=${language}`}
+        >
+          <span className={styles.channelStripTop}>
+            <span className={styles.channelIndex}>{copy.channel.index}</span>
+            <span className={styles.channelLabel}>{copy.channel.label}</span>
+          </span>
+          <span className={styles.channelStripMain}>
+            <span>
+              <strong className={styles.channelTitle}>{copy.channel.title}</strong>
+              <span className={styles.channelQuestion}>{copy.channel.question}</span>
+            </span>
+            <span className={styles.channelBody}>{copy.channel.body}</span>
+          </span>
+          <span className={styles.channelStripFoot}>
+            <span className={styles.channelNote}>{copy.channel.note}</span>
+            <em className={styles.moduleCta}>
+              {copy.channel.cta}
+              <span className={styles.ctaArrow}>→</span>
+            </em>
+          </span>
+        </Link>
 
         <nav className={styles.moduleDeck} aria-label="BLS Prime modules">
           {copy.modules.map((module, i) => {

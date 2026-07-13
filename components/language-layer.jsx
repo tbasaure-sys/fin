@@ -18,6 +18,7 @@ const COMPONENT_LOCALIZED_PATHS = new Set([
   "/valuation-os-lab",
   "/factorlab",
   "/stress",
+  "/channels",
 ]);
 
 const TEXT_TRANSLATIONS = {
@@ -483,7 +484,7 @@ export function LanguageLayer({ initialLanguage = "en" }) {
     };
   }, [language, path]);
 
-  if (path === "/") return null;
+  if (path === "/" || path === "/channels") return null;
 
   return (
     <div className="global-language-dock" data-no-translate aria-label={language === "es" ? "Elegir idioma" : "Choose language"}>
