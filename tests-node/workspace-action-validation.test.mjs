@@ -57,6 +57,29 @@ test("parsePortfolioUpdatePayload accepts explicit portfolio cash events", () =>
   });
 });
 
+test("parsePortfolioUpdatePayload accepts an atomic confirmed portfolio replacement", () => {
+  const payload = parsePortfolioUpdatePayload({
+    replacePortfolio: true,
+    holdings: [
+      { ticker: " aapl ", quantity: "2", avgCostUsd: "150" },
+      { ticker: "MSFT", quantity: 1.5, currentPriceUsd: 410 },
+    ],
+  });
+
+  assert.deepEqual(payload, {
+    replacePortfolio: true,
+    holdings: [
+      { ticker: "AAPL", quantity: 2, avgCostUsd: 150 },
+      { ticker: "MSFT", quantity: 1.5, currentPriceUsd: 410 },
+    ],
+  });
+
+  assert.throws(
+    () => parsePortfolioUpdatePayload({ replacePortfolio: true, holdings: [] }),
+    (error) => error instanceof RequestValidationError && /at least one holding/i.test(error.message),
+  );
+});
+
 test("parseFinancePlanPayload normalizes monthly cashflow fields", () => {
   const payload = parseFinancePlanPayload({
     monthlyIncome: "10000",
@@ -153,14 +176,14 @@ test("parsePhantomDiversificationPayload normalizes tickers and enforces at leas
 });
 
 test("parsePhantomDiversificationPayload rejects oversized holding lists with a user-facing message", () => {
-  const holdings = Array.from({ length: 25 }, (_, index) => ({
+  const holdings = Array.from({ length: 61 }, (_, index) => ({
     ticker: `T${index + 1}`,
     weight: 4,
   }));
 
   assert.throws(
     () => parsePhantomDiversificationPayload({ holdings }),
-    (error) => error instanceof RequestValidationError && /up to 24 positive holdings per run/i.test(error.message),
+    (error) => error instanceof RequestValidationError && /up to 60 positive holdings per run/i.test(error.message),
   );
 });
 

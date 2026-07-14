@@ -7,7 +7,7 @@ test.describe("Rutas públicas", () => {
     await page.goto("/");
     await expect(page).toHaveTitle(/BLS Prime/);
     await expect(page.getByRole("link", { name: /Crear espacio de trabajo|Create workspace/i }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /Descubrir mis canales|Discover my channels/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: /Analizar mi cartera|Analyze my portfolio/i })).toBeVisible();
     await expect(page.locator("text=AURORA").first()).toBeVisible();
     await expect(page.locator("text=FactorLab").first()).toBeVisible();
     await expect(page.locator("text=Stress").first()).toBeVisible();
@@ -29,28 +29,26 @@ test.describe("Rutas públicas", () => {
     await expect.poll(() => page.evaluate(() => localStorage.getItem("blsprime_language_preference"))).toBe("es");
   });
 
-  test("/channels es público y presenta el diagnóstico sin pedir una cuenta", async ({ page }) => {
+  test("/channels es público y presenta portfolio intelligence sin pedir una cuenta", async ({ page }) => {
     await page.goto("/channels?lang=es");
     await expect(page).toHaveURL(/\/channels\?lang=es$/);
     await expect(
-      page.getByRole("heading", { name: /Dónde podrías ver algo antes o mejor que el mercado/i }),
+      page.getByRole("heading", { name: /Primero entiende qué apuestas tienes/i }),
     ).toBeVisible();
+    await expect(page.getByText(/apuestas efectivas, clusters y correlaciones propias/i)).toBeVisible();
     await expect(page).not.toHaveURL(/\/login/);
   });
 
-  test("/channels detiene una fuente privada antes de pedir más respuestas", async ({ page }) => {
+  test("/channels no convierte una observación aislada en una cola de investigación", async ({ page }) => {
     await page.goto("/channels?lang=es");
-    await page.getByRole("button", { name: "Descubrir mis canales" }).click();
-    await page.getByRole("checkbox", { name: /Flujo profesional/ }).check();
-    await page.getByRole("button", { name: "Continuar" }).click();
-    await page.getByRole("radio", { name: /Contacto ocasional/ }).check();
-    await page.getByRole("button", { name: "Continuar" }).click();
-    await page.getByRole("radio", { name: /Depende de información interna o privada/ }).check();
-    await page.getByRole("button", { name: "Continuar" }).click();
+    await page.getByRole("button", { name: "Probar descubrimiento" }).click();
+    await page.getByRole("button", { name: /Flujos de salud/i }).click();
+    await page.getByRole("button", { name: /Una herramienta está entrando/i }).click();
+    await page.getByRole("button", { name: /Uso público/i }).click();
+    await page.getByRole("button", { name: /Fue una observación aislada/i }).click();
 
-    await expect(page.getByRole("heading", { name: /no puede convertirse en un canal de investigación/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /Iniciar sesión para guardarlo/i })).toHaveCount(0);
-    await expect(page.getByText(/Puntaje de preparación/i)).toHaveCount(0);
+    await expect(page.getByText(/Una observación aislada no crea un canal/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Nombres para investigar esta semana/i })).toHaveCount(0);
   });
 
   test("persistencia de idioma: ES sobrevive un reload", async ({ page }) => {

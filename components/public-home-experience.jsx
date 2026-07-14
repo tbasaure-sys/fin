@@ -56,13 +56,13 @@ const COPY = {
     modulesSub: "BLS Prime no decide por ti. Ordena la información para que puedas decidir mejor.",
     channel: {
       index: "00",
-      label: "Mapa de canales",
-      title: "Mapa de canales",
-      question: "¿Dónde podrías ver algo antes o mejor que el mercado?",
+      label: "Inteligencia de cartera",
+      title: "Portfolio Intelligence",
+      question: "¿Cuántas apuestas distintas tienes realmente?",
       body:
-        "Un diagnóstico público de 8 preguntas convierte tu experiencia, contexto y acceso legítimo en hipótesis de canales que vale la pena investigar.",
-      note: "Hipótesis, no ventajas validadas · sin cuenta · tus respuestas quedan en este navegador",
-      cta: "Descubrir mis canales",
+        "Confirma tus posiciones, identifica clusters y correlaciones ocultas, y construye una cola semanal de empresas con KPI y pruebas concretas.",
+      note: "Cartera propia · apuestas efectivas · canales investigables",
+      cta: "Analizar mi cartera",
     },
     modules: [
       {
@@ -100,7 +100,7 @@ const COPY = {
     ],
     workflowKicker: "La decisión completa",
     workflowSteps: [
-      ["00", "¿Dónde puedes tener una señal investigable?"],
+      ["00", "¿Qué apuestas tienes y dónde podrías tener una señal?"],
       ["01", "¿Qué valor tiene?"],
       ["02", "¿Merece atención?"],
       ["03", "¿Qué puede salir mal?"],
@@ -154,13 +154,13 @@ const COPY = {
     modulesSub: "BLS Prime does not decide for you. It organizes the information so you can decide better.",
     channel: {
       index: "00",
-      label: "Channel map",
-      title: "Channel Map",
-      question: "Where might you see something before or better than the market?",
+      label: "Portfolio intelligence",
+      title: "Portfolio Intelligence",
+      question: "How many distinct bets do you actually own?",
       body:
-        "A public 8-question diagnostic turns your experience, context, and lawful access into channel hypotheses worth investigating.",
-      note: "Hypotheses, not validated edges · no account required · answers stay in this browser",
-      cta: "Discover my channels",
+        "Confirm your holdings, find hidden correlation clusters, and build a weekly company queue with concrete KPIs and public tests.",
+      note: "Your portfolio · effective bets · testable channels",
+      cta: "Analyze my portfolio",
     },
     modules: [
       {
@@ -198,7 +198,7 @@ const COPY = {
     ],
     workflowKicker: "The full decision",
     workflowSteps: [
-      ["00", "Where might you have a researchable signal?"],
+      ["00", "What bets do you own, and where might you have a signal?"],
       ["01", "What is it worth?"],
       ["02", "Does it deserve attention?"],
       ["03", "What can go wrong?"],

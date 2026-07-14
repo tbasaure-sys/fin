@@ -197,3 +197,42 @@ test("output contract matches the UI expectations (same shape as python module)"
   assert.ok(result.series.every((row) => row.raw_breadth >= row.real_breadth));
   assert.ok(result.copy.phantom_share.includes("92%"));
 });
+
+test("portfolio intelligence exposes a correlation matrix and deterministic clusters", () => {
+  const tickers = ["CLONE1", "CLONE2", "INDEP1", "INDEP2"];
+  const panel = buildPanel({
+    tickers,
+    betas: [1, 1, 0, 0],
+    idioVols: [0.001, 0.001, 0.015, 0.015],
+    factorVol: 0.02,
+    seed: 101,
+  });
+  const result = analyzePhantomBreadth(equalWeights(tickers), panel);
+
+  assert.deepEqual(result.correlation_matrix.tickers, tickers);
+  assert.equal(result.correlation_matrix.values.length, tickers.length);
+  assert.ok(result.correlation_matrix.values[0][1] > 0.9);
+  assert.ok(result.clusters.length >= 1);
+  const cloneCluster = result.clusters.find((cluster) =>
+    cluster.tickers.includes("CLONE1") && cluster.tickers.includes("CLONE2"));
+  assert.ok(cloneCluster, "highly correlated holdings should be grouped together");
+  assert.ok(cloneCluster.weight > 0.49);
+});
+
+test("portfolio intelligence analyzes a full 33-name book without truncating positions", () => {
+  const tickers = Array.from({ length: 33 }, (_, index) => `N${String(index + 1).padStart(2, "0")}`);
+  const panel = buildPanel({
+    tickers,
+    betas: tickers.map((_, index) => index < 11 ? 1 : index < 22 ? 0.45 : 0),
+    idioVols: tickers.map(() => 0.012),
+    factorVol: 0.012,
+    days: 150,
+    seed: 111,
+  });
+  const result = analyzePhantomBreadth(equalWeights(tickers), panel);
+
+  assert.equal(result.current.holdings_count, 33);
+  assert.equal(result.correlation_matrix.tickers.length, 33);
+  assert.equal(result.contributors.length, 33);
+  assert.ok(result.clusters.flatMap((cluster) => cluster.tickers).length === 33);
+});

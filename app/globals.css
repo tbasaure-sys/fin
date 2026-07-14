@@ -43,6 +43,14 @@ body {
   overflow-x: hidden;
 }
 
+body:has(.channels-route) {
+  background: #050a0f;
+}
+
+body:has(.channels-route) .global-language-dock {
+  display: none;
+}
+
 button,
 input,
 a {

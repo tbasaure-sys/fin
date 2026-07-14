@@ -1,11 +1,11 @@
-import { ChannelQuestionnaire } from "@/components/channels/channel-questionnaire";
+import { PortfolioChannelWorkbench } from "@/components/channels/portfolio-channel-workbench";
 
 export const metadata = {
-  title: "Channel Finder | BLS Prime",
+  title: "Portfolio Intelligence | BLS Prime",
   description:
-    "A public, private-by-default diagnostic for finding lawful information channels worth testing before researching a stock.",
+    "Confirm your holdings, measure effective bets and correlation clusters, then build a concrete weekly research queue.",
 };
 
 export default function ChannelsPage() {
-  return <ChannelQuestionnaire />;
+  return <PortfolioChannelWorkbench />;
 }
