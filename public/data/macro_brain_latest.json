@@ -1,21 +1,21 @@
 {
-  "generated_on": "2026-07-14T11:45:17.621891+00:00",
-  "run_date": "2026-07-13",
+  "generated_on": "2026-07-15T21:49:35.254441+00:00",
+  "run_date": "2026-07-15",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143300,
+  "observations": 143315,
   "series_count": 25,
   "impulse_changes": [
     {
       "series_id": "EEM",
-      "date": "2026-07-13T00:00:00",
-      "value": 64.5,
-      "transformed": -0.03653376614081072,
-      "momentum": 0.16597801727613515,
-      "impulse": -0.41182317924422307,
-      "momentum_z": -0.09916685693997897,
-      "impulse_z": -1.9370189574665306,
+      "date": "2026-07-15T00:00:00",
+      "value": 65.56999969482422,
+      "transformed": -0.0015239026988842497,
+      "momentum": 0.1402414877968745,
+      "impulse": -0.5805186918484679,
+      "momentum_z": -0.18777101526063977,
+      "impulse_z": -2.685003002350912,
       "impulse_sign": -1,
-      "persistent_inflection": true,
+      "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Emerging markets ETF"
     },
@@ -46,6 +46,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "USDCOP"
+    },
+    {
+      "series_id": "QQQ",
+      "date": "2026-07-15T00:00:00",
+      "value": 717.739990234375,
+      "transformed": -0.0027131942608766835,
+      "momentum": 0.4080168253009049,
+      "impulse": -0.4275218487560828,
+      "momentum_z": 0.5493710373263897,
+      "impulse_z": -1.482207506175622,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Nasdaq 100 ETF"
     },
     {
       "series_id": "LQD",
@@ -118,18 +132,18 @@
       "label": "MOVE index"
     },
     {
-      "series_id": "QQQ",
-      "date": "2026-07-13T00:00:00",
-      "value": 711.739990234375,
-      "transformed": -0.019162206825520833,
-      "momentum": 0.4456543078312585,
-      "impulse": -0.2741038944508851,
-      "momentum_z": 0.6770946396492061,
-      "impulse_z": -0.9257962503905722,
-      "impulse_sign": -1,
+      "series_id": "BAMLH0A0HYM2",
+      "date": "2026-07-14T00:00:00",
+      "value": 2.72,
+      "transformed": 0.03000000000000025,
+      "momentum": -0.13999999999999968,
+      "impulse": 0.40000000000000036,
+      "momentum_z": -0.05620756328971496,
+      "impulse_z": 0.9070737799857662,
+      "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Nasdaq 100 ETF"
+      "label": "US HY OAS"
     },
     {
       "series_id": "WALCL",
@@ -144,20 +158,6 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Fed balance sheet"
-    },
-    {
-      "series_id": "BAMLH0A0HYM2",
-      "date": "2026-07-10T00:00:00",
-      "value": 2.69,
-      "transformed": -0.010000000000000231,
-      "momentum": -0.1499999999999999,
-      "impulse": 0.3400000000000003,
-      "momentum_z": -0.08431134493457378,
-      "impulse_z": 0.7675239676802652,
-      "impulse_sign": 1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US HY OAS"
     },
     {
       "series_id": "TLT",
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": 0.915,
-        "impulse_z": -0.0765205930504985
+        "impulse": -10.07,
+        "impulse_z": -0.19191446676256865
       }
     }
   },
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "Where are you confusing a level with an impulse?"
+  "question_of_day": "Which live thesis would you be most embarrassed to still hold if tomorrow's data contradicted it?"
 }
