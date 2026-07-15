@@ -152,16 +152,36 @@ def _source_status(records: list[dict[str, Any]], source_id: str) -> str | None:
     return None
 
 
-def _base_case_value(valuation: dict[str, Any]) -> float | None:
-    for scenario in valuation.get("scenarios") or []:
-        if scenario.get("name") == "base":
-            return _safe_float(scenario.get("intrinsic_value_per_share"))
-    return None
+def _valuation_is_backed(valuation: dict[str, Any]) -> bool:
+    reliability = valuation.get("reliability") or {}
+    price_validation = valuation.get("price_validation") or {}
+    return bool(
+        valuation.get("model_version") == "institutional_valuation_v3"
+        and valuation.get("available")
+        and valuation.get("status") == "decision_ready"
+        and reliability.get("usable") is True
+        and reliability.get("status") == "high"
+        and price_validation.get("usable") is True
+        and price_validation.get("status") == "validated"
+    )
+
+
+def _valuation_range(valuation: dict[str, Any]) -> tuple[float | None, float | None, float | None]:
+    value_range = valuation.get("range") or {}
+    return (
+        _safe_float(value_range.get("low")),
+        _safe_float(value_range.get("central")),
+        _safe_float(value_range.get("high")),
+    )
 
 
 def _status_from_audit(audit: dict[str, Any], *, requires_valuation: bool = False, valuation: dict[str, Any] | None = None) -> str:
-    if requires_valuation and not (valuation or {}).get("available"):
-        return "blocked"
+    if requires_valuation:
+        candidate = valuation or {}
+        if not candidate.get("available") or not (candidate.get("reliability") or {}).get("usable"):
+            return "blocked"
+        if not _valuation_is_backed(candidate):
+            return "needs_attention"
     if audit.get("status") == "needs_attention":
         return "needs_attention"
     return "ready"
@@ -185,7 +205,13 @@ def build_agent_outputs(
     statement_ids = coverage.get("statement_source_ids") or []
     statement_refs = [str(source_id) for source_id in statement_ids]
     filings_ok = _source_status(sources, "sec:submissions") == "ok"
-    base_value = _base_case_value(valuation)
+    range_low, range_central, range_high = _valuation_range(valuation)
+    backed = _valuation_is_backed(valuation) and audit.get("status") == "pass"
+    research_range = (
+        valuation.get("status") == "research_grade"
+        and range_low is not None
+        and range_high is not None
+    )
     current_price = _safe_float(valuation.get("current_price"))
     implied_growth = (valuation.get("reverse_dcf") or {}).get("implied_revenue_cagr")
     audit_findings = audit.get("findings") or []
@@ -273,29 +299,72 @@ def build_agent_outputs(
         _agent(
             "valuation_agent",
             "Valuation Agent",
-            "Explains deterministic DCF, reverse DCF, and multiples outputs without recalculating them.",
+            "Explains the routed valuation range, its reliability gates, and market-implied expectations without recalculating them.",
             status=_status_from_audit(audit, requires_valuation=True, valuation=valuation),
             depends_on=statement_refs + ["valuation.scenarios", "valuation.reverse_dcf", "valuation.multiples"],
             summary=(
-                f"Base DCF value/share is {_fmt_currency(base_value)} versus current price {_fmt_currency(current_price)}; reverse DCF implied revenue CAGR is {_fmt_pct(implied_growth)}."
+                (
+                    f"Decision-ready range is {_fmt_currency(range_low)} to {_fmt_currency(range_high)}, with a central estimate of {_fmt_currency(range_central)}; "
+                    f"current price is {_fmt_currency(current_price)}."
+                    if backed
+                    else (
+                        f"Preliminary range is {_fmt_currency(range_low)} to {_fmt_currency(range_high)}; the central estimate is withheld because reliability gates are still open."
+                        if research_range
+                        else f"Valuation is blocked: {valuation.get('reason', 'required reliability gates remain open')}."
+                    )
+                )
                 if valuation.get("available")
                 else f"Valuation is blocked: {valuation.get('reason', 'missing required valuation inputs')}."
             ),
-            claims=[
-                _claim(
-                    "valuation.base_value",
-                    f"Base DCF value per share is {_fmt_currency(base_value)}.",
-                    "calculated_metric" if valuation.get("available") else "uncertainty",
-                    metric_refs=["valuation.scenarios.base.intrinsic_value_per_share"],
-                ),
-                _claim(
-                    "valuation.reverse_dcf",
-                    f"Current price implies {_fmt_pct(implied_growth)} revenue CAGR under the reverse DCF setup.",
-                    "calculated_metric" if valuation.get("available") else "uncertainty",
-                    metric_refs=["valuation.reverse_dcf.implied_revenue_cagr"],
-                ),
-            ],
-            open_questions=[] if valuation.get("available") else valuation.get("missing", []),
+            claims=(
+                [
+                    _claim(
+                        "valuation.range",
+                        f"The routed valuation range is {_fmt_currency(range_low)} to {_fmt_currency(range_high)}.",
+                        "calculated_metric",
+                        metric_refs=["valuation.range.low", "valuation.range.high"],
+                    ),
+                    _claim(
+                        "valuation.central_value",
+                        f"The decision-ready central estimate is {_fmt_currency(range_central)}.",
+                        "calculated_metric",
+                        metric_refs=["valuation.range.central"],
+                    ),
+                    _claim(
+                        "valuation.reverse_dcf",
+                        f"Current price implies {_fmt_pct(implied_growth)} revenue CAGR under the reverse DCF setup.",
+                        "calculated_metric" if implied_growth is not None else "uncertainty",
+                        metric_refs=["valuation.reverse_dcf.implied_revenue_cagr"],
+                    ),
+                ]
+                if backed
+                else (
+                    [
+                        _claim(
+                            "valuation.range",
+                            f"A preliminary range of {_fmt_currency(range_low)} to {_fmt_currency(range_high)} is available, but no precise value is decision-ready.",
+                            "uncertainty",
+                            metric_refs=["valuation.range.low", "valuation.range.high", "valuation.reliability"],
+                        ),
+                        _claim(
+                            "valuation.reliability_gate",
+                            "The central estimate must not be presented as backed until all reliability and price-validation gates pass.",
+                            "uncertainty",
+                            metric_refs=["valuation.status", "valuation.reliability", "valuation.price_validation"],
+                        ),
+                    ]
+                    if research_range
+                    else [
+                        _claim(
+                            "valuation.blocked",
+                            f"No valuation range is published: {valuation.get('reason', 'missing required valuation inputs')}.",
+                            "uncertainty",
+                            metric_refs=["valuation.reason", "valuation.reliability"],
+                        )
+                    ]
+                )
+            ),
+            open_questions=(valuation.get("reliability") or {}).get("limitations", []) if valuation.get("available") else [valuation.get("reason", "Missing required valuation inputs")],
         ),
         _agent(
             "risk_agent",
@@ -368,8 +437,12 @@ def build_agent_outputs(
                 ),
                 _claim(
                     "red_team.valuation_attack",
-                    f"The reverse DCF requires {_fmt_pct(implied_growth)} implied revenue CAGR under current assumptions.",
-                    "calculated_metric" if valuation.get("available") else "uncertainty",
+                    (
+                        f"The reverse DCF requires {_fmt_pct(implied_growth)} implied revenue CAGR under current assumptions."
+                        if backed and implied_growth is not None
+                        else "No precise market-implied growth claim is published until the valuation passes every reliability gate."
+                    ),
+                    "calculated_metric" if backed and implied_growth is not None else "uncertainty",
                     metric_refs=["valuation.reverse_dcf.implied_revenue_cagr"],
                 ),
                 _claim(
@@ -420,7 +493,7 @@ def build_agent_outputs(
         "policy": "Specialist agents run from audited deterministic outputs; Python remains the only calculation layer. At most one final OpenAI-compatible orchestrator call may synthesize the finished bundle.",
         "input_contract": {
             "financials": "normalized annual rows from provider or SEC Company Facts",
-            "valuation": "deterministic DCF, reverse DCF, and multiples",
+            "valuation": "archetype-routed range, method cross-checks, reverse valuation, and reliability gates",
             "audit": "coverage and source-quality gate",
         },
         "execution": {
@@ -447,7 +520,8 @@ def _final_orchestrator_payload(
     filings: list[dict[str, Any]],
 ) -> dict[str, Any]:
     latest = rows[-1] if rows else {}
-    base_case = next((scenario for scenario in valuation.get("scenarios", []) if scenario.get("name") == "base"), {})
+    backed = _valuation_is_backed(valuation) and audit.get("status") == "pass"
+    range_low, range_central, range_high = _valuation_range(valuation)
     return {
         "ticker": ticker,
         "company": {
@@ -475,8 +549,20 @@ def _final_orchestrator_payload(
         },
         "valuation": {
             "available": valuation.get("available"),
-            "current_price": valuation.get("current_price"),
-            "base_intrinsic_value_per_share": base_case.get("intrinsic_value_per_share"),
+            "model_version": valuation.get("model_version"),
+            "status": valuation.get("status"),
+            "decision_ready": backed,
+            "archetype": valuation.get("archetype"),
+            "primary_method": valuation.get("primary_method"),
+            "currency": valuation.get("currency"),
+            "market_data_as_of": valuation.get("market_data_as_of"),
+            "financial_data_as_of": valuation.get("financial_data_as_of"),
+            "current_price": valuation.get("current_price") if backed else None,
+            "range": {"low": range_low, "high": range_high} if valuation.get("available") else None,
+            "central_estimate": range_central if backed else None,
+            "precision_withheld": bool(valuation.get("available") and not backed),
+            "reliability": valuation.get("reliability"),
+            "price_validation": valuation.get("price_validation"),
             "reverse_dcf": valuation.get("reverse_dcf"),
             "multiples": valuation.get("multiples"),
         },
@@ -499,6 +585,8 @@ def _call_openai_compatible_chat(config: FinalOrchestratorConfig, payload: dict[
         "You are the final orchestrator/editor for an equity research operating system. "
         "You receive only audited deterministic outputs. Do not invent data, do not recalculate numbers, "
         "do not cite sources that are not in the payload, and tag uncertainty explicitly. "
+        "If valuation.decision_ready is false, never state or infer a central, base, fair, target, or backed value; "
+        "describe only the supplied preliminary range and the open reliability gates. "
         "Return concise JSON with keys: executive_judgment, strongest_points, red_team, open_questions, memo_patch."
     )
     user_prompt = (
@@ -554,6 +642,21 @@ def run_final_orchestrator_llm(
         "analysis": None,
     }
     if not is_enabled:
+        return result
+    if not _valuation_is_backed(valuation) or audit.get("status") != "pass":
+        result.update(
+            {
+                "enabled": False,
+                "status": "withheld",
+                "reason": "valuation_not_decision_ready",
+                "analysis": {
+                    "executive_judgment": "",
+                    "strongest_points": [],
+                    "red_team": [],
+                    "open_questions": ["Close every valuation reliability gate before requesting a final judgment."],
+                },
+            }
+        )
         return result
     if not config.api_key and llm_client is None:
         result.update({"status": "unavailable", "error": "No EQUITY_RESEARCH_LLM_API_KEY or OPENAI_API_KEY configured."})

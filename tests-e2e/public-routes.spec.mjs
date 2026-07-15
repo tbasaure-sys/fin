@@ -14,12 +14,13 @@ test.describe("Rutas públicas", () => {
     expect(errors, `Errores JS en consola: ${errors.join("; ")}`).toHaveLength(0);
   });
 
-  test("/aurora renderiza el veredicto en su ruta canónica", async ({ page }) => {
+  test("/aurora usa la valoración canónica y no publica el laboratorio heurístico", async ({ page }) => {
     await page.goto("/aurora");
     await expect(page).toHaveURL(/\/aurora$/);
-    await expect(page.locator("text=AURORA").first()).toBeVisible();
-    // Copy corregido: sin errores de tildes en el veredicto por defecto.
-    await expect(page.locator("text=Hay algo acá, pero falta evidencia clave.")).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Un rango defendible/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Analizar" })).toBeVisible();
+    await expect(page.getByLabel("Ticker")).toHaveValue("MU");
+    await expect(page.locator("text=Hay algo acá, pero falta evidencia clave.")).toHaveCount(0);
   });
 
   test("/factorlab carga y expone el toggle de idioma", async ({ page }) => {

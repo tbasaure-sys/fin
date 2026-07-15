@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 
-import { formatCurrency, formatDateTime, formatPct, safeList, statusTone } from "@/components/workspace/formatters";
+import { formatDateTime, formatPct, safeList, statusTone } from "@/components/workspace/formatters";
 import { parseResponse } from "@/components/workspace/live-data";
 import styles from "@/components/workspace/shell.module.css";
+import { buildEquityValuationPresentation } from "@/lib/equity-valuation-presentation";
 
 const RESEARCH_TABS = ["Memo", "Valor", "Debate", "Cambios", "Fuentes", "Auditoría"];
+const TRUSTED_VALUATION_DELTA_KEYS = new Set(["valuation_low", "valuation_central", "valuation_high", "implied_growth"]);
 const AGENT_STAGES = [
   { key: "intake", label: "Obtener", detail: "Fuentes", threshold: 0 },
   { key: "normalize", label: "Limpiar", detail: "Estados", threshold: 18 },
@@ -44,13 +46,37 @@ function cleanTicker(value) {
     .slice(0, 16);
 }
 
-function compactCurrency(value) {
+function compactCurrency(value, currency = "USD") {
   if (value === null || value === undefined || value === "") return "-";
   const number = Number(value);
   if (!Number.isFinite(number)) return "-";
-  if (Math.abs(number) >= 1_000_000_000) return `${formatCurrency(number / 1_000_000_000)}B`;
-  if (Math.abs(number) >= 1_000_000) return `${formatCurrency(number / 1_000_000)}M`;
-  return formatCurrency(number);
+  const currencyCode = /^[A-Z]{3}$/.test(String(currency || "").toUpperCase()) ? String(currency).toUpperCase() : "USD";
+  const format = (nextValue) => new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currencyCode,
+    maximumFractionDigits: Math.abs(nextValue) >= 1000 ? 0 : 2,
+  }).format(nextValue);
+  if (Math.abs(number) >= 1_000_000_000) return `${format(number / 1_000_000_000)}B`;
+  if (Math.abs(number) >= 1_000_000) return `${format(number / 1_000_000)}M`;
+  return format(number);
+}
+
+function formatValuationRange(presentation) {
+  if (!presentation?.showValuationFigures || !presentation.range) return "En revisión";
+  return `${compactCurrency(presentation.range.low, presentation.currency)} – ${compactCurrency(presentation.range.high, presentation.currency)}`;
+}
+
+function formatMarketDate(value) {
+  if (!value) return "Fecha pendiente";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Fecha pendiente";
+  return date.toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+function valuationStateLabel(presentation) {
+  if (presentation?.state === "decision_ready") return "Lista para decisión";
+  if (presentation?.state === "research_grade") return "Útil para investigar, con cautela";
+  return "Valoración en revisión";
 }
 
 function formatCoverageScore(score) {
@@ -271,14 +297,6 @@ function summarizeGaps(metrics, limit = 4) {
   return remaining > 0 ? `${visible}, +${remaining} more` : visible;
 }
 
-function auditTone(status, coverage) {
-  const value = String(status || "").toLowerCase();
-  if (value === "pass") return "good";
-  if (value === "needs_attention") return "bad";
-  if (value === "partial") return "warn";
-  return coverageTone(coverage);
-}
-
 function ResearchMetric({ label, value, detail, tone = "neutral" }) {
   return (
     <div className={styles.researchMetric} data-tone={tone}>
@@ -309,12 +327,6 @@ function findSuggestedTickers(dashboard) {
     .map(cleanTicker)
     .filter(Boolean);
   return [...new Set(tickers)].slice(0, 6);
-}
-
-function scenarioTone(name) {
-  if (name === "bull") return "good";
-  if (name === "bear") return "bad";
-  return "warn";
 }
 
 function downloadArtifact(artifact) {
@@ -360,9 +372,18 @@ function renderMarkdownMemo(markdown) {
   });
 }
 
-function renderMemo(research) {
+function renderMemo(research, valuationPresentation) {
   if (!research) {
     return <p className={styles.emptyCopy}>Ingresa un ticker y haz clic en Analizar para generar el memo, valoración y auditoría.</p>;
+  }
+  if (!valuationPresentation?.backed) {
+    return (
+      <div className={styles.researchAttentionCallout}>
+        <span>Memo en revisión</span>
+        <strong>La narrativa queda pausada hasta validar la valoración</strong>
+        <p>{valuationPresentation?.reason || "Faltan controles de datos o método."}</p>
+      </div>
+    );
   }
   const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
   const findings = safeList(research?.audit?.findings);
@@ -381,49 +402,66 @@ function renderMemo(research) {
   );
 }
 
-function renderValuation(research) {
-  const valuation = research?.valuation || {};
-  const scenarios = safeList(valuation.scenarios);
-  const reverse = valuation.reverse_dcf || {};
-
+function renderValuation(research, valuationPresentation) {
   if (!research) {
     return <p className={styles.emptyCopy}>La valoración aparece después de analizar un ticker.</p>;
   }
 
-  if (!valuation.available) {
-    return <p className={styles.emptyCopy}>{valuation.reason || "Valoración no disponible: faltan datos de entrada."}</p>;
+  if (!valuationPresentation?.showValuationFigures) {
+    return (
+      <div className={styles.researchAttentionCallout}>
+        <span>Valoración en revisión</span>
+        <strong>No mostramos una cifra hasta validar datos y método</strong>
+        <p>{valuationPresentation?.reason || "La valoración todavía no supera los controles necesarios."}</p>
+      </div>
+    );
   }
+
+  const rangeRows = [
+    { key: "low", label: "Rango bajo", value: valuationPresentation.range.low, tone: "bad" },
+    ...(valuationPresentation.centralValue !== null
+      ? [{ key: "central", label: "Estimación central", value: valuationPresentation.centralValue, tone: "warn" }]
+      : []),
+    { key: "high", label: "Rango alto", value: valuationPresentation.range.high, tone: "good" },
+  ];
 
   return (
     <div className={styles.researchStack}>
-      <div className={styles.researchScenarioGrid}>
-        {scenarios.map((scenario) => (
-          <article className={styles.researchScenario} data-tone={scenarioTone(scenario.name)} key={scenario.name}>
-            <span>{scenario.name}</span>
-            <strong>{compactCurrency(scenario.intrinsic_value_per_share)}</strong>
-            <small>
-              Crecimiento {formatPct(scenario.assumptions?.revenue_growth)} / margen {formatPct(scenario.assumptions?.terminal_fcf_margin)}
-            </small>
+      {valuationPresentation.state === "research_grade" ? (
+        <div className={styles.researchAttentionCallout}>
+          <span>Rango para investigación</span>
+          <strong>Úsalo con cautela; todavía no es una cifra respaldada para decidir</strong>
+          <p>{valuationPresentation.reason}</p>
+        </div>
+      ) : null}
+      <div className={styles.researchScenarioGrid} data-count={rangeRows.length}>
+        {rangeRows.map((row) => (
+          <article className={styles.researchScenario} data-tone={row.tone} key={row.key}>
+            <span>{row.label}</span>
+            <strong>{compactCurrency(row.value, valuationPresentation.currency)}</strong>
+            <small>{valuationPresentation.currency} por acción</small>
           </article>
         ))}
       </div>
 
       <div className={styles.researchDetailGrid}>
         <ResearchMetric
-          detail={reverse.status || reverse.reason || "Precio actual resuelto contra la estructura DCF base."}
-          label="CAGR implícito de ingresos"
-          tone={reverse.available ? "warn" : "neutral"}
-          value={reverse.available ? formatPct(reverse.implied_revenue_cagr) : "-"}
+          detail={valuationPresentation.backed ? "Método principal después de contrastar referencias." : "Método principal sujeto a revisión adicional."}
+          label="Método principal"
+          tone={valuationPresentation.backed ? "good" : "warn"}
+          value={valuationPresentation.primaryMethod}
         />
         <ResearchMetric
-          detail="Valor empresa dividido entre los ingresos más recientes."
-          label="EV / ventas"
-          value={Number.isFinite(Number(valuation.multiples?.ev_to_sales)) ? `${Number(valuation.multiples.ev_to_sales).toFixed(1)}x` : "-"}
+          detail={valuationPresentation.backed ? "Superó los controles para una lectura de decisión." : "Adecuada solo para seguir investigando."}
+          label="Confianza de la valoración"
+          tone={valuationPresentation.backed ? "good" : "warn"}
+          value={formatPct(valuationPresentation.confidence, 0)}
         />
         <ResearchMetric
-          detail="Capitalización dividida entre el FCF determinístico más reciente."
-          label="P / FCF"
-          value={Number.isFinite(Number(valuation.multiples?.price_to_fcf)) ? `${Number(valuation.multiples.price_to_fcf).toFixed(1)}x` : "-"}
+          detail={valuationPresentation.priceSource || `Precio ${valuationPresentation.priceValidationStatus}.`}
+          label="Datos de mercado"
+          tone={valuationPresentation.currentPrice === null ? "warn" : "good"}
+          value={formatMarketDate(valuationPresentation.marketDataAsOf)}
         />
       </div>
     </div>
@@ -499,7 +537,7 @@ function renderEvidence(research) {
   );
 }
 
-function renderAgents(research) {
+function renderAgents(research, valuationPresentation) {
   const agentPayload = research?.agents || research?.sources?.agent_outputs || {};
   const agents = safeList(agentPayload.agents);
   const finalOrchestrator = agentPayload.final_orchestrator || {};
@@ -526,6 +564,16 @@ function renderAgents(research) {
 
   if (!research) {
     return <p className={styles.emptyCopy}>El debate aparece después del análisis, con cada verificación preservada para reproducibilidad.</p>;
+  }
+
+  if (!valuationPresentation?.backed) {
+    return (
+      <div className={styles.researchAttentionCallout}>
+        <span>Revisión narrativa pausada</span>
+        <strong>No usamos una síntesis externa para defender una valoración en revisión</strong>
+        <p>{valuationPresentation?.reason || "La valoración todavía no está lista para una conclusión."}</p>
+      </div>
+    );
   }
 
   if (!agents.length) {
@@ -684,15 +732,32 @@ function renderAgents(research) {
 }
 
 function formatDeltaValue(value, unit) {
+  if (value === null || value === undefined || value === "") return "-";
   if (!Number.isFinite(Number(value))) return "-";
   if (unit === "percent") return formatPct(value);
   if (unit === "currency") return compactCurrency(value);
   return Number(value).toFixed(2);
 }
 
-function renderDelta(research) {
+function isValuationDelta(change) {
+  const key = String(change?.key || "").toLowerCase();
+  const label = String(change?.label || "").toLowerCase();
+  return TRUSTED_VALUATION_DELTA_KEYS.has(key)
+    || /valuation|intrinsic|fair.?value|price.?target|base.?value|implied.?growth|upside|downside/.test(`${key} ${label}`);
+}
+
+function renderDelta(research, valuationPresentation) {
   const delta = research?.history?.delta || {};
-  const changes = safeList(delta.changes);
+  const comparableValuation = Boolean(
+    valuationPresentation?.backed
+    && delta.valuation?.comparable === true
+    && delta.valuation?.current?.backed === true
+    && delta.valuation?.previous?.backed === true,
+  );
+  const changes = safeList(delta.changes).filter((change) => {
+    if (!isValuationDelta(change)) return true;
+    return comparableValuation && TRUSTED_VALUATION_DELTA_KEYS.has(String(change?.key || "").toLowerCase());
+  });
 
   if (!research) {
     return <p className={styles.emptyCopy}>Tras el segundo análisis de un ticker, esta pestaña mostrará los cambios respecto al reporte anterior.</p>;
@@ -800,9 +865,9 @@ function renderAudit(research) {
   );
 }
 
-export default function EquityResearchPanel({ dashboard, id = "aurora-research-desk", workspaceId }) {
+export default function EquityResearchPanel({ dashboard, id = "aurora-research-desk", initialTicker = "", publicMode = false, workspaceId }) {
   const suggestions = useMemo(() => findSuggestedTickers(dashboard), [dashboard]);
-  const [ticker, setTicker] = useState(suggestions[0] || "");
+  const [ticker, setTicker] = useState(cleanTicker(initialTicker) || suggestions[0] || "");
   const [mode, setMode] = useState("quick");
   const [activeTab, setActiveTab] = useState("Memo");
   const [research, setResearch] = useState(null);
@@ -814,7 +879,44 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
 
   async function runResearch(nextTicker = ticker) {
     const symbol = cleanTicker(nextTicker);
-    if (!workspaceId || !symbol) return;
+    if (!symbol || (!publicMode && !workspaceId)) return;
+    if (publicMode) {
+      setTicker(symbol);
+      setPending(true);
+      setError("");
+      setRunSummary("");
+      setRunProgress(10);
+      setStatusMessage("Obteniendo datos y revisando la valoración...");
+      const startedAt = performance.now();
+      try {
+        const payload = await fetchJsonWithTimeout(
+          "/api/public/equity-research",
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            cache: "no-store",
+            body: JSON.stringify({ ticker: symbol, mode }),
+          },
+          45_000,
+        );
+        if (!payload || payload.ok === false) {
+          throw new Error(payload?.message || payload?.error || "No se pudo completar la valoración.");
+        }
+        setResearch(payload);
+        setActiveTab("Valor");
+        setRunProgress(100);
+        setRunSummary(`Completado en ${Math.max(1, Math.round((performance.now() - startedAt) / 1000))}s. Esta sesión pública no se guarda.`);
+      } catch (requestError) {
+        setResearch(null);
+        setError(String(requestError?.message || requestError || "No se pudo completar la valoración."));
+        setRunProgress(100);
+        setRunSummary("La lectura se detuvo antes de obtener datos suficientes.");
+      } finally {
+        setPending(false);
+        setStatusMessage("");
+      }
+      return;
+    }
     async function loadDirectResearch(summary = "Servicio async no disponible; se mostró el resultado directo.") {
       setStatusMessage("Usando modo directo...");
       let fallbackPayload;
@@ -925,13 +1027,11 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
   const evidenceCount = safeList(research?.sources?.data_points).length;
   const auditFindings = safeList(research?.audit?.findings);
   const agentCount = safeList(research?.agents?.agents || research?.sources?.agent_outputs?.agents).length;
-  const baseScenario = safeList(research?.valuation?.scenarios).find((scenario) => scenario.name === "base");
   const downloads = safeList(research?.downloads);
   const sourceRecords = safeList(research?.sources?.records);
   const annualRows = safeList(research?.financials?.annual);
   const deltaChanges = safeList(research?.history?.delta?.changes);
   const storedRunCount = Number(research?.history?.run_count || 0);
-  const hasXlsx = downloads.some((artifact) => String(artifact.filename || "").endsWith(".xlsx"));
   const progressWidth = `${Math.max(0, Math.min(100, runProgress))}%`;
   const activeSource = sourceRecords.find((source) => source.status === "ok") || sourceRecords[0];
   const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
@@ -946,14 +1046,16 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
       : `${evidenceCount} puntos de registro`;
   const finalOrchestrator = research?.agents?.final_orchestrator || research?.sources?.agent_outputs?.final_orchestrator || {};
   const finalAnalysis = finalAnalysisFrom(finalOrchestrator);
-  const executiveJudgment = firstUsefulText(finalAnalysis.executive_judgment, finalAnalysis.memo_patch);
-  const researchStateLabel = !research
-    ? "En espera"
-    : research?.audit?.status === "pass"
-      ? "Listo para revisar"
-      : research?.audit?.status === "needs_attention"
-        ? "Brechas de evidencia abiertas"
-        : "Revisión parcial";
+  const executiveJudgmentCandidate = firstUsefulText(finalAnalysis.executive_judgment, finalAnalysis.memo_patch);
+  const valuationPresentation = useMemo(
+    () => buildEquityValuationPresentation(research, { executiveJudgment: executiveJudgmentCandidate }),
+    [executiveJudgmentCandidate, research],
+  );
+  const safeDownloads = valuationPresentation.backed ? downloads : downloads.filter((artifact) => (
+    /_(sources|audit)\.json$|_assumptions\.yml$/i.test(String(artifact?.filename || ""))
+  ));
+  const hasXlsx = safeDownloads.some((artifact) => String(artifact.filename || "").endsWith(".xlsx"));
+  const researchStateLabel = research ? valuationStateLabel(valuationPresentation) : "En espera";
   const openIssueLabel = missingRequiredMetrics.length
     ? summarizeGaps(missingRequiredMetrics, 3)
     : auditFindings[0]?.code || "Sin brechas requeridas";
@@ -983,7 +1085,7 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
           <div className={styles.researchStatusLine}>
             <span data-tone={pending ? "warn" : research ? "good" : "neutral"}>{pending ? "Procesando" : research ? "Listo" : "Listo para analizar"}</span>
             <span>{mode === "full" ? "Análisis completo" : "Vista rápida"}</span>
-            <span>{storedRunCount ? `${storedRunCount} análisis guardado${storedRunCount === 1 ? "" : "s"}` : "Sin análisis previo"}</span>
+            <span>{publicMode ? "Sesión pública · no se guarda" : storedRunCount ? `${storedRunCount} análisis guardado${storedRunCount === 1 ? "" : "s"}` : "Sin análisis previo"}</span>
           </div>
         </div>
 
@@ -1000,28 +1102,32 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
               {pending ? "Procesando..." : "Analizar"}
             </button>
           </div>
-          <div className={styles.segmentedControl}>
-            <button
-              className={styles.segmentButton}
-              data-active={mode === "quick"}
-              key="quick"
-              onClick={() => setMode("quick")}
-              type="button"
-              title="Vista rápida: memo y valoración"
-            >
-              Rápido
-            </button>
-            <button
-              className={styles.segmentButton}
-              data-active={mode === "full"}
-              key="full"
-              onClick={() => setMode("full")}
-              type="button"
-              title="Análisis completo con auditoría"
-            >
-              Completo
-            </button>
-          </div>
+          {!publicMode ? (
+            <div className={styles.segmentedControl}>
+              <button
+                className={styles.segmentButton}
+                data-active={mode === "quick"}
+                key="quick"
+                onClick={() => setMode("quick")}
+                type="button"
+                title="Vista rápida: memo y valoración"
+              >
+                Rápido
+              </button>
+              <button
+                className={styles.segmentButton}
+                data-active={mode === "full"}
+                key="full"
+                onClick={() => setMode("full")}
+                type="button"
+                title="Análisis completo con auditoría"
+              >
+                Completo
+              </button>
+            </div>
+          ) : (
+            <p className={styles.publicModeBadge}>Vista pública · análisis rápido</p>
+          )}
         </div>
       </div>
 
@@ -1062,19 +1168,25 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
         <ResearchMetric
           detail="Última fila del estado financiero anual."
           label="Ingresos recientes"
-          value={compactCurrency(ratios.latest_revenue)}
+          value={compactCurrency(ratios.latest_revenue, research?.company_profile?.currency)}
         />
         <ResearchMetric
-          detail="DCF determinístico, caso base."
-          label="Valor base/acción"
-          tone={baseScenario ? "warn" : "neutral"}
-          value={compactCurrency(baseScenario?.intrinsic_value_per_share)}
+          detail={valuationPresentation.backed
+            ? `Estimación central ${compactCurrency(valuationPresentation.centralValue, valuationPresentation.currency)} · ${valuationPresentation.primaryMethod}`
+            : valuationPresentation.showValuationFigures
+              ? `Método ${valuationPresentation.primaryMethod} · estimación central retenida hasta cerrar los controles`
+              : valuationPresentation.reason}
+          label="Rango estimado"
+          tone={valuationPresentation.backed ? "good" : valuationPresentation.showValuationFigures ? "warn" : "neutral"}
+          value={formatValuationRange(valuationPresentation)}
         />
         <ResearchMetric
-          detail={`${coverageDetail}, ${auditFindings.length} hallazgo${auditFindings.length === 1 ? "" : "s"} de auditoría.`}
-          label="Estado de auditoría"
-          tone={auditTone(research?.audit?.status, coverage)}
-          value={research ? humanizeToken(research?.audit?.status) : "Esperando"}
+          detail={research
+            ? `${valuationStateLabel(valuationPresentation)} · datos al ${formatMarketDate(valuationPresentation.marketDataAsOf)}`
+            : "La confianza aparece después del análisis."}
+          label="Confianza de valoración"
+          tone={valuationPresentation.backed ? "good" : valuationPresentation.showValuationFigures ? "warn" : "neutral"}
+          value={valuationPresentation.showValuationFigures ? formatPct(valuationPresentation.confidence, 0) : "En revisión"}
         />
       </div>
 
@@ -1096,16 +1208,22 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
           <div>
             <span>Estado actual</span>
             <strong>{researchStateLabel}</strong>
-            <small>{executiveJudgment || "El análisis está ensamblando el memo, la valoración y la auditoría."}</small>
+            <small>{valuationPresentation.showExecutiveJudgment
+              ? valuationPresentation.executiveJudgment
+              : valuationPresentation.reason}</small>
           </div>
           <div>
-            <span>Mejor valor respaldado</span>
-            <strong>{compactCurrency(baseScenario?.intrinsic_value_per_share)}</strong>
-            <small>
-              {research?.valuation?.available
-                ? `Crecimiento implícito DCF inverso ${formatPct(research?.valuation?.reverse_dcf?.implied_revenue_cagr)}.`
-                : research?.valuation?.reason || "La valoración espera datos faltantes."}
-            </small>
+            <span>{valuationPresentation.backed
+              ? "Rango respaldado"
+              : valuationPresentation.showValuationFigures
+                ? "Rango orientativo"
+                : "Valoración no publicada"}</span>
+            <strong>{valuationPresentation.showValuationFigures ? formatValuationRange(valuationPresentation) : "—"}</strong>
+            <small>{valuationPresentation.backed
+              ? `Estimación central ${compactCurrency(valuationPresentation.centralValue, valuationPresentation.currency)} · ${valuationPresentation.primaryMethod}`
+              : valuationPresentation.showValuationFigures
+                ? `Método ${valuationPresentation.primaryMethod} · estimación central retenida`
+                : "No se muestra una cifra hasta superar los controles."}</small>
           </div>
           <div>
             <span>Pendientes</span>
@@ -1129,14 +1247,14 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
           <strong>{deltaChanges.length ? `${deltaChanges.length} cambio${deltaChanges.length === 1 ? "" : "s"}` : "Sin cambios anteriores"}</strong>
         </div>
         <div>
-          <span>Descargas</span>
-          <strong>{hasXlsx ? "Modelo listo" : "No disponible"}</strong>
+          <span>Datos de mercado</span>
+          <strong>{research ? formatMarketDate(valuationPresentation.marketDataAsOf) : "Esperando"}</strong>
         </div>
       </div>
 
-      {downloads.length ? (
+      {safeDownloads.length ? (
         <div className={styles.researchDownloadBar} aria-label="Descargas del análisis">
-          {downloads.map((artifact) => (
+          {safeDownloads.map((artifact) => (
             <button
               className={styles.secondaryButton}
               key={artifact.filename}
@@ -1187,7 +1305,7 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
             </div>
             <div>
               <dt>Archivos</dt>
-              <dd>{hasXlsx ? "modelo + registros" : downloads.length ? "registros" : "-"}</dd>
+              <dd>{hasXlsx ? "modelo + registros" : safeDownloads.length ? "registros" : "-"}</dd>
             </div>
           </dl>
         </aside>
@@ -1197,10 +1315,10 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
           aria-labelledby={`equity-research-tab-${activeTab.toLowerCase()}`}
           id={`equity-research-tabpanel-${activeTab.toLowerCase()}`}
         >
-          {activeTab === "Memo" ? renderMemo(research) : null}
-          {activeTab === "Valor" ? renderValuation(research) : null}
-          {activeTab === "Debate" ? renderAgents(research) : null}
-          {activeTab === "Cambios" ? renderDelta(research) : null}
+          {activeTab === "Memo" ? renderMemo(research, valuationPresentation) : null}
+          {activeTab === "Valor" ? renderValuation(research, valuationPresentation) : null}
+          {activeTab === "Debate" ? renderAgents(research, valuationPresentation) : null}
+          {activeTab === "Cambios" ? renderDelta(research, valuationPresentation) : null}
           {activeTab === "Fuentes" ? renderEvidence(research) : null}
           {activeTab === "Auditoría" ? renderAudit(research) : null}
         </div>
