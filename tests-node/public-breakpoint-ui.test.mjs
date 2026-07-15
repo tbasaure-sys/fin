@@ -31,6 +31,8 @@ test("Breakpoint result gives sources, limits and terminal bridge a first-class 
   assert.match(result, /What this reading cannot tell you|Lo que esta lectura no puede decir/);
   assert.match(result, /See full valuation|Ver valoración completa/);
   assert.match(result, /aria-live/);
+  assert.match(result, /href="\/aurora"/);
+  assert.doesNotMatch(result, /\/aurora\?lang=/);
   assert.match(page, /BreakpointResult/);
 });
 

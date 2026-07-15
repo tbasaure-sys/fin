@@ -357,6 +357,7 @@ SEC_CONCEPTS = {
         ],
         "incomeTaxExpense": ["IncomeTaxExpenseBenefit"],
         "netIncome": ["NetIncomeLoss"],
+        "interestExpense": ["InterestExpenseNonOperating", "InterestAndDebtExpense"],
         "weightedAverageShsOutDil": ["WeightedAverageNumberOfDilutedSharesOutstanding"],
     },
     "cash_flow": {
@@ -381,6 +382,8 @@ SEC_CONCEPTS = {
         "goodwillAndIntangibleAssets": ["GoodwillAndIntangibleAssetsNet"],
         "goodwill": ["Goodwill"],
         "intangibleAssets": ["IntangibleAssetsNetExcludingGoodwill", "FiniteLivedIntangibleAssetsNet"],
+        "pensionBenefitObligation": ["DefinedBenefitPlanBenefitObligation"],
+        "pensionPlanAssets": ["DefinedBenefitPlanFairValueOfPlanAssets"],
     },
 }
 
@@ -467,6 +470,8 @@ def _financial_data_points(rows: list[dict[str, Any]], source_ids: dict[str, str
             if field in {"date", "fiscal_year"} or not _has_value(value):
                 continue
             source_id = _financial_source_for_field(field, source_ids)
+            if field == "unfunded_pension_liability" and row.get("unfunded_pension_liability_source_id"):
+                source_id = str(row["unfunded_pension_liability_source_id"])
             formula = _financial_formula_for_field(field)
             if source_id:
                 ledger.append(_data_point(f"financials.annual.{period}.{field}", value, "sourced_fact", source_id))
@@ -481,6 +486,23 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
     validation = ttm_row.get("ttm_validation") or {}
     quarter_dates = validation.get("quarter_dates") or []
     provider_reconciled = validation.get("provider_ttm_reconciled") is True
+    sec_reconciled = validation.get("sec_quarterly_reconciled") is True
+    provider_reconciled_metrics = set(validation.get("provider_reconciled_metrics") or [])
+    sec_reconciled_metrics = set(validation.get("sec_reconciled_metrics") or [])
+
+    def metric_is_supported(field: str, reconciled_metrics: set[str]) -> bool:
+        direct_dependencies = {
+            "free_cash_flow": {"cash_from_operations", "capital_expenditures"},
+            "fcff": {"cash_from_operations", "capital_expenditures", "interest_expense"},
+            "fcff_after_sbc": {
+                "cash_from_operations",
+                "capital_expenditures",
+                "interest_expense",
+                "stock_based_compensation",
+            },
+        }
+        dependencies = direct_dependencies.get(field, {field})
+        return dependencies.issubset(reconciled_metrics)
     summed_income = {"revenue", "gross_profit", "cost_of_revenue", "operating_income", "net_income", "ebitda", "interest_expense"}
     summed_cash = {
         "cash_from_operations",
@@ -517,25 +539,48 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
         if field in summed_income:
             source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["income"]]
             formula = "sum of four discrete sequential quarterly income-statement observations"
-            if provider_reconciled:
+            if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to the provider's explicit TTM income statement"
+            elif sec_reconciled and metric_is_supported(field, sec_reconciled_metrics):
+                source_ids.append(SEC_STATEMENT_SOURCE_IDS["income"])
+                formula += "; reconciled to SEC year-to-date filing identities"
         elif field in summed_cash:
             source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["cash_flow"]]
             formula = "sum of four discrete sequential quarterly cash-flow observations"
-            if provider_reconciled:
+            if field in {"fcff", "fcff_after_sbc"}:
+                source_ids.append(QUARTERLY_STATEMENT_SOURCE_IDS["income"])
+                formula += "; after-tax interest reconciled from the income statement"
+            if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["cash_flow"])
+                if field in {"fcff", "fcff_after_sbc"}:
+                    source_ids.append(TTM_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to the provider's explicit TTM cash-flow statement"
+            if sec_reconciled and metric_is_supported(field, sec_reconciled_metrics):
+                source_ids.append(SEC_STATEMENT_SOURCE_IDS["cash_flow"])
+                if field in {"fcff", "fcff_after_sbc"}:
+                    source_ids.append(SEC_STATEMENT_SOURCE_IDS["income"])
+                formula += "; reconciled to SEC year-to-date filing identities"
         elif field == "diluted_shares":
             source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["income"]]
             formula = "average diluted shares across four discrete sequential quarters"
-            if provider_reconciled:
+            if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to the provider's explicit TTM income statement"
+            if sec_reconciled and metric_is_supported(field, sec_reconciled_metrics):
+                source_ids.append(SEC_STATEMENT_SOURCE_IDS["income"])
+                formula += "; reconciled to SEC year-to-date filing identities"
         else:
-            source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["balance"]]
-            formula = "latest balance-sheet observation within the validated four-quarter window"
-            if provider_reconciled:
+            if field == "unfunded_pension_liability" and ttm_row.get("unfunded_pension_liability_source_id"):
+                source_ids = [str(ttm_row["unfunded_pension_liability_source_id"])]
+                formula = str(
+                    ttm_row.get("unfunded_pension_liability_basis")
+                    or "latest sourced net pension obligation"
+                )
+            else:
+                source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["balance"]]
+                formula = "latest balance-sheet observation within the validated four-quarter window"
+            if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["balance"])
                 formula += "; reconciled to the provider's explicit TTM balance sheet"
         point = _data_point(f"financials.ttm.{field}", value, "calculated_metric", formula=formula)
@@ -1164,6 +1209,7 @@ def _sec_concept_values_by_date(
     concept_names: list[str],
     *,
     unit_priority: tuple[str, ...],
+    instantaneous: bool = False,
 ) -> dict[str, dict[str, Any]]:
     us_gaap = _sec_us_gaap_facts(company_facts)
     values: dict[str, dict[str, Any]] = {}
@@ -1179,10 +1225,11 @@ def _sec_concept_values_by_date(
             if not isinstance(fact, dict):
                 continue
             form = str(fact.get("form") or "").upper()
-            if form not in SEC_ANNUAL_FORMS:
+            accepted_forms = SEC_ANNUAL_FORMS | ({"10-Q", "10-Q/A"} if instantaneous else set())
+            if form not in accepted_forms:
                 continue
             fiscal_period = str(fact.get("fp") or "").upper()
-            if fiscal_period and fiscal_period != "FY":
+            if not instantaneous and fiscal_period and fiscal_period != "FY":
                 continue
             end_date = str(fact.get("end") or "").strip()
             value = _safe_float(fact.get("val"))
@@ -1213,6 +1260,7 @@ def _sec_company_facts_frames(company_facts: dict[str, Any]) -> tuple[dict[str, 
                 company_facts,
                 concepts,
                 unit_priority=_sec_unit_priority(target),
+                instantaneous=False,
             )
             if values_by_date:
                 covered.append(target)
@@ -1229,15 +1277,52 @@ def _sec_company_facts_frames(company_facts: dict[str, Any]) -> tuple[dict[str, 
                     intangible_assets = _safe_float(row.get("intangibleAssets"))
                     if goodwill is not None or intangible_assets is not None:
                         row["goodwillAndIntangibleAssets"] = (goodwill or 0.0) + (intangible_assets or 0.0)
+                pension_obligation = _safe_float(row.get("pensionBenefitObligation"))
+                pension_assets = _safe_float(row.get("pensionPlanAssets"))
+                if pension_obligation is not None and pension_assets is not None:
+                    row["unfundedPensionLiability"] = max(0.0, pension_obligation - pension_assets)
+                    row["unfundedPensionLiabilityBasis"] = "benefit_obligation_less_plan_assets"
+                    covered.append("unfundedPensionLiability")
                 row.pop("goodwill", None)
                 row.pop("intangibleAssets", None)
         frame = pd.DataFrame([rows_by_date[date] for date in sorted(rows_by_date)])
         frames[statement_key] = frame
         targets_covered[statement_key] = sorted(set(covered))
+
+    pension_rows_by_date: dict[str, dict[str, Any]] = {}
+    for target in ("pensionBenefitObligation", "pensionPlanAssets"):
+        values_by_date = _sec_concept_values_by_date(
+            company_facts,
+            SEC_CONCEPTS["balance"][target],
+            unit_priority=_sec_unit_priority(target),
+            instantaneous=True,
+        )
+        for end_date, fact in values_by_date.items():
+            pension_rows_by_date.setdefault(end_date, {"date": end_date})
+            pension_rows_by_date[end_date][target] = fact["value"]
+    for row in pension_rows_by_date.values():
+        pension_obligation = _safe_float(row.get("pensionBenefitObligation"))
+        pension_assets = _safe_float(row.get("pensionPlanAssets"))
+        if pension_obligation is not None and pension_assets is not None:
+            row["unfundedPensionLiability"] = max(0.0, pension_obligation - pension_assets)
+            row["unfundedPensionLiabilityBasis"] = "benefit_obligation_less_plan_assets"
+    pension_rows = [
+        pension_rows_by_date[date]
+        for date in sorted(pension_rows_by_date)
+        if _safe_float(pension_rows_by_date[date].get("unfundedPensionLiability")) is not None
+    ]
+    frames["balance_enrichment"] = pd.DataFrame(pension_rows)
+    if pension_rows:
+        targets_covered["balance"] = sorted(
+            set([*targets_covered.get("balance", []), "unfundedPensionLiability"])
+        )
     return frames, targets_covered
 
 
-def _load_sec_company_facts(ticker: str, sec_client: SECEdgarClient | None) -> tuple[dict[str, pd.DataFrame], list[dict[str, Any]]]:
+def _load_sec_company_facts(
+    ticker: str,
+    sec_client: SECEdgarClient | None,
+) -> tuple[dict[str, pd.DataFrame], list[dict[str, Any]], dict[str, Any]]:
     frames = {
         "income": pd.DataFrame(),
         "cash_flow": pd.DataFrame(),
@@ -1254,14 +1339,14 @@ def _load_sec_company_facts(ticker: str, sec_client: SECEdgarClient | None) -> t
                 error="SEC_USER_AGENT is not configured; XBRL company facts were not requested.",
             )
             for source_id in SEC_STATEMENT_SOURCE_IDS.values()
-        ]
+        ], {}
     try:
         company_facts = sec_client.get_company_facts(ticker)
         if not company_facts:
             return frames, [
                 _source_record(source_id, "sec-edgar", endpoint, "unavailable", row_count=0, error="No SEC company facts payload was returned.")
                 for source_id in SEC_STATEMENT_SOURCE_IDS.values()
-            ]
+            ], {}
         frames, targets_covered = _sec_company_facts_frames(company_facts)
         sources: list[dict[str, Any]] = []
         for statement_key, source_id in SEC_STATEMENT_SOURCE_IDS.items():
@@ -1278,12 +1363,79 @@ def _load_sec_company_facts(ticker: str, sec_client: SECEdgarClient | None) -> t
                     error=None if status == "ok" else "No annual SEC facts mapped to this normalized statement.",
                 )
             )
-        return frames, sources
+        return frames, sources, company_facts
     except Exception as exc:  # noqa: BLE001
         return frames, [
             _source_record(source_id, "sec-edgar", endpoint, "error", error=str(exc))
             for source_id in SEC_STATEMENT_SOURCE_IDS.values()
-        ]
+        ], {}
+
+
+def _enrich_balance_frames_with_sec(
+    frames: dict[str, Any],
+    sec_frames: dict[str, pd.DataFrame],
+) -> list[dict[str, Any]]:
+    sec_balance = sec_frames.get("balance_enrichment", pd.DataFrame())
+    if not isinstance(sec_balance, pd.DataFrame) or sec_balance.empty:
+        sec_balance = sec_frames.get("balance", pd.DataFrame())
+    if not isinstance(sec_balance, pd.DataFrame) or sec_balance.empty:
+        return []
+    if "date" not in sec_balance.columns or "unfundedPensionLiability" not in sec_balance.columns:
+        return []
+
+    sec_rows = sec_balance.copy()
+    sec_rows["_parsed_date"] = pd.to_datetime(sec_rows["date"], errors="coerce")
+    sec_rows = sec_rows.dropna(subset=["_parsed_date"]).sort_values("_parsed_date")
+    enrichments: list[dict[str, Any]] = []
+    for frame_key in ("balance", "balance_quarterly", "balance_ttm"):
+        frame = frames.get(frame_key)
+        if not isinstance(frame, pd.DataFrame) or frame.empty or "date" not in frame.columns:
+            continue
+        enriched = frame.copy()
+        for column in (
+            "unfundedPensionLiability",
+            "unfundedPensionLiabilityBasis",
+            "unfundedPensionLiabilityAsOf",
+            "unfundedPensionLiabilitySourceId",
+        ):
+            if column not in enriched.columns:
+                enriched[column] = None
+        for index, raw in enriched.iterrows():
+            if _safe_float(raw.get("unfundedPensionLiability")) is not None:
+                continue
+            target_date = pd.to_datetime(raw.get("date"), errors="coerce")
+            if pd.isna(target_date):
+                continue
+            candidates = sec_rows[
+                (sec_rows["_parsed_date"] <= target_date)
+                & ((target_date - sec_rows["_parsed_date"]).dt.days <= 550)
+            ]
+            candidates = candidates[
+                candidates["unfundedPensionLiability"].map(lambda value: _safe_float(value) is not None)
+            ]
+            if candidates.empty:
+                continue
+            source = candidates.iloc[-1]
+            as_of = str(source["_parsed_date"].date())
+            basis = str(source.get("unfundedPensionLiabilityBasis") or "sec_explicit_net_liability")
+            value = float(_safe_float(source.get("unfundedPensionLiability")) or 0.0)
+            enriched.at[index, "unfundedPensionLiability"] = value
+            enriched.at[index, "unfundedPensionLiabilityBasis"] = basis
+            enriched.at[index, "unfundedPensionLiabilityAsOf"] = as_of
+            enriched.at[index, "unfundedPensionLiabilitySourceId"] = SEC_STATEMENT_SOURCE_IDS["balance"]
+            enrichments.append(
+                {
+                    "frame": frame_key,
+                    "date": str(target_date.date()),
+                    "field": "unfunded_pension_liability",
+                    "value": value,
+                    "source_as_of": as_of,
+                    "basis": basis,
+                    "carry_forward_days": int((target_date - source["_parsed_date"]).days),
+                }
+            )
+        frames[frame_key] = enriched
+    return enrichments
 
 
 class PathConfigLike:
@@ -1350,7 +1502,12 @@ def _normalize_financials(frames: dict[str, pd.DataFrame], tax_rate: float) -> l
             )
             for target, names in fields.items():
                 value = _first_existing(raw, names)
-                row[target] = str(value).upper().strip() if target.endswith("_currency") and value not in (None, "") else _safe_float(value)
+                if target.endswith("_currency") and value not in (None, ""):
+                    row[target] = str(value).upper().strip()
+                elif target.endswith(("_basis", "_as_of", "_source_id")) and value not in (None, ""):
+                    row[target] = str(value).strip()
+                else:
+                    row[target] = _safe_float(value)
             rows.append(row)
         projected = pd.DataFrame(rows)
         collapsed: list[dict[str, Any]] = []
@@ -1441,6 +1598,9 @@ def _normalize_financials(frames: dict[str, pd.DataFrame], tax_rate: float) -> l
             "preferred_stock": ["preferredStock", "preferredStockEquity", "preferred_stock"],
             "minority_interest": ["minorityInterest", "noncontrollingInterestInConsolidatedEntity", "minority_interest"],
             "unfunded_pension_liability": ["unfundedPensionLiability", "unfunded_pension_liability"],
+            "unfunded_pension_liability_basis": ["unfundedPensionLiabilityBasis"],
+            "unfunded_pension_liability_as_of": ["unfundedPensionLiabilityAsOf"],
+            "unfunded_pension_liability_source_id": ["unfundedPensionLiabilitySourceId"],
             "lease_liabilities_not_in_debt": ["leaseLiabilitiesNotInDebt", "lease_liabilities_not_in_debt"],
             "capital_lease_obligations": ["capitalLeaseObligations", "financeLeaseLiabilities", "capital_lease_obligations"],
             "balance_currency": ["reportedCurrency", "reported_currency"],
@@ -1672,6 +1832,9 @@ def _normalize_financials(frames: dict[str, pd.DataFrame], tax_rate: float) -> l
                 "preferred_stock": _safe_float(row.get("preferred_stock")),
                 "minority_interest": _safe_float(row.get("minority_interest")),
                 "unfunded_pension_liability": _safe_float(row.get("unfunded_pension_liability")),
+                "unfunded_pension_liability_basis": row.get("unfunded_pension_liability_basis"),
+                "unfunded_pension_liability_as_of": row.get("unfunded_pension_liability_as_of"),
+                "unfunded_pension_liability_source_id": row.get("unfunded_pension_liability_source_id"),
                 "capital_lease_obligations": capital_lease_obligations,
                 "lease_liabilities_not_in_debt": lease_liabilities_not_in_debt,
                 "lease_debt_reconciliation": lease_debt_reconciliation,
@@ -1711,7 +1874,278 @@ def _normalize_financials(frames: dict[str, pd.DataFrame], tax_rate: float) -> l
     return rows
 
 
-def _build_ttm_row(frames: dict[str, Any], tax_rate: float) -> dict[str, Any] | None:
+def _sec_ytd_reconciliation(
+    selected_rows: list[dict[str, Any]],
+    company_facts: dict[str, Any] | None,
+) -> dict[str, Any]:
+    if not company_facts:
+        return {"passed": False, "checks": [], "families": {}}
+
+    concepts_by_metric = {
+        "revenue": (SEC_CONCEPTS["income"]["revenue"], 0.02, "USD", "sum"),
+        "interest_expense": (SEC_CONCEPTS["income"]["interestExpense"], 0.05, "USD", "sum"),
+        "diluted_shares": (
+            SEC_CONCEPTS["income"]["weightedAverageShsOutDil"],
+            0.02,
+            "shares",
+            "weighted_average",
+        ),
+        "cash_from_operations": (
+            SEC_CONCEPTS["cash_flow"]["netCashProvidedByOperatingActivities"],
+            0.03,
+            "USD",
+            "sum",
+        ),
+        "capital_expenditures": (
+            SEC_CONCEPTS["cash_flow"]["capitalExpenditure"],
+            0.05,
+            "USD",
+            "sum",
+        ),
+        "stock_based_compensation": (
+            SEC_CONCEPTS["cash_flow"]["stockBasedCompensation"],
+            0.08,
+            "USD",
+            "sum",
+        ),
+    }
+    us_gaap = _sec_us_gaap_facts(company_facts)
+    fiscal_periods = ("Q1", "Q2", "Q3", "Q4")
+    provider_rows = sorted(
+        selected_rows,
+        key=lambda row: pd.to_datetime(row.get("date"), errors="coerce"),
+    )
+    provider_periods = [str(row.get("period") or "").upper().strip() for row in provider_rows]
+    sequence_valid = bool(
+        len(provider_rows) == 4
+        and all(period in fiscal_periods for period in provider_periods)
+        and all(row.get("fiscal_metadata_mismatch") is not True for row in provider_rows)
+        and all(
+            provider_periods[index]
+            == fiscal_periods[(fiscal_periods.index(provider_periods[index - 1]) + 1) % 4]
+            for index in range(1, len(provider_periods))
+        )
+    )
+    all_checks: list[dict[str, Any]] = []
+    families: dict[str, dict[str, Any]] = {}
+
+    duration_bounds = {
+        "Q1": (55, 135),
+        "Q2": (140, 235),
+        "Q3": (220, 335),
+        "Q4": (315, 430),
+    }
+
+    def normalized_fiscal_year(value: Any) -> int | None:
+        number = _safe_float(value)
+        if number is None or not float(number).is_integer():
+            return None
+        year = int(number)
+        return year if 1900 <= year <= 2200 else None
+
+    def prepared_facts(raw_facts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        prepared: list[dict[str, Any]] = []
+        for raw in raw_facts:
+            start = pd.to_datetime(raw.get("start"), errors="coerce")
+            end = pd.to_datetime(raw.get("end"), errors="coerce")
+            fiscal_year = normalized_fiscal_year(raw.get("fy"))
+            value = _safe_float(raw.get("val"))
+            if pd.isna(start) or pd.isna(end) or end <= start or fiscal_year is None or value is None:
+                continue
+            prepared.append(
+                {
+                    **raw,
+                    "_start": start,
+                    "_end": end,
+                    "_duration": int((end - start).days),
+                    "_fiscal_year": fiscal_year,
+                    "_value": float(value),
+                }
+            )
+        return prepared
+
+    def choose_period_fact(
+        facts: list[dict[str, Any]],
+        *,
+        period: str,
+        end_date: str,
+    ) -> dict[str, Any] | None:
+        fact_period = "FY" if period == "Q4" else period
+        accepted_forms = SEC_ANNUAL_FORMS if period == "Q4" else {"10-Q", "10-Q/A"}
+        lower_days, upper_days = duration_bounds[period]
+        candidates = [
+            fact
+            for fact in facts
+            if str(fact.get("form") or "").upper() in accepted_forms
+            and str(fact.get("fp") or "").upper() == fact_period
+            and str(fact.get("end") or "") == end_date
+            and lower_days <= int(fact["_duration"]) <= upper_days
+        ]
+        if not candidates:
+            return None
+        return max(candidates, key=lambda fact: (int(fact["_duration"]), str(fact.get("filed") or "")))
+
+    def choose_preceding_ytd_fact(
+        facts: list[dict[str, Any]],
+        *,
+        period: str,
+        current: dict[str, Any],
+    ) -> dict[str, Any] | None:
+        preceding_period = {"Q2": "Q1", "Q3": "Q2", "Q4": "Q3"}[period]
+        lower_days, upper_days = duration_bounds[preceding_period]
+        candidates = [
+            fact
+            for fact in facts
+            if str(fact.get("form") or "").upper() in {"10-Q", "10-Q/A"}
+            and str(fact.get("fp") or "").upper() == preceding_period
+            and fact["_fiscal_year"] == current["_fiscal_year"]
+            and fact["_start"] == current["_start"]
+            and fact["_end"] < current["_end"]
+            and 55 <= int((current["_end"] - fact["_end"]).days) <= 130
+            and lower_days <= int(fact["_duration"]) <= upper_days
+        ]
+        if not candidates:
+            return None
+        return max(candidates, key=lambda fact: (fact["_end"], str(fact.get("filed") or "")))
+
+    def derive_sec_quarters(
+        raw_facts: list[dict[str, Any]],
+        *,
+        aggregation: str,
+    ) -> tuple[list[dict[str, Any]], bool]:
+        if not sequence_valid:
+            return [], False
+        facts = prepared_facts(raw_facts)
+        derived: list[dict[str, Any]] = []
+        for provider_row, period in zip(provider_rows, provider_periods, strict=True):
+            parsed_end = pd.to_datetime(provider_row.get("date"), errors="coerce")
+            if pd.isna(parsed_end):
+                return derived, False
+            end_date = str(parsed_end.date())
+            current = choose_period_fact(facts, period=period, end_date=end_date)
+            if current is None:
+                return derived, False
+            provider_fiscal_year = normalized_fiscal_year(provider_row.get("fiscal_year"))
+            if provider_fiscal_year is not None and provider_fiscal_year != current["_fiscal_year"]:
+                return derived, False
+
+            if period == "Q1":
+                sec_discrete = current["_value"]
+                derivation = "sec_q1_duration"
+                preceding_end = None
+            else:
+                preceding = choose_preceding_ytd_fact(facts, period=period, current=current)
+                if preceding is None:
+                    return derived, False
+                if aggregation == "weighted_average":
+                    incremental_days = int((current["_end"] - preceding["_end"]).days)
+                    if incremental_days <= 0:
+                        return derived, False
+                    sec_discrete = (
+                        current["_value"] * current["_duration"]
+                        - preceding["_value"] * preceding["_duration"]
+                    ) / incremental_days
+                else:
+                    sec_discrete = current["_value"] - preceding["_value"]
+                derivation = "sec_fy_less_q3_ytd" if period == "Q4" else f"sec_{period.lower()}_ytd_less_prior_ytd"
+                preceding_end = str(preceding["_end"].date())
+            derived.append(
+                {
+                    "provider_row": provider_row,
+                    "period": period,
+                    "end": end_date,
+                    "fiscal_year": current["_fiscal_year"],
+                    "sec_discrete": sec_discrete,
+                    "derivation": derivation,
+                    "preceding_end": preceding_end,
+                }
+            )
+
+        for index in range(1, len(derived)):
+            previous = derived[index - 1]
+            current = derived[index]
+            expected_fiscal_year = previous["fiscal_year"] + 1 if previous["period"] == "Q4" else previous["fiscal_year"]
+            if current["fiscal_year"] != expected_fiscal_year:
+                return derived, False
+        return derived, len(derived) == 4
+
+    for metric, (concept_names, tolerance, unit, aggregation) in concepts_by_metric.items():
+        best_derived: list[dict[str, Any]] = []
+        coverage_complete = False
+        selected_concept: str | None = None
+        for concept in concept_names:
+            payload = us_gaap.get(concept) or {}
+            units = payload.get("units") if isinstance(payload, dict) else {}
+            candidates = units.get(unit) if isinstance(units, dict) else None
+            facts = [fact for fact in (candidates or []) if isinstance(fact, dict)]
+            if not facts:
+                continue
+            derived, complete = derive_sec_quarters(facts, aggregation=aggregation)
+            if complete or len(derived) > len(best_derived):
+                best_derived = derived
+                selected_concept = concept
+                coverage_complete = complete
+            if complete:
+                break
+
+        metric_checks: list[dict[str, Any]] = []
+        for quarter in best_derived:
+            provider_value = _safe_float(quarter["provider_row"].get(metric))
+            if provider_value is None:
+                continue
+            sec_discrete = float(quarter["sec_discrete"])
+            if metric == "capital_expenditures":
+                sec_discrete = abs(sec_discrete)
+            difference = abs(provider_value - sec_discrete) / max(abs(provider_value), abs(sec_discrete), 1.0)
+            metric_checks.append(
+                {
+                    "metric": metric,
+                    "period": quarter["period"],
+                    "end": quarter["end"],
+                    "fiscal_year": quarter["fiscal_year"],
+                    "concept": selected_concept,
+                    "provider_discrete": provider_value,
+                    "sec_discrete": sec_discrete,
+                    "derivation": quarter["derivation"],
+                    "preceding_end": quarter["preceding_end"],
+                    "difference": difference,
+                    "maximum_difference": tolerance,
+                    "passed": difference <= tolerance,
+                }
+            )
+
+        family_passed = bool(
+            sequence_valid
+            and coverage_complete
+            and len(metric_checks) == 4
+            and all(check["passed"] for check in metric_checks)
+        )
+        families[metric] = {
+            "passed": family_passed,
+            "concept": selected_concept,
+            "unit": unit,
+            "aggregation": aggregation,
+            "sequence_valid": sequence_valid,
+            "coverage_complete": coverage_complete,
+            "expected_quarters": list(provider_periods),
+            "checked_quarters": [check["period"] for check in metric_checks],
+            "checks": metric_checks,
+        }
+        all_checks.extend(metric_checks)
+
+    return {
+        "passed": bool(families) and all(item["passed"] for item in families.values()),
+        "checks": all_checks,
+        "families": families,
+    }
+
+
+def _build_ttm_row(
+    frames: dict[str, Any],
+    tax_rate: float,
+    *,
+    sec_company_facts: dict[str, Any] | None = None,
+) -> dict[str, Any] | None:
     quarterly_frames = {
         "income": frames.get("income_quarterly", pd.DataFrame()),
         "cash_flow": frames.get("cash_flow_quarterly", pd.DataFrame()),
@@ -1850,6 +2284,9 @@ def _build_ttm_row(frames: dict[str, Any], tax_rate: float) -> dict[str, Any] | 
         "preferred_stock": _safe_float(latest.get("preferred_stock")),
         "minority_interest": _safe_float(latest.get("minority_interest")),
         "unfunded_pension_liability": _safe_float(latest.get("unfunded_pension_liability")),
+        "unfunded_pension_liability_basis": latest.get("unfunded_pension_liability_basis"),
+        "unfunded_pension_liability_as_of": latest.get("unfunded_pension_liability_as_of"),
+        "unfunded_pension_liability_source_id": latest.get("unfunded_pension_liability_source_id"),
         "capital_lease_obligations": _safe_float(latest.get("capital_lease_obligations")),
         "lease_liabilities_not_in_debt": _safe_float(latest.get("lease_liabilities_not_in_debt")),
         "lease_debt_reconciliation": latest.get("lease_debt_reconciliation"),
@@ -1936,6 +2373,7 @@ def _build_ttm_row(frames: dict[str, Any], tax_rate: float) -> dict[str, Any] | 
         "revenue",
         "cash_from_operations",
         "capital_expenditures",
+        "interest_expense",
         "stock_based_compensation",
         "diluted_shares",
     }
@@ -1956,10 +2394,20 @@ def _build_ttm_row(frames: dict[str, Any], tax_rate: float) -> dict[str, Any] | 
         and currency_reconciled
         and all(check["passed"] for check in provider_checks)
     )
+    sec_ttm_reconciliation = _sec_ytd_reconciliation(selected, sec_company_facts)
+    sec_quarterly_reconciled = sec_ttm_reconciliation["passed"] is True
+    provider_reconciled_metrics = sorted(
+        check["metric"] for check in provider_checks if check.get("passed") is True
+    )
+    sec_reconciled_metrics = sorted(
+        metric
+        for metric, family in sec_ttm_reconciliation["families"].items()
+        if family.get("passed") is True
+    )
     provider_available = bool(provider_row and required_checks)
     validation_status = (
         "validated"
-        if provider_ttm_reconciled
+        if provider_ttm_reconciled or sec_quarterly_reconciled
         else "provider_ttm_mismatch"
         if provider_available
         else "date_sequence_only"
@@ -1967,17 +2415,31 @@ def _build_ttm_row(frames: dict[str, Any], tax_rate: float) -> dict[str, Any] | 
     result["ttm_validation"].update(
         {
             "status": validation_status,
+            "period_basis": (
+                "provider_ttm_reconciled"
+                if provider_ttm_reconciled
+                else "discrete_reconciled_to_sec_ytd"
+                if sec_quarterly_reconciled
+                else "unverified"
+            ),
             "provider_ttm_reconciled": provider_ttm_reconciled,
+            "provider_reconciled_metrics": provider_reconciled_metrics,
             "provider_ttm_checks": provider_checks,
             "provider_ttm_dates": provider_dates,
             "provider_ttm_date_gaps_days": provider_date_differences,
             "provider_ttm_dates_current": provider_dates_current,
             "provider_ttm_currency": provider_currency or None,
             "currency_reconciled": currency_reconciled,
+            "sec_quarterly_reconciled": sec_quarterly_reconciled,
+            "sec_reconciled_metrics": sec_reconciled_metrics,
+            "sec_quarterly_checks": sec_ttm_reconciliation["checks"],
+            "sec_quarterly_families": sec_ttm_reconciliation["families"],
         }
     )
     if provider_ttm_reconciled:
         result["source"] = "fmp_quarterly_ttm_reconciled_to_fmp_statement_ttm"
+    elif sec_quarterly_reconciled:
+        result["source"] = "fmp_quarterly_ttm_reconciled_to_sec_ytd"
     return result
 
 
@@ -2086,6 +2548,7 @@ def _build_valuation(
     profile: dict[str, Any],
     frames: dict[str, Any],
     assumptions: dict[str, Any],
+    source_records: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     return build_institutional_valuation(
         annual_rows=rows,
@@ -2098,6 +2561,7 @@ def _build_valuation(
         ratios_ttm=frames.get("ratios_ttm") if isinstance(frames.get("ratios_ttm"), dict) else {},
         assumptions=assumptions,
         expected_ticker=ticker,
+        source_records=source_records,
     )
 
 
@@ -2135,7 +2599,15 @@ def _audit_bundle(
         findings.append({"severity": "medium", "code": "valuation_unavailable", "message": valuation.get("reason", "Valuation could not be completed.")})
     valuation_status = str(valuation.get("status") or "legacy")
     reliability = valuation.get("reliability") or {}
-    if valuation_status != "decision_ready":
+    if valuation_status == "research_grade":
+        findings.append(
+            {
+                "severity": "medium",
+                "code": "valuation_research_grade",
+                "message": "The evidence supports a research range, but unresolved controls still withhold a decision-ready central value.",
+            }
+        )
+    elif valuation_status != "decision_ready":
         findings.append(
             {
                 "severity": "high",
@@ -3027,19 +3499,36 @@ def build_equity_research_bundle(
     profile, frames, sources = _load_fmp_payloads(symbol, paths, fmp_client)
     filings, sec_sources = _load_sec_filings(symbol, sec_client)
     sources.extend(sec_sources)
-    sec_frames, sec_fact_sources = _load_sec_company_facts(symbol, sec_client)
+    sec_frames, sec_fact_sources, sec_company_facts = _load_sec_company_facts(symbol, sec_client)
     sources.extend(sec_fact_sources)
     if any(frames.get(key, pd.DataFrame()).empty for key in DEFAULT_STATEMENT_SOURCE_IDS):
         for statement_key, source_id in SEC_STATEMENT_SOURCE_IDS.items():
             if frames.get(statement_key, pd.DataFrame()).empty and not sec_frames.get(statement_key, pd.DataFrame()).empty:
                 frames[statement_key] = sec_frames[statement_key]
                 statement_source_ids[statement_key] = source_id
+    balance_enrichments = _enrich_balance_frames_with_sec(frames, sec_frames)
+    if balance_enrichments:
+        balance_source = next(
+            (source for source in sources if source.get("source_id") == SEC_STATEMENT_SOURCE_IDS["balance"]),
+            None,
+        )
+        if balance_source is not None:
+            balance_source["field_enrichments"] = balance_enrichments
+            balance_source["enriched_field_count"] = len(balance_enrichments)
     preliminary_assumptions = {"normalized_tax_rate": DEFAULT_TAX_RATE}
     rows = _normalize_financials(frames, preliminary_assumptions["normalized_tax_rate"])
-    preliminary_ttm = _build_ttm_row(frames, preliminary_assumptions["normalized_tax_rate"])
+    preliminary_ttm = _build_ttm_row(
+        frames,
+        preliminary_assumptions["normalized_tax_rate"],
+        sec_company_facts=sec_company_facts,
+    )
     assumptions = _derive_assumptions(rows, preliminary_ttm)
     rows = _normalize_financials(frames, assumptions["normalized_tax_rate"])
-    ttm_row = _build_ttm_row(frames, assumptions["normalized_tax_rate"])
+    ttm_row = _build_ttm_row(
+        frames,
+        assumptions["normalized_tax_rate"],
+        sec_company_facts=sec_company_facts,
+    )
     assumptions = _derive_assumptions(rows, ttm_row)
     ratios = _build_ratios(rows, ttm_row)
     quality_flags = _quality_flags(rows)
@@ -3050,7 +3539,7 @@ def build_equity_research_bundle(
     )
     if ttm_row:
         ttm_row.setdefault("ttm_validation", {})["share_denominator_reconciliation"] = share_denominator_reconciliation
-    valuation = _build_valuation(ticker, rows, ttm_row, profile, frames, assumptions)
+    valuation = _build_valuation(ticker, rows, ttm_row, profile, frames, assumptions, sources)
     valuation = _apply_current_share_count_gate(valuation, share_denominator_reconciliation)
     using_sec_as_primary = any(source_id in set(SEC_STATEMENT_SOURCE_IDS.values()) for source_id in statement_source_ids.values())
     country = str(profile.get("country") or "").upper().strip()
@@ -3146,15 +3635,21 @@ def build_equity_research_bundle(
         )
     data_points.extend(_financial_data_points(rows, statement_source_ids))
     data_points.extend(_ttm_data_points(ttm_row))
+    if _has_value(valuation.get("current_price")):
+        price_sources = (valuation.get("price_validation") or {}).get("sources", [])
+        current_price_source = (
+            "fmp:quote"
+            if any("quote" in str(source).lower() for source in price_sources)
+            else "fmp:prices"
+            if any("close" in str(source).lower() or "price" in str(source).lower() for source in price_sources)
+            else "fmp:profile"
+        )
+        data_points.append(
+            _data_point("current_price", valuation.get("current_price"), "sourced_fact", current_price_source)
+        )
     if valuation.get("available"):
         data_points.extend(
             [
-                _data_point(
-                    "current_price",
-                    valuation.get("current_price"),
-                    "sourced_fact",
-                    "fmp:quote" if "FMP stable quote" in (valuation.get("price_validation") or {}).get("sources", []) else "fmp:prices",
-                ),
                 _data_point("valuation_range_central", valuation.get("range", {}).get("central"), "calculated_metric", formula="archetype-routed scenario range with explicit method cross-check weights"),
                 _data_point("reverse_dcf_status", valuation.get("reverse_dcf", {}).get("status"), "calculated_metric", formula="bounded reverse-valuation solve status; reverse DCF has zero intrinsic-value weight"),
                 _data_point("reverse_dcf_implied_revenue_cagr", valuation.get("reverse_dcf", {}).get("implied_revenue_cagr"), "calculated_metric", formula="binary search for growth where DCF value equals current price"),

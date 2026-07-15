@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import {
-  isSupportedLocale,
   LANGUAGE_COOKIE_KEY,
   LANGUAGE_REQUEST_HEADER,
   resolveRequestLocale,
+  shouldPersistQueryLocale,
 } from "@/lib/i18n/locale";
 
 function isStaticAsset(pathname) {
@@ -38,7 +38,7 @@ export function middleware(request) {
   requestHeaders.set(LANGUAGE_REQUEST_HEADER, locale);
 
   const finalize = (response) => {
-    if (isSupportedLocale(queryLanguage)) {
+    if (shouldPersistQueryLocale({ pathname, queryLanguage })) {
       response.cookies.set(LANGUAGE_COOKIE_KEY, locale, {
         httpOnly: false,
         sameSite: "lax",

@@ -277,17 +277,125 @@ def test_capacity_cycle_abstains_when_current_loss_is_outside_the_observed_regim
     assert valuation["status"] == "not_decision_ready"
 
 
-def test_capacity_cycle_abstains_when_ttm_revenue_is_outside_the_observed_capacity_regime() -> None:
+def test_capacity_cycle_abstains_when_ttm_revenue_is_far_beyond_any_reconciled_regime() -> None:
     inputs = _base_inputs()
     inputs["profile"]["industry"] = "Semiconductors"
-    inputs["ttm_row"]["revenue"] = 2_000.0
+    inputs["ttm_row"]["revenue"] = 4_500.0
 
     valuation = _build(inputs)
 
     assert valuation["available"] is False
     assert valuation["cycle_revenue_normalization"]["current_level_supported"] is False
     assert valuation["range"] == {"low": None, "central": None, "high": None}
-    assert "ciclo histórico" in valuation["reason"].lower()
+    assert "cambio de escala" in valuation["reason"].lower()
+
+
+def test_reconciled_ttm_scale_jump_withholds_intrinsic_range_until_economic_bridge_exists() -> None:
+    inputs = _base_inputs()
+    inputs["profile"].update({"industry": "Semiconductors", "beta": 1.4})
+    margins = (-0.08, 0.04, 0.11, 0.18, 0.03, 0.14, 0.22)
+    inputs["annual_rows"] = [
+        {
+            **deepcopy(inputs["annual_rows"][0]),
+            "date": f"{year}-12-31",
+            "revenue": 700.0 + index * 50.0,
+            "fcff": (700.0 + index * 50.0) * margin,
+            "free_cash_flow": (700.0 + index * 50.0) * (margin - 0.01),
+        }
+        for index, (year, margin) in enumerate(zip(range(2019, 2026), margins))
+    ]
+    historical_peak = max(row["revenue"] for row in inputs["annual_rows"])
+    inputs["ttm_row"].update(
+        {
+            "revenue": historical_peak * 2.4,
+            "ebitda": historical_peak * 2.4 * 0.40,
+            "fcff": historical_peak * 2.4 * 0.28,
+            "free_cash_flow": historical_peak * 2.4 * 0.27,
+            "stock_based_compensation": historical_peak * 2.4 * 0.01,
+        }
+    )
+    inputs["profile"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["quote"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["prices"] = [{"date": "2026-07-14", "close": 1_000.0}]
+    inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = inputs["ttm_row"]["fcff"]
+    inputs["analyst_estimates"] = []
+
+    valuation = _build(inputs)
+
+    assert valuation["available"] is False
+    assert valuation["status"] == "not_decision_ready"
+    assert valuation["range"] == {"low": None, "central": None, "high": None}
+    assert valuation["cycle_revenue_normalization"]["structural_break"] is True
+    assert valuation["cycle_revenue_normalization"]["current_level_supported"] is False
+    assert valuation["cycle_revenue_normalization"]["current_level_usable_for_research"] is False
+    assert valuation["structural_scale_bridge"]["passed"] is False
+    assert set(valuation["structural_scale_bridge"]["missing"]) == {
+        "capacity_and_asset_turnover_support",
+        "organic_or_acquisition_revenue_bridge",
+        "segment_reconciliation",
+    }
+    requirements = valuation["market_requirements"]
+    assert requirements["available"] is True
+    assert requirements["horizon_years"] == 5
+    assert requirements["normalized_margin"] == pytest.approx(
+        valuation["cycle_normalization"]["base"]
+    )
+    assert requirements["implied_revenue_cagr"] is not None or requirements["implied_revenue_cagr_bound"]
+    assert "structural_scale_bridge" in valuation["reliability"]["decision_ready_blockers"]
+
+
+def test_structural_scale_jump_never_publishes_market_requirements_from_a_single_price_source() -> None:
+    inputs = _base_inputs()
+    inputs["profile"]["industry"] = "Semiconductors"
+    inputs["ttm_row"]["revenue"] = 4_500.0
+    inputs["prices"] = []
+
+    valuation = _build(inputs)
+
+    assert valuation["price_validation"]["status"] == "single_source"
+    assert valuation["structural_scale_bridge"]["passed"] is False
+    assert valuation["market_requirements"]["available"] is False
+    assert valuation["market_requirements"]["status"] == "price_not_research_usable"
+    assert valuation["market_requirements"]["implied_revenue_cagr"] is None
+
+
+def test_capacity_cycle_uses_cycle_specific_support_when_generic_fcff_dispersion_is_high() -> None:
+    inputs = _base_inputs()
+    inputs["profile"].update({"industry": "Semiconductors", "beta": 1.4})
+    revenues = (700.0, 760.0, 680.0, 900.0, 620.0, 950.0, 1_000.0)
+    margins = (-0.15, 0.01, 0.02, 0.03, 0.04, 0.15, 0.25)
+    inputs["annual_rows"] = [
+        {
+            **deepcopy(inputs["annual_rows"][0]),
+            "date": f"{year}-12-31",
+            "revenue": revenue,
+            "fcff": revenue * margin,
+            "free_cash_flow": revenue * (margin - 0.01),
+        }
+        for year, revenue, margin in zip(range(2019, 2026), revenues, margins)
+    ]
+    inputs["ttm_row"].update(
+        {
+            "revenue": 1_100.0,
+            "fcff": 220.0,
+            "free_cash_flow": 210.0,
+            "stock_based_compensation": 0.0,
+        }
+    )
+    inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = 220.0
+    inputs["analyst_estimates"] = []
+
+    valuation = _build(inputs)
+
+    assert valuation["historical_cash_flow_evidence"]["passed"] is False
+    cycle_support = valuation["reliability"]["readiness_gates"]["historical_cash_flow_support"]
+    assert cycle_support["passed"] is True
+    assert cycle_support["basis"] == "capacity_cycle_normalization"
+    assert cycle_support["observed"]["margin_coverage_complete"] is True
+    assert cycle_support["observed"]["revenue_coverage_complete"] is True
+    assert cycle_support["observed"]["current_regime_supported"] is True
+    assert cycle_support["observed"]["normalized_base_margin"] > 0
+    assert valuation["status"] == "research_grade"
 
 
 def test_quote_cannot_be_validated_against_a_catastrophically_different_prior_close() -> None:
@@ -343,6 +451,7 @@ def test_quote_close_and_profile_from_one_vendor_are_only_provider_reconciled() 
     assert price["provider_corroborated"] is True
     assert price["independent_price_observation"] is False
     assert price["usable"] is False
+    assert price["research_usable"] is True
     assert all(check.get("independent") is not True for check in price["checks"])
     assert valuation["reliability"]["readiness_gates"]["validated_price"]["passed"] is False
     assert valuation["status"] != "decision_ready"
@@ -1354,15 +1463,23 @@ def test_equity_bridge_deducts_preferred_minority_and_reconciled_finance_leases(
     assert adjusted["cost_of_capital"]["debt_like_capital"] == 110.0
 
 
-def test_unfunded_pension_claim_blocks_value_without_deficit_funding_normalization() -> None:
+def test_unfunded_pension_claim_becomes_a_range_sensitivity_until_funding_is_normalized() -> None:
     inputs = _base_inputs()
     inputs["ttm_row"]["unfunded_pension_liability"] = 20.0
 
     valuation = _build(inputs)
 
-    assert valuation["available"] is False
-    assert valuation["range"] == {"low": None, "central": None, "high": None}
-    assert "pensión" in valuation["reason"].lower()
+    assert valuation["available"] is True
+    assert valuation["status"] == "research_grade"
+    assert valuation["range"]["low"] < valuation["range"]["high"]
+    assert valuation["range"]["central"] is None
+    bridge = valuation["equity_bridge"]
+    assert bridge["exact"] is False
+    assert bridge["calculation_complete"] is True
+    assert bridge["scenario_obligations"]["bear"] - bridge["scenario_obligations"]["bull"] == 20.0
+    pension_gate = valuation["reliability"]["readiness_gates"]["pension_claim_reconciliation"]
+    assert pension_gate["passed"] is False
+    assert "pension_claim_reconciliation" in valuation["reliability"]["decision_ready_blockers"]
 
 
 def test_equity_bridge_adds_non_operating_investments_once() -> None:
@@ -1455,6 +1572,131 @@ def test_missing_equity_bridge_adjustments_cannot_publish_a_research_range() -> 
     assert valuation["equity_bridge"]["complete"] is False
     assert valuation["reliability"]["readiness_gates"]["equity_bridge_completeness"]["passed"] is False
     assert valuation["status"] == "not_decision_ready"
+
+
+def test_missing_single_pension_claim_without_evidence_cannot_publish_a_range() -> None:
+    inputs = _base_inputs()
+    inputs["ttm_row"].pop("unfunded_pension_liability")
+
+    valuation = _build(inputs)
+
+    bridge = valuation["equity_bridge"]
+    assert valuation["available"] is False
+    assert valuation["status"] == "not_decision_ready"
+    assert valuation["range"] == {"low": None, "central": None, "high": None}
+    assert bridge["exact"] is False
+    assert bridge["calculation_complete"] is False
+    assert bridge["complete"] is False
+    assert bridge["unresolved_claims"][0]["field"] == "unfunded_pension_liability"
+    assert bridge["unresolved_claims"][0]["basis"] == "not_observed_no_source_backed_bound"
+    assert bridge["unresolved_claims"][0]["upper_bound"] is None
+    assert valuation["reliability"]["readiness_gates"]["equity_bridge_completeness"]["passed"] is False
+
+
+def test_source_backed_claim_bound_can_support_a_research_sensitivity() -> None:
+    inputs = _base_inputs()
+    inputs["ttm_row"].pop("unfunded_pension_liability")
+    inputs["ttm_row"].update(
+        {
+            "unfunded_pension_liability_upper_bound": 12.0,
+            "unfunded_pension_liability_upper_bound_basis": "latest_plan_assets_less_obligation_reconciliation",
+            "unfunded_pension_liability_upper_bound_source_id": "sec:companyfacts:balance",
+            "unfunded_pension_liability_upper_bound_as_of": "2026-06-30",
+            "unfunded_pension_liability_upper_bound_currency": "USD",
+            "unfunded_pension_liability_upper_bound_unit": "USD",
+        }
+    )
+    inputs["source_records"] = [
+        {
+            "source_id": "sec:companyfacts:balance",
+            "status": "ok",
+            "provider": "sec-edgar",
+            "targets_covered": ["unfundedPensionLiability"],
+            "field_enrichments": [
+                {
+                    "field": "unfunded_pension_liability",
+                    "value": 12.0,
+                    "source_as_of": "2026-06-30",
+                    "basis": "latest_plan_assets_less_obligation_reconciliation",
+                }
+            ],
+        }
+    ]
+
+    valuation = _build(inputs)
+
+    claim = valuation["equity_bridge"]["unresolved_claims"][0]
+    assert valuation["available"] is True
+    assert valuation["status"] == "research_grade"
+    assert valuation["range"]["low"] < valuation["range"]["high"]
+    assert valuation["range"]["central"] is None
+    assert claim["upper_bound"] == 12.0
+    assert claim["source_id"] == "sec:companyfacts:balance"
+    assert claim["defensible"] is True
+    assert claim["amount_verified"] is True
+
+
+def test_claim_bound_cannot_use_source_metadata_without_matching_the_sourced_amount() -> None:
+    inputs = _base_inputs()
+    inputs["ttm_row"].pop("unfunded_pension_liability")
+    inputs["ttm_row"].update(
+        {
+            "unfunded_pension_liability_upper_bound": 12.0,
+            "unfunded_pension_liability_upper_bound_basis": "latest_plan_assets_less_obligation_reconciliation",
+            "unfunded_pension_liability_upper_bound_source_id": "sec:companyfacts:balance",
+            "unfunded_pension_liability_upper_bound_as_of": "2026-06-30",
+            "unfunded_pension_liability_upper_bound_currency": "USD",
+            "unfunded_pension_liability_upper_bound_unit": "USD",
+        }
+    )
+    inputs["source_records"] = [
+        {
+            "source_id": "sec:companyfacts:balance",
+            "status": "ok",
+            "targets_covered": ["unfundedPensionLiability"],
+            "field_enrichments": [
+                {
+                    "field": "unfunded_pension_liability",
+                    "value": 0.0,
+                    "source_as_of": "2026-06-30",
+                    "basis": "latest_plan_assets_less_obligation_reconciliation",
+                }
+            ],
+        }
+    ]
+
+    valuation = _build(inputs)
+
+    claim = valuation["equity_bridge"]["unresolved_claims"][0]
+    assert valuation["status"] == "not_decision_ready"
+    assert valuation["range"] == {"low": None, "central": None, "high": None}
+    assert claim["source_verified"] is False
+    assert claim["amount_verified"] is False
+    assert claim["defensible"] is False
+
+
+def test_claim_bound_with_an_unregistered_source_id_cannot_publish_a_range() -> None:
+    inputs = _base_inputs()
+    inputs["ttm_row"].pop("unfunded_pension_liability")
+    inputs["ttm_row"].update(
+        {
+            "unfunded_pension_liability_upper_bound": 12.0,
+            "unfunded_pension_liability_upper_bound_basis": "latest_plan_assets_less_obligation_reconciliation",
+            "unfunded_pension_liability_upper_bound_source_id": "sec:invented:source",
+            "unfunded_pension_liability_upper_bound_as_of": "2026-06-30",
+            "unfunded_pension_liability_upper_bound_currency": "USD",
+            "unfunded_pension_liability_upper_bound_unit": "USD",
+        }
+    )
+    inputs["source_records"] = []
+
+    valuation = _build(inputs)
+
+    claim = valuation["equity_bridge"]["unresolved_claims"][0]
+    assert valuation["status"] == "not_decision_ready"
+    assert valuation["range"] == {"low": None, "central": None, "high": None}
+    assert claim["defensible"] is False
+    assert claim["source_verified"] is False
 
 
 def test_material_price_mismatch_blocks_decision_readiness() -> None:

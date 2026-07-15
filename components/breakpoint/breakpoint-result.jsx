@@ -51,7 +51,7 @@ export function BreakpointResult({ runId, language = "es" }) {
       <section className={styles.monitor}><span>{copy.monitor}</span><strong>{localizeBreakpointDriver(run.monitor.primaryDriver, language)}</strong><p>{run.monitor.falsifier || "—"}</p></section>
     </>}
     <section className={styles.detailGrid}><div><h2>{copy.provenance}</h2><ul className={styles.sources}>{(run.provenance?.sources || []).map((source, index) => <li key={`${source.label}-${index}`}><span>{localizeBreakpointSourceCategory(source.category, language)}</span><strong>{source.label}</strong><small>{date(source.date)}</small></li>)}</ul></div><div><h2>{copy.limitations}</h2><ul className={styles.limitations}>{(run.limitations || []).map((item) => <li key={item}>{item}</li>)}</ul></div></section>
-    <footer className={styles.resultFooter}><p>{copy.disclaimer}</p><Link href={`/aurora?lang=${language}`} className={styles.terminalLink}>{copy.terminal} <span>→</span></Link></footer>
+    <footer className={styles.resultFooter}><p>{copy.disclaimer}</p><Link href="/aurora" className={styles.terminalLink}>{copy.terminal} <span>→</span></Link></footer>
   </main>;
 }
 

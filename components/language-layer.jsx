@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { LANGUAGE_COOKIE_KEY } from "@/lib/i18n/locale";
+import { LANGUAGE_COOKIE_KEY, shouldPersistQueryLocale } from "@/lib/i18n/locale";
 
 export const LANGUAGE_STORAGE_KEY = LANGUAGE_COOKIE_KEY;
 
@@ -121,7 +121,7 @@ const TEXT_TRANSLATIONS = {
   "Explain": "Explicar",
   "Company brief": "Informe de compañía",
   "Company work in a concise research brief": "Trabajo de compañía en un informe conciso",
-  "Open the current memo, the valuation debate, and the sources without leaving the workspace.": "Abre el informe actual, el debate de valoración y las fuentes sin salir del espacio de trabajo.",
+  "Open the current memo, the valuation review, and the sources without leaving the workspace.": "Abre el informe actual, la revisión de valoración y las fuentes sin salir del espacio de trabajo.",
   "Holdings": "Posiciones",
   "Update": "Actualizar",
   "Positions and edits": "Posiciones y ediciones",
@@ -204,7 +204,7 @@ const TEXT_TRANSLATIONS = {
   "Artifacts": "Artefactos",
   "Memo": "Memo",
   "Value": "Valor",
-  "Debate": "Debate",
+  "Review": "Revisión",
   "Sources": "Fuentes",
   "Changes": "Cambios",
   "Portfolio path will appear here": "La trayectoria del portafolio aparecerá aquí",
@@ -341,7 +341,10 @@ export function readStoredLanguage() {
   if (typeof window === "undefined") return "en";
   try {
     const urlLanguage = new URLSearchParams(window.location.search).get("lang");
-    if (SUPPORTED_LANGUAGES.has(urlLanguage)) {
+    if (SUPPORTED_LANGUAGES.has(urlLanguage) && shouldPersistQueryLocale({
+      pathname: window.location.pathname,
+      queryLanguage: urlLanguage,
+    })) {
       window.localStorage.setItem(LANGUAGE_STORAGE_KEY, urlLanguage);
       writeLanguageCookie(urlLanguage);
       return urlLanguage;
@@ -484,7 +487,7 @@ export function LanguageLayer({ initialLanguage = "en" }) {
     };
   }, [language, path]);
 
-  if (path === "/" || path === "/channels") return null;
+  if (path === "/" || path === "/channels" || path === "/aurora") return null;
 
   return (
     <div className="global-language-dock" data-no-translate aria-label={language === "es" ? "Elegir idioma" : "Choose language"}>

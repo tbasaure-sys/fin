@@ -19,6 +19,7 @@ import {
 test("unbacked payload sanitizer is allowlisted, idempotent, and cannot leak precise valuation aliases", () => {
   const sentinel = 9876543;
   const unsafeText = `Our midpoint is $${sentinel} fair value`;
+  const secret = "Authorization: Bearer PRIVATE_BACKEND_SECRET";
   const payload = {
     ok: true,
     ticker: "MU",
@@ -28,6 +29,9 @@ test("unbacked payload sanitizer is allowlisted, idempotent, and cannot leak pre
     financials: { annual: [], ratios: {}, quality_flags: [] },
     valuation: institutionalValuation({
       status: "research_grade",
+      archetype: secret,
+      primary_method: secret,
+      cash_flow_basis: secret,
       current_price: sentinel,
       fair_value_central: sentinel,
       scenario_summary: { base_value: sentinel },
@@ -36,7 +40,7 @@ test("unbacked payload sanitizer is allowlisted, idempotent, and cannot leak pre
       price_validation: { status: "provider_reconciled", usable: false, sources: ["FMP"] },
       reliability: { usable: true, status: "medium", score: 0.65, reasons: [unsafeText], limitations: [unsafeText] },
       scenarios: [{ name: "base", assumptions: { midpoint: sentinel }, intrinsic_value_per_share: sentinel }],
-      methods: [{ key: "forward_fcff_dcf", role: "primary", value_per_share: sentinel }],
+      methods: [{ key: secret, role: secret, value_per_share: sentinel }],
     }),
     report_markdown: `# MU\n\n${unsafeText}\n\n| Base | $${sentinel} |`,
     memo: { executive_judgment: unsafeText },
@@ -44,8 +48,8 @@ test("unbacked payload sanitizer is allowlisted, idempotent, and cannot leak pre
     final_analysis: unsafeText,
     sources: {
       coverage: { score: 100 },
-      records: [{ source_id: "fmp", provider: "FMP", raw: { fair_value: sentinel } }],
-      data_points: [{ metric: "Fair_Value_Central", raw_value: sentinel, normalized_value: sentinel }],
+      records: [{ source_id: secret, provider: secret, error: secret, raw: { fair_value: sentinel } }],
+      data_points: [{ metric: secret, raw_value: secret, normalized_value: sentinel, formula: secret, source_id: secret }],
     },
     audit: { status: "needs_attention", findings: [{ severity: "low", code: "valuation_not_decision_ready", message: unsafeText }] },
     assumptions: { fair_value: sentinel },
@@ -60,9 +64,13 @@ test("unbacked payload sanitizer is allowlisted, idempotent, and cannot leak pre
 
   const sanitized = sanitizeResearchPayload(payload);
 
-  assert.deepEqual(sanitized.valuation.range, { low: 88, central: null, high: 139 });
+  assert.deepEqual(sanitized.valuation.range, { low: null, central: null, high: null });
   assert.equal(sanitized.valuation.current_price, null);
   assert.equal(JSON.stringify(sanitized).includes(String(sentinel)), false);
+  assert.equal(JSON.stringify(sanitized).includes(secret), false);
+  assert.deepEqual(sanitized.valuation.methods, []);
+  assert.deepEqual(sanitized.sources.records, []);
+  assert.deepEqual(sanitized.sources.data_points, []);
   for (const artifact of sanitized.downloads) {
     const decoded = Buffer.from(artifact.content_base64, "base64").toString("utf8");
     assert.equal(decoded.includes(String(sentinel)), false, artifact.filename);
@@ -156,6 +164,17 @@ function researchPayloadWithValuation(valuation, overrides = {}) {
       ratios: { latest_revenue: 37_000, latest_fcf: 1_700, fcf_margin: 0.046 },
     },
     audit: { status: "pass", findings: [] },
+    sources: {
+      coverage: {
+        status: "complete",
+        score: 100,
+        expected_metrics: 19,
+        covered_expected_metrics: 19,
+        missing_expected_metrics: [],
+        sourced_points_missing_ok_source: [],
+        calculated_points_missing_formula: [],
+      },
+    },
     valuation,
     ...overrides,
   };
@@ -434,7 +453,8 @@ test("equity research direct path returns a visible degraded memo when backend i
     assert.equal(bundle.ticker, "UNH");
     assert.equal(bundle.audit.status, "needs_attention");
     assert.match(bundle.report_markdown, /No se publican cifras de valoración/i);
-    assert.match(bundle.sources.records[0].error, /simulated backend outage/i);
+    assert.deepEqual(bundle.sources.records, []);
+    assert.doesNotMatch(JSON.stringify(bundle), /simulated backend outage/i);
   } finally {
     globalThis.fetch = previousFetch;
     if (previousBackend === undefined) {
@@ -538,11 +558,31 @@ test("equity research adds one Vercel final orchestrator call when backend skips
     filings: { recent: [{ form: "10-K", filing_date: "2026-01-30" }] },
     report_markdown: "# AAPL research OS memo\n\n## Agent research desk\n",
     sources: {
-      coverage: { score: 100, status: "pass" },
+      coverage: {
+        score: 100,
+        status: "complete",
+        expected_metrics: 19,
+        covered_expected_metrics: 19,
+        missing_expected_metrics: [],
+        sourced_points_missing_ok_source: [],
+        calculated_points_missing_formula: [],
+      },
       records: [],
       data_points: [],
     },
-    audit: { status: "pass", coverage: { score: 100 }, findings: [] },
+    audit: {
+      status: "pass",
+      coverage: {
+        score: 100,
+        status: "complete",
+        expected_metrics: 19,
+        covered_expected_metrics: 19,
+        missing_expected_metrics: [],
+        sourced_points_missing_ok_source: [],
+        calculated_points_missing_formula: [],
+      },
+      findings: [],
+    },
     agents: {
       version: "equity_research_agent_layer_v1",
       mode: "local_first_multi_agent_desk",
@@ -717,7 +757,7 @@ test("research-grade valuation withholds the final orchestrator and strips any p
     assert.equal(bundle.valuation.range.central, null);
     assert.equal(bundle.valuation.selected_value, null);
     assert.deepEqual(bundle.valuation.scenarios, []);
-    assert.equal(bundle.sources.data_points[0].normalized_value, null);
+    assert.deepEqual(bundle.sources.data_points, []);
     assert.equal(bundle.agents.agents.length, 0);
     assert.equal(bundle.downloads.some((artifact) => artifact.filename.endsWith(".xlsx")), false);
     assert.doesNotMatch(bundle.report_markdown, /Final editor synthesis|\$112|Fair value/i);

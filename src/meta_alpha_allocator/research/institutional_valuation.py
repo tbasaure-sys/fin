@@ -677,6 +677,11 @@ def validate_market_price(
     return {
         "status": status,
         "usable": status == "validated",
+        "research_usable": bool(
+            fresh
+            and provider_corroborated
+            and status in {"validated", "provider_reconciled"}
+        ),
         "price": price,
         "currency": next(iter(explicit_currencies), None),
         "as_of": as_of,
@@ -2288,9 +2293,11 @@ def build_institutional_valuation(
     ratios_ttm: dict[str, Any] | None,
     assumptions: dict[str, Any],
     expected_ticker: str | None = None,
+    source_records: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     annual_rows, annual_history_validation = _normalize_annual_history(annual_rows)
     current_row = dict(ttm_row or (annual_rows[-1] if annual_rows else {}))
+    source_records = [record for record in (source_records or []) if isinstance(record, dict)]
     sbc_reconciliation_failures: list[dict[str, Any]] = []
 
     def attach_owner_fcff(row: dict[str, Any], label: str) -> None:
@@ -2777,30 +2784,156 @@ def build_institutional_valuation(
     )
     bridge_inputs = {field: _number(current_row.get(field)) for field in optional_bridge_fields}
     missing_bridge_fields = [field for field, value in bridge_inputs.items() if value is None]
+    sensitivity_claim_fields = {
+        "preferred_stock",
+        "minority_interest",
+        "unfunded_pension_liability",
+    }
+    hard_missing_bridge_fields = [
+        field for field in missing_bridge_fields if field not in sensitivity_claim_fields
+    ]
+    latest_annual_bridge_row = annual_rows[-1] if annual_rows else {}
+    book_equity_for_bridge = (
+        _positive(current_row.get("total_equity"))
+        or _positive(latest_annual_bridge_row.get("total_equity"))
+    )
+    book_capital_for_bridge = (
+        (book_equity_for_bridge or 0.0) + (debt or 0.0)
+        if book_equity_for_bridge is not None
+        else None
+    )
+    unresolved_claims: list[dict[str, Any]] = []
+    source_records_by_id = {
+        str(record.get("source_id") or "").strip(): record
+        for record in source_records
+        if str(record.get("source_id") or "").strip()
+    }
+    source_target_names = {
+        "preferred_stock": "preferredStock",
+        "minority_interest": "minorityInterest",
+        "unfunded_pension_liability": "unfundedPensionLiability",
+    }
+    for field in missing_bridge_fields:
+        if field not in sensitivity_claim_fields:
+            continue
+        candidate_upper_bound = _number(current_row.get(f"{field}_upper_bound"))
+        upper_bound_basis = str(current_row.get(f"{field}_upper_bound_basis") or "").strip()
+        upper_bound_source_id = str(current_row.get(f"{field}_upper_bound_source_id") or "").strip()
+        upper_bound_as_of = _date_text(current_row.get(f"{field}_upper_bound_as_of"))
+        upper_bound_currency = str(current_row.get(f"{field}_upper_bound_currency") or "").upper().strip()
+        upper_bound_unit = str(current_row.get(f"{field}_upper_bound_unit") or "").upper().strip()
+        source_record = source_records_by_id.get(upper_bound_source_id) or {}
+        source_enrichments = [
+            item
+            for item in (source_record.get("field_enrichments") or [])
+            if isinstance(item, dict) and item.get("field") == field
+        ]
+        matching_enrichments = [
+            item
+            for item in source_enrichments
+            if _date_text(item.get("source_as_of")) == upper_bound_as_of
+            and str(item.get("basis") or "").strip() == upper_bound_basis
+        ]
+        source_field_supported = bool(
+            source_target_names.get(field) in (source_record.get("targets_covered") or [])
+            and matching_enrichments
+        )
+        amount_verified = bool(
+            candidate_upper_bound is not None
+            and any(
+                (
+                    _number(item.get("value")) is not None
+                    and math.isclose(
+                        float(candidate_upper_bound),
+                        float(_number(item.get("value")) or 0.0),
+                        rel_tol=1e-6,
+                        abs_tol=max(1e-6, abs(float(candidate_upper_bound)) * 1e-6),
+                    )
+                )
+                or (
+                    _number(item.get("upper_bound")) is not None
+                    and 0 <= float(candidate_upper_bound) <= float(_number(item.get("upper_bound")) or 0.0)
+                )
+                for item in matching_enrichments
+            )
+        )
+        source_verified = bool(
+            source_record
+            and str(source_record.get("status") or "").lower() == "ok"
+            and source_field_supported
+            and amount_verified
+        )
+        bound_date = pd.to_datetime(upper_bound_as_of, errors="coerce")
+        current_date = pd.to_datetime(current_row.get("date"), errors="coerce")
+        bound_age_days = (
+            int((current_date - bound_date).days)
+            if not pd.isna(bound_date) and not pd.isna(current_date)
+            else None
+        )
+        metadata_verified = bool(
+            upper_bound_as_of
+            and bound_age_days is not None
+            and 0 <= bound_age_days <= 550
+            and financial_currency
+            and upper_bound_currency == financial_currency
+            and upper_bound_unit == financial_currency
+        )
+        defensible = bool(
+            candidate_upper_bound is not None
+            and candidate_upper_bound >= 0
+            and upper_bound_basis
+            and upper_bound_source_id
+            and source_verified
+            and metadata_verified
+        )
+        unresolved_claims.append(
+            {
+                "field": field,
+                "lower_bound": 0.0,
+                "upper_bound": candidate_upper_bound if defensible else None,
+                "basis": upper_bound_basis if defensible else "not_observed_no_source_backed_bound",
+                "source_id": upper_bound_source_id or None,
+                "source_verified": source_verified,
+                "amount_verified": amount_verified,
+                "metadata_verified": metadata_verified,
+                "as_of": upper_bound_as_of,
+                "currency": upper_bound_currency or None,
+                "unit": upper_bound_unit or None,
+                "age_days": bound_age_days,
+                "defensible": defensible,
+                "policy": "source_backed_claim_bound_required_when_the_balance_sheet_value_is_not_observed",
+            }
+        )
+    unresolved_claim_fields = [
+        field for field in missing_bridge_fields if field in sensitivity_claim_fields
+    ]
+    unresolved_claims_bounded = bool(
+        len(unresolved_claims) == len(unresolved_claim_fields)
+        and all(item.get("defensible") is True for item in unresolved_claims)
+    )
+    bridge_uncertainty_upper = sum(
+        _number(item.get("upper_bound")) or 0.0 for item in unresolved_claims
+    )
+    bridge_uncertainty_materiality = _ratio(
+        bridge_uncertainty_upper,
+        book_capital_for_bridge,
+    )
+    bridge_uncertainty_supported = unresolved_claims_bounded
     unreconciled_pension_periods = [
         _date_text(row.get("date")) or "unknown"
         for row in [*annual_rows, current_row]
         if (_positive(row.get("unfunded_pension_liability")) or 0.0) > 0
         and row.get("pension_deficit_funding_removed_from_fcff") is not True
     ]
-    if unreconciled_pension_periods:
-        blocked = _blocked_valuation(
-            archetype=archetype,
-            reason="La obligación de pensión no está reconciliada con los aportes ya incluidos en el flujo de caja.",
-            price_validation=price_validation,
-            limitations=["Se debe separar costo de servicio y aportes al déficit antes de deducir la obligación del valor patrimonial."],
-        )
-        blocked["pension_claim_reconciliation"] = {
-            "passed": False,
-            "unreconciled_periods": unreconciled_pension_periods,
-            "policy": "do_not_deduct_an_unfunded_pension_claim_when_deficit_funding_remains_in_fcff",
-        }
-        blocked["reliability"]["readiness_gates"]["pension_claim_reconciliation"] = {
-            "passed": False,
-            "unreconciled_periods": unreconciled_pension_periods,
-        }
-        blocked["reliability"]["decision_ready_blockers"].append("pension_claim_reconciliation")
-        return _json_safe(blocked)
+    pension_claim_reconciliation = {
+        "passed": not unreconciled_pension_periods,
+        "unreconciled_periods": unreconciled_pension_periods,
+        "policy": (
+            "deduct_the_reconciled_unfunded_claim_once"
+            if not unreconciled_pension_periods
+            else "show_full_to_zero_claim_sensitivity_until_deficit_funding_is_removed_from_fcff"
+        ),
+    }
     cash_separation = _operating_cash_separation(current_row, archetype) if archetype != "financial" else None
     annual_cash_separations: list[dict[str, Any]] = []
     if archetype != "financial":
@@ -2814,14 +2947,30 @@ def build_institutional_valuation(
         if archetype != "financial"
         else (cash or 0.0) + (bridge_inputs["non_operating_investments"] or 0.0)
     )
-    bridge_obligations = (debt or 0.0) + sum(
+    pension_claim = max(0.0, bridge_inputs["unfunded_pension_liability"] or 0.0)
+    pension_sensitivity_applied = bool(unreconciled_pension_periods and pension_claim > 0)
+    exact_bridge_obligations_before_pension = (debt or 0.0) + sum(
         bridge_inputs[field] or 0.0
         for field in (
             "preferred_stock",
             "minority_interest",
-            "unfunded_pension_liability",
             "lease_liabilities_not_in_debt",
         )
+    )
+    pension_scenario_obligations = (
+        {"bear": pension_claim, "base": pension_claim * 0.5, "bull": 0.0}
+        if pension_sensitivity_applied
+        else {"bear": pension_claim, "base": pension_claim, "bull": pension_claim}
+    )
+    scenario_bridge_obligations = {
+        "bear": exact_bridge_obligations_before_pension + pension_scenario_obligations["bear"] + bridge_uncertainty_upper,
+        "base": exact_bridge_obligations_before_pension + pension_scenario_obligations["base"] + bridge_uncertainty_upper * 0.5,
+        "bull": exact_bridge_obligations_before_pension + pension_scenario_obligations["bull"],
+    }
+    bridge_obligations = scenario_bridge_obligations["base"]
+    bridge_exact = not missing_bridge_fields and not pension_sensitivity_applied
+    bridge_calculation_complete = bool(
+        not hard_missing_bridge_fields and bridge_uncertainty_supported
     )
     equity_bridge = {
         "cash_and_equivalents": cash,
@@ -2833,11 +2982,22 @@ def build_institutional_valuation(
         "preferred_stock": bridge_inputs["preferred_stock"],
         "minority_interest": bridge_inputs["minority_interest"],
         "unfunded_pension_liability": bridge_inputs["unfunded_pension_liability"],
+        "unfunded_pension_liability_basis": current_row.get("unfunded_pension_liability_basis"),
+        "unfunded_pension_liability_as_of": current_row.get("unfunded_pension_liability_as_of"),
+        "unfunded_pension_liability_source_id": current_row.get("unfunded_pension_liability_source_id"),
         "lease_liabilities_not_in_debt": bridge_inputs["lease_liabilities_not_in_debt"],
         "assets_added": bridge_assets,
         "obligations_deducted": bridge_obligations,
+        "scenario_obligations": scenario_bridge_obligations,
+        "pension_scenario_obligations": pension_scenario_obligations,
+        "pension_claim_reconciliation": pension_claim_reconciliation,
         "missing_optional_fields": missing_bridge_fields,
-        "complete": not missing_bridge_fields,
+        "unresolved_claims": unresolved_claims,
+        "uncertainty_upper_bound": bridge_uncertainty_upper,
+        "uncertainty_to_book_capital": bridge_uncertainty_materiality,
+        "exact": bridge_exact,
+        "complete": bridge_exact,
+        "calculation_complete": bridge_calculation_complete,
         "cash_separation": cash_separation,
     }
     historical_cash_separation_complete = bool(
@@ -2848,7 +3008,7 @@ def build_institutional_valuation(
             and all(item.get("complete") is True for item in annual_cash_separations)
         )
     )
-    if missing_bridge_fields or (
+    if not bridge_calculation_complete or (
         archetype != "financial"
         and ((cash_separation or {}).get("complete") is not True or not historical_cash_separation_complete)
     ):
@@ -2856,7 +3016,7 @@ def build_institutional_valuation(
             archetype=archetype,
             reason="El puente entre valor empresa y patrimonio o la separación de caja no está completo.",
             price_validation=price_validation,
-            limitations=["Caja, inversiones, deuda, preferentes, minoritarios, pensiones y arrendamientos deben estar explícitos; un dato ausente no se reemplaza por cero."],
+            limitations=["Caja, inversiones, deuda y arrendamientos deben reconciliarse; una obligación no observada solo puede continuar con un límite respaldado por una fuente identificable."],
         )
         blocked["equity_bridge"] = equity_bridge
         blocked["operating_cash_separation"] = cash_separation
@@ -2868,6 +3028,8 @@ def build_institutional_valuation(
         blocked["reliability"]["readiness_gates"]["equity_bridge_completeness"] = {
             "passed": False,
             "missing_optional_fields": missing_bridge_fields,
+            "hard_missing_fields": hard_missing_bridge_fields,
+            "unresolved_claims": unresolved_claims,
         }
         blocked["reliability"]["readiness_gates"]["operating_cash_separation"] = {
             "passed": False,
@@ -2887,7 +3049,7 @@ def build_institutional_valuation(
             "unfunded_pension_liability",
             "lease_liabilities_not_in_debt",
         )
-    )
+    ) + bridge_uncertainty_upper
     other_claims_to_book_capital = _ratio(
         other_capital_claims,
         (debt or 0.0) + book_equity_for_capital,
@@ -2903,6 +3065,7 @@ def build_institutional_valuation(
     current_ebitda = _positive(current_row.get("ebitda"))
     cycle_margins: dict[str, Any] | None = None
     cycle_revenue: dict[str, Any] | None = None
+    structural_cycle_break = False
     historical_trend = _historical_trend_support(annual_rows)
     reinvestment_evidence = _reinvestment_support(annual_rows)
     reinvestment_baseline_growth = (
@@ -3078,6 +3241,12 @@ def build_institutional_valuation(
                 current_to_historical_peak is not None
                 and 0.25 <= current_to_historical_peak <= 1.75
             )
+            structural_cycle_break = bool(
+                current_to_historical_peak is not None
+                and not current_revenue_level_supported
+                and ttm_validation_status == "validated"
+            )
+            current_level_usable_for_research = current_revenue_level_supported
             cycle_revenue.update(
                 {
                     "current_revenue": revenue,
@@ -3085,7 +3254,10 @@ def build_institutional_valuation(
                     "current_to_historical_peak": current_to_historical_peak,
                     "supported_current_level_floor": 0.25,
                     "supported_current_level_ceiling": 1.75,
+                    "maximum_structural_break_multiple": 4.0,
                     "current_level_supported": current_revenue_level_supported,
+                    "current_level_usable_for_research": current_level_usable_for_research,
+                    "structural_break": structural_cycle_break,
                 }
             )
             cycle_margins["observed_current_fcff"] = _number(current_row.get("fcff_after_sbc"))
@@ -3120,15 +3292,91 @@ def build_institutional_valuation(
                     "current_regime_supported": current_regime_supported,
                 }
             )
-            if not current_revenue_level_supported:
+            if not current_level_usable_for_research:
+                structural_scale_bridge = {
+                    "passed": False,
+                    "required": structural_cycle_break,
+                    "observed_ttm_to_historical_peak": current_to_historical_peak,
+                    "missing": [
+                        "capacity_and_asset_turnover_support",
+                        "organic_or_acquisition_revenue_bridge",
+                        "segment_reconciliation",
+                    ] if structural_cycle_break else [],
+                    "policy": "a_reconciled_ttm_proves_the_reported_scale_not_its_sustainable_economics",
+                }
+                normalized_margin = _positive(cycle_margins.get("base"))
+                requirements_discount_rate = _positive(capital.get("wacc"))
+                requirements_price_status = str(price_validation.get("status") or "").lower()
+                requirements_price_context = (
+                    "validated"
+                    if requirements_price_status == "validated" and price_validation.get("usable") is True
+                    else "provider_reconciled"
+                    if requirements_price_status == "provider_reconciled"
+                    and price_validation.get("research_usable") is True
+                    else None
+                )
+                requirements_price_usable = bool(
+                    requirements_price_context
+                    and price_validation.get("fresh") is True
+                    and _positive(price_validation.get("price")) is not None
+                    and _date_text(price_validation.get("as_of"))
+                )
+                requirement_result = (
+                    _reverse_dcf(
+                        price=_positive(price_validation.get("price")),
+                        revenue=revenue,
+                        cash_flow_margin=normalized_margin,
+                        cash=bridge_assets,
+                        debt=scenario_bridge_obligations["base"],
+                        shares=model_shares,
+                        discount_rate=requirements_discount_rate,
+                        terminal_growth=0.02,
+                        method="market_implied_operating_requirements",
+                    )
+                    if structural_cycle_break
+                    and requirements_price_usable
+                    and normalized_margin is not None
+                    and requirements_discount_rate is not None
+                    and model_shares is not None
+                    else {
+                        "available": False,
+                        "status": (
+                            "price_not_research_usable"
+                            if structural_cycle_break and not requirements_price_usable
+                            else "missing_inputs"
+                        ),
+                        "implied_revenue_cagr": None,
+                        "bound": None,
+                    }
+                )
                 blocked = _blocked_valuation(
                     archetype=archetype,
-                    reason="El nivel de ingresos de los últimos doce meses queda fuera del ciclo histórico verificable.",
+                    reason=(
+                        "Los últimos doce meses confirman un cambio de escala contable, pero falta explicar económicamente ese salto."
+                        if structural_cycle_break
+                        else "El nivel de ingresos de los últimos doce meses queda fuera del ciclo histórico verificable."
+                    ),
                     price_validation=price_validation,
-                    limitations=["Se requiere reconciliar capacidad, adquisiciones, desinversiones o una posible diferencia de unidades antes de usar el TTM como punto de partida."],
+                    limitations=[
+                        "Antes de publicar valor razonable se requiere reconciliar capacidad, rotación de activos, adquisiciones o desinversiones y segmentos."
+                    ],
                 )
                 blocked["cycle_revenue_normalization"] = cycle_revenue
                 blocked["cycle_normalization"] = cycle_margins
+                blocked["financial_data_as_of"] = _date_text(current_row.get("date"))
+                blocked["structural_scale_bridge"] = structural_scale_bridge
+                blocked["market_requirements"] = {
+                    "available": requirement_result.get("available") is True,
+                    "status": requirement_result.get("status"),
+                    "implied_revenue_cagr": _number(requirement_result.get("implied_revenue_cagr")),
+                    "implied_revenue_cagr_bound": requirement_result.get("bound"),
+                    "normalized_margin": normalized_margin,
+                    "discount_rate": requirements_discount_rate,
+                    "terminal_growth": 0.02,
+                    "horizon_years": 5,
+                    "price_context": requirements_price_context,
+                    "market_data_as_of": _date_text(price_validation.get("as_of")) if requirements_price_usable else None,
+                }
                 blocked["estimate_validation"] = estimate_validation
                 blocked["stock_compensation_treatment"] = {
                     "complete": sbc_treatment_complete,
@@ -3139,6 +3387,9 @@ def build_institutional_valuation(
                     "reconciliation_failures": sbc_reconciliation_failures,
                     "future_dilution_modeled": False,
                 }
+                blocked["reliability"]["readiness_gates"]["structural_scale_bridge"] = structural_scale_bridge
+                if structural_cycle_break:
+                    blocked["reliability"]["decision_ready_blockers"].append("structural_scale_bridge")
                 return _json_safe(blocked)
             if (
                 observed_fcff is None
@@ -3227,7 +3478,7 @@ def build_institutional_valuation(
                 discount_rate=_clamp(discount_rate + rate_delta, 0.04, 0.32),
                 terminal_growth=terminal_growth + ({"bear": -0.005, "base": 0.0, "bull": 0.005}[name]),
                 cash=bridge_assets,
-                debt=bridge_obligations,
+                debt=scenario_bridge_obligations[name],
                 shares=model_shares,
             )
             if scenario:
@@ -3327,13 +3578,35 @@ def build_institutional_valuation(
         annual_rows,
         "net_income" if archetype == "financial" else cash_flow_key,
     )
-    cash_flow_regime_supported = bool(
-        historical_cash_flow_evidence.get("passed") is True
-        and (
-            archetype in {"financial", "capacity_cycle"}
-            or historical_cash_flow_evidence.get("persistent_positive_regime") is True
+    cash_flow_support_basis = "generic_historical_cash_flow_regime"
+    cash_flow_support_observed: dict[str, Any] = historical_cash_flow_evidence
+    if archetype == "capacity_cycle":
+        cash_flow_support_basis = "capacity_cycle_normalization"
+        cash_flow_support_observed = {
+            "margin_coverage_complete": (cycle_margins or {}).get("coverage_complete") is True,
+            "revenue_coverage_complete": (cycle_revenue or {}).get("coverage_complete") is True,
+            "current_regime_supported": (cycle_margins or {}).get("current_regime_supported") is True,
+            "current_revenue_usable_for_research": (
+                (cycle_revenue or {}).get("current_level_usable_for_research") is True
+            ),
+            "normalized_base_margin": _number((cycle_margins or {}).get("base")),
+            "generic_cash_flow_evidence": historical_cash_flow_evidence,
+        }
+        cash_flow_regime_supported = bool(
+            cash_flow_support_observed["margin_coverage_complete"]
+            and cash_flow_support_observed["revenue_coverage_complete"]
+            and cash_flow_support_observed["current_regime_supported"]
+            and cash_flow_support_observed["current_revenue_usable_for_research"]
+            and (_number(cash_flow_support_observed["normalized_base_margin"]) or 0.0) > 0
         )
-    )
+    else:
+        cash_flow_regime_supported = bool(
+            historical_cash_flow_evidence.get("passed") is True
+            and (
+                archetype == "financial"
+                or historical_cash_flow_evidence.get("persistent_positive_regime") is True
+            )
+        )
     if archetype == "financial":
         future_estimate_support = len(historical_tangible_roes) >= 3
         forward_support_basis = "residual_income_history" if future_estimate_support else "insufficient"
@@ -3342,6 +3615,8 @@ def build_institutional_valuation(
             cycle_coverage_complete
             and (cycle_revenue or {}).get("coverage_complete") is True
             and (cycle_margins or {}).get("current_regime_supported") is True
+            and (cycle_revenue or {}).get("current_level_usable_for_research") is True
+            and (_number((cycle_margins or {}).get("base")) or 0.0) > 0
         )
         future_estimate_support = historical_cycle_support
         forward_support_basis = (
@@ -3443,6 +3718,12 @@ def build_institutional_valuation(
         limitations.append(
             "El contraste de caja usa la misma normalización cíclica; se publica un rango de investigación, no un valor central definitivo."
         )
+    if archetype == "capacity_cycle" and structural_cycle_break:
+        limitations.append(
+            "Los ingresos TTM confirman un cambio de escala frente al ciclo histórico; "
+            "los ingresos revierten hacia referencias observadas y el margen converge a una mezcla explícita del ciclo y el TTM validado, "
+            "y la cifra central permanece retenida."
+        )
     if currency_consistent:
         score += 0.04
     else:
@@ -3451,8 +3732,14 @@ def build_institutional_valuation(
         limitations.append("No todos los ejercicios históricos informan explícitamente la misma moneda que los últimos doce meses.")
     if equity_bridge["complete"]:
         score += 0.03
+    elif equity_bridge["calculation_complete"]:
+        limitations.append("Una obligación de balance no observada se incorpora como sensibilidad; el rango es investigativo y no admite una cifra central.")
     else:
         limitations.append("El puente de valor empresa a patrimonio no confirma todos los ajustes opcionales de balance.")
+    if pension_sensitivity_applied:
+        limitations.append(
+            "La obligación de pensión se muestra entre deducción completa y cero para evitar contar dos veces aportes ya incluidos en caja; la cifra central permanece retenida."
+        )
     if (share_dilution or {}).get("passed") is True:
         score += 0.03
         if (share_dilution or {}).get("observed_annual_dilution", 0) > 0:
@@ -3525,7 +3812,8 @@ def build_institutional_valuation(
         },
         "historical_cash_flow_support": {
             "passed": cash_flow_regime_supported,
-            "observed": historical_cash_flow_evidence,
+            "basis": cash_flow_support_basis,
+            "observed": cash_flow_support_observed,
         },
         "operating_cash_separation": {
             "passed": archetype == "financial" or (cash_separation or {}).get("complete") is True,
@@ -3573,7 +3861,10 @@ def build_institutional_valuation(
         "equity_bridge_completeness": {
             "passed": equity_bridge["complete"],
             "missing_optional_fields": missing_bridge_fields,
+            "calculation_complete": equity_bridge["calculation_complete"],
+            "unresolved_claims": unresolved_claims,
         },
+        "pension_claim_reconciliation": pension_claim_reconciliation,
         "share_dilution_support": {
             "passed": (share_dilution or {}).get("passed") is True,
             "observed": share_dilution,
@@ -3593,6 +3884,11 @@ def build_institutional_valuation(
             ),
             "observed_years": (cycle_margins or {}).get("years") if archetype == "capacity_cycle" else None,
             "required_years": 7 if archetype == "capacity_cycle" else None,
+        },
+        "cycle_regime_continuity": {
+            "passed": archetype != "capacity_cycle" or not structural_cycle_break,
+            "structural_break": structural_cycle_break if archetype == "capacity_cycle" else None,
+            "required": "no unresolved structural break for a decision-ready central estimate",
         },
         "fundamental_scale_reconciliation": {
             "passed": fundamental_scale_validation.get("passed") is True,
@@ -3666,7 +3962,7 @@ def build_institutional_valuation(
         and capital_structure_support
         and historical_currency_consistent
         and (archetype == "financial" or sbc_treatment_complete)
-        and equity_bridge["complete"]
+        and equity_bridge["calculation_complete"]
         and (share_dilution or {}).get("passed") is True
         and range_informative
         and maximum_terminal_share <= 0.90
@@ -3680,6 +3976,7 @@ def build_institutional_valuation(
         confidence = "low" if score > 0 else "blocked"
         usable = False
 
+    published_central_value = central_value if equity_bridge["exact"] else None
     market_cap = _positive(price_validation.get("market_cap"))
     enterprise_value = (
         _number(market_cap + bridge_obligations - bridge_assets)
@@ -3725,8 +4022,8 @@ def build_institutional_valuation(
         "financial_data_as_of": _date_text(current_row.get("date")),
         "financial_currency": financial_currency,
         "price_validation": price_validation,
-        "range": {"low": low_value, "central": central_value, "high": high_value},
-        "selected_value": central_value,
+        "range": {"low": low_value, "central": published_central_value, "high": high_value},
+        "selected_value": published_central_value,
         "scenarios": scenarios,
         "methods": methods,
         "reverse_dcf": reverse,

@@ -9,16 +9,21 @@ import pandas as pd
 import pytest
 
 from meta_alpha_allocator.research.equity_research_os import (
+    DEFAULT_TAX_RATE,
     DcfScenarioInput,
+    _build_valuation,
     _build_downloads,
     _build_model_xlsx,
     _build_ttm_row,
+    _enrich_balance_frames_with_sec,
+    _derive_assumptions,
     _apply_current_share_count_gate,
     _apply_statement_reconciliation_gate,
     _load_fmp_payloads,
     _normalize_financials,
     _reconcile_current_share_count,
     _sec_company_facts_frames,
+    _ttm_data_points,
     build_dcf_scenario,
     build_equity_research_bundle,
     calculate_revenue_cagr,
@@ -625,6 +630,261 @@ def test_ttm_builder_marks_mismatch_when_provider_ttm_disagrees() -> None:
     assert ttm["ttm_validation"]["status"] == "provider_ttm_mismatch"
     assert ttm["ttm_validation"]["provider_ttm_reconciled"] is False
     assert any(not check["passed"] for check in ttm["ttm_validation"]["provider_ttm_checks"])
+
+
+def _sec_duration_facts(rows: list[dict], *, unit: str = "USD") -> dict:
+    return {"units": {unit: rows}}
+
+
+def _complete_sec_rolling_ttm_facts(frames: dict[str, pd.DataFrame]) -> dict:
+    q4_revenue, q1_revenue, q2_revenue, q3_revenue = frames["income_quarterly"]["revenue"].tolist()
+    q4_interest, q1_interest, q2_interest, q3_interest = frames["income_quarterly"]["interestExpense"].tolist()
+    q4_shares, q1_shares, q2_shares, q3_shares = frames["income_quarterly"][
+        "weightedAverageShsOutDil"
+    ].tolist()
+    q4_cfo, q1_cfo, q2_cfo, q3_cfo = frames["cash_flow_quarterly"][
+        "netCashProvidedByOperatingActivities"
+    ].tolist()
+    q4_capex, q1_capex, q2_capex, q3_capex = frames["cash_flow_quarterly"][
+        "capitalExpenditure"
+    ].abs().tolist()
+    q4_sbc, q1_sbc, q2_sbc, q3_sbc = frames["cash_flow_quarterly"][
+        "stockBasedCompensation"
+    ].tolist()
+
+    def rolling_facts(
+        q4: float,
+        q1: float,
+        q2: float,
+        q3: float,
+        *,
+        unit: str = "USD",
+        weighted_average: bool = False,
+    ) -> dict:
+        prior_q3_ytd = q4 if weighted_average else 3 * q4
+        fiscal_year = (3 * q4 + q4) / 4 if weighted_average else prior_q3_ytd + q4
+        q2_ytd = (q1 + q2) / 2 if weighted_average else q1 + q2
+        q3_ytd = (q1 + q2 + q3) / 3 if weighted_average else q1 + q2 + q3
+        return _sec_duration_facts(
+            [
+                {
+                    "start": "2024-07-01",
+                    "end": "2025-03-31",
+                    "val": prior_q3_ytd,
+                    "form": "10-Q",
+                    "fp": "Q3",
+                    "fy": 2025,
+                    "filed": "2025-04-20",
+                },
+                {
+                    "start": "2024-07-01",
+                    "end": "2025-06-30",
+                    "val": fiscal_year,
+                    "form": "10-K",
+                    "fp": "FY",
+                    "fy": 2025,
+                    "filed": "2025-08-20",
+                },
+                {
+                    "start": "2025-07-01",
+                    "end": "2025-09-30",
+                    "val": q1,
+                    "form": "10-Q",
+                    "fp": "Q1",
+                    "fy": 2026,
+                    "filed": "2025-10-20",
+                },
+                {
+                    "start": "2025-07-01",
+                    "end": "2025-12-31",
+                    "val": q2_ytd,
+                    "form": "10-Q",
+                    "fp": "Q2",
+                    "fy": 2026,
+                    "filed": "2026-01-20",
+                },
+                {
+                    "start": "2025-07-01",
+                    "end": "2026-03-31",
+                    "val": q3_ytd,
+                    "form": "10-Q",
+                    "fp": "Q3",
+                    "fy": 2026,
+                    "filed": "2026-04-20",
+                },
+            ],
+            unit=unit,
+        )
+
+    return {
+        "facts": {
+            "us-gaap": {
+                "RevenueFromContractWithCustomerExcludingAssessedTax": rolling_facts(
+                    q4_revenue, q1_revenue, q2_revenue, q3_revenue
+                ),
+                "InterestExpenseNonOperating": rolling_facts(
+                    q4_interest, q1_interest, q2_interest, q3_interest
+                ),
+                "WeightedAverageNumberOfDilutedSharesOutstanding": rolling_facts(
+                    q4_shares,
+                    q1_shares,
+                    q2_shares,
+                    q3_shares,
+                    unit="shares",
+                    weighted_average=True,
+                ),
+                "NetCashProvidedByUsedInOperatingActivities": rolling_facts(
+                    q4_cfo, q1_cfo, q2_cfo, q3_cfo
+                ),
+                "PaymentsToAcquirePropertyPlantAndEquipment": rolling_facts(
+                    q4_capex, q1_capex, q2_capex, q3_capex
+                ),
+                "ShareBasedCompensation": rolling_facts(
+                    q4_sbc, q1_sbc, q2_sbc, q3_sbc
+                ),
+            }
+        }
+    }
+
+
+def test_ttm_builder_does_not_validate_sec_ytd_without_the_prior_fy_q4_bridge() -> None:
+    frames = _quarterly_ttm_frames(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31"])
+    for key in ("income_quarterly", "cash_flow_quarterly", "balance_quarterly"):
+        frames[key]["period"] = ["Q4", "Q1", "Q2", "Q3"]
+    q1_revenue, q2_revenue, q3_revenue = frames["income_quarterly"].loc[1:3, "revenue"].tolist()
+    q1_cfo, q2_cfo, q3_cfo = frames["cash_flow_quarterly"].loc[1:3, "netCashProvidedByOperatingActivities"].tolist()
+    q1_capex, q2_capex, q3_capex = frames["cash_flow_quarterly"].loc[1:3, "capitalExpenditure"].abs().tolist()
+    facts = {
+        "facts": {
+            "us-gaap": {
+                "RevenueFromContractWithCustomerExcludingAssessedTax": _sec_duration_facts([
+                    {"start": "2025-07-01", "end": "2025-09-30", "val": q1_revenue, "form": "10-Q", "fp": "Q1", "fy": 2026, "filed": "2025-10-20"},
+                    {"start": "2025-07-01", "end": "2025-12-31", "val": q1_revenue + q2_revenue, "form": "10-Q", "fp": "Q2", "fy": 2026, "filed": "2026-01-20"},
+                    {"start": "2025-07-01", "end": "2026-03-31", "val": q1_revenue + q2_revenue + q3_revenue, "form": "10-Q", "fp": "Q3", "fy": 2026, "filed": "2026-04-20"},
+                ]),
+                "NetCashProvidedByUsedInOperatingActivities": _sec_duration_facts([
+                    {"start": "2025-07-01", "end": "2025-09-30", "val": q1_cfo, "form": "10-Q", "fp": "Q1", "fy": 2026, "filed": "2025-10-20"},
+                    {"start": "2025-07-01", "end": "2025-12-31", "val": q1_cfo + q2_cfo, "form": "10-Q", "fp": "Q2", "fy": 2026, "filed": "2026-01-20"},
+                    {"start": "2025-07-01", "end": "2026-03-31", "val": q1_cfo + q2_cfo + q3_cfo, "form": "10-Q", "fp": "Q3", "fy": 2026, "filed": "2026-04-20"},
+                ]),
+                "PaymentsToAcquirePropertyPlantAndEquipment": _sec_duration_facts([
+                    {"start": "2025-07-01", "end": "2025-09-30", "val": q1_capex, "form": "10-Q", "fp": "Q1", "fy": 2026, "filed": "2025-10-20"},
+                    {"start": "2025-07-01", "end": "2025-12-31", "val": q1_capex + q2_capex, "form": "10-Q", "fp": "Q2", "fy": 2026, "filed": "2026-01-20"},
+                    {"start": "2025-07-01", "end": "2026-03-31", "val": q1_capex + q2_capex + q3_capex, "form": "10-Q", "fp": "Q3", "fy": 2026, "filed": "2026-04-20"},
+                ]),
+            }
+        }
+    }
+
+    ttm = _build_ttm_row(frames, 0.21, sec_company_facts=facts)
+
+    assert ttm is not None
+    assert ttm["ttm_validation"]["status"] == "date_sequence_only"
+    assert ttm["ttm_validation"]["sec_quarterly_reconciled"] is False
+
+
+def test_ttm_builder_validates_all_four_discrete_quarters_against_complete_sec_fiscal_identities() -> None:
+    frames = _quarterly_ttm_frames(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31"])
+    for key in ("income_quarterly", "cash_flow_quarterly", "balance_quarterly"):
+        frames[key]["period"] = ["Q4", "Q1", "Q2", "Q3"]
+
+    ttm = _build_ttm_row(frames, 0.21, sec_company_facts=_complete_sec_rolling_ttm_facts(frames))
+
+    assert ttm is not None
+    assert ttm["ttm_validation"]["status"] == "validated"
+    assert ttm["ttm_validation"]["period_basis"] == "discrete_reconciled_to_sec_ytd"
+    assert ttm["ttm_validation"]["sec_quarterly_reconciled"] is True
+    assert {check["metric"] for check in ttm["ttm_validation"]["sec_quarterly_checks"]} == {
+        "revenue",
+        "interest_expense",
+        "diluted_shares",
+        "cash_from_operations",
+        "capital_expenditures",
+        "stock_based_compensation",
+    }
+    assert len(ttm["ttm_validation"]["sec_quarterly_checks"]) == 24
+    assert {check["period"] for check in ttm["ttm_validation"]["sec_quarterly_checks"]} == {
+        "Q1",
+        "Q2",
+        "Q3",
+        "Q4",
+    }
+
+    points = {point["metric"]: point for point in _ttm_data_points(ttm)}
+    assert "sec:companyfacts:income" in points["financials.ttm.revenue"]["source_ids"]
+    assert "sec:companyfacts:income" in points["financials.ttm.fcff"]["source_ids"]
+    assert "sec:companyfacts:cash-flow" in points["financials.ttm.fcff"]["source_ids"]
+    assert "sec:companyfacts:income" in points["financials.ttm.fcff_after_sbc"]["source_ids"]
+    assert "sec:companyfacts:cash-flow" in points["financials.ttm.fcff_after_sbc"]["source_ids"]
+    assert "sec:companyfacts:income" in points["financials.ttm.diluted_shares"]["source_ids"]
+    assert "sec:companyfacts:income" not in points["financials.ttm.net_income"]["source_ids"]
+
+
+@pytest.mark.parametrize("corrupt_period", ["Q3", "Q4"])
+def test_ttm_builder_rejects_corrupt_provider_quarter_even_when_other_sec_identities_match(
+    corrupt_period: str,
+) -> None:
+    frames = _quarterly_ttm_frames(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31"])
+    for key in ("income_quarterly", "cash_flow_quarterly", "balance_quarterly"):
+        frames[key]["period"] = ["Q4", "Q1", "Q2", "Q3"]
+    sec_facts = _complete_sec_rolling_ttm_facts(frames)
+    period_index = {"Q4": 0, "Q1": 1, "Q2": 2, "Q3": 3}[corrupt_period]
+    frames["income_quarterly"].loc[period_index, "revenue"] *= 1.5
+
+    ttm = _build_ttm_row(frames, 0.21, sec_company_facts=sec_facts)
+
+    assert ttm is not None
+    assert ttm["ttm_validation"]["status"] == "date_sequence_only"
+    assert ttm["ttm_validation"]["sec_quarterly_reconciled"] is False
+    assert any(
+        check["metric"] == "revenue"
+        and check["period"] == corrupt_period
+        and check["passed"] is False
+        for check in ttm["ttm_validation"]["sec_quarterly_checks"]
+    )
+
+
+@pytest.mark.parametrize(
+    ("frame_key", "column"),
+    [
+        ("income_quarterly", "interestExpense"),
+        ("cash_flow_quarterly", "stockBasedCompensation"),
+        ("income_quarterly", "weightedAverageShsOutDil"),
+    ],
+)
+def test_sec_ttm_cannot_validate_when_an_owner_fcff_per_share_driver_is_corrupt(
+    frame_key: str,
+    column: str,
+) -> None:
+    frames = _quarterly_ttm_frames(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31"])
+    for key in ("income_quarterly", "cash_flow_quarterly", "balance_quarterly"):
+        frames[key]["period"] = ["Q4", "Q1", "Q2", "Q3"]
+    sec_facts = _complete_sec_rolling_ttm_facts(frames)
+    frames[frame_key].loc[3, column] *= 100.0
+
+    ttm = _build_ttm_row(frames, 0.21, sec_company_facts=sec_facts)
+
+    assert ttm is not None
+    assert ttm["ttm_validation"]["status"] == "date_sequence_only"
+    assert ttm["ttm_validation"]["sec_quarterly_reconciled"] is False
+    assert any(
+        check["period"] == "Q3" and check["passed"] is False
+        for check in ttm["ttm_validation"]["sec_quarterly_checks"]
+        if check["metric"] in {"interest_expense", "stock_based_compensation", "diluted_shares"}
+    )
+
+
+def test_ttm_builder_rejects_incoherent_fiscal_period_sequence_before_sec_reconciliation() -> None:
+    frames = _quarterly_ttm_frames(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31"])
+    sec_facts = _complete_sec_rolling_ttm_facts(frames)
+    for key in ("income_quarterly", "cash_flow_quarterly", "balance_quarterly"):
+        frames[key]["period"] = ["Q4", "Q1", "Q3", "Q2"]
+
+    ttm = _build_ttm_row(frames, 0.21, sec_company_facts=sec_facts)
+
+    assert ttm is not None
+    assert ttm["ttm_validation"]["status"] == "date_sequence_only"
+    assert ttm["ttm_validation"]["sec_quarterly_reconciled"] is False
 
 
 def test_cash_and_short_term_investments_are_reconciled_without_double_counting() -> None:
@@ -1297,6 +1557,119 @@ def test_sec_prefers_total_intangibles_over_the_finite_lived_subset() -> None:
     assert frames["balance"].iloc[-1]["goodwillAndIntangibleAssets"] == 40.0
 
 
+def test_sec_derives_only_the_unfunded_part_of_a_defined_benefit_plan() -> None:
+    company_facts = {
+        "facts": {
+            "us-gaap": {
+                "DefinedBenefitPlanBenefitObligation": _sec_annual_facts({2025: 197_000_000.0}),
+                "DefinedBenefitPlanFairValueOfPlanAssets": _sec_annual_facts({2025: 276_000_000.0}),
+            }
+        }
+    }
+
+    frames, covered = _sec_company_facts_frames(company_facts)
+    balance = frames["balance"]
+
+    assert balance.iloc[0]["unfundedPensionLiability"] == 0.0
+    assert balance.iloc[0]["unfundedPensionLiabilityBasis"] == "benefit_obligation_less_plan_assets"
+    assert "unfundedPensionLiability" in covered["balance"]
+
+
+def test_sec_quarterly_balance_facts_are_isolated_from_the_annual_statement_series() -> None:
+    company_facts = {
+        "facts": {
+            "us-gaap": {
+                "Assets": {
+                    "units": {
+                        "USD": [
+                            {
+                                "end": "2025-12-31",
+                                "fy": 2025,
+                                "fp": "FY",
+                                "form": "10-K",
+                                "filed": "2026-02-20",
+                                "val": 1_000_000_000.0,
+                            },
+                            {
+                                "end": "2026-03-31",
+                                "fy": 2026,
+                                "fp": "Q1",
+                                "form": "10-Q",
+                                "filed": "2026-05-01",
+                                "val": 1_100_000_000.0,
+                            },
+                        ]
+                    }
+                },
+                "DefinedBenefitPlanBenefitObligation": {
+                    "units": {
+                        "USD": [
+                            {
+                                "end": "2026-03-31",
+                                "fy": 2026,
+                                "fp": "Q1",
+                                "form": "10-Q",
+                                "filed": "2026-05-01",
+                                "val": 250_000_000.0,
+                            }
+                        ]
+                    }
+                },
+                "DefinedBenefitPlanFairValueOfPlanAssets": {
+                    "units": {
+                        "USD": [
+                            {
+                                "end": "2026-03-31",
+                                "fy": 2026,
+                                "fp": "Q1",
+                                "form": "10-Q",
+                                "filed": "2026-05-01",
+                                "val": 200_000_000.0,
+                            }
+                        ]
+                    }
+                },
+            }
+        }
+    }
+
+    frames, _ = _sec_company_facts_frames(company_facts)
+
+    assert frames["balance"]["date"].tolist() == ["2025-12-31"]
+    assert frames["balance"].iloc[-1]["totalAssets"] == 1_000_000_000.0
+    assert "unfundedPensionLiability" not in frames["balance"].columns
+    assert frames["balance_enrichment"].iloc[-1]["date"] == "2026-03-31"
+    assert frames["balance_enrichment"].iloc[-1]["unfundedPensionLiability"] == 50_000_000.0
+
+
+def test_sec_pension_fact_enriches_each_missing_fmp_balance_frame_with_provenance() -> None:
+    sec_frames, _ = _sec_company_facts_frames(
+        {
+            "facts": {
+                "us-gaap": {
+                    "DefinedBenefitPlanBenefitObligation": _sec_annual_facts({2025: 197_000_000.0}),
+                    "DefinedBenefitPlanFairValueOfPlanAssets": _sec_annual_facts({2025: 276_000_000.0}),
+                }
+            }
+        }
+    )
+    frames = {
+        "balance": pd.DataFrame([{"date": "2025-12-31", "totalAssets": 1_000_000_000.0}]),
+        "balance_quarterly": pd.DataFrame([{"date": "2026-03-31", "totalAssets": 1_100_000_000.0}]),
+        "balance_ttm": pd.DataFrame([{"date": "2026-03-31", "totalAssets": 1_100_000_000.0}]),
+    }
+
+    enrichments = _enrich_balance_frames_with_sec(frames, sec_frames)
+
+    assert len(enrichments) == 3
+    for frame_key in ("balance", "balance_quarterly", "balance_ttm"):
+        row = frames[frame_key].iloc[-1]
+        assert row["unfundedPensionLiability"] == 0.0
+        assert row["unfundedPensionLiabilityBasis"] == "benefit_obligation_less_plan_assets"
+        assert row["unfundedPensionLiabilityAsOf"] == "2025-12-31"
+        assert row["unfundedPensionLiabilitySourceId"] == "sec:companyfacts:balance"
+
+
 def test_download_builder_does_not_offer_xlsx_when_artifact_policy_withholds_it(monkeypatch) -> None:
     monkeypatch.setattr(
         "meta_alpha_allocator.research.equity_research_os._build_model_xlsx",
@@ -1517,6 +1890,27 @@ def test_micron_like_company_builds_a_cycle_but_withholds_it_when_sec_numbers_co
     latest_revenue_point = next(point for point in bundle["sources"]["data_points"] if point["metric"] == "latest_revenue")
     assert latest_revenue_point["claim_tag"] == "calculated_metric"
     assert latest_revenue_point["source_id"] is None
+
+
+def test_micron_like_structural_cycle_returns_price_requirements_instead_of_an_arbitrary_fair_value() -> None:
+    profile, frames, _ = _load_fmp_payloads("MU", None, MicronLikeFMPClient())
+    rows = _normalize_financials(frames, DEFAULT_TAX_RATE)
+    ttm = _build_ttm_row(frames, DEFAULT_TAX_RATE)
+    assumptions = _derive_assumptions(rows, ttm)
+    rows = _normalize_financials(frames, assumptions["normalized_tax_rate"])
+    ttm = _build_ttm_row(frames, assumptions["normalized_tax_rate"])
+    assumptions = _derive_assumptions(rows, ttm)
+
+    valuation = _build_valuation("MU", rows, ttm, profile, frames, assumptions)
+
+    assert valuation["status"] == "not_decision_ready"
+    assert valuation["available"] is False
+    assert valuation["cycle_revenue_normalization"]["structural_break"] is True
+    assert valuation["range"] == {"low": None, "central": None, "high": None}
+    assert valuation["structural_scale_bridge"]["passed"] is False
+    assert valuation["market_requirements"]["available"] is True
+    assert valuation["market_requirements"]["normalized_margin"] > 0
+    assert valuation["market_requirements"]["horizon_years"] == 5
 
 
 def test_current_basic_shares_are_reconciled_as_a_control_not_a_diluted_denominator_replacement() -> None:
