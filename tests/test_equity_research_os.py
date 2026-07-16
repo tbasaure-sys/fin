@@ -118,6 +118,96 @@ def test_valuation_range_evidence_exposes_canonical_low_central_and_high_metrics
     assert all(point["formula"] for point in canonical.values())
 
 
+class MockYFinanceTicker:
+    def __init__(self, symbol: str):
+        statement_date = pd.Timestamp(date.today() - timedelta(days=180))
+        self.fast_info = {
+            "last_price": 8.0,
+            "market_cap": 400_000_000.0,
+            "currency": "USD",
+            "exchange": "NMS",
+            "shares": 50_000_000.0,
+        }
+        self.info = {
+            "symbol": symbol,
+            "longName": "Example Early Stage Biotech",
+            "sector": "Healthcare",
+            "industry": "Biotechnology",
+            "country": "United States",
+            "currency": "USD",
+            "exchange": "NMS",
+            "currentPrice": 8.0,
+            "marketCap": 400_000_000.0,
+            "sharesOutstanding": 50_000_000.0,
+            "floatShares": 44_000_000.0,
+        }
+        self.income_stmt = pd.DataFrame(
+            {
+                statement_date: {
+                    "Total Revenue": 0.0,
+                    "EBITDA": -42_000_000.0,
+                    "Operating Income": -45_000_000.0,
+                    "Net Income": -44_000_000.0,
+                    "Diluted Average Shares": 50_000_000.0,
+                }
+            }
+        )
+        self.cash_flow = pd.DataFrame(
+            {
+                statement_date: {
+                    "Operating Cash Flow": -38_000_000.0,
+                    "Capital Expenditure": -2_000_000.0,
+                    "Free Cash Flow": -40_000_000.0,
+                    "Stock Based Compensation": 5_000_000.0,
+                }
+            }
+        )
+        self.balance_sheet = pd.DataFrame(
+            {
+                statement_date: {
+                    "Cash Cash Equivalents And Short Term Investments": 120_000_000.0,
+                    "Total Debt": 10_000_000.0,
+                    "Stockholders Equity": 135_000_000.0,
+                    "Total Assets": 175_000_000.0,
+                }
+            }
+        )
+        self.quarterly_income_stmt = pd.DataFrame()
+        self.quarterly_cash_flow = pd.DataFrame()
+        self.quarterly_balance_sheet = pd.DataFrame()
+
+    def history(self, **_kwargs) -> pd.DataFrame:
+        return pd.DataFrame(
+            {"Close": [7.9, 8.0]},
+            index=pd.to_datetime([PRIOR_MARKET_DATE, RECENT_MARKET_DATE]),
+        )
+
+
+def test_equity_research_uses_yfinance_when_primary_market_and_statement_data_are_missing() -> None:
+    bundle = build_equity_research_bundle(
+        "EARLY",
+        fmp_client=None,
+        sec_client=None,
+        yfinance_factory=MockYFinanceTicker,
+    )
+
+    assert bundle["company_profile"]["name"] == "Example Early Stage Biotech"
+    assert bundle["valuation"]["current_price"] == 8.0
+    assert bundle["valuation"]["market_data_as_of"] == RECENT_MARKET_DATE
+    assert bundle["valuation"]["price_validation"]["status"] == "provider_reconciled"
+    assert bundle["valuation"]["screening_analysis"]["kind"] == "early_stage"
+    assert bundle["valuation"]["screening_analysis"]["runway"]["years"] == pytest.approx(3.0)
+    source_status = {
+        source["source_id"]: source["status"]
+        for source in bundle["sources"]["records"]
+    }
+    assert source_status["yfinance:quote"] == "ok"
+    assert source_status["yfinance:prices"] == "ok"
+    assert source_status["yfinance:income:annual"] == "ok"
+    assert source_status["yfinance:cash-flow:annual"] == "ok"
+    assert source_status["yfinance:balance:annual"] == "ok"
+
+
 class MockFMPClient:
     def get_profile(self, symbol: str) -> dict:
         return {
@@ -299,7 +389,7 @@ class MicronLikeFMPClient(MockFMPClient):
             "symbol": symbol,
             "price": 983.12,
             "marketCap": 1_110_325_896_800.0,
-            "timestamp": 1_784_059_201,
+            "as_of": RECENT_MARKET_DATE,
         }
 
     def get_income_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:

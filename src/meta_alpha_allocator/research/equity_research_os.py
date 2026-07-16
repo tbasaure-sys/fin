@@ -341,6 +341,16 @@ TTM_STATEMENT_SOURCE_IDS = {
     "cash_flow": "fmp:cash-flow:ttm",
     "balance": "fmp:balance:ttm",
 }
+YFINANCE_STATEMENT_SOURCE_IDS = {
+    "income": "yfinance:income:annual",
+    "cash_flow": "yfinance:cash-flow:annual",
+    "balance": "yfinance:balance:annual",
+}
+YFINANCE_QUARTERLY_STATEMENT_SOURCE_IDS = {
+    "income": "yfinance:income:quarterly",
+    "cash_flow": "yfinance:cash-flow:quarterly",
+    "balance": "yfinance:balance:quarterly",
+}
 SEC_RECONCILIATION_SOURCE_ID = "sec:companyfacts:reconciliation"
 
 SEC_ANNUAL_FORMS = {"10-K", "10-K/A", "20-F", "20-F/A", "40-F", "40-F/A"}
@@ -480,9 +490,13 @@ def _financial_data_points(rows: list[dict[str, Any]], source_ids: dict[str, str
     return ledger
 
 
-def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
+def _ttm_data_points(
+    ttm_row: dict[str, Any] | None,
+    quarterly_source_ids: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
     if not ttm_row:
         return []
+    quarterly_source_ids = quarterly_source_ids or QUARTERLY_STATEMENT_SOURCE_IDS
     validation = ttm_row.get("ttm_validation") or {}
     quarter_dates = validation.get("quarter_dates") or []
     provider_reconciled = validation.get("provider_ttm_reconciled") is True
@@ -540,7 +554,7 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
         if not _has_value(value):
             continue
         if field in summed_income:
-            source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["income"]]
+            source_ids = [quarterly_source_ids["income"]]
             formula = "sum of four discrete sequential quarterly income-statement observations"
             if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["income"])
@@ -549,10 +563,10 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
                 source_ids.append(SEC_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to SEC year-to-date filing identities"
         elif field in summed_cash:
-            source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["cash_flow"]]
+            source_ids = [quarterly_source_ids["cash_flow"]]
             formula = "sum of four discrete sequential quarterly cash-flow observations"
             if field in {"fcff", "fcff_after_sbc"}:
-                source_ids.append(QUARTERLY_STATEMENT_SOURCE_IDS["income"])
+                source_ids.append(quarterly_source_ids["income"])
                 formula += "; after-tax interest reconciled from the income statement"
             if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["cash_flow"])
@@ -565,7 +579,7 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
                     source_ids.append(SEC_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to SEC year-to-date filing identities"
         elif field == "diluted_shares":
-            source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["income"]]
+            source_ids = [quarterly_source_ids["income"]]
             formula = "average diluted shares across four discrete sequential quarters"
             if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["income"])
@@ -581,7 +595,7 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
                     or "latest sourced net pension obligation"
                 )
             else:
-                source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["balance"]]
+                source_ids = [quarterly_source_ids["balance"]]
                 formula = "latest balance-sheet observation within the validated four-quarter window"
             if provider_balance_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["balance"])
@@ -967,7 +981,12 @@ def _all_statement_families_use_sec(statement_source_ids: dict[str, str]) -> boo
 
 def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[dict[str, Any]]) -> dict[str, Any]:
     source_status = {str(source.get("source_id")): source.get("status") for source in sources if source.get("source_id")}
-    statement_source_ids = set(DEFAULT_STATEMENT_SOURCE_IDS.values()) | set(SEC_STATEMENT_SOURCE_IDS.values())
+    statement_source_ids = (
+        set(DEFAULT_STATEMENT_SOURCE_IDS.values())
+        | set(SEC_STATEMENT_SOURCE_IDS.values())
+        | set(YFINANCE_STATEMENT_SOURCE_IDS.values())
+        | set(YFINANCE_QUARTERLY_STATEMENT_SOURCE_IDS.values())
+    )
     source_provider_by_id = {str(source.get("source_id")): str(source.get("provider")) for source in sources if source.get("source_id")}
     source_backed = [
         point
@@ -1025,12 +1044,24 @@ def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[di
     elif "sec-edgar" in used_statement_providers and "fmp" in used_statement_providers:
         statement_authority = "Mixed FMP and SEC Company Facts normalized statements"
         statement_source_provider = "mixed"
+    elif "sec-edgar" in used_statement_providers and "yfinance" in used_statement_providers:
+        statement_authority = "Yahoo Finance normalized statements with SEC Company Facts support"
+        statement_source_provider = "mixed"
+    elif "fmp" in used_statement_providers and "yfinance" in used_statement_providers:
+        statement_authority = "Mixed FMP and Yahoo Finance normalized statements"
+        statement_source_provider = "mixed"
     elif used_statement_providers == {"fmp"} and reconciliation_status == "reconciled":
         statement_authority = "FMP normalized statements reconciled to SEC Company Facts/XBRL"
         statement_source_provider = "fmp"
     elif used_statement_providers == {"fmp"} and xbrl_statement_facts_available:
         statement_authority = "FMP normalized statements; SEC Company Facts available but not reconciled"
         statement_source_provider = "fmp"
+    elif used_statement_providers == {"yfinance"} and xbrl_statement_facts_available:
+        statement_authority = "Yahoo Finance normalized statements; SEC Company Facts available for review"
+        statement_source_provider = "yfinance"
+    elif used_statement_providers == {"yfinance"}:
+        statement_authority = "Yahoo Finance normalized statements"
+        statement_source_provider = "yfinance"
     elif sec_metadata_ok:
         statement_authority = "FMP normalized statements; SEC metadata only"
         statement_source_provider = "fmp"
@@ -1232,6 +1263,337 @@ def _load_fmp_payloads(ticker: str, paths: PathConfigLike, fmp_client: FMPClient
                 )
         except Exception as exc:  # noqa: BLE001
             sources.append(_source_record(source_id, "fmp", endpoint, "error", error=str(exc)))
+
+    return profile, frames, sources
+
+
+def _yfinance_value(payload: Any, *keys: str) -> Any:
+    for key in keys:
+        try:
+            value = payload.get(key) if hasattr(payload, "get") else getattr(payload, key)
+        except (AttributeError, KeyError, TypeError, ValueError):
+            value = None
+        if _has_value(value):
+            return value
+    return None
+
+
+def _normalized_yfinance_label(value: Any) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+
+
+def _yfinance_statement_frame(
+    payload: Any,
+    aliases: dict[str, tuple[str, ...]],
+    *,
+    period: str,
+    currency: str | None,
+) -> pd.DataFrame:
+    frame = payload.copy() if isinstance(payload, pd.DataFrame) else pd.DataFrame(payload)
+    if frame.empty:
+        return pd.DataFrame()
+    labels = {_normalized_yfinance_label(label): label for label in frame.index}
+    rows: list[dict[str, Any]] = []
+    for column in frame.columns:
+        parsed_date = pd.to_datetime(column, errors="coerce")
+        if pd.isna(parsed_date):
+            continue
+        row: dict[str, Any] = {
+            "date": str(parsed_date.date()),
+            "calendarYear": int(parsed_date.year),
+            "fiscalYear": int(parsed_date.year),
+            "period": period,
+        }
+        if currency:
+            row["reportedCurrency"] = currency
+        for target, candidates in aliases.items():
+            source_label = next(
+                (labels[_normalized_yfinance_label(candidate)] for candidate in candidates if _normalized_yfinance_label(candidate) in labels),
+                None,
+            )
+            if source_label is None:
+                continue
+            value = _safe_float(frame.at[source_label, column])
+            if value is not None:
+                row[target] = value
+        rows.append(row)
+    return pd.DataFrame(rows).sort_values("date").reset_index(drop=True) if rows else pd.DataFrame()
+
+
+def _yfinance_history_frame(payload: Any, ticker: str, currency: str | None) -> pd.DataFrame:
+    frame = payload.copy() if isinstance(payload, pd.DataFrame) else pd.DataFrame(payload)
+    if frame.empty:
+        return pd.DataFrame()
+    close_column = next(
+        (column for column in frame.columns if _normalized_yfinance_label(column) in {"close", "adjclose"}),
+        None,
+    )
+    if close_column is None:
+        return pd.DataFrame()
+    rows: list[dict[str, Any]] = []
+    for index, value in frame[close_column].items():
+        parsed_date = pd.to_datetime(index, errors="coerce")
+        close = _safe_float(value)
+        if pd.isna(parsed_date) or close is None or close <= 0:
+            continue
+        rows.append(
+            {
+                "date": str(parsed_date.date()),
+                "close": close,
+                "symbol": ticker,
+                "currency": currency,
+                "source_family": "yfinance",
+            }
+        )
+    return pd.DataFrame(rows).sort_values("date").reset_index(drop=True) if rows else pd.DataFrame()
+
+
+def _load_yfinance_payloads(
+    ticker: str,
+    yfinance_factory: Any | None,
+    *,
+    include_statements: bool,
+) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
+    """Load an auditable Yahoo Finance fallback without weakening valuation gates."""
+
+    sources: list[dict[str, Any]] = []
+    frames: dict[str, Any] = {
+        "income": pd.DataFrame(),
+        "cash_flow": pd.DataFrame(),
+        "balance": pd.DataFrame(),
+        "prices": pd.DataFrame(),
+        "income_quarterly": pd.DataFrame(),
+        "cash_flow_quarterly": pd.DataFrame(),
+        "balance_quarterly": pd.DataFrame(),
+        "shares_float": {},
+        "quote": {},
+    }
+    factory = yfinance_factory
+    if factory is None:
+        try:
+            import yfinance as yf  # type: ignore
+
+            factory = yf.Ticker
+        except Exception as exc:  # noqa: BLE001
+            sources.append(
+                _source_record(
+                    "yfinance:client",
+                    "yfinance",
+                    "python:yfinance",
+                    "unavailable",
+                    error=f"Yahoo Finance fallback is unavailable: {exc}",
+                )
+            )
+            return {}, frames, sources
+
+    try:
+        instrument = factory(ticker)
+    except Exception as exc:  # noqa: BLE001
+        sources.append(_source_record("yfinance:client", "yfinance", f"Ticker/{ticker}", "error", error=str(exc)))
+        return {}, frames, sources
+
+    info: Any = {}
+    fast_info: Any = {}
+    info_error: Exception | None = None
+    fast_info_error: Exception | None = None
+    try:
+        info = instrument.info or {}
+    except Exception as exc:  # noqa: BLE001
+        info_error = exc
+    try:
+        fast_info = instrument.fast_info or {}
+    except Exception as exc:  # noqa: BLE001
+        fast_info_error = exc
+
+    currency = str(
+        _yfinance_value(fast_info, "currency")
+        or _yfinance_value(info, "currency", "financialCurrency")
+        or ""
+    ).upper().strip() or None
+    history = pd.DataFrame()
+    history_error: Exception | None = None
+    try:
+        history = _yfinance_history_frame(
+            instrument.history(period="1mo", interval="1d", auto_adjust=False, actions=False),
+            ticker,
+            currency,
+        )
+    except Exception as exc:  # noqa: BLE001
+        history_error = exc
+    frames["prices"] = history
+    history_as_of = None if history.empty else str(history["date"].max())
+
+    price = _safe_float(
+        _yfinance_value(fast_info, "last_price", "lastPrice")
+        or _yfinance_value(info, "currentPrice", "regularMarketPrice")
+    )
+    market_cap = _safe_float(
+        _yfinance_value(fast_info, "market_cap", "marketCap")
+        or _yfinance_value(info, "marketCap")
+    )
+    shares = _safe_float(
+        _yfinance_value(fast_info, "shares", "sharesOutstanding")
+        or _yfinance_value(info, "sharesOutstanding")
+    )
+    exchange = str(
+        _yfinance_value(fast_info, "exchange")
+        or _yfinance_value(info, "exchange", "fullExchangeName")
+        or ""
+    ).upper().strip() or None
+    profile = {
+        "symbol": str(_yfinance_value(info, "symbol") or ticker).upper(),
+        "companyName": _yfinance_value(info, "longName", "shortName") or ticker,
+        "sector": _yfinance_value(info, "sector"),
+        "industry": _yfinance_value(info, "industry"),
+        "country": _yfinance_value(info, "country"),
+        "currency": currency,
+        "exchangeShortName": exchange,
+        "price": price,
+        "marketCap": market_cap,
+        "mktCap": market_cap,
+        "beta": _safe_float(_yfinance_value(info, "beta")),
+        "description": _yfinance_value(info, "longBusinessSummary"),
+        "source_family": "yfinance",
+    }
+    profile = {key: value for key, value in profile.items() if _has_value(value)}
+    profile_has_evidence = any(
+        _has_value(_yfinance_value(info, key))
+        for key in ("longName", "shortName", "sector", "industry", "country", "currency", "marketCap")
+    )
+    sources.append(
+        _source_record(
+            "yfinance:profile",
+            "yfinance",
+            f"Ticker/{ticker}/info",
+            "ok" if profile_has_evidence else ("error" if info_error else "unavailable"),
+            row_count=1 if profile_has_evidence else 0,
+            error=str(info_error) if info_error else None,
+        )
+    )
+
+    quote = {
+        "symbol": ticker,
+        "price": price,
+        "marketCap": market_cap,
+        "currency": currency,
+        "exchange": exchange,
+        "as_of": history_as_of,
+        "source_family": "yfinance",
+    }
+    quote = {key: value for key, value in quote.items() if _has_value(value)}
+    frames["quote"] = quote
+    sources.append(
+        _source_record(
+            "yfinance:quote",
+            "yfinance",
+            f"Ticker/{ticker}/fast_info",
+            "ok" if price is not None else ("error" if fast_info_error else "unavailable"),
+            row_count=1 if price is not None else 0,
+            as_of=history_as_of,
+            error=str(fast_info_error) if fast_info_error else None,
+        )
+    )
+    sources.append(
+        _source_record(
+            "yfinance:prices",
+            "yfinance",
+            f"Ticker/{ticker}/history?period=1mo&interval=1d",
+            "ok" if not history.empty else ("error" if history_error else "unavailable"),
+            row_count=int(len(history)),
+            as_of=history_as_of,
+            error=str(history_error) if history_error else None,
+        )
+    )
+
+    shares_float = {
+        "symbol": ticker,
+        "outstandingShares": shares,
+        "floatShares": _safe_float(_yfinance_value(info, "floatShares")),
+        "as_of": history_as_of,
+        "source_family": "yfinance",
+    }
+    shares_float = {key: value for key, value in shares_float.items() if _has_value(value)}
+    frames["shares_float"] = shares_float
+    sources.append(
+        _source_record(
+            "yfinance:shares-float",
+            "yfinance",
+            f"Ticker/{ticker}/info#shares",
+            "ok" if shares is not None else "unavailable",
+            row_count=1 if shares is not None else 0,
+            as_of=history_as_of,
+        )
+    )
+
+    if not include_statements:
+        return profile, frames, sources
+
+    income_aliases = {
+        "revenue": ("Total Revenue", "Operating Revenue"),
+        "grossProfit": ("Gross Profit",),
+        "costOfRevenue": ("Cost Of Revenue",),
+        "operatingIncome": ("Operating Income",),
+        "incomeBeforeTax": ("Pretax Income",),
+        "incomeTaxExpense": ("Tax Provision",),
+        "netIncome": ("Net Income", "Net Income Common Stockholders"),
+        "ebitda": ("EBITDA", "Normalized EBITDA"),
+        "interestExpense": ("Interest Expense", "Interest Expense Non Operating"),
+        "weightedAverageShsOutDil": ("Diluted Average Shares", "Basic Average Shares"),
+    }
+    cash_flow_aliases = {
+        "netCashProvidedByOperatingActivities": ("Operating Cash Flow", "Cash Flow From Continuing Operating Activities"),
+        "capitalExpenditure": ("Capital Expenditure",),
+        "depreciationAndAmortization": ("Depreciation And Amortization", "Depreciation Amortization Depletion"),
+        "stockBasedCompensation": ("Stock Based Compensation",),
+        "commonStockRepurchased": ("Repurchase Of Capital Stock",),
+    }
+    balance_aliases = {
+        "cashAndCashEquivalents": ("Cash And Cash Equivalents", "Cash Cash Equivalents"),
+        "cashAndShortTermInvestments": ("Cash Cash Equivalents And Short Term Investments",),
+        "shortTermInvestments": ("Other Short Term Investments", "Financial Assets"),
+        "totalDebt": ("Total Debt",),
+        "shortTermDebt": ("Current Debt", "Current Debt And Capital Lease Obligation"),
+        "longTermDebt": ("Long Term Debt", "Long Term Debt And Capital Lease Obligation"),
+        "totalStockholdersEquity": ("Stockholders Equity", "Common Stock Equity"),
+        "totalAssets": ("Total Assets",),
+        "netReceivables": ("Receivables", "Accounts Receivable"),
+        "inventory": ("Inventory",),
+        "goodwill": ("Goodwill",),
+        "intangibleAssets": ("Other Intangible Assets Net",),
+        "preferredStock": ("Preferred Stock Equity",),
+        "minorityInterest": ("Minority Interest",),
+    }
+    loaders = [
+        ("income", "yfinance:income:annual", "income_stmt", "FY", income_aliases),
+        ("cash_flow", "yfinance:cash-flow:annual", "cash_flow", "FY", cash_flow_aliases),
+        ("balance", "yfinance:balance:annual", "balance_sheet", "FY", balance_aliases),
+        ("income_quarterly", "yfinance:income:quarterly", "quarterly_income_stmt", "Q", income_aliases),
+        ("cash_flow_quarterly", "yfinance:cash-flow:quarterly", "quarterly_cash_flow", "Q", cash_flow_aliases),
+        ("balance_quarterly", "yfinance:balance:quarterly", "quarterly_balance_sheet", "Q", balance_aliases),
+    ]
+    for key, source_id, attribute, period, aliases in loaders:
+        endpoint = f"Ticker/{ticker}/{attribute}?period={'annual' if period == 'FY' else 'quarterly'}"
+        try:
+            frame = _yfinance_statement_frame(
+                getattr(instrument, attribute),
+                aliases,
+                period=period,
+                currency=currency,
+            )
+            frames[key] = frame
+            as_of = None if frame.empty else str(frame["date"].max())
+            sources.append(
+                _source_record(
+                    source_id,
+                    "yfinance",
+                    endpoint,
+                    "ok" if not frame.empty else "unavailable",
+                    row_count=int(len(frame)),
+                    as_of=as_of,
+                )
+            )
+        except Exception as exc:  # noqa: BLE001
+            sources.append(_source_record(source_id, "yfinance", endpoint, "error", row_count=0, error=str(exc)))
 
     return profile, frames, sources
 
@@ -2676,7 +3038,18 @@ def _audit_bundle(
         findings.append({"severity": "medium", "code": "provider_error", "message": "At least one provider call failed. Inspect sources.json."})
     required_fmp_ids = {"fmp:profile", "fmp:income:annual", "fmp:cash-flow:annual", "fmp:balance:annual"}
     required_fmp = [source for source in sources if source.get("source_id") in required_fmp_ids]
-    if required_fmp and all(source.get("status") == "unavailable" for source in required_fmp):
+    fallback_source_ids = set(YFINANCE_STATEMENT_SOURCE_IDS.values()) | set(SEC_STATEMENT_SOURCE_IDS.values()) | {
+        "yfinance:profile",
+        "yfinance:quote",
+        "yfinance:prices",
+    }
+    fallback_available = any(
+        source.get("source_id") in fallback_source_ids
+        and source.get("status") == "ok"
+        and int(source.get("row_count") or 0) > 0
+        for source in sources
+    )
+    if required_fmp and all(source.get("status") == "unavailable" for source in required_fmp) and not fallback_available:
         findings.append({"severity": "high", "code": "provider_unavailable", "message": "FMP is unavailable in this runtime, so no source-backed report can be completed."})
     if any(
         source.get("status") == "unavailable"
@@ -3574,6 +3947,8 @@ def build_equity_research_bundle(
     paths: PathConfigLike | None = None,
     fmp_client: FMPClient | None = None,
     sec_client: SECEdgarClient | None = None,
+    yfinance_factory: Any | None = None,
+    enable_yfinance: bool = False,
     llm_client: Any | None = None,
     enable_llm: bool | None = None,
 ) -> dict[str, Any]:
@@ -3594,7 +3969,49 @@ def build_equity_research_bundle(
         sec_client = SECEdgarClient.from_env(paths.cache_root)
 
     statement_source_ids = dict(DEFAULT_STATEMENT_SOURCE_IDS)
+    quarterly_statement_source_ids = dict(QUARTERLY_STATEMENT_SOURCE_IDS)
     profile, frames, sources = _load_fmp_payloads(symbol, paths, fmp_client)
+    use_yfinance = yfinance_factory is not None or enable_yfinance is True
+    if use_yfinance:
+        include_yfinance_statements = any(
+            frames.get(key, pd.DataFrame()).empty
+            for key in (
+                "income",
+                "cash_flow",
+                "balance",
+                "income_quarterly",
+                "cash_flow_quarterly",
+                "balance_quarterly",
+            )
+        )
+        yfinance_profile, yfinance_frames, yfinance_sources = _load_yfinance_payloads(
+            symbol,
+            yfinance_factory,
+            include_statements=include_yfinance_statements,
+        )
+        sources.extend(yfinance_sources)
+        if yfinance_profile:
+            if not profile:
+                profile = yfinance_profile
+            else:
+                profile = {
+                    key: profile.get(key) if _has_value(profile.get(key)) else value
+                    for key, value in {**yfinance_profile, **profile}.items()
+                }
+                profile["source_family"] = "FMP"
+        yfinance_quote = yfinance_frames.get("quote") or {}
+        if not frames.get("quote") and yfinance_quote:
+            frames["quote"] = yfinance_quote
+        yfinance_prices = yfinance_frames.get("prices", pd.DataFrame())
+        if isinstance(yfinance_prices, pd.DataFrame) and not yfinance_prices.empty:
+            # A Yahoo close provides either a strict same-provider pair or an
+            # independent check on an FMP quote. Keep the provider identity on
+            # each observation; do not blend prices into a synthetic series.
+            frames["prices"] = yfinance_prices
+        if not frames.get("shares_float") and yfinance_frames.get("shares_float"):
+            frames["shares_float"] = yfinance_frames["shares_float"]
+    else:
+        yfinance_frames = {}
     filings, sec_sources = _load_sec_filings(symbol, sec_client)
     sources.extend(sec_sources)
     sec_frames, sec_fact_sources, sec_company_facts = _load_sec_company_facts(symbol, sec_client)
@@ -3604,6 +4021,17 @@ def build_equity_research_bundle(
             if frames.get(statement_key, pd.DataFrame()).empty and not sec_frames.get(statement_key, pd.DataFrame()).empty:
                 frames[statement_key] = sec_frames[statement_key]
                 statement_source_ids[statement_key] = source_id
+    for statement_key, source_id in YFINANCE_STATEMENT_SOURCE_IDS.items():
+        yfinance_frame = yfinance_frames.get(statement_key, pd.DataFrame())
+        if frames.get(statement_key, pd.DataFrame()).empty and isinstance(yfinance_frame, pd.DataFrame) and not yfinance_frame.empty:
+            frames[statement_key] = yfinance_frame
+            statement_source_ids[statement_key] = source_id
+    for statement_key, source_id in YFINANCE_QUARTERLY_STATEMENT_SOURCE_IDS.items():
+        frame_key = f"{statement_key}_quarterly"
+        yfinance_frame = yfinance_frames.get(frame_key, pd.DataFrame())
+        if frames.get(frame_key, pd.DataFrame()).empty and isinstance(yfinance_frame, pd.DataFrame) and not yfinance_frame.empty:
+            frames[frame_key] = yfinance_frame
+            quarterly_statement_source_ids[statement_key] = source_id
     balance_enrichments = _enrich_balance_frames_with_sec(frames, sec_frames)
     if balance_enrichments:
         balance_source = next(
@@ -3641,18 +4069,33 @@ def build_equity_research_bundle(
     valuation = _apply_current_share_count_gate(valuation, share_denominator_reconciliation)
     independent_observation = (valuation.get("price_validation") or {}).get("independent_observation") or {}
     if independent_observation:
-        sources.append(
-            _source_record(
-                "market:independent-close",
-                str(independent_observation.get("source_family") or "independent market"),
-                "independent market close observation",
-                "ok",
-                as_of=independent_observation.get("as_of"),
-                observed_price=independent_observation.get("price"),
-                currency=independent_observation.get("currency"),
-                source_family=independent_observation.get("source_family"),
-            )
+        observation_source_id = str(independent_observation.get("source_id") or "market:independent-close")
+        existing_observation_source = next(
+            (source for source in sources if source.get("source_id") == observation_source_id),
+            None,
         )
+        if existing_observation_source is not None:
+            existing_observation_source.update(
+                {
+                    "as_of": independent_observation.get("as_of") or existing_observation_source.get("as_of"),
+                    "observed_price": independent_observation.get("price"),
+                    "currency": independent_observation.get("currency"),
+                    "source_family": independent_observation.get("source_family"),
+                }
+            )
+        else:
+            sources.append(
+                _source_record(
+                    observation_source_id,
+                    str(independent_observation.get("source_family") or "independent market"),
+                    "independent market close observation",
+                    "ok",
+                    as_of=independent_observation.get("as_of"),
+                    observed_price=independent_observation.get("price"),
+                    currency=independent_observation.get("currency"),
+                    source_family=independent_observation.get("source_family"),
+                )
+            )
     using_sec_as_primary = _all_statement_families_use_sec(statement_source_ids)
     country = str(profile.get("country") or "").upper().strip()
     sec_reconciliation_required = country in {"US", "USA", "UNITED STATES", "UNITED STATES OF AMERICA"}
@@ -3673,7 +4116,7 @@ def build_equity_research_bundle(
         _source_record(
             SEC_RECONCILIATION_SOURCE_ID,
             "deterministic-audit",
-            "FMP normalized statements vs SEC Company Facts/XBRL",
+            "Normalized statements vs SEC Company Facts/XBRL",
             "ok" if reconciliation.get("passed") else ("error" if reconciliation.get("status") == "mismatch" else "unavailable"),
             reconciliation_status=reconciliation.get("status"),
             pass_ratio=reconciliation.get("pass_ratio"),
@@ -3719,8 +4162,50 @@ def build_equity_research_bundle(
         latest_revenue_point = _data_point("latest_revenue", ratios.get("latest_revenue"), "sourced_fact", statement_source_ids.get("income"))
         latest_shares_point = _data_point("latest_diluted_shares", ratios.get("latest_diluted_shares"), "sourced_fact", statement_source_ids.get("income"))
 
+    profile_source_id = (
+        "yfinance:profile"
+        if str(profile.get("source_family") or "").lower() in {"yfinance", "yahoo finance", "yahoo"}
+        else "fmp:profile"
+    )
+    quote_provider_family = str((valuation.get("price_validation") or {}).get("provider_family") or "").lower()
+    quote_record_source_id = (
+        "yfinance:quote"
+        if quote_provider_family in {"yfinance", "yahoo finance", "yahoo"}
+        else "fmp:quote"
+    )
+    active_quote = frames.get("quote") if isinstance(frames.get("quote"), dict) else {}
+    price_frame = frames.get("prices", pd.DataFrame())
+    price_frame_source_family = ""
+    if isinstance(price_frame, pd.DataFrame) and not price_frame.empty:
+        latest_price_rows = price_frame.copy()
+        if "date" in latest_price_rows.columns:
+            latest_price_rows = latest_price_rows.sort_values("date")
+        price_frame_source_family = str(latest_price_rows.iloc[-1].get("source_family") or "FMP").lower()
+    market_price_source_id = (
+        quote_record_source_id
+        if _safe_float(active_quote.get("price")) is not None
+        else "yfinance:prices"
+        if price_frame_source_family in {"yfinance", "yahoo finance", "yahoo"}
+        else "fmp:prices"
+        if isinstance(price_frame, pd.DataFrame) and not price_frame.empty
+        else profile_source_id
+    )
+    market_cap_source_id = (
+        quote_record_source_id
+        if _safe_float(active_quote.get("marketCap")) is not None or _safe_float(active_quote.get("market_cap")) is not None
+        else profile_source_id
+    )
+    shares_float_source_id = (
+        "yfinance:shares-float"
+        if str((frames.get("shares_float") or {}).get("source_family") or "").lower() in {"yfinance", "yahoo finance", "yahoo"}
+        else "fmp:shares-float"
+    )
+    active_screening_statement_sources = (
+        quarterly_statement_source_ids if ttm_row else statement_source_ids
+    )
+
     data_points = [
-        _data_point("company_profile", profile.get("companyName") or symbol, "sourced_fact", "fmp:profile"),
+        _data_point("company_profile", profile.get("companyName") or symbol, "sourced_fact", profile_source_id),
         latest_revenue_point,
         latest_shares_point,
         _data_point("latest_free_cash_flow", ratios.get("latest_fcf"), "calculated_metric", formula="cash_from_operations - abs(capital_expenditures)"),
@@ -3742,7 +4227,7 @@ def build_equity_research_bundle(
                     "current_basic_outstanding_shares",
                     current_basic_shares,
                     "sourced_fact",
-                    "fmp:shares-float",
+                    shares_float_source_id,
                 ),
                 _data_point(
                     "current_share_count_relative_difference",
@@ -3753,19 +4238,29 @@ def build_equity_research_bundle(
             ]
         )
     data_points.extend(_financial_data_points(rows, statement_source_ids))
-    data_points.extend(_ttm_data_points(ttm_row))
+    data_points.extend(_ttm_data_points(ttm_row, quarterly_statement_source_ids))
     if _has_value(valuation.get("current_price")):
-        price_sources = (valuation.get("price_validation") or {}).get("sources", [])
-        current_price_source = (
-            "fmp:quote"
-            if any("quote" in str(source).lower() for source in price_sources)
-            else "fmp:prices"
-            if any("close" in str(source).lower() or "price" in str(source).lower() for source in price_sources)
-            else "fmp:profile"
-        )
         data_points.append(
-            _data_point("current_price", valuation.get("current_price"), "sourced_fact", current_price_source)
+            _data_point("current_price", valuation.get("current_price"), "sourced_fact", market_price_source_id)
         )
+    screening = valuation.get("screening_analysis") or {}
+    observed_screening = screening.get("observed") or {}
+    if screening.get("available") is True:
+        screening_sources = {
+            "current_price": market_price_source_id,
+            "market_cap": market_cap_source_id,
+            "revenue": active_screening_statement_sources.get("income"),
+            "free_cash_flow": active_screening_statement_sources.get("cash_flow"),
+            "cash": active_screening_statement_sources.get("balance"),
+            "total_debt": active_screening_statement_sources.get("balance"),
+            "diluted_shares": active_screening_statement_sources.get("income"),
+        }
+        for field, source_id in screening_sources.items():
+            value = observed_screening.get(field)
+            if _has_value(value) and source_id:
+                data_points.append(
+                    _data_point(f"screening.{field}", value, "sourced_fact", source_id)
+                )
     if valuation.get("available"):
         data_points.extend(
             [

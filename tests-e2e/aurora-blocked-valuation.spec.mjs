@@ -154,7 +154,7 @@ test("AURORA convierte una valoración retenida en próximos pasos y requisitos 
   await page.getByLabel("Ticker").fill("MU");
   await page.getByRole("button", { name: "Analizar" }).click();
 
-  await expect(page.getByRole("tabpanel")).toContainText("Qué falta para continuar");
+  await expect(page.getByRole("tabpanel")).toContainText("Qué falta para una valoración completa");
   await expect(page.getByRole("tabpanel")).toContainText("Explicar el cambio de escala");
   await expect(page.getByRole("tabpanel")).toContainText("Qué tendría que sostener el precio");
   await expect(page.getByRole("tabpanel")).toContainText("Crecimiento anual de ingresos");
@@ -174,7 +174,7 @@ test("AURORA convierte una valoración retenida en próximos pasos y requisitos 
   await expect(page.getByText("$31.83", { exact: true })).toHaveCount(0);
 
   await page.getByRole("tab", { name: /^Memo$/ }).click();
-  await expect(page.getByRole("tabpanel")).toContainText("Qué falta para continuar");
+  await expect(page.getByRole("tabpanel")).toContainText("Qué falta para una valoración completa");
 
   await page.getByRole("tab", { name: /^Revisión/ }).click();
   await expect(page.getByRole("tabpanel")).toContainText("Qué tendría que sostener el precio");
@@ -260,7 +260,7 @@ test("AURORA explica brechas de datos aunque el backend no entregue una brecha d
   await page.getByLabel("Ticker").fill("MU");
   await page.getByRole("button", { name: "Analizar" }).click();
 
-  await expect(page.getByRole("tabpanel")).toContainText("Qué falta para continuar");
+  await expect(page.getByRole("tabpanel")).toContainText("Qué falta para una valoración completa");
   await expect(page.getByRole("tabpanel")).toContainText("Tasa de descuento");
   await expect(page.getByRole("tabpanel")).toContainText("Crecimiento de largo plazo");
   await expect(page.getByRole("tabpanel")).toContainText("Último informe presentado ante la SEC");
@@ -301,8 +301,7 @@ test("AURORA conserva a la vez brechas de valoración, precio, cobertura y fuent
   await expect(panel).toContainText("Explicar el cambio de escala");
   await expect(panel).toContainText("Precio actual");
   await expect(panel).toContainText("Tasa de descuento");
-  await expect(panel).toContainText("Precio de mercado");
-  await expect(panel).toContainText("Esta fuente está vencida");
+  await expect(panel).not.toContainText("Esta fuente está vencida");
 });
 
 test("AURORA explica un bloqueo no estructural sin caer en un mensaje genérico", async ({ page }) => {
@@ -337,4 +336,98 @@ test("AURORA explica un bloqueo no estructural sin caer en un mensaje genérico"
   await expect(page.getByRole("tabpanel")).toContainText("Estimaciones financieras futuras");
   await expect(page.getByRole("tabpanel")).toContainText("Compensación en acciones");
   await expect(page.getByRole("tabpanel")).not.toContainText("el sistema no recibió una brecha más específica");
+});
+
+test("AURORA ofrece una lectura útil y móvil para una empresa pre-revenue sin inventar valor razonable", async ({ page }, testInfo) => {
+  const earlyStageValuation = structuredClone(blockedValuation);
+  earlyStageValuation.ticker = "EARLY";
+  earlyStageValuation.company_profile = {
+    name: "Example Early Stage Biotech",
+    industry: "Biotechnology",
+    currency: "USD",
+  };
+  earlyStageValuation.valuation.current_price = 8;
+  earlyStageValuation.valuation.market_data_as_of = RECENT_MARKET_DATE;
+  earlyStageValuation.valuation.blocking_gap = "future_estimate_support";
+  earlyStageValuation.valuation.pending_checks = ["future_estimate_support", "share_dilution_support"];
+  earlyStageValuation.valuation.market_requirements = null;
+  earlyStageValuation.valuation.price_validation = {
+    status: "provider_reconciled",
+    usable: false,
+    research_usable: true,
+    usable_for_context: true,
+    sources: ["Yahoo Finance"],
+  };
+  earlyStageValuation.valuation.screening_analysis = {
+    version: "screening_analysis_v1",
+    available: true,
+    posture: "screen_grade",
+    kind: "early_stage",
+    fair_value_published: false,
+    currency: "USD",
+    market_data_as_of: RECENT_MARKET_DATE,
+    financial_data_as_of: RECENT_FINANCIAL_DATE,
+    observed: {
+      current_price: 8,
+      market_cap: 400_000_000,
+      revenue: 0,
+      free_cash_flow: -40_000_000,
+      cash: 120_000_000,
+      total_debt: 10_000_000,
+      diluted_shares: 50_000_000,
+      net_cash: 110_000_000,
+      enterprise_value: 290_000_000,
+    },
+    ratios: { ev_to_revenue: null, fcf_yield: -0.1, net_cash_to_market_cap: 0.275 },
+    runway: {
+      annual_burn: 40_000_000,
+      years: 3,
+      months: 36,
+      funding_need_for_24_months: 0,
+      illustrative_dilution_at_20pct_discount: 0,
+      pressure: "manageable",
+    },
+    market_read: {
+      operations_value: 290_000_000,
+      cash_per_share: 2.4,
+      net_cash_per_share: 2.2,
+      premium_to_net_cash: 2.6363636364,
+    },
+  };
+
+  await page.route("**/api/public/equity-research", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(earlyStageValuation),
+    });
+  });
+
+  await page.goto("/aurora");
+  await page.getByLabel("Ticker").fill("EARLY");
+  await page.getByRole("button", { name: "Analizar" }).click();
+
+  const panel = page.getByRole("tabpanel");
+  await expect(panel).toContainText("Lectura disponible ahora");
+  await expect(panel).toContainText("Caja, consumo y riesgo de financiación");
+  await expect(panel).toContainText("No es un valor razonable");
+  await expect(panel).toContainText("$8.00");
+  await expect(panel).toContainText("$400.00M");
+  await expect(panel).toContainText("Sin ingresos informados");
+  await expect(panel).toContainText("No aplica sin ingresos");
+  await expect(panel).toContainText("$110.00M");
+  await expect(panel).toContainText("$40.00M");
+  await expect(panel).toContainText("3.0 años");
+  await expect(panel).toContainText("No necesaria con la caja actual");
+  await expect(panel).toContainText("Qué falta para una valoración completa");
+  await expect(panel).not.toContainText("Obtener un precio reciente");
+  await expect(panel.locator("details")).not.toHaveAttribute("open", "");
+
+  if (testInfo.project.name === "mobile") {
+    const viewport = await page.evaluate(() => ({
+      innerWidth: window.innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    expect(viewport.scrollWidth).toBeLessThanOrEqual(viewport.innerWidth + 1);
+  }
 });

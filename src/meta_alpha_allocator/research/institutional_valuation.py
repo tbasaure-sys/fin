@@ -547,7 +547,7 @@ def validate_market_price(
             "passed": difference <= 0.05,
             "required": False,
             "independent": False,
-            "source_family": "FMP",
+            "source_family": profile_source_family,
             "difference": difference,
             "maximum_difference": 0.05,
         }
@@ -658,7 +658,7 @@ def validate_market_price(
             "implied_shares": implied,
             "valuation_shares": valuation_shares,
             "independent": False,
-            "source_family": "FMP",
+            "source_family": quote_source_family if source_key == "quote_market_cap" else profile_source_family,
         }
         checks.append(check)
         denominator_checks.append(check)
@@ -672,6 +672,12 @@ def validate_market_price(
     )
     has_provider_price_corroboration = any(check.get("passed") is True for check in provider_price_checks)
     has_denominator_reconciliation = any(check.get("passed") is True for check in denominator_checks)
+    identity_checks = [
+        check
+        for check in checks
+        if check.get("key") in {"security_identity", "exchange_identity", "market_currency_identity"}
+    ]
+    identity_corroborated = bool(identity_checks) and all(check.get("passed") is True for check in identity_checks)
     provider_corroborated = (
         has_provider_price_corroboration
         and has_denominator_reconciliation
@@ -681,6 +687,12 @@ def validate_market_price(
     inconsistent = any(check.get("passed") is False for check in required_checks)
     age_days = _age_days(as_of)
     fresh = age_days is not None and age_days <= MAX_MARKET_DATA_AGE_DAYS
+    usable_for_context = bool(
+        price is not None
+        and fresh
+        and identity_corroborated
+        and has_provider_price_corroboration
+    )
     if as_of and age_days is None:
         blockers.append("La fecha de mercado es futura o inválida.")
     if blockers or price is None:
@@ -701,7 +713,11 @@ def validate_market_price(
     listing_currency = next(iter(explicit_currencies), None)
     independent_observation = (
         {
-            "source_id": "market:independent-close",
+            "source_id": (
+                "yfinance:prices"
+                if historical_source_family.lower() in {"yfinance", "yahoo finance", "yahoo"}
+                else "market:independent-close"
+            ),
             "source_family": historical_source_family,
             "price": historical_price,
             "as_of": historical_date,
@@ -722,6 +738,11 @@ def validate_market_price(
             and provider_corroborated
             and status in {"validated", "provider_reconciled"}
         ),
+        # A share-count/market-cap mismatch blocks per-share valuation, but it
+        # does not invalidate a fresh quote that agrees with the same
+        # provider's dated close. Keep that distinction explicit so the UI can
+        # show market context without presenting it as valuation-grade.
+        "usable_for_context": usable_for_context,
         "price": price,
         "currency": listing_currency,
         "as_of": as_of,
@@ -2322,7 +2343,7 @@ def _reverse_dcf(
     }
 
 
-def build_institutional_valuation(
+def _build_institutional_valuation_model(
     *,
     annual_rows: list[dict[str, Any]],
     ttm_row: dict[str, Any] | None,
@@ -4437,3 +4458,158 @@ def build_institutional_valuation(
             "decision_ready_blockers": decision_ready_blockers,
         },
     })
+
+
+def _build_screening_analysis(
+    *,
+    annual_rows: list[dict[str, Any]],
+    ttm_row: dict[str, Any] | None,
+    valuation: dict[str, Any],
+) -> dict[str, Any]:
+    """Return a useful, explicitly non-fair-value read for incomplete cases.
+
+    This layer never fills missing facts with sector priors and never promotes
+    itself to an intrinsic valuation. It only recombines observed market and
+    statement values into a capital, cash-burn, and simple-multiple snapshot.
+    """
+
+    normalized_rows, _ = _normalize_annual_history(annual_rows)
+    current_row = dict(ttm_row or (normalized_rows[-1] if normalized_rows else {}))
+    price_validation = valuation.get("price_validation") or {}
+    price = _positive(price_validation.get("price"))
+    shares = _positive(price_validation.get("valuation_shares")) or _positive(current_row.get("diluted_shares"))
+    market_cap = _positive(price_validation.get("market_cap"))
+    if market_cap is None and price is not None and shares is not None:
+        market_cap = price * shares
+
+    revenue = _number(current_row.get("revenue"))
+    free_cash_flow = _number(current_row.get("free_cash_flow"))
+    cash = _number(current_row.get("cash"))
+    total_debt = _number(current_row.get("total_debt"))
+    net_cash = cash - total_debt if cash is not None and total_debt is not None else None
+    enterprise_value = (
+        market_cap + total_debt - cash
+        if market_cap is not None and total_debt is not None and cash is not None
+        else None
+    )
+
+    annual_burn = None
+    for candidate in (
+        free_cash_flow,
+        _number(current_row.get("fcff")),
+        _number(current_row.get("cash_from_operations")),
+    ):
+        if candidate is not None and candidate < 0:
+            annual_burn = abs(candidate)
+            break
+    runway_years = cash / annual_burn if cash is not None and cash > 0 and annual_burn else None
+    funding_need = max((annual_burn * 2.0) - cash, 0.0) if cash is not None and annual_burn else None
+    illustrative_dilution = None
+    if funding_need is not None and price is not None and shares is not None and price > 0 and shares > 0:
+        new_shares = funding_need / (price * 0.80)
+        illustrative_dilution = new_shares / (shares + new_shares) if new_shares > 0 else 0.0
+    runway_pressure = (
+        "urgent"
+        if runway_years is not None and runway_years < 1.0
+        else "high"
+        if runway_years is not None and runway_years < 2.0
+        else "moderate"
+        if runway_years is not None and runway_years < 3.0
+        else "manageable"
+        if runway_years is not None
+        else "unknown"
+    )
+
+    cash_per_share = _ratio(cash, shares)
+    net_cash_per_share = _ratio(net_cash, shares)
+    premium_to_net_cash = (
+        (price / net_cash_per_share) - 1.0
+        if price is not None and net_cash_per_share is not None and net_cash_per_share > 0
+        else None
+    )
+    archetype = str(valuation.get("archetype") or "unknown")
+    useful_values = [price, market_cap, revenue, free_cash_flow, cash, total_debt, shares]
+
+    return _json_safe(
+        {
+            "version": "screening_analysis_v1",
+            "available": any(value is not None for value in useful_values),
+            "posture": "screen_grade",
+            "kind": "early_stage" if archetype == "early_stage" else "fundamental_snapshot",
+            "fair_value_published": False,
+            "currency": price_validation.get("currency"),
+            "market_data_as_of": price_validation.get("as_of"),
+            "financial_data_as_of": _date_text(current_row.get("date")),
+            "observed": {
+                "current_price": price,
+                "market_cap": market_cap,
+                "revenue": revenue,
+                "free_cash_flow": free_cash_flow,
+                "cash": cash,
+                "total_debt": total_debt,
+                "diluted_shares": shares,
+                "net_cash": net_cash,
+                "enterprise_value": enterprise_value,
+            },
+            "ratios": {
+                "ev_to_revenue": _ratio(enterprise_value, revenue) if revenue is not None and revenue > 0 else None,
+                "fcf_yield": _ratio(free_cash_flow, market_cap),
+                "net_cash_to_market_cap": _ratio(net_cash, market_cap),
+            },
+            "runway": {
+                "annual_burn": annual_burn,
+                "years": runway_years,
+                "months": runway_years * 12.0 if runway_years is not None else None,
+                "funding_need_for_24_months": funding_need,
+                "illustrative_dilution_at_20pct_discount": illustrative_dilution,
+                "pressure": runway_pressure,
+            },
+            "market_read": {
+                "operations_value": enterprise_value,
+                "cash_per_share": cash_per_share,
+                "net_cash_per_share": net_cash_per_share,
+                "premium_to_net_cash": premium_to_net_cash,
+            },
+            "limitations": [
+                "No es un valor razonable ni una recomendación.",
+                "El valor operativo simple sólo resta caja y suma deuda; no sustituye un puente completo de derechos senior.",
+                "La dilución ilustrativa supone una ampliación al 20% de descuento y sólo cubre hasta 24 meses de consumo observado.",
+            ],
+        }
+    )
+
+
+def build_institutional_valuation(
+    *,
+    annual_rows: list[dict[str, Any]],
+    ttm_row: dict[str, Any] | None,
+    profile: dict[str, Any],
+    quote: dict[str, Any] | None,
+    prices: Any,
+    analyst_estimates: Any,
+    key_metrics_ttm: dict[str, Any] | None,
+    ratios_ttm: dict[str, Any] | None,
+    assumptions: dict[str, Any],
+    expected_ticker: str | None = None,
+    source_records: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    valuation = _build_institutional_valuation_model(
+        annual_rows=annual_rows,
+        ttm_row=ttm_row,
+        profile=profile,
+        quote=quote,
+        prices=prices,
+        analyst_estimates=analyst_estimates,
+        key_metrics_ttm=key_metrics_ttm,
+        ratios_ttm=ratios_ttm,
+        assumptions=assumptions,
+        expected_ticker=expected_ticker,
+        source_records=source_records,
+    )
+    if valuation.get("status") != "decision_ready":
+        valuation["screening_analysis"] = _build_screening_analysis(
+            annual_rows=annual_rows,
+            ttm_row=ttm_row,
+            valuation=valuation,
+        )
+    return _json_safe(valuation)

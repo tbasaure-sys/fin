@@ -244,7 +244,7 @@ function humanizeMetric(value) {
     valuation_cross_check: "Contraste con otro método de valoración",
     range_reliability: "Rango suficientemente informativo",
     tangible_book_support: "Historial de patrimonio tangible",
-    independent_price_confirmation: "Confirmación independiente del precio",
+    independent_price_confirmation: "Validar el precio para la valoración",
     valuation_inputs: "Insumos fundamentales de valoración",
   };
   return labels[value] || String(value || "").replace(/[_\-]+/g, " ");
@@ -1088,7 +1088,7 @@ function blockedGapDetail(gap) {
     valuation_cross_check: "Contrastar el resultado con un método independiente y explicar cualquier diferencia material.",
     range_reliability: "Reducir la dependencia del valor terminal o ampliar evidencia hasta que el rango pueda orientar una decisión.",
     tangible_book_support: "Completar el historial de patrimonio tangible y rentabilidad sobre ese capital antes de valorar una entidad financiera.",
-    independent_price_confirmation: "Confirmar la cotización con un cierre oficial o una fuente independiente antes de usarla en una decisión.",
+    independent_price_confirmation: "El precio actual ya se muestra como contexto. Para publicar un valor por acción falta contrastarlo con otra fuente y conciliar el número de acciones.",
     valuation_inputs: "Completar ingresos, acciones, caja, deuda y flujo de caja con fuente y fecha antes de elegir un método.",
     share_dilution_support: "Completar el historial de acciones diluidas y revisar emisiones, recompras y convertibles que puedan cambiar el valor por acción.",
     stock_compensation_treatment: "Separar la compensación en acciones y comprobar cómo afecta caja y dilución antes de calcular el valor por acción.",
@@ -1126,28 +1126,11 @@ function blockedValuationGapItems(research) {
     .filter((gap) => gap && !NON_ACTIONABLE_BLOCKED_OUTPUTS.has(gap)))];
   coverageGaps.forEach(addGap);
 
-  const incompleteSources = safeList(research?.sources?.records).filter((source) => (
-    ["error", "unavailable", "stale", "partial"].includes(String(source?.status || "").toLowerCase())
-  ));
-  incompleteSources.forEach((source, index) => {
-    const sourceStatus = String(source?.status || "").toLowerCase();
-    addItem({
-      key: `source-${source?.source_id || index}`,
-      label: humanizeSourceType(source),
-      detail: sourceStatus === "stale"
-        ? "Esta fuente está vencida. Actualizar su fecha antes de completar la valoración."
-        : sourceStatus === "partial"
-          ? "Esta fuente está incompleta. Incorporar los períodos o campos faltantes antes de continuar."
-          : "Esta fuente no está disponible. Reintentar o sustituirla antes de completar la valoración.",
-    });
-  });
-
   if (items.size) {
     const representativeKeys = [
       valuationChecks[0],
       hasPriceGap ? "current_price" : null,
       coverageGaps[0],
-      incompleteSources.length ? `source-${incompleteSources[0]?.source_id || 0}` : null,
     ].filter(Boolean);
     const prioritized = [];
     const included = new Set();
@@ -1157,7 +1140,7 @@ function blockedValuationGapItems(research) {
         prioritized.push(items.get(key));
       }
     });
-    return prioritized.slice(0, 8);
+    return prioritized.slice(0, 4);
   }
 
   return [{
@@ -1170,12 +1153,12 @@ function blockedValuationGapItems(research) {
 function BlockingGapSummary({ research }) {
   const pendingItems = blockedValuationGapItems(research);
   return (
-    <div className={styles.researchStack}>
-      <div className={styles.researchAttentionCallout}>
-        <span>Qué falta para continuar</span>
-        <strong>No hay una cifra publicable, pero sí hay una pregunta concreta que resolver</strong>
-        <p>Completa estos controles antes de convertir la lectura del precio en un rango de valor razonable.</p>
-      </div>
+    <details className={styles.researchGapDetails}>
+      <summary>
+        <span>Qué falta para una valoración completa</span>
+        <small>{pendingItems.length} {pendingItems.length === 1 ? "control pendiente" : "controles pendientes"}</small>
+      </summary>
+      <p>Estos puntos impiden publicar un valor razonable. No impiden mostrar los datos que sí están respaldados.</p>
       <div className={styles.researchFindingList}>
         {pendingItems.map((item) => (
           <article className={styles.researchFinding} data-tone="warn" key={item.key}>
@@ -1184,18 +1167,117 @@ function BlockingGapSummary({ research }) {
           </article>
         ))}
       </div>
-    </div>
+    </details>
+  );
+}
+
+function screeningNumber(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function screeningPercent(value) {
+  return screeningNumber(value) === null ? "-" : formatPct(value);
+}
+
+function ScreeningAnalysis({ research }) {
+  const screening = research?.valuation?.screening_analysis;
+  if (!screening?.available) return null;
+  const observed = screening.observed || {};
+  const runway = screening.runway || {};
+  const ratios = screening.ratios || {};
+  const marketRead = screening.market_read || {};
+  const currency = screening.currency || research?.valuation?.currency || research?.company_profile?.currency || "USD";
+  const earlyStage = screening.kind === "early_stage";
+  const sources = safeList(research?.valuation?.price_validation?.sources);
+  const priceSource = sources.length ? sources.join(" + ") : "fuente de mercado verificada";
+  const runwayYears = screeningNumber(runway.years);
+  const runwayMonths = screeningNumber(runway.months);
+  const observedRevenue = screeningNumber(observed.revenue);
+  const evToRevenue = screeningNumber(ratios.ev_to_revenue);
+  const runwayLabel = runwayMonths !== null
+    ? runwayMonths < 24 || runwayYears === null
+      ? `${Math.round(runwayMonths)} meses`
+      : `${runwayYears.toFixed(1)} años`
+    : "No calculable";
+  const fundingNeed = screeningNumber(runway.funding_need_for_24_months);
+  const metrics = earlyStage
+    ? [
+      { key: "price", label: "Precio observado", value: compactCurrency(observed.current_price, currency), detail: `${formatMarketDate(screening.market_data_as_of)} · ${priceSource}` },
+      { key: "market-cap", label: "Capitalización", value: compactCurrency(observed.market_cap, currency), detail: "Informada por la fuente de mercado; no depende del promedio anual de acciones." },
+      { key: "revenue", label: "Ingresos observados", value: observedRevenue === 0 ? "Sin ingresos informados" : compactCurrency(observed.revenue, currency), detail: `Estados al ${formatMarketDate(screening.financial_data_as_of)}.` },
+      { key: "ev-sales", label: "Valor del negocio / ingresos", value: evToRevenue !== null ? `${evToRevenue.toFixed(1)}x` : observedRevenue === 0 ? "No aplica sin ingresos" : "No calculable", detail: "Mide cuánto paga el mercado por la escala actual; no estima el valor futuro." },
+      { key: "net-cash", label: "Caja neta", value: compactCurrency(observed.net_cash, currency), detail: "Caja menos deuda informada." },
+      { key: "operations", label: "Valor atribuido al negocio", value: compactCurrency(marketRead.operations_value, currency), detail: "Capitalización menos caja neta; no es valor razonable." },
+      { key: "burn", label: "Consumo anual de caja", value: compactCurrency(runway.annual_burn, currency), detail: "Basado en el flujo libre de caja observado." },
+      { key: "runway", label: "Autonomía estimada", value: runwayLabel, detail: "Caja disponible dividida por el consumo anual observado." },
+      { key: "funding", label: "Financiación para cubrir 24 meses", value: fundingNeed === 0 ? "No necesaria con la caja actual" : compactCurrency(runway.funding_need_for_24_months, currency), detail: "Manteniendo el consumo observado." },
+      { key: "dilution", label: "Dilución ilustrativa", value: screeningPercent(runway.illustrative_dilution_at_20pct_discount), detail: "Sólo si faltara financiación; emisión al 20% de descuento." },
+    ]
+    : [
+      { key: "price", label: "Precio observado", value: compactCurrency(observed.current_price, currency), detail: `${formatMarketDate(screening.market_data_as_of)} · ${priceSource}` },
+      { key: "market-cap", label: "Capitalización", value: compactCurrency(observed.market_cap, currency), detail: "Valor de mercado del patrimonio." },
+      { key: "enterprise-value", label: "Valor empresa simple", value: compactCurrency(observed.enterprise_value, currency), detail: "Capitalización más deuda menos caja." },
+      { key: "revenue", label: "Ingresos observados", value: compactCurrency(observed.revenue, currency), detail: `Estados al ${formatMarketDate(screening.financial_data_as_of)}.` },
+      { key: "ev-sales", label: "Valor empresa / ingresos", value: screeningNumber(ratios.ev_to_revenue) !== null ? `${screeningNumber(ratios.ev_to_revenue).toFixed(1)}x` : "No calculable", detail: "Referencia de precio, no estimación de valor." },
+      { key: "fcf-yield", label: "Flujo libre / capitalización", value: screeningPercent(ratios.fcf_yield), detail: "Flujo libre observado frente al valor de mercado." },
+      { key: "net-cash", label: "Caja neta / capitalización", value: screeningPercent(ratios.net_cash_to_market_cap), detail: "Peso de la caja neta en el precio actual." },
+    ];
+  const visibleMetrics = metrics.filter((metric) => metric.value !== "-" && metric.value !== null && metric.value !== undefined);
+  const pressureCopy = runway.pressure === "urgent"
+    ? "La caja no cubre un año al ritmo de consumo observado. El riesgo de financiación es inmediato."
+    : runway.pressure === "high"
+      ? "La caja cubre menos de dos años al ritmo actual. Una nueva financiación puede afectar de forma material al accionista."
+      : runwayMonths !== null
+        ? `La caja cubriría aproximadamente ${Math.round(runwayMonths)} meses si el consumo se mantuviera sin cambios.`
+        : "Aún no hay datos suficientes para calcular la autonomía financiera, pero sí para ubicar precio y tamaño de mercado.";
+
+  return (
+    <section className={styles.researchScreening} aria-labelledby="screening-analysis-title">
+      <div className={styles.researchScreeningHeader}>
+        <div>
+          <span>Lectura disponible ahora</span>
+          <h3 id="screening-analysis-title">{earlyStage ? "Caja, consumo y riesgo de financiación" : "Precio, balance y exigencia financiera"}</h3>
+        </div>
+        <small>No es un valor razonable</small>
+      </div>
+      <p className={styles.researchScreeningLead}>{earlyStage
+        ? "Sin ingresos previsibles ni hitos con probabilidad respaldada, estimar un valor por acción sería engañoso. Sí podemos medir cuánto paga hoy el mercado, cuánto efectivo queda y cuánto tiempo puede operar la empresa antes de necesitar capital."
+        : "Aunque todavía no corresponde publicar un valor razonable, estos datos permiten entender qué está pagando hoy el mercado y qué parte está respaldada por balance y caja."}</p>
+      <div className={styles.researchScreeningGrid}>
+        {visibleMetrics.map((metric) => (
+          <article className={styles.researchScreeningMetric} key={metric.key}>
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+            <small>{metric.detail}</small>
+          </article>
+        ))}
+      </div>
+      <div className={styles.researchScreeningDecision}>
+        <span>Qué ayuda a decidir</span>
+        <strong>{earlyStage ? pressureCopy : "Puedes decidir si el precio merece más trabajo antes de construir escenarios detallados."}</strong>
+        {earlyStage && screeningNumber(marketRead.operations_value) !== null ? (
+          <p>Después de descontar la caja neta, el mercado atribuye {compactCurrency(marketRead.operations_value, currency)} al negocio, sus activos, su desarrollo y sus probabilidades futuras.</p>
+        ) : null}
+      </div>
+      <p className={styles.researchScreeningFootnote}>Los cálculos usan datos observados y fórmulas simples. No sustituyen hitos clínicos o comerciales, probabilidades de éxito ni un análisis completo de derechos preferentes.</p>
+    </section>
   );
 }
 
 function renderBlockedValuationHelp(research, valuationPresentation, heading) {
+  const hasScreening = research?.valuation?.screening_analysis?.available === true;
   return (
     <div className={styles.researchStack}>
-      <div className={styles.researchAttentionCallout}>
-        <span>{heading}</span>
-        <strong>No mostramos una cifra hasta validar datos y método</strong>
-        <p>{valuationPresentation?.reason || "La valoración todavía no supera los controles necesarios."}</p>
-      </div>
+      <ScreeningAnalysis research={research} />
+      {!hasScreening ? (
+        <div className={styles.researchAttentionCallout}>
+          <span>{heading}</span>
+          <strong>Mostramos sólo lo que los datos permiten sostener</strong>
+          <p>{valuationPresentation?.reason || "La valoración todavía no supera los controles necesarios."}</p>
+        </div>
+      ) : null}
       <BlockingGapSummary research={research} />
       <MarketRequirements
         currency={research?.valuation?.currency || research?.company_profile?.currency}

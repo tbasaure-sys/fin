@@ -5829,6 +5829,162 @@
   line-height: 1.45;
 }
 
+.researchScreening {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid rgba(122, 210, 194, 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(122, 210, 194, 0.075), transparent 46%),
+    rgba(255, 255, 255, 0.025);
+}
+
+.researchScreeningHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.researchScreeningHeader > div {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.researchScreeningHeader span,
+.researchScreeningDecision span {
+  color: var(--good);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.researchScreeningHeader h3 {
+  margin: 0;
+  font-size: clamp(1.18rem, 2vw, 1.55rem);
+  line-height: 1.12;
+  overflow-wrap: anywhere;
+}
+
+.researchScreeningHeader > small {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid rgba(248, 200, 111, 0.22);
+  border-radius: 999px;
+  color: var(--warn);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.researchScreeningLead,
+.researchScreeningFootnote,
+.researchScreeningDecision p,
+.researchGapDetails > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.researchScreeningLead {
+  max-width: 78ch;
+}
+
+.researchScreeningGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.researchScreeningMetric {
+  display: grid;
+  align-content: start;
+  gap: 0.32rem;
+  min-width: 0;
+  min-height: 8.25rem;
+  padding: 0.95rem;
+  background: rgba(8, 15, 25, 0.96);
+}
+
+.researchScreeningMetric span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.researchScreeningMetric strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
+  line-height: 1.12;
+}
+
+.researchScreeningMetric small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.researchScreeningDecision {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  border-left: 2px solid rgba(122, 210, 194, 0.72);
+  background: rgba(122, 210, 194, 0.055);
+}
+
+.researchScreeningDecision strong {
+  max-width: 70ch;
+  line-height: 1.4;
+}
+
+.researchScreeningFootnote {
+  font-size: 0.78rem;
+}
+
+.researchGapDetails {
+  display: grid;
+  gap: 0.8rem;
+  min-width: 0;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.022);
+}
+
+.researchGapDetails summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-width: 0;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.researchGapDetails summary span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.researchGapDetails summary small {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.researchGapDetails[open] summary {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
 .researchMemoReader {
   max-height: 34rem;
   overflow: auto;
@@ -7611,6 +7767,30 @@
 
   .holdingsAnalysisTable .tablePrimary {
     display: grid;
+  }
+
+  .researchScreening,
+  .researchGapDetails {
+    padding: 0.85rem;
+  }
+
+  .researchScreeningHeader,
+  .researchGapDetails summary {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .researchScreeningHeader > small,
+  .researchGapDetails summary small {
+    justify-self: start;
+  }
+
+  .researchScreeningGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .researchScreeningMetric {
+    min-height: 0;
   }
 }
 

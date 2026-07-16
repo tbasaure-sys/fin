@@ -609,7 +609,11 @@ test("the AURORA result UI communicates uncertainty, real pending fields, and as
   assert.match(source, /Requisito del precio/);
   assert.ok((source.match(/renderBlockedValuationHelp\(/g) || []).length >= 4);
   assert.match(source, /structural_scale_bridge:\s*"Explicar el cambio de escala"/);
-  assert.match(source, /No hay una cifra publicable, pero s[ií] hay una pregunta concreta que resolver/);
+  assert.match(source, /Qu[eé] falta para una valoraci[oó]n completa/);
+  assert.match(source, /Lectura disponible ahora/);
+  assert.match(source, /Caja, consumo y riesgo de financiaci[oó]n/);
+  assert.match(source, /No es un valor razonable/);
+  assert.match(source, /No impiden mostrar los datos que s[ií] est[aá]n respaldados/);
   assert.match(source, /Revisar datos y supuestos de valoraci[oó]n/);
   assert.doesNotMatch(source, /Perfil cargado desde FMP v[ií]a backend Railway/);
   assert.doesNotMatch(source, /[uú]ltimo filing SEC/);

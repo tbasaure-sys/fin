@@ -1123,7 +1123,7 @@ def test_close_and_profile_from_one_vendor_cannot_be_called_independent() -> Non
 def test_six_day_old_close_cannot_corroborate_a_current_quote() -> None:
     inputs = _base_inputs()
     inputs["profile"]["price"] = None
-    inputs["prices"] = [{"date": "2026-07-08", "close": 76.0}]
+    inputs["prices"] = [{"date": (date.today() - timedelta(days=7)).isoformat(), "close": 76.0}]
 
     valuation = _build(inputs)
 
@@ -2338,6 +2338,8 @@ def test_ten_percent_share_denominator_mismatch_is_not_called_reconciled() -> No
     )
     assert denominator_check["passed"] is False
     assert valuation["price_validation"]["status"] == "inconsistent"
+    assert valuation["price_validation"]["research_usable"] is False
+    assert valuation["price_validation"]["usable_for_context"] is True
 
 
 def test_stale_market_and_financial_dates_are_hard_readiness_failures() -> None:
@@ -2880,6 +2882,31 @@ def test_pre_revenue_company_abstains_without_sourced_milestones() -> None:
     assert valuation["scenarios"] == []
     assert valuation["methods"] == []
     assert valuation["reverse_dcf"]["weight"] == 0
+    screening = valuation["screening_analysis"]
+    assert screening["version"] == "screening_analysis_v1"
+    assert screening["available"] is True
+    assert screening["posture"] == "screen_grade"
+    assert screening["kind"] == "early_stage"
+    assert screening["fair_value_published"] is False
+    assert screening["observed"] == {
+        "current_price": 100.0,
+        "market_cap": 1_000.0,
+        "revenue": 0.0,
+        "free_cash_flow": -65.0,
+        "cash": 150.0,
+        "total_debt": 100.0,
+        "diluted_shares": 10.0,
+        "net_cash": 50.0,
+        "enterprise_value": 950.0,
+    }
+    assert screening["runway"]["annual_burn"] == 65.0
+    assert screening["runway"]["years"] == pytest.approx(150.0 / 65.0)
+    assert screening["runway"]["months"] == pytest.approx((150.0 / 65.0) * 12.0)
+    assert screening["runway"]["funding_need_for_24_months"] == 0.0
+    assert screening["runway"]["illustrative_dilution_at_20pct_discount"] == 0.0
+    assert screening["market_read"]["operations_value"] == 950.0
+    assert screening["market_read"]["cash_per_share"] == 15.0
+    assert screening["market_read"]["net_cash_per_share"] == 5.0
 
 
 def test_early_stage_company_cannot_capitalize_financing_funded_fcfe() -> None:
