@@ -64,21 +64,29 @@ export default function RootLayout({ children }) {
             __html: `
               (() => {
                 const VERSION = ${JSON.stringify(cacheRecoveryVersion)};
-                const KEY = "__bls_cache_recovery__";
+                const SESSION_KEY = "__bls_cache_recovery_attempt__";
                 const QUERY_FLAG = "cache_recovered";
 
-                const markRecovered = () => {
+                const recoveryAttempted = () => {
                   try {
-                    window.localStorage.setItem(KEY, VERSION);
-                  } catch {}
-                };
-
-                const alreadyRecovered = () => {
-                  try {
-                    return window.localStorage.getItem(KEY) === VERSION;
+                    return window.sessionStorage.getItem(SESSION_KEY) === VERSION;
                   } catch {
                     return false;
                   }
+                };
+
+                const markRecoveryAttempted = () => {
+                  try {
+                    window.sessionStorage.setItem(SESSION_KEY, VERSION);
+                  } catch {}
+                };
+
+                const isChunkLoadFailure = (reason, event) => {
+                  const targetUrl = event?.target?.src || event?.target?.href || "";
+                  if (targetUrl && /\/_next\/static\/(?:chunks|css)\//i.test(targetUrl)) return true;
+
+                  const message = [reason?.name, reason?.message, String(reason || "")].filter(Boolean).join(" ");
+                  return /ChunkLoadError|Loading (?:CSS )?chunk .* failed|CSS_CHUNK_LOAD_FAILED|Failed to fetch dynamically imported module|Importing a module script failed/i.test(message);
                 };
 
                 const cleanupClientCaches = async () => {
@@ -95,8 +103,6 @@ export default function RootLayout({ children }) {
                       await Promise.all(cacheKeys.map((cacheKey) => window.caches.delete(cacheKey).catch(() => false)));
                     }
                   } catch {}
-
-                  markRecovered();
                 };
 
                 const normalizeUrl = () => {
@@ -109,12 +115,9 @@ export default function RootLayout({ children }) {
                   } catch {}
                 };
 
-                const run = async () => {
-                  if (alreadyRecovered()) {
-                    normalizeUrl();
-                    return;
-                  }
-
+                const recover = async () => {
+                  if (recoveryAttempted()) return;
+                  markRecoveryAttempted();
                   await cleanupClientCaches();
 
                   try {
@@ -129,7 +132,14 @@ export default function RootLayout({ children }) {
                   normalizeUrl();
                 };
 
-                void run();
+                const handleLoadFailure = (event) => {
+                  const reason = event?.reason || event?.error || event?.message;
+                  if (isChunkLoadFailure(reason, event)) void recover();
+                };
+
+                normalizeUrl();
+                window.addEventListener("error", handleLoadFailure, true);
+                window.addEventListener("unhandledrejection", handleLoadFailure);
               })();
             `,
           }}

@@ -65,7 +65,7 @@ export async function POST(request) {
         { status: 503 },
       );
     }
-    const sanitized = sanitizePublicResearchPayload(payload);
+    const sanitized = sanitizePublicResearchPayload(payload, { expectedTicker: ticker });
     return noStoreJson({
       ...sanitized,
       history: {

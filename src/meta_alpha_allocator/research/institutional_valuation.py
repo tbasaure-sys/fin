@@ -11,6 +11,11 @@ import pandas as pd
 
 
 MODEL_VERSION = "institutional_valuation_v3"
+FCFF_DCF_METHODS = frozenset({
+    "forward_fcff_dcf",
+    "through_cycle_fcff_dcf",
+    "market_implied_operating_requirements",
+})
 DEFAULT_RISK_FREE_RATE = 0.0425
 DEFAULT_EQUITY_RISK_PREMIUM = 0.05
 BETA_WINSOR_LOWER = 0.50
@@ -74,6 +79,25 @@ def _date_text(value: Any) -> str | None:
         return str(pd.to_datetime(value).date())
     except (TypeError, ValueError, OverflowError):
         return None
+
+
+def _authentic_sec_company_facts_record(record: Any, expected_ticker: str | None) -> bool:
+    if not isinstance(record, dict):
+        return False
+    ticker = re.sub(r"[^A-Z0-9.-]", "", str(expected_ticker or "").upper().strip())
+    if not ticker:
+        return False
+    provider = str(record.get("provider") or "").strip().lower()
+    endpoint = str(record.get("endpoint_or_filing") or "").strip()
+    expected_endpoint = f"api/xbrl/companyfacts/CIK{{resolved_from_{ticker}}}.json"
+    row_count = record.get("row_count")
+    return bool(
+        provider == "sec-edgar"
+        and endpoint.lower() == expected_endpoint.lower()
+        and isinstance(row_count, int)
+        and not isinstance(row_count, bool)
+        and row_count > 0
+    )
 
 
 def _epoch_date(value: Any) -> str | None:
@@ -674,6 +698,22 @@ def validate_market_price(
     else:
         status = "unverified"
 
+    listing_currency = next(iter(explicit_currencies), None)
+    independent_observation = (
+        {
+            "source_id": "market:independent-close",
+            "source_family": historical_source_family,
+            "price": historical_price,
+            "as_of": historical_date,
+            "currency": listing_currency,
+        }
+        if has_independent_price
+        and historical_price is not None
+        and historical_date
+        and listing_currency
+        else None
+    )
+
     return {
         "status": status,
         "usable": status == "validated",
@@ -683,7 +723,7 @@ def validate_market_price(
             and status in {"validated", "provider_reconciled"}
         ),
         "price": price,
-        "currency": next(iter(explicit_currencies), None),
+        "currency": listing_currency,
         "as_of": as_of,
         "age_days": age_days,
         "fresh": fresh,
@@ -694,6 +734,7 @@ def validate_market_price(
         "valuation_shares": valuation_shares,
         "adr_conversion": adr_conversion,
         "independent_price_observation": has_independent_price,
+        "independent_observation": independent_observation,
         "provider_corroborated": provider_corroborated,
         "provider_family": quote_source_family,
         "denominator_reconciled": has_denominator_reconciliation,
@@ -2114,7 +2155,7 @@ def _discounted_cash_flow(
     terminal_value = terminal_cash_flow / (discount_rate - terminal_growth)
     terminal_time_years = float(forecast_rows[-1].get("time_years") or len(forecast_rows))
     pv_terminal = terminal_value / ((1 + discount_rate) ** terminal_time_years)
-    if method in {"forward_fcff_dcf", "through_cycle_fcff_dcf"}:
+    if method in FCFF_DCF_METHODS:
         enterprise_value = present_value + pv_terminal
         equity_value = enterprise_value + cash - debt
     else:
@@ -2127,7 +2168,7 @@ def _discounted_cash_flow(
         "method": method,
         "assumptions": {
             "discount_rate": discount_rate,
-            "wacc": discount_rate if method in {"forward_fcff_dcf", "through_cycle_fcff_dcf"} else None,
+            "wacc": discount_rate if method in FCFF_DCF_METHODS else None,
             "cost_of_equity": discount_rate if method == "forward_fcfe_dcf" else None,
             "terminal_growth": terminal_growth,
             "years": len(forecast_rows),
@@ -2860,6 +2901,10 @@ def build_institutional_valuation(
         source_verified = bool(
             source_record
             and str(source_record.get("status") or "").lower() == "ok"
+            and (
+                not upper_bound_source_id.startswith("sec:companyfacts:")
+                or _authentic_sec_company_facts_record(source_record, expected_ticker)
+            )
             and source_field_supported
             and amount_verified
         )
@@ -2919,19 +2964,82 @@ def build_institutional_valuation(
         book_capital_for_bridge,
     )
     bridge_uncertainty_supported = unresolved_claims_bounded
-    unreconciled_pension_periods = [
-        _date_text(row.get("date")) or "unknown"
-        for row in [*annual_rows, current_row]
-        if (_positive(row.get("unfunded_pension_liability")) or 0.0) > 0
-        and row.get("pension_deficit_funding_removed_from_fcff") is not True
+    pension_claim = max(0.0, bridge_inputs["unfunded_pension_liability"] or 0.0)
+    validated_price_for_bridge = _positive(price_validation.get("price"))
+    market_cap_for_bridge = (
+        validated_price_for_bridge * shares
+        if validated_price_for_bridge is not None and shares > 0
+        else None
+    )
+    revenue_materiality_threshold = abs(revenue) * 0.005
+    market_cap_materiality_threshold = (
+        market_cap_for_bridge * 0.01 if market_cap_for_bridge is not None else None
+    )
+    bridge_materiality_candidates = [revenue_materiality_threshold]
+    if market_cap_for_bridge is not None:
+        bridge_materiality_candidates.append(market_cap_materiality_threshold)
+    pension_materiality_threshold = max(1e-9, min(bridge_materiality_candidates))
+    pension_material = pension_claim > pension_materiality_threshold
+    pension_source_id = str(current_row.get("unfunded_pension_liability_source_id") or "").strip()
+    pension_source_record = source_records_by_id.get(pension_source_id) or {}
+    pension_basis = str(current_row.get("unfunded_pension_liability_basis") or "").strip()
+    pension_as_of = _date_text(current_row.get("unfunded_pension_liability_as_of"))
+    pension_date = pd.to_datetime(pension_as_of, errors="coerce")
+    pension_current_date = pd.to_datetime(current_row.get("date"), errors="coerce")
+    pension_age_days = (
+        int((pension_current_date - pension_date).days)
+        if not pd.isna(pension_current_date) and not pd.isna(pension_date)
+        else None
+    )
+    pension_enrichments = [
+        item
+        for item in (pension_source_record.get("field_enrichments") or [])
+        if isinstance(item, dict)
+        and item.get("field") == "unfunded_pension_liability"
+        and item.get("frame") == "balance_ttm"
+        and _date_text(item.get("date")) == _date_text(current_row.get("date"))
+        and _date_text(item.get("source_as_of")) == pension_as_of
+        and str(item.get("basis") or "").strip() == pension_basis
+        and _number(item.get("value")) is not None
+        and math.isclose(
+            float(_number(item.get("value")) or 0.0),
+            pension_claim,
+            rel_tol=1e-8,
+            abs_tol=max(1e-9, pension_claim * 1e-8),
+        )
     ]
+    pension_source_backed = bool(
+        pension_source_id == "sec:companyfacts:balance"
+        and _authentic_sec_company_facts_record(pension_source_record, expected_ticker)
+        and str(pension_source_record.get("status") or "").lower() == "ok"
+        and "unfundedPensionLiability" in (pension_source_record.get("targets_covered") or [])
+        and pension_basis == "benefit_obligation_less_plan_assets"
+        and pension_as_of
+        and pension_age_days is not None
+        and 0 <= pension_age_days <= 550
+        and pension_enrichments
+    )
+    pension_claim_passed = bool(not pension_material or pension_source_backed)
+    unreconciled_pension_periods = (
+        []
+        if pension_claim_passed
+        else [_date_text(current_row.get("date")) or "unknown"]
+    )
     pension_claim_reconciliation = {
-        "passed": not unreconciled_pension_periods,
+        "passed": pension_claim_passed,
+        "material": pension_material,
+        "materiality_threshold": pension_materiality_threshold,
+        "source_backed": pension_source_backed,
+        "source_id": pension_source_id or None,
+        "as_of": pension_as_of,
+        "age_days": pension_age_days,
         "unreconciled_periods": unreconciled_pension_periods,
         "policy": (
-            "deduct_the_reconciled_unfunded_claim_once"
-            if not unreconciled_pension_periods
-            else "show_full_to_zero_claim_sensitivity_until_deficit_funding_is_removed_from_fcff"
+            "immaterial_claim_deducted_without_changing_the_decision"
+            if not pension_material
+            else "deduct_source_backed_net_pension_deficit_as_a_senior_claim_and_retain_reported_contributions_as_recurring_owner_cost"
+            if pension_source_backed
+            else "show_full_to_zero_claim_sensitivity_until_the_net_pension_deficit_is_source_backed"
         ),
     }
     cash_separation = _operating_cash_separation(current_row, archetype) if archetype != "financial" else None
@@ -2947,8 +3055,7 @@ def build_institutional_valuation(
         if archetype != "financial"
         else (cash or 0.0) + (bridge_inputs["non_operating_investments"] or 0.0)
     )
-    pension_claim = max(0.0, bridge_inputs["unfunded_pension_liability"] or 0.0)
-    pension_sensitivity_applied = bool(unreconciled_pension_periods and pension_claim > 0)
+    pension_sensitivity_applied = bool(pension_material and not pension_claim_passed)
     exact_bridge_obligations_before_pension = (debt or 0.0) + sum(
         bridge_inputs[field] or 0.0
         for field in (
@@ -3227,6 +3334,202 @@ def build_institutional_valuation(
         if archetype == "capacity_cycle":
             cycle_margins = _cycle_margin_distribution(annual_rows, "operating_fcff_after_sbc")
             cycle_revenue = _cycle_revenue_distribution(annual_rows)
+            scale_ttm_validation = (ttm_row or {}).get("ttm_validation") or {}
+            scale_sec_families = scale_ttm_validation.get("sec_quarterly_families") or {}
+            scale_sec_metrics = {
+                str(metric)
+                for metric in (scale_ttm_validation.get("sec_reconciled_metrics") or [])
+            }
+            scale_provider_checks = scale_ttm_validation.get("provider_ttm_checks") or []
+
+            def scale_metric_reconciled(metric: str) -> bool:
+                family = scale_sec_families.get(metric) or {}
+                if scale_ttm_validation.get("discrete_periods_confirmed") is not True:
+                    return False
+                if family:
+                    return bool(
+                        family.get("passed") is True
+                        and family.get("coverage_complete") is True
+                        and metric in scale_sec_metrics
+                    )
+                return metric in scale_sec_metrics
+
+            scale_revenue_reconciled = scale_metric_reconciled("revenue")
+            scale_shares_reconciled = bool(
+                scale_metric_reconciled("diluted_shares")
+                and price_validation.get("denominator_reconciled") is True
+                and model_shares is not None
+            )
+            scale_inputs_reconciled = bool(
+                scale_revenue_reconciled
+                and scale_shares_reconciled
+            )
+
+            provider_balance_date = _date_text(scale_ttm_validation.get("provider_ttm_balance_date"))
+            current_financial_date = pd.to_datetime(current_row.get("date"), errors="coerce")
+            provider_balance_timestamp = pd.to_datetime(provider_balance_date, errors="coerce")
+            provider_balance_age_days = (
+                int((current_financial_date - provider_balance_timestamp).days)
+                if not pd.isna(current_financial_date) and not pd.isna(provider_balance_timestamp)
+                else None
+            )
+            provider_balance_date_current = bool(
+                provider_balance_age_days is not None
+                and 0 <= provider_balance_age_days <= 45
+            )
+            provider_balance_currency = str(
+                scale_ttm_validation.get("provider_ttm_balance_currency") or ""
+            ).upper().strip() or None
+            requirements_currency_reconciled = bool(
+                currency_consistent
+                and historical_currency_consistent
+                and scale_ttm_validation.get("currency_reconciled") is True
+                and scale_ttm_validation.get("provider_ttm_balance_currency_reconciled") is True
+                and financial_currency
+                and market_currency
+                and provider_balance_currency == financial_currency == market_currency
+            )
+
+            def bridge_metric_reconciliation(metric: str) -> dict[str, Any]:
+                current_value = _number((ttm_row or {}).get(metric))
+                candidates = [
+                    check
+                    for check in scale_provider_checks
+                    if str(check.get("metric") or "") == metric
+                ]
+                if current_value is None or len(candidates) != 1:
+                    return {
+                        "metric": metric,
+                        "passed": False,
+                        "current_value": current_value,
+                        "calculated_value": None,
+                        "provider_value": None,
+                        "difference": None,
+                        "maximum_difference": None,
+                        "basis": "provider_ttm_balance",
+                    }
+                check = candidates[0]
+                calculated_value = _number(check.get("calculated_value"))
+                provider_value = _number(check.get("provider_value"))
+                maximum_difference = _number(check.get("maximum_difference"))
+                difference = (
+                    abs(provider_value - current_value)
+                    / max(abs(provider_value), abs(current_value), 1.0)
+                    if provider_value is not None
+                    else None
+                )
+                passed = bool(
+                    scale_ttm_validation.get("discrete_periods_confirmed") is True
+                    and provider_balance_date_current
+                    and scale_ttm_validation.get("provider_ttm_balance_currency_reconciled") is True
+                    and provider_balance_date
+                    and check.get("passed") is True
+                    and calculated_value is not None
+                    and provider_value is not None
+                    and maximum_difference is not None
+                    and 0 <= maximum_difference <= 0.05
+                    and difference is not None
+                    and difference <= maximum_difference
+                    and abs(calculated_value - current_value)
+                    <= max(1e-9, abs(current_value) * 1e-8)
+                )
+                return {
+                    "metric": metric,
+                    "passed": passed,
+                    "current_value": current_value,
+                    "calculated_value": calculated_value,
+                    "provider_value": provider_value,
+                    "difference": difference,
+                    "maximum_difference": maximum_difference,
+                    "basis": "provider_ttm_balance",
+                }
+
+            bridge_materiality_threshold = pension_materiality_threshold
+            provider_bridge_metrics = (
+                "cash",
+                "total_debt",
+                "non_operating_investments",
+                "preferred_stock",
+                "minority_interest",
+                "lease_liabilities_not_in_debt",
+            )
+            required_provider_bridge_metrics = ["cash", "total_debt"] + [
+                metric
+                for metric in provider_bridge_metrics[2:]
+                if abs(_number((ttm_row or {}).get(metric)) or 0.0) > bridge_materiality_threshold
+            ]
+            bridge_reconciliation_metrics = {
+                metric: bridge_metric_reconciliation(metric)
+                for metric in required_provider_bridge_metrics
+            }
+            pension_value = max(0.0, _number((ttm_row or {}).get("unfunded_pension_liability")) or 0.0)
+            pension_material = pension_value > bridge_materiality_threshold
+            pension_source_id = str(
+                (ttm_row or {}).get("unfunded_pension_liability_source_id") or ""
+            ).strip()
+            pension_source_record = source_records_by_id.get(pension_source_id) or {}
+            pension_as_of = _date_text((ttm_row or {}).get("unfunded_pension_liability_as_of"))
+            pension_date = pd.to_datetime(pension_as_of, errors="coerce")
+            financial_date = pd.to_datetime(current_row.get("date"), errors="coerce")
+            pension_age_days = (
+                int((financial_date - pension_date).days)
+                if not pd.isna(pension_date) and not pd.isna(financial_date)
+                else None
+            )
+            pension_reconciled = bool(
+                not pension_material
+                or (
+                    pension_source_id
+                    and str(pension_source_record.get("status") or "").lower() == "ok"
+                    and pension_as_of
+                    and pension_age_days is not None
+                    and 0 <= pension_age_days <= 550
+                    and pension_claim_reconciliation.get("passed") is True
+                )
+            )
+            if pension_material:
+                bridge_reconciliation_metrics["unfunded_pension_liability"] = {
+                    "metric": "unfunded_pension_liability",
+                    "passed": pension_reconciled,
+                    "current_value": pension_value,
+                    "calculated_value": pension_value,
+                    "provider_value": pension_value if pension_reconciled else None,
+                    "difference": 0.0 if pension_reconciled else None,
+                    "maximum_difference": 0.0,
+                    "basis": "source_backed_pension_claim",
+                    "source_id": pension_source_id or None,
+                    "as_of": pension_as_of,
+                }
+            required_bridge_metrics = [
+                *required_provider_bridge_metrics,
+                *(["unfunded_pension_liability"] if pension_material else []),
+            ]
+            equity_bridge_inputs_reconciled = bool(
+                requirements_currency_reconciled
+                and required_bridge_metrics
+                and all(
+                    bridge_reconciliation_metrics.get(metric, {}).get("passed") is True
+                    for metric in required_bridge_metrics
+                )
+            )
+            equity_bridge_reconciliation = {
+                "passed": equity_bridge_inputs_reconciled,
+                "materiality_threshold": bridge_materiality_threshold,
+                "materiality_revenue_threshold": revenue_materiality_threshold,
+                "materiality_market_cap_threshold": market_cap_materiality_threshold,
+                "materiality_market_cap": market_cap_for_bridge,
+                "materiality_valuation_shares": shares,
+                "materiality_share_basis": "reconciled_listing_shares",
+                "required_metrics": required_bridge_metrics,
+                "metrics": [bridge_reconciliation_metrics[metric] for metric in required_bridge_metrics],
+                "provider_balance_date": provider_balance_date,
+                "provider_balance_date_age_days": provider_balance_age_days,
+                "provider_balance_date_current": provider_balance_date_current,
+                "financial_currency": financial_currency,
+                "market_currency": market_currency,
+                "provider_balance_currency": provider_balance_currency,
+                "currency_reconciled": requirements_currency_reconciled,
+            }
             historical_cycle_revenues = [
                 value
                 for observation in cycle_revenue.get("observations", [])
@@ -3244,7 +3547,7 @@ def build_institutional_valuation(
             structural_cycle_break = bool(
                 current_to_historical_peak is not None
                 and not current_revenue_level_supported
-                and ttm_validation_status == "validated"
+                and scale_inputs_reconciled
             )
             current_level_usable_for_research = current_revenue_level_supported
             cycle_revenue.update(
@@ -3258,6 +3561,9 @@ def build_institutional_valuation(
                     "current_level_supported": current_revenue_level_supported,
                     "current_level_usable_for_research": current_level_usable_for_research,
                     "structural_break": structural_cycle_break,
+                    "scale_inputs_reconciled": scale_inputs_reconciled,
+                    "scale_revenue_reconciled": scale_revenue_reconciled,
+                    "scale_shares_reconciled": scale_shares_reconciled,
                 }
             )
             cycle_margins["observed_current_fcff"] = _number(current_row.get("fcff_after_sbc"))
@@ -3293,18 +3599,52 @@ def build_institutional_valuation(
                 }
             )
             if not current_level_usable_for_research:
+                requirements_equity_bridge_complete = bool(
+                    cash is not None
+                    and debt is not None
+                    and (cash_separation or {}).get("complete") is True
+                    and equity_bridge.get("exact") is True
+                    and equity_bridge_inputs_reconciled
+                )
+                scale_reconciliation_gap = (
+                    []
+                    if scale_inputs_reconciled
+                    else ["ttm_scale_inputs_reconciliation"]
+                )
+                equity_bridge_gap = (
+                    []
+                    if equity_bridge_inputs_reconciled
+                    else ["ttm_equity_bridge_reconciliation"]
+                ) + (
+                    []
+                    if cash is not None
+                    and debt is not None
+                    and equity_bridge.get("exact") is True
+                    and (cash_separation or {}).get("complete") is True
+                    else ["equity_bridge_completeness"]
+                )
                 structural_scale_bridge = {
                     "passed": False,
-                    "required": structural_cycle_break,
+                    "required": True,
                     "observed_ttm_to_historical_peak": current_to_historical_peak,
-                    "missing": [
+                    "scale_inputs_reconciled": scale_inputs_reconciled,
+                    "equity_bridge_inputs_reconciled": equity_bridge_inputs_reconciled,
+                    "equity_bridge_reconciliation": equity_bridge_reconciliation,
+                    "reconciled_metrics": sorted(scale_sec_metrics),
+                    "missing": scale_reconciliation_gap
+                    + ([] if requirements_currency_reconciled else ["currency_consistency"])
+                    + equity_bridge_gap + [
                         "capacity_and_asset_turnover_support",
                         "organic_or_acquisition_revenue_bridge",
                         "segment_reconciliation",
-                    ] if structural_cycle_break else [],
+                    ],
                     "policy": "a_reconciled_ttm_proves_the_reported_scale_not_its_sustainable_economics",
                 }
                 normalized_margin = _positive(cycle_margins.get("base"))
+                requirements_cycle_coverage_complete = bool(
+                    cycle_margins.get("coverage_complete") is True
+                    and cycle_revenue.get("coverage_complete") is True
+                )
                 requirements_discount_rate = _positive(capital.get("wacc"))
                 requirements_price_status = str(price_validation.get("status") or "").lower()
                 requirements_price_context = (
@@ -3335,6 +3675,8 @@ def build_institutional_valuation(
                     )
                     if structural_cycle_break
                     and requirements_price_usable
+                    and requirements_cycle_coverage_complete
+                    and requirements_equity_bridge_complete
                     and normalized_margin is not None
                     and requirements_discount_rate is not None
                     and model_shares is not None
@@ -3343,6 +3685,10 @@ def build_institutional_valuation(
                         "status": (
                             "price_not_research_usable"
                             if structural_cycle_break and not requirements_price_usable
+                            else "insufficient_cycle_coverage"
+                            if structural_cycle_break and not requirements_cycle_coverage_complete
+                            else "equity_bridge_incomplete"
+                            if structural_cycle_break and not requirements_equity_bridge_complete
                             else "missing_inputs"
                         ),
                         "implied_revenue_cagr": None,
@@ -3365,6 +3711,8 @@ def build_institutional_valuation(
                 blocked["cycle_normalization"] = cycle_margins
                 blocked["financial_data_as_of"] = _date_text(current_row.get("date"))
                 blocked["structural_scale_bridge"] = structural_scale_bridge
+                blocked["equity_bridge"] = equity_bridge
+                blocked["operating_cash_separation"] = cash_separation
                 blocked["market_requirements"] = {
                     "available": requirement_result.get("available") is True,
                     "status": requirement_result.get("status"),
@@ -3375,7 +3723,15 @@ def build_institutional_valuation(
                     "terminal_growth": 0.02,
                     "horizon_years": 5,
                     "price_context": requirements_price_context,
+                    "reference_price": _positive(price_validation.get("price")) if requirements_price_usable else None,
                     "market_data_as_of": _date_text(price_validation.get("as_of")) if requirements_price_usable else None,
+                    "currency": price_validation.get("currency") if requirements_price_usable else None,
+                    "assets_added": bridge_assets if requirements_equity_bridge_complete else None,
+                    "obligations_deducted": (
+                        scenario_bridge_obligations["base"]
+                        if requirements_equity_bridge_complete
+                        else None
+                    ),
                 }
                 blocked["estimate_validation"] = estimate_validation
                 blocked["stock_compensation_treatment"] = {
@@ -3388,8 +3744,7 @@ def build_institutional_valuation(
                     "future_dilution_modeled": False,
                 }
                 blocked["reliability"]["readiness_gates"]["structural_scale_bridge"] = structural_scale_bridge
-                if structural_cycle_break:
-                    blocked["reliability"]["decision_ready_blockers"].append("structural_scale_bridge")
+                blocked["reliability"]["decision_ready_blockers"].append("structural_scale_bridge")
                 return _json_safe(blocked)
             if (
                 observed_fcff is None

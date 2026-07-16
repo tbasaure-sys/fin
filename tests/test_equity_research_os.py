@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+from datetime import date, timedelta
 from io import BytesIO
 import math
 
@@ -15,21 +16,106 @@ from meta_alpha_allocator.research.equity_research_os import (
     _build_downloads,
     _build_model_xlsx,
     _build_ttm_row,
+    _all_statement_families_use_sec,
     _enrich_balance_frames_with_sec,
     _derive_assumptions,
+    _data_points_for_output,
     _apply_current_share_count_gate,
     _apply_statement_reconciliation_gate,
     _load_fmp_payloads,
     _normalize_financials,
+    _reconcile_statement_rows,
     _reconcile_current_share_count,
     _sec_company_facts_frames,
     _ttm_data_points,
+    _valuation_data_points,
     build_dcf_scenario,
     build_equity_research_bundle,
     calculate_revenue_cagr,
     reverse_dcf_implied_growth,
 )
 from meta_alpha_allocator.research.institutional_valuation import _normalize_annual_history
+
+
+RECENT_MARKET_DATE = (date.today() - timedelta(days=1)).isoformat()
+PRIOR_MARKET_DATE = (date.today() - timedelta(days=2)).isoformat()
+
+
+def test_mixed_fmp_and_sec_statement_families_still_require_reconciliation() -> None:
+    assert _all_statement_families_use_sec(
+        {
+            "income": "fmp:income:annual",
+            "cash_flow": "fmp:cash-flow:annual",
+            "balance": "sec:companyfacts:balance",
+        }
+    ) is False
+    assert _all_statement_families_use_sec(
+        {
+            "income": "sec:companyfacts:income",
+            "cash_flow": "sec:companyfacts:cash-flow",
+            "balance": "sec:companyfacts:balance",
+        }
+    ) is True
+
+
+def test_unbacked_output_redacts_intrinsic_reverse_dcf_but_keeps_explicit_market_requirement() -> None:
+    output = _data_points_for_output(
+        [
+            {
+                "metric": "valuation_reverse_dcf_implied_revenue_cagr",
+                "normalized_value": 0.42,
+                "raw_value": 0.42,
+                "claim_tag": "calculated_metric",
+                "formula": "intrinsic reverse DCF",
+            },
+            {
+                "metric": "market_requirement_implied_revenue_cagr",
+                "normalized_value": 0.31,
+                "raw_value": 0.31,
+                "claim_tag": "calculated_metric",
+                "formula": "price-implied operating requirement",
+            },
+        ],
+        backed=False,
+    )
+
+    assert output[0]["normalized_value"] is None
+    assert output[0]["claim_tag"] == "uncertainty"
+    assert output[1]["normalized_value"] == 0.31
+    assert output[1]["claim_tag"] == "calculated_metric"
+
+
+def test_valuation_range_evidence_exposes_canonical_low_central_and_high_metrics() -> None:
+    points = _valuation_data_points(
+        {
+            "available": True,
+            "primary_method": "through_cycle_fcff_dcf",
+            "range": {"low": 88.0, "central": 112.0, "high": 139.0},
+            "scenarios": [],
+            "multiples": {},
+            "reliability": {},
+        }
+    )
+
+    canonical = {
+        point["metric"]: point
+        for point in points
+        if point["metric"] in {
+            "valuation_range_low",
+            "valuation_range_central",
+            "valuation_range_high",
+        }
+    }
+    assert set(canonical) == {
+        "valuation_range_low",
+        "valuation_range_central",
+        "valuation_range_high",
+    }
+    assert canonical["valuation_range_low"]["normalized_value"] == 88.0
+    assert canonical["valuation_range_central"]["normalized_value"] == 112.0
+    assert canonical["valuation_range_high"]["normalized_value"] == 139.0
+    assert all(point["claim_tag"] == "calculated_metric" for point in canonical.values())
+    assert all(point["formula"] for point in canonical.values())
 
 
 class MockFMPClient:
@@ -136,7 +222,7 @@ class MockFMPClient:
         )
 
     def get_historical_prices(self, symbol: str) -> pd.DataFrame:
-        return pd.DataFrame([{"date": "2026-07-14", "close": 120.0, "volume": 1000}])
+        return pd.DataFrame([{"date": RECENT_MARKET_DATE, "close": 120.0, "volume": 1000}])
 
     def get_analyst_estimates(self, symbol: str, *, period: str = "annual", limit: int = 10) -> pd.DataFrame:
         rows = []
@@ -340,6 +426,7 @@ class MicronLikeFMPClient(MockFMPClient):
 
     def get_balance_sheet_statements(self, symbol: str, *, period: str, limit: int) -> pd.DataFrame:
         def complete_bridge(frame: pd.DataFrame) -> pd.DataFrame:
+            frame["reportedCurrency"] = "USD"
             for column in (
                 "shortTermInvestments",
                 "goodwillAndIntangibleAssets",
@@ -375,8 +462,8 @@ class MicronLikeFMPClient(MockFMPClient):
     def get_historical_prices(self, symbol: str) -> pd.DataFrame:
         return pd.DataFrame(
             [
-                {"date": "2026-07-13", "close": 937.0, "volume": 1_000},
-                {"date": "2026-07-14", "close": 983.12, "volume": 1_000},
+                {"date": PRIOR_MARKET_DATE, "close": 937.0, "volume": 1_000},
+                {"date": RECENT_MARKET_DATE, "close": 983.12, "volume": 1_000},
             ]
         )
 
@@ -418,8 +505,8 @@ class MicronShareCountFMPClient(MicronLikeFMPClient):
     def get_shares_float(self, symbol: str) -> dict:
         return {
             "symbol": symbol,
-            "date": "2026-07-14",
-            "as_of": "2026-07-14T00:00:00+00:00",
+            "date": RECENT_MARKET_DATE,
+            "as_of": f"{RECENT_MARKET_DATE}T00:00:00+00:00",
             "outstandingShares": self.outstanding_shares,
             "floatShares": self.outstanding_shares * 0.985,
             "freeFloat": 98.5,
@@ -515,9 +602,15 @@ def _quarterly_ttm_frames(dates: list[str], *, include_debt: bool = True) -> dic
         row = {
             "date": date,
             "period": period,
+            "reportedCurrency": "USD",
             "cashAndCashEquivalents": 30.0,
+            "shortTermInvestments": 0.0,
             "totalStockholdersEquity": 80.0,
             "totalAssets": 150.0,
+            "preferredStock": 0.0,
+            "minorityInterest": 0.0,
+            "unfundedPensionLiability": 0.0,
+            "leaseLiabilitiesNotInDebt": 0.0,
         }
         if include_debt:
             row["totalDebt"] = 25.0
@@ -602,6 +695,78 @@ def test_ttm_builder_validates_only_when_quarter_sum_matches_provider_ttm() -> N
     assert ttm["ttm_validation"]["status"] == "validated"
     assert ttm["ttm_validation"]["provider_ttm_reconciled"] is True
     assert all(check["passed"] for check in ttm["ttm_validation"]["provider_ttm_checks"])
+
+
+def test_ttm_builder_records_explicit_balance_date_currency_and_bridge_checks() -> None:
+    frames = _add_provider_ttm(
+        _quarterly_ttm_frames(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31"])
+    )
+
+    ttm = _build_ttm_row(frames, 0.21)
+
+    assert ttm is not None
+    validation = ttm["ttm_validation"]
+    assert validation["provider_ttm_balance_date"] == "2026-03-31"
+    assert validation["provider_ttm_balance_date_gap_days"] == 0
+    assert validation["provider_ttm_balance_date_current"] is True
+    assert validation["provider_ttm_balance_currency"] == "USD"
+    assert validation["provider_ttm_balance_currency_reconciled"] is True
+    checks = {check["metric"]: check for check in validation["provider_ttm_checks"]}
+    for metric in (
+        "cash",
+        "total_debt",
+        "non_operating_investments",
+        "preferred_stock",
+        "minority_interest",
+        "lease_liabilities_not_in_debt",
+    ):
+        assert checks[metric]["passed"] is True
+        assert checks[metric]["calculated_value"] == checks[metric]["provider_value"]
+
+
+@pytest.mark.parametrize(
+    ("date_case", "balance_date"),
+    [
+        ("missing", None),
+        ("future", "2026-04-01"),
+        ("stale", "2026-02-13"),
+    ],
+)
+def test_ttm_builder_rejects_missing_future_or_stale_provider_balance_dates(
+    date_case: str,
+    balance_date: str | None,
+) -> None:
+    frames = _add_provider_ttm(
+        _quarterly_ttm_frames(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31"])
+    )
+    if balance_date is None:
+        frames["balance_ttm"] = frames["balance_ttm"].drop(columns=["date"])
+    else:
+        frames["balance_ttm"].loc[:, "date"] = balance_date
+
+    ttm = _build_ttm_row(frames, 0.21)
+
+    assert ttm is not None
+    validation = ttm["ttm_validation"]
+    assert validation["provider_ttm_balance_date_current"] is False, date_case
+    assert validation["provider_ttm_reconciled"] is False
+
+
+@pytest.mark.parametrize("balance_currency", [None, "EUR"])
+def test_ttm_builder_rejects_missing_or_discordant_provider_balance_currency(
+    balance_currency: str | None,
+) -> None:
+    frames = _add_provider_ttm(
+        _quarterly_ttm_frames(["2025-06-30", "2025-09-30", "2025-12-31", "2026-03-31"])
+    )
+    frames["balance_ttm"].loc[:, "reportedCurrency"] = balance_currency
+
+    ttm = _build_ttm_row(frames, 0.21)
+
+    assert ttm is not None
+    validation = ttm["ttm_validation"]
+    assert validation["provider_ttm_balance_currency_reconciled"] is False
+    assert validation["provider_ttm_reconciled"] is False
 
 
 def test_ttm_builder_requires_diluted_shares_in_all_four_quarters() -> None:
@@ -1821,6 +1986,29 @@ def test_sec_statement_availability_does_not_count_as_a_crosscheck_without_numer
     assert bundle["valuation"]["status"] == "not_decision_ready"
     assert bundle["valuation"]["reliability"]["usable"] is False
     assert bundle["valuation"]["range"] == {"low": None, "central": None, "high": None}
+    assert bundle["valuation"].get("market_requirements", {}).get("available") is not True
+
+
+def test_latest_debt_mismatch_is_critical_even_when_the_aggregate_pass_ratio_is_high() -> None:
+    primary = [{
+        "date": "2025-12-31",
+        "revenue": 1_000.0,
+        "net_income": 100.0,
+        "cash_from_operations": 180.0,
+        "capital_expenditures": -80.0,
+        "cash": 100.0,
+        "total_debt": 100.0,
+        "total_equity": 500.0,
+        "diluted_shares": 10.0,
+    }]
+    sec = [{**primary[0], "total_debt": 1_000.0}]
+
+    reconciliation = _reconcile_statement_rows(primary, sec)
+
+    assert reconciliation["pass_ratio"] == pytest.approx(0.875)
+    assert reconciliation["passed"] is False
+    assert reconciliation["status"] == "mismatch"
+    assert any(item["metric"] == "total_debt" for item in reconciliation["critical_failures"])
 
 
 def test_equity_research_bundle_refuses_to_invent_without_provider() -> None:
@@ -1882,17 +2070,30 @@ def test_micron_like_company_builds_a_cycle_but_withholds_it_when_sec_numbers_co
     assert valuation["cycle_normalization"]["coverage_complete"] is True
     assert valuation["cycle_revenue_normalization"]["coverage_complete"] is True
     assert any(item["margin"] < 0 for item in valuation["cycle_normalization"]["observations"])
-    assert valuation["market_data_as_of"] == "2026-07-14"
+    assert valuation["market_data_as_of"] == RECENT_MARKET_DATE
     assert valuation["price_validation"]["status"] == "provider_reconciled"
+    assert valuation["market_requirements"]["available"] is False
+    assert valuation["market_requirements"]["status"] == "blocked_statement_reconciliation"
     ttm_revenue_point = next(point for point in bundle["sources"]["data_points"] if point["metric"] == "financials.ttm.revenue")
     assert ttm_revenue_point["source_ids"] == ["fmp:income:quarterly", "fmp:income:ttm"]
     assert ttm_revenue_point["quarter_dates"] == ["2025-08-28", "2025-11-27", "2026-02-26", "2026-05-28"]
     latest_revenue_point = next(point for point in bundle["sources"]["data_points"] if point["metric"] == "latest_revenue")
     assert latest_revenue_point["claim_tag"] == "calculated_metric"
     assert latest_revenue_point["source_id"] is None
+    evidence_metrics = {point["metric"] for point in bundle["sources"]["data_points"]}
+    assert "reverse_dcf_status" not in evidence_metrics
+    missing_evidence_metrics = set(bundle["sources"]["coverage"]["missing_expected_metrics"])
+    assert {
+        "wacc",
+        "terminal_growth",
+        "reverse_dcf_status",
+        "valuation_range_central",
+        "ev_to_sales",
+        "price_to_fcf",
+    }.issubset(missing_evidence_metrics)
 
 
-def test_micron_like_structural_cycle_returns_price_requirements_instead_of_an_arbitrary_fair_value() -> None:
+def test_micron_like_provider_only_ttm_cannot_return_price_requirements() -> None:
     profile, frames, _ = _load_fmp_payloads("MU", None, MicronLikeFMPClient())
     rows = _normalize_financials(frames, DEFAULT_TAX_RATE)
     ttm = _build_ttm_row(frames, DEFAULT_TAX_RATE)
@@ -1905,12 +2106,12 @@ def test_micron_like_structural_cycle_returns_price_requirements_instead_of_an_a
 
     assert valuation["status"] == "not_decision_ready"
     assert valuation["available"] is False
-    assert valuation["cycle_revenue_normalization"]["structural_break"] is True
+    assert valuation["cycle_revenue_normalization"]["structural_break"] is False
     assert valuation["range"] == {"low": None, "central": None, "high": None}
     assert valuation["structural_scale_bridge"]["passed"] is False
-    assert valuation["market_requirements"]["available"] is True
-    assert valuation["market_requirements"]["normalized_margin"] > 0
-    assert valuation["market_requirements"]["horizon_years"] == 5
+    assert valuation["structural_scale_bridge"]["scale_inputs_reconciled"] is False
+    assert "ttm_scale_inputs_reconciliation" in valuation["structural_scale_bridge"]["missing"]
+    assert valuation["market_requirements"]["available"] is False
 
 
 def test_current_basic_shares_are_reconciled_as_a_control_not_a_diluted_denominator_replacement() -> None:
@@ -1972,6 +2173,12 @@ def test_share_mismatch_clears_an_otherwise_available_valuation() -> None:
         "scenarios": [{"name": "base", "intrinsic_value_per_share": 100.0}],
         "methods": [{"key": "forward_fcff_dcf", "value_per_share": 100.0}],
         "reverse_dcf": {"available": True, "weight": 0},
+        "market_requirements": {
+            "available": True,
+            "status": "solved",
+            "implied_revenue_cagr": 0.25,
+            "reference_price": 100.0,
+        },
         "reliability": {"usable": True, "readiness_gates": {}, "decision_ready_blockers": []},
     }
     reconciliation = {
@@ -1990,6 +2197,9 @@ def test_share_mismatch_clears_an_otherwise_available_valuation() -> None:
     assert gated["scenarios"] == []
     assert gated["methods"] == []
     assert gated["reverse_dcf"]["available"] is False
+    assert gated["market_requirements"]["available"] is False
+    assert gated["market_requirements"]["status"] == "blocked_share_denominator"
+    assert gated["market_requirements"]["implied_revenue_cagr"] is None
 
 
 def test_required_sec_mismatch_clears_an_otherwise_available_valuation() -> None:
@@ -2040,7 +2250,7 @@ def test_current_share_count_at_the_control_boundary_is_not_silently_accepted() 
     [
         ({"symbol": "EXM", "outstandingShares": 10.0}, "undated_or_invalid"),
         ({"symbol": "EXM", "outstandingShares": 10.0, "as_of": "2010-01-01"}, "stale"),
-        ({"symbol": "EXM", "outstandingShares": 12.49, "as_of": "2026-07-14"}, "material_mismatch"),
+        ({"symbol": "EXM", "outstandingShares": 12.49, "as_of": RECENT_MARKET_DATE}, "material_mismatch"),
     ],
 )
 def test_current_share_control_rejects_undated_stale_and_asymmetric_scale_gaps(

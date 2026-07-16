@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import date, timedelta
 import json
 import math
 
@@ -9,8 +10,14 @@ import pytest
 from meta_alpha_allocator.research.institutional_valuation import (
     ARCHETYPE_BETA_PRIORS,
     _cost_of_capital,
+    _reverse_dcf,
     build_institutional_valuation,
 )
+
+
+CURRENT_MARKET_DATE = date.today().isoformat()
+RECENT_MARKET_DATE = (date.today() - timedelta(days=1)).isoformat()
+PRIOR_MARKET_DATE = (date.today() - timedelta(days=2)).isoformat()
 
 
 MONETARY_ROW_FIELDS = {
@@ -134,7 +141,7 @@ def _base_inputs() -> dict:
             {
                 "date": f"{year}-12-31",
                 "currency": "USD",
-                "updatedAt": "2026-07-14",
+                "updatedAt": RECENT_MARKET_DATE,
                 "numberAnalystsEstimatedRevenue": 5,
                 "revenueLow": revenue * 0.95,
                 "revenueAvg": revenue,
@@ -156,8 +163,8 @@ def _base_inputs() -> dict:
             "marketCap": 1_000.0,
             "currency": "USD",
         },
-        "quote": {"price": 100.0, "marketCap": 1_000.0, "as_of": "2026-07-14"},
-        "prices": [{"date": "2026-07-14", "close": 100.0}],
+        "quote": {"price": 100.0, "marketCap": 1_000.0, "as_of": RECENT_MARKET_DATE},
+        "prices": [{"date": RECENT_MARKET_DATE, "close": 100.0}],
         "analyst_estimates": estimates,
         "key_metrics_ttm": {"freeCashFlowToFirmTTM": 165.0},
         "ratios_ttm": {},
@@ -167,6 +174,147 @@ def _base_inputs() -> dict:
 
 def _build(inputs: dict) -> dict:
     return build_institutional_valuation(**inputs)
+
+
+PROVIDER_BALANCE_BRIDGE_METRICS = (
+    "cash",
+    "total_debt",
+    "non_operating_investments",
+    "preferred_stock",
+    "minority_interest",
+    "lease_liabilities_not_in_debt",
+)
+
+
+def _mark_ttm_equity_bridge_reconciled(
+    inputs: dict,
+    *,
+    reconciled_metrics: tuple[str, ...] | None = None,
+    balance_date: str | None = None,
+    balance_currency: str | None = None,
+) -> None:
+    validation = inputs["ttm_row"].setdefault("ttm_validation", {})
+    metrics = reconciled_metrics or PROVIDER_BALANCE_BRIDGE_METRICS
+    checks = [
+        check
+        for check in validation.get("provider_ttm_checks", [])
+        if check.get("metric") not in set(metrics)
+    ]
+    for metric in metrics:
+        value = inputs["ttm_row"].get(metric)
+        if value is None:
+            continue
+        maximum_difference = 0.03 if metric in {"cash", "total_debt"} else 0.05
+        checks.append(
+            {
+                "metric": metric,
+                "calculated_value": value,
+                "provider_value": value,
+                "difference": 0.0,
+                "maximum_difference": maximum_difference,
+                "passed": True,
+            }
+        )
+    financial_currency = str(inputs["ttm_row"].get("reported_currency") or "").upper() or None
+    explicit_balance_date = balance_date or inputs["ttm_row"].get("date")
+    explicit_balance_currency = balance_currency or financial_currency
+    validation.update(
+        {
+            "provider_ttm_checks": checks,
+            "provider_ttm_dates": {"balance": explicit_balance_date},
+            "provider_ttm_dates_current": True,
+            "provider_ttm_balance_date": explicit_balance_date,
+            "provider_ttm_balance_date_current": True,
+            "provider_ttm_currency": financial_currency,
+            "provider_ttm_balance_currency": explicit_balance_currency,
+            "provider_ttm_balance_currency_reconciled": bool(
+                explicit_balance_currency
+                and financial_currency
+                and explicit_balance_currency == financial_currency
+            ),
+            "calculated_currency": financial_currency,
+            "currency_reconciled": bool(financial_currency),
+        }
+    )
+
+
+def _mark_pension_claim_reconciled(inputs: dict) -> None:
+    source_id = "sec:companyfacts:balance"
+    inputs["expected_ticker"] = "TEST"
+    inputs["profile"]["symbol"] = "TEST"
+    inputs["quote"]["symbol"] = "TEST"
+    pension_value = inputs["ttm_row"]["unfunded_pension_liability"]
+    as_of = inputs["ttm_row"]["date"]
+    basis = "benefit_obligation_less_plan_assets"
+    inputs["ttm_row"].update(
+        {
+            "unfunded_pension_liability_basis": basis,
+            "unfunded_pension_liability_as_of": as_of,
+            "unfunded_pension_liability_source_id": source_id,
+        }
+    )
+    inputs["source_records"] = [
+        {
+            "source_id": source_id,
+            "provider": "sec-edgar",
+            "endpoint_or_filing": "api/xbrl/companyfacts/CIK{resolved_from_TEST}.json",
+            "status": "ok",
+            "row_count": 5,
+            "targets_covered": ["unfundedPensionLiability"],
+            "field_enrichments": [
+                {
+                    "frame": "balance_ttm",
+                    "date": inputs["ttm_row"]["date"],
+                    "field": "unfunded_pension_liability",
+                    "value": pension_value,
+                    "source_as_of": as_of,
+                    "basis": basis,
+                }
+            ],
+        }
+    ]
+
+
+def _capacity_cycle_structural_break_inputs() -> dict:
+    inputs = _base_inputs()
+    inputs["profile"].update({"industry": "Semiconductors", "beta": 1.4})
+    margins = (-0.08, 0.04, 0.11, 0.18, 0.03, 0.14, 0.22)
+    inputs["annual_rows"] = [
+        {
+            **deepcopy(inputs["annual_rows"][0]),
+            "date": f"{year}-12-31",
+            "revenue": 700.0 + index * 50.0,
+            "fcff": (700.0 + index * 50.0) * margin,
+            "free_cash_flow": (700.0 + index * 50.0) * (margin - 0.01),
+        }
+        for index, (year, margin) in enumerate(zip(range(2019, 2026), margins))
+    ]
+    historical_peak = max(row["revenue"] for row in inputs["annual_rows"])
+    inputs["ttm_row"].update(
+        {
+            "revenue": historical_peak * 2.4,
+            "ebitda": historical_peak * 2.4 * 0.40,
+            "fcff": historical_peak * 2.4 * 0.28,
+            "free_cash_flow": historical_peak * 2.4 * 0.27,
+            "stock_based_compensation": historical_peak * 2.4 * 0.01,
+            "ttm_validation": {
+                "status": "validated",
+                "discrete_periods_confirmed": True,
+                "sec_reconciled_metrics": ["revenue", "diluted_shares"],
+                "sec_quarterly_families": {
+                    "revenue": {"passed": True, "coverage_complete": True},
+                    "diluted_shares": {"passed": True, "coverage_complete": True},
+                },
+            },
+        }
+    )
+    inputs["profile"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["quote"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["prices"] = [{"date": RECENT_MARKET_DATE, "close": 1_000.0}]
+    inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = inputs["ttm_row"]["fcff"]
+    inputs["analyst_estimates"] = []
+    _mark_ttm_equity_bridge_reconciled(inputs)
+    return inputs
 
 
 def _scale_company(inputs: dict, factor: float) -> dict:
@@ -287,7 +435,7 @@ def test_capacity_cycle_abstains_when_ttm_revenue_is_far_beyond_any_reconciled_r
     assert valuation["available"] is False
     assert valuation["cycle_revenue_normalization"]["current_level_supported"] is False
     assert valuation["range"] == {"low": None, "central": None, "high": None}
-    assert "cambio de escala" in valuation["reason"].lower()
+    assert "fuera del ciclo histórico" in valuation["reason"].lower()
 
 
 def test_reconciled_ttm_scale_jump_withholds_intrinsic_range_until_economic_bridge_exists() -> None:
@@ -312,13 +460,23 @@ def test_reconciled_ttm_scale_jump_withholds_intrinsic_range_until_economic_brid
             "fcff": historical_peak * 2.4 * 0.28,
             "free_cash_flow": historical_peak * 2.4 * 0.27,
             "stock_based_compensation": historical_peak * 2.4 * 0.01,
+            "ttm_validation": {
+                "status": "validated",
+                "discrete_periods_confirmed": True,
+                "sec_reconciled_metrics": ["revenue", "diluted_shares"],
+                "sec_quarterly_families": {
+                    "revenue": {"passed": True, "coverage_complete": True},
+                    "diluted_shares": {"passed": True, "coverage_complete": True},
+                },
+            },
         }
     )
     inputs["profile"].update({"price": 1_000.0, "marketCap": 10_000.0})
     inputs["quote"].update({"price": 1_000.0, "marketCap": 10_000.0})
-    inputs["prices"] = [{"date": "2026-07-14", "close": 1_000.0}]
+    inputs["prices"] = [{"date": RECENT_MARKET_DATE, "close": 1_000.0}]
     inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = inputs["ttm_row"]["fcff"]
     inputs["analyst_estimates"] = []
+    _mark_ttm_equity_bridge_reconciled(inputs)
 
     valuation = _build(inputs)
 
@@ -343,11 +501,437 @@ def test_reconciled_ttm_scale_jump_withholds_intrinsic_range_until_economic_brid
     assert requirements["implied_revenue_cagr"] is not None or requirements["implied_revenue_cagr_bound"]
     assert "structural_scale_bridge" in valuation["reliability"]["decision_ready_blockers"]
 
+    stale_bridge_inputs = deepcopy(inputs)
+    stale_bridge_inputs["ttm_row"]["total_debt"] *= 15
+    stale_bridge = _build(stale_bridge_inputs)
+
+    assert stale_bridge["market_requirements"]["available"] is False
+    assert stale_bridge["market_requirements"]["status"] == "equity_bridge_incomplete"
+    assert "ttm_equity_bridge_reconciliation" in stale_bridge["structural_scale_bridge"]["missing"]
+
+
+@pytest.mark.parametrize("currency_case", ["missing", "discordant"])
+def test_structural_market_requirements_require_explicit_consistent_financial_currency(
+    currency_case: str,
+) -> None:
+    inputs = _capacity_cycle_structural_break_inputs()
+    rows = [*inputs["annual_rows"], inputs["ttm_row"]]
+    if currency_case == "missing":
+        for row in rows:
+            row.pop("reported_currency", None)
+    else:
+        for row in rows:
+            row["reported_currency"] = "EUR"
+
+    valuation = _build(inputs)
+
+    requirements = valuation.get("market_requirements") or {}
+    assert requirements.get("available") is not True
+    assert requirements.get("implied_revenue_cagr") is None
+
+
+@pytest.mark.parametrize(
+    ("date_case", "balance_date"),
+    [
+        ("missing", None),
+        ("future", "2026-07-30"),
+        ("stale", "2026-04-30"),
+    ],
+)
+def test_structural_market_requirements_validate_the_balance_date_not_only_its_flag(
+    date_case: str,
+    balance_date: str | None,
+) -> None:
+    inputs = _capacity_cycle_structural_break_inputs()
+    validation = inputs["ttm_row"]["ttm_validation"]
+    validation["provider_ttm_balance_date"] = balance_date
+    validation["provider_ttm_dates"] = {"balance": balance_date} if balance_date else {}
+    # An upstream boolean is not sufficient evidence when the raw date is
+    # absent, future-dated or more than 45 days behind the current balance.
+    validation["provider_ttm_balance_date_current"] = True
+
+    valuation = _build(inputs)
+
+    requirements = valuation["market_requirements"]
+    assert requirements["available"] is False, date_case
+    assert requirements["status"] == "equity_bridge_incomplete"
+    reconciliation = valuation["structural_scale_bridge"]["equity_bridge_reconciliation"]
+    assert reconciliation["passed"] is False
+    assert "ttm_equity_bridge_reconciliation" in valuation["structural_scale_bridge"]["missing"]
+
+
+@pytest.mark.parametrize(
+    "metric",
+    [
+        "non_operating_investments",
+        "preferred_stock",
+        "minority_interest",
+        "lease_liabilities_not_in_debt",
+        "unfunded_pension_liability",
+    ],
+)
+def test_each_material_equity_bridge_adjustment_requires_exact_reconciliation(
+    metric: str,
+) -> None:
+    unsupported = _capacity_cycle_structural_break_inputs()
+    material_value = unsupported["ttm_row"]["revenue"] * 0.10
+    unsupported["ttm_row"][metric] = material_value
+
+    unsupported_valuation = _build(unsupported)
+
+    unsupported_requirements = unsupported_valuation["market_requirements"]
+    assert unsupported_requirements["available"] is False
+    assert unsupported_requirements["status"] == "equity_bridge_incomplete"
+    unsupported_reconciliation = unsupported_valuation["structural_scale_bridge"][
+        "equity_bridge_reconciliation"
+    ]
+    unsupported_metric = next(
+        item for item in unsupported_reconciliation["metrics"] if item["metric"] == metric
+    )
+    assert unsupported_metric["passed"] is False
+
+    reconciled = _capacity_cycle_structural_break_inputs()
+    reconciled["ttm_row"][metric] = material_value
+    if metric == "unfunded_pension_liability":
+        _mark_pension_claim_reconciled(reconciled)
+    else:
+        _mark_ttm_equity_bridge_reconciled(reconciled)
+
+    reconciled_valuation = _build(reconciled)
+
+    assert reconciled_valuation["market_requirements"]["available"] is True
+    reconciliation = reconciled_valuation["structural_scale_bridge"]["equity_bridge_reconciliation"]
+    reconciled_metric = next(
+        item for item in reconciliation["metrics"] if item["metric"] == metric
+    )
+    assert reconciled_metric["passed"] is True
+
+
+def test_nonmaterial_pension_claim_does_not_block_structural_market_requirements() -> None:
+    inputs = _capacity_cycle_structural_break_inputs()
+    inputs["ttm_row"]["unfunded_pension_liability"] = 1.0
+
+    valuation = _build(inputs)
+
+    reconciliation = valuation["structural_scale_bridge"]["equity_bridge_reconciliation"]
+    assert reconciliation["materiality_threshold"] > 1.0
+    assert "unfunded_pension_liability" not in reconciliation["required_metrics"]
+    assert valuation["equity_bridge"]["exact"] is True
+    assert valuation["market_requirements"]["available"] is True
+
+
+def test_pension_claim_materiality_also_respects_market_equity() -> None:
+    inputs = _capacity_cycle_structural_break_inputs()
+    inputs["profile"].update({"price": 9.6, "marketCap": 96.0})
+    inputs["quote"].update({"price": 9.6, "marketCap": 96.0})
+    inputs["prices"] = [{"date": RECENT_MARKET_DATE, "close": 9.6}]
+    inputs["ttm_row"].update(
+        {
+            "fcff": 48.0,
+            "free_cash_flow": 48.0,
+            "unfunded_pension_liability": 11.99,
+        }
+    )
+    inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = 48.0
+
+    valuation = _build(inputs)
+
+    reconciliation = valuation["structural_scale_bridge"]["equity_bridge_reconciliation"]
+    assert reconciliation["materiality_threshold"] == pytest.approx(0.96)
+    assert "unfunded_pension_liability" in reconciliation["required_metrics"]
+    assert valuation["equity_bridge"]["pension_claim_reconciliation"]["material"] is True
+    assert valuation["equity_bridge"]["exact"] is False
+    assert valuation["market_requirements"]["available"] is False
+
+
+@pytest.mark.parametrize(
+    ("record_field", "forged_value"),
+    [
+        ("provider", "fmp"),
+        ("endpoint_or_filing", "invented"),
+        ("endpoint_or_filing", "api/xbrl/companyfacts/CIK{resolved_from_AAPL}.json"),
+        ("endpoint_or_filing", "api/xbrl/companyfacts/CIK0000320193.json"),
+    ],
+)
+def test_material_pension_claim_requires_an_authentic_sec_companyfacts_record(
+    record_field: str,
+    forged_value: str,
+) -> None:
+    inputs = _capacity_cycle_structural_break_inputs()
+    inputs["ttm_row"]["unfunded_pension_liability"] = inputs["ttm_row"]["revenue"] * 0.10
+    _mark_pension_claim_reconciled(inputs)
+    inputs["source_records"][0][record_field] = forged_value
+
+    valuation = _build(inputs)
+
+    assert valuation["equity_bridge"]["pension_claim_reconciliation"]["source_backed"] is False
+    assert valuation["equity_bridge"]["exact"] is False
+    assert valuation["market_requirements"]["available"] is False
+
+
+def test_material_pension_claim_rejects_an_unrecognized_accounting_basis() -> None:
+    inputs = _capacity_cycle_structural_break_inputs()
+    inputs["ttm_row"]["unfunded_pension_liability"] = inputs["ttm_row"]["revenue"] * 0.10
+    _mark_pension_claim_reconciled(inputs)
+    inputs["ttm_row"]["unfunded_pension_liability_basis"] = "gross_benefit_obligation"
+    inputs["source_records"][0]["field_enrichments"][0]["basis"] = "gross_benefit_obligation"
+
+    valuation = _build(inputs)
+
+    assert valuation["equity_bridge"]["pension_claim_reconciliation"]["source_backed"] is False
+    assert valuation["equity_bridge"]["exact"] is False
+    assert valuation["market_requirements"]["available"] is False
+
+
+def test_provider_only_ttm_validation_cannot_unlock_structural_price_requirements() -> None:
+    inputs = _base_inputs()
+    inputs["profile"].update({"industry": "Semiconductors", "beta": 1.4})
+    margins = (-0.08, 0.04, 0.11, 0.18, 0.03, 0.14, 0.22)
+    inputs["annual_rows"] = [
+        {
+            **deepcopy(inputs["annual_rows"][0]),
+            "date": f"{year}-12-31",
+            "revenue": 700.0 + index * 50.0,
+            "fcff": (700.0 + index * 50.0) * margin,
+            "free_cash_flow": (700.0 + index * 50.0) * (margin - 0.01),
+        }
+        for index, (year, margin) in enumerate(zip(range(2019, 2026), margins))
+    ]
+    historical_peak = max(row["revenue"] for row in inputs["annual_rows"])
+    inputs["ttm_row"].update(
+        {
+            "revenue": historical_peak * 2.4,
+            "ebitda": historical_peak * 2.4 * 0.40,
+            "fcff": historical_peak * 2.4 * 0.28,
+            "free_cash_flow": historical_peak * 2.4 * 0.27,
+            "stock_based_compensation": historical_peak * 2.4 * 0.01,
+            "ttm_validation": {
+                "status": "validated",
+                "provider_ttm_reconciled": True,
+                "period_basis": "provider_ttm_reconciled",
+                "discrete_periods_confirmed": True,
+                "sec_reconciled_metrics": [],
+                "sec_quarterly_families": {},
+            },
+        }
+    )
+    inputs["profile"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["quote"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["prices"] = [{"date": RECENT_MARKET_DATE, "close": 1_000.0}]
+    inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = inputs["ttm_row"]["fcff"]
+    inputs["analyst_estimates"] = []
+    _mark_ttm_equity_bridge_reconciled(inputs)
+
+    valuation = _build(inputs)
+
+    assert valuation["structural_scale_bridge"]["scale_inputs_reconciled"] is False
+    assert "ttm_scale_inputs_reconciliation" in valuation["structural_scale_bridge"]["missing"]
+    assert valuation["market_requirements"]["available"] is False
+
+
+def test_market_implied_operating_requirements_reconcile_cash_and_debt_as_fcff() -> None:
+    low_net_debt = _reverse_dcf(
+        price=1_000.0,
+        revenue=2_400.0,
+        cash_flow_margin=0.1058,
+        cash=150.0,
+        debt=100.0,
+        shares=10.0,
+        discount_rate=0.105,
+        terminal_growth=0.02,
+        method="market_implied_operating_requirements",
+    )
+    high_net_debt = _reverse_dcf(
+        price=1_000.0,
+        revenue=2_400.0,
+        cash_flow_margin=0.1058,
+        cash=18.75,
+        debt=2_000.0,
+        shares=10.0,
+        discount_rate=0.105,
+        terminal_growth=0.02,
+        method="market_implied_operating_requirements",
+    )
+
+    assert low_net_debt["status"] == "solved"
+    assert high_net_debt["status"] == "solved"
+    assert high_net_debt["implied_revenue_cagr"] > low_net_debt["implied_revenue_cagr"] + 0.04
+
+
+def test_structural_price_requirements_need_a_complete_observed_cycle() -> None:
+    inputs = _base_inputs()
+    inputs["profile"].update({"industry": "Semiconductors", "beta": 1.4})
+    historical_peak = max(row["revenue"] for row in inputs["annual_rows"])
+    inputs["ttm_row"].update(
+        {
+            "revenue": historical_peak * 2.4,
+            "fcff": historical_peak * 2.4 * 0.20,
+            "free_cash_flow": historical_peak * 2.4 * 0.19,
+            "ttm_validation": {
+                "status": "validated",
+                "discrete_periods_confirmed": True,
+                "sec_reconciled_metrics": ["revenue", "diluted_shares"],
+                "sec_quarterly_families": {
+                    "revenue": {"passed": True, "coverage_complete": True},
+                    "diluted_shares": {"passed": True, "coverage_complete": True},
+                },
+            },
+        }
+    )
+    inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = inputs["ttm_row"]["fcff"]
+    inputs["analyst_estimates"] = []
+
+    valuation = _build(inputs)
+
+    assert valuation["cycle_normalization"]["coverage_complete"] is False
+    assert valuation["market_requirements"]["available"] is False
+    assert valuation["market_requirements"]["status"] == "insufficient_cycle_coverage"
+
+
+def test_structural_price_requirements_require_exact_debt_and_equity_bridge() -> None:
+    inputs = _base_inputs()
+    inputs["profile"].update({"industry": "Semiconductors", "beta": 1.4})
+    margins = (-0.08, 0.04, 0.11, 0.18, 0.03, 0.14, 0.22)
+    inputs["annual_rows"] = [
+        {
+            **deepcopy(inputs["annual_rows"][0]),
+            "date": f"{year}-12-31",
+            "revenue": 700.0 + index * 50.0,
+            "fcff": (700.0 + index * 50.0) * margin,
+            "free_cash_flow": (700.0 + index * 50.0) * (margin - 0.01),
+        }
+        for index, (year, margin) in enumerate(zip(range(2019, 2026), margins))
+    ]
+    historical_peak = max(row["revenue"] for row in inputs["annual_rows"])
+    inputs["ttm_row"].update(
+        {
+            "revenue": historical_peak * 2.4,
+            "ebitda": historical_peak * 2.4 * 0.40,
+            "fcff": historical_peak * 2.4 * 0.28,
+            "free_cash_flow": historical_peak * 2.4 * 0.27,
+            "stock_based_compensation": historical_peak * 2.4 * 0.01,
+            "total_debt": None,
+            "ttm_validation": {
+                "status": "validated",
+                "discrete_periods_confirmed": True,
+                "sec_reconciled_metrics": ["revenue", "diluted_shares"],
+                "sec_quarterly_families": {
+                    "revenue": {"passed": True, "coverage_complete": True},
+                    "diluted_shares": {"passed": True, "coverage_complete": True},
+                },
+            },
+        }
+    )
+    inputs["profile"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["quote"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["prices"] = [{"date": RECENT_MARKET_DATE, "close": 1_000.0}]
+    inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = inputs["ttm_row"]["fcff"]
+    inputs["analyst_estimates"] = []
+    _mark_ttm_equity_bridge_reconciled(inputs)
+
+    valuation = _build(inputs)
+
+    assert valuation["market_requirements"]["available"] is False
+    assert valuation["market_requirements"]["status"] == "equity_bridge_incomplete"
+    assert "equity_bridge_completeness" in valuation["structural_scale_bridge"]["missing"]
+
+    uncertain_claim_inputs = deepcopy(inputs)
+    uncertain_claim_inputs["ttm_row"]["total_debt"] = 100.0
+    uncertain_claim_inputs["ttm_row"]["unfunded_pension_liability"] = 3_000.0
+    uncertain_claim_valuation = _build(uncertain_claim_inputs)
+
+    assert uncertain_claim_valuation["equity_bridge"]["exact"] is False
+    assert uncertain_claim_valuation["market_requirements"]["available"] is False
+    assert uncertain_claim_valuation["market_requirements"]["status"] == "equity_bridge_incomplete"
+
+
+def test_scale_jump_uses_metric_level_sec_checks_when_unrelated_ttm_metric_is_missing() -> None:
+    inputs = _base_inputs()
+    inputs["profile"].update({"industry": "Semiconductors", "beta": 1.4})
+    margins = (-0.08, 0.04, 0.11, 0.18, 0.03, 0.14, 0.22)
+    inputs["annual_rows"] = [
+        {
+            **deepcopy(inputs["annual_rows"][0]),
+            "date": f"{year}-12-31",
+            "revenue": 700.0 + index * 50.0,
+            "fcff": (700.0 + index * 50.0) * margin,
+            "free_cash_flow": (700.0 + index * 50.0) * (margin - 0.01),
+        }
+        for index, (year, margin) in enumerate(zip(range(2019, 2026), margins))
+    ]
+    historical_peak = max(row["revenue"] for row in inputs["annual_rows"])
+    inputs["ttm_row"].update(
+        {
+            "revenue": historical_peak * 2.4,
+            "ebitda": historical_peak * 2.4 * 0.40,
+            "fcff": historical_peak * 2.4 * 0.28,
+            "free_cash_flow": historical_peak * 2.4 * 0.27,
+            "stock_based_compensation": historical_peak * 2.4 * 0.01,
+            "ttm_validation": {
+                "status": "date_sequence_only",
+                "discrete_periods_confirmed": True,
+                "sec_quarterly_reconciled": False,
+                "sec_reconciled_metrics": [
+                    "revenue",
+                    "diluted_shares",
+                    "cash_from_operations",
+                    "capital_expenditures",
+                    "stock_based_compensation",
+                ],
+                "sec_quarterly_families": {
+                    "revenue": {"passed": True, "coverage_complete": True},
+                    "diluted_shares": {"passed": True, "coverage_complete": True},
+                    "interest_expense": {"passed": False, "coverage_complete": False},
+                },
+                "share_denominator_reconciliation": {"passed": True},
+            },
+        }
+    )
+    inputs["profile"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["quote"].update({"price": 1_000.0, "marketCap": 10_000.0})
+    inputs["prices"] = [{"date": RECENT_MARKET_DATE, "close": 1_000.0}]
+    inputs["key_metrics_ttm"]["freeCashFlowToFirmTTM"] = inputs["ttm_row"]["fcff"]
+    inputs["analyst_estimates"] = []
+    _mark_ttm_equity_bridge_reconciled(inputs)
+
+    valuation = _build(inputs)
+
+    assert valuation["available"] is False
+    assert valuation["cycle_revenue_normalization"]["structural_break"] is True
+    assert valuation["structural_scale_bridge"]["required"] is True
+    assert valuation["structural_scale_bridge"]["scale_inputs_reconciled"] is True
+    assert valuation["market_requirements"]["available"] is True
+    assert valuation["market_requirements"]["implied_revenue_cagr"] is not None or valuation["market_requirements"]["implied_revenue_cagr_bound"]
+    assert "structural_scale_bridge" in valuation["reliability"]["decision_ready_blockers"]
+
+    contradictory_inputs = deepcopy(inputs)
+    contradictory_inputs["ttm_row"]["ttm_validation"]["sec_quarterly_families"]["revenue"] = {
+        "passed": False,
+        "coverage_complete": False,
+    }
+    contradictory_inputs["ttm_row"]["ttm_validation"]["sec_quarterly_families"]["diluted_shares"] = {
+        "passed": False,
+        "coverage_complete": False,
+    }
+    contradictory = _build(contradictory_inputs)
+
+    assert contradictory["structural_scale_bridge"]["scale_inputs_reconciled"] is False
+    assert contradictory["market_requirements"]["available"] is False
+
 
 def test_structural_scale_jump_never_publishes_market_requirements_from_a_single_price_source() -> None:
     inputs = _base_inputs()
     inputs["profile"]["industry"] = "Semiconductors"
     inputs["ttm_row"]["revenue"] = 4_500.0
+    inputs["ttm_row"]["ttm_validation"] = {
+        "status": "validated",
+        "discrete_periods_confirmed": True,
+        "sec_reconciled_metrics": ["revenue", "diluted_shares"],
+        "sec_quarterly_families": {
+            "revenue": {"passed": True, "coverage_complete": True},
+            "diluted_shares": {"passed": True, "coverage_complete": True},
+        },
+    }
     inputs["prices"] = []
 
     valuation = _build(inputs)
@@ -400,9 +984,9 @@ def test_capacity_cycle_uses_cycle_specific_support_when_generic_fcff_dispersion
 
 def test_quote_cannot_be_validated_against_a_catastrophically_different_prior_close() -> None:
     inputs = _base_inputs()
-    inputs["quote"] = {"price": 100.0, "marketCap": 1_000.0, "as_of": "2026-07-14"}
+    inputs["quote"] = {"price": 100.0, "marketCap": 1_000.0, "as_of": RECENT_MARKET_DATE}
     inputs["profile"].update({"price": 100.0, "marketCap": 1_000.0})
-    inputs["prices"] = [{"date": "2026-07-13", "close": 1.0}]
+    inputs["prices"] = [{"date": PRIOR_MARKET_DATE, "close": 1.0}]
 
     valuation = _build(inputs)
 
@@ -461,7 +1045,7 @@ def test_explicit_independent_close_can_validate_the_market_price() -> None:
     inputs = _base_inputs()
     inputs["prices"] = [
         {
-            "date": "2026-07-14",
+            "date": RECENT_MARKET_DATE,
             "close": 100.0,
             "source_family": "independent_exchange_feed",
         }
@@ -473,6 +1057,13 @@ def test_explicit_independent_close_can_validate_the_market_price() -> None:
     assert price["status"] == "validated"
     assert price["usable"] is True
     assert price["independent_price_observation"] is True
+    assert price["independent_observation"] == {
+        "source_id": "market:independent-close",
+        "source_family": "independent_exchange_feed",
+        "price": 100.0,
+        "as_of": RECENT_MARKET_DATE,
+        "currency": "USD",
+    }
     close_check = next(check for check in price["checks"] if check["key"] == "quote_vs_latest_close")
     assert close_check["independent"] is True
     assert close_check["source_family"] == "independent_exchange_feed"
@@ -484,7 +1075,7 @@ def test_price_provenance_alone_cannot_change_wacc_or_intrinsic_value() -> None:
     independent_inputs = _base_inputs()
     independent_inputs["prices"] = [
         {
-            "date": "2026-07-14",
+            "date": RECENT_MARKET_DATE,
             "close": 100.0,
             "source_family": "independent_exchange_feed",
         }
@@ -504,7 +1095,7 @@ def test_unverified_market_price_cannot_move_intrinsic_value_through_wacc_weight
     shifted = _base_inputs()
     shifted["profile"].update({"price": 200.0, "marketCap": 2_000.0})
     shifted["quote"].update({"price": 200.0, "marketCap": 2_000.0})
-    shifted["prices"] = [{"date": "2026-07-14", "close": 200.0}]
+    shifted["prices"] = [{"date": RECENT_MARKET_DATE, "close": 200.0}]
 
     base = _build(inputs)
     changed_price = _build(shifted)
@@ -677,7 +1268,7 @@ def test_traced_current_provider_snapshot_can_support_consensus_provenance() -> 
         row.pop("updatedAt")
         row.update(
             {
-                "providerSnapshotAt": "2026-07-14T12:00:00+00:00",
+                "providerSnapshotAt": f"{RECENT_MARKET_DATE}T12:00:00+00:00",
                 "sourceFamily": "FMP",
                 "provenanceBasis": "current_provider_snapshot_retrieved_at",
             }
@@ -697,7 +1288,7 @@ def test_duplicate_consensus_revision_uses_the_latest_observation_date() -> None
     revised = deepcopy(inputs["analyst_estimates"][0])
     revised.update(
         {
-            "updatedAt": "2026-07-15",
+            "updatedAt": CURRENT_MARKET_DATE,
             "revenueLow": revised["revenueLow"] * 1.05,
             "revenueAvg": revised["revenueAvg"] * 1.05,
             "revenueHigh": revised["revenueHigh"] * 1.05,
@@ -711,7 +1302,7 @@ def test_duplicate_consensus_revision_uses_the_latest_observation_date() -> None
     valuation = _build(inputs)
 
     assert valuation["estimate_validation"]["duplicate_years"] == 1
-    assert valuation["estimate_validation"]["selected_observation_dates_by_year"]["2027"] == "2026-07-15"
+    assert valuation["estimate_validation"]["selected_observation_dates_by_year"]["2027"] == CURRENT_MARKET_DATE
     assert valuation["estimate_validation"]["conflicting_duplicate_years"] == 0
 
 
@@ -1041,7 +1632,7 @@ def test_explicit_security_symbols_must_identify_the_same_listing() -> None:
     inputs = _base_inputs()
     inputs["profile"]["symbol"] = "AAA"
     inputs["quote"]["symbol"] = "BBB"
-    inputs["prices"] = [{"symbol": "CCC", "date": "2026-07-14", "close": 100.0}]
+    inputs["prices"] = [{"symbol": "CCC", "date": RECENT_MARKET_DATE, "close": 100.0}]
 
     valuation = _build(inputs)
 
@@ -1595,6 +2186,9 @@ def test_missing_single_pension_claim_without_evidence_cannot_publish_a_range() 
 
 def test_source_backed_claim_bound_can_support_a_research_sensitivity() -> None:
     inputs = _base_inputs()
+    inputs["expected_ticker"] = "TEST"
+    inputs["profile"]["symbol"] = "TEST"
+    inputs["quote"]["symbol"] = "TEST"
     inputs["ttm_row"].pop("unfunded_pension_liability")
     inputs["ttm_row"].update(
         {
@@ -1611,6 +2205,8 @@ def test_source_backed_claim_bound_can_support_a_research_sensitivity() -> None:
             "source_id": "sec:companyfacts:balance",
             "status": "ok",
             "provider": "sec-edgar",
+            "endpoint_or_filing": "api/xbrl/companyfacts/CIK{resolved_from_TEST}.json",
+            "row_count": 5,
             "targets_covered": ["unfundedPensionLiability"],
             "field_enrichments": [
                 {
@@ -1701,9 +2297,9 @@ def test_claim_bound_with_an_unregistered_source_id_cannot_publish_a_range() -> 
 
 def test_material_price_mismatch_blocks_decision_readiness() -> None:
     inputs = _base_inputs()
-    inputs["quote"] = {"price": 150.0, "marketCap": 1_500.0, "as_of": "2026-07-14"}
+    inputs["quote"] = {"price": 150.0, "marketCap": 1_500.0, "as_of": RECENT_MARKET_DATE}
     inputs["profile"].update({"price": 50.0, "marketCap": 500.0})
-    inputs["prices"] = [{"date": "2026-07-14", "close": 50.0}]
+    inputs["prices"] = [{"date": RECENT_MARKET_DATE, "close": 50.0}]
 
     valuation = _build(inputs)
 
@@ -1919,7 +2515,7 @@ def test_reverse_dcf_requires_an_independently_validated_price() -> None:
     unverified = _build(_base_inputs())
     validated_inputs = _base_inputs()
     validated_inputs["prices"] = [
-        {"date": "2026-07-14", "close": 100.0, "source_family": "independent_exchange_feed"}
+        {"date": RECENT_MARKET_DATE, "close": 100.0, "source_family": "independent_exchange_feed"}
     ]
     validated = _build(validated_inputs)
 

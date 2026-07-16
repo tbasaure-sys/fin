@@ -5937,6 +5937,21 @@
   overflow-wrap: anywhere;
 }
 
+.researchSourceStatus {
+  display: grid;
+  gap: 0.14rem;
+}
+
+.researchSourceStatus small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.researchScrollHint {
+  display: none;
+}
+
 .researchFindingList {
   display: grid;
   gap: 0.75rem;
@@ -6272,6 +6287,39 @@
   .researchTableHeader > :nth-child(4),
   .researchTableRow > :nth-child(4) {
     display: none;
+  }
+
+  .researchSourceTable,
+  .researchEvidenceValueTable {
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+  }
+
+  .researchScrollHint {
+    display: block;
+    margin: -0.2rem 0 0.45rem;
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-align: right;
+  }
+
+  .researchSourceTable .researchTableHeader,
+  .researchSourceTable .researchTableRow {
+    grid-template-columns: minmax(120px, 1fr) minmax(100px, 0.72fr) minmax(138px, 0.9fr) minmax(64px, 0.4fr);
+    min-width: 510px;
+  }
+
+  .researchEvidenceValueTable .researchTableHeader,
+  .researchEvidenceValueTable .researchTableRow {
+    grid-template-columns: minmax(130px, 1fr) minmax(105px, 0.72fr) minmax(150px, 1fr) minmax(120px, 0.8fr);
+    min-width: 590px;
+  }
+
+  .researchSourceTable .researchTableHeader > :nth-child(4),
+  .researchSourceTable .researchTableRow > :nth-child(4),
+  .researchEvidenceValueTable .researchTableHeader > :nth-child(4),
+  .researchEvidenceValueTable .researchTableRow > :nth-child(4) {
+    display: block;
   }
 
   .buttonRow,

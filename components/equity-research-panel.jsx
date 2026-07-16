@@ -226,6 +226,8 @@ function humanizeMetric(value) {
     valuation_research_grade: "confirmación de la estimación central",
     valuation_not_decision_ready: "datos necesarios para publicar la valoración",
     structural_scale_bridge: "Explicar el cambio de escala",
+    ttm_scale_inputs_reconciliation: "Conciliar ingresos y acciones de los últimos doce meses",
+    ttm_equity_bridge_reconciliation: "Conciliar caja y deuda de los últimos doce meses",
     capacity_and_asset_turnover_support: "Capacidad productiva y rotación de activos",
     organic_or_acquisition_revenue_bridge: "Crecimiento orgánico, adquisiciones y desinversiones",
     segment_reconciliation: "Ingresos y rentabilidad por segmento",
@@ -235,12 +237,23 @@ function humanizeMetric(value) {
     operating_cash_separation: "Caja operativa y caja excedente",
     future_estimate_support: "Estimaciones financieras futuras",
     growth_reinvestment_support: "Reinversión necesaria para crecer",
+    currency_consistency: "Moneda de estados y cotización",
+    sec_statement_reconciliation: "Conciliación con estados presentados",
+    cycle_coverage: "Ciclo financiero completo",
+    discount_rate_support: "Datos usados en la tasa de descuento",
+    valuation_cross_check: "Contraste con otro método de valoración",
+    range_reliability: "Rango suficientemente informativo",
+    tangible_book_support: "Historial de patrimonio tangible",
+    independent_price_confirmation: "Confirmación independiente del precio",
+    valuation_inputs: "Insumos fundamentales de valoración",
   };
   return labels[value] || String(value || "").replace(/[_\-]+/g, " ");
 }
 
 const SAFE_VALUATION_GAPS = new Set([
   "structural_scale_bridge",
+  "ttm_scale_inputs_reconciliation",
+  "ttm_equity_bridge_reconciliation",
   "capacity_and_asset_turnover_support",
   "organic_or_acquisition_revenue_bridge",
   "segment_reconciliation",
@@ -250,6 +263,16 @@ const SAFE_VALUATION_GAPS = new Set([
   "operating_cash_separation",
   "future_estimate_support",
   "growth_reinvestment_support",
+  "current_price",
+  "currency_consistency",
+  "sec_statement_reconciliation",
+  "cycle_coverage",
+  "discount_rate_support",
+  "valuation_cross_check",
+  "range_reliability",
+  "tangible_book_support",
+  "independent_price_confirmation",
+  "valuation_inputs",
 ]);
 
 function valuationPendingChecks(valuation) {
@@ -295,8 +318,9 @@ function humanizeSourceAuthority(value) {
 function humanizeProvider(value) {
   const provider = String(value || "").trim();
   if (!provider) return "Fuente pendiente";
+  if (/fmp\s*\+\s*sec|mixed/i.test(provider)) return "FMP + SEC";
   if (/^fmp$/i.test(provider) || /financial modeling prep/i.test(provider)) return "Financial Modeling Prep";
-  if (/^sec$/i.test(provider) || /sec company facts/i.test(provider)) return "SEC";
+  if (/^sec(?:[\s-]+edgar)?$/i.test(provider) || /sec company facts/i.test(provider)) return "SEC EDGAR";
   if (/workspace/i.test(provider)) return "Espacio de trabajo";
   return "Proveedor financiero";
 }
@@ -368,6 +392,57 @@ function humanizeClaimTag(value) {
   return tags[String(value || "").toLowerCase()] || "Dato registrado";
 }
 
+function humanizeEvidenceUnit(value) {
+  const raw = String(value || "").trim();
+  const perShareCurrency = raw.match(/^([A-Z]{3})\/share$/i);
+  if (perShareCurrency) return `${perShareCurrency[1].toUpperCase()} por acción`;
+  const units = {
+    ratio: "proporción",
+    shares: "acciones",
+    years: "años",
+    year: "año",
+    percent: "porcentaje",
+    "usd/share": "USD por acción",
+  };
+  return units[raw.toLowerCase()] || raw;
+}
+
+function formatEvidenceValue(point) {
+  if (point?.normalized_value === null || point?.normalized_value === undefined) return "-";
+  const rawValue = point.normalized_value;
+  const rawUnit = String(point?.unit || "").trim();
+  const normalizedUnit = rawUnit.toLowerCase();
+  const number = Number(rawValue);
+  if (Number.isFinite(number)) {
+    if (["ratio", "percent", "percentage", "%"].includes(normalizedUnit)) {
+      const ratio = normalizedUnit === "ratio" || Math.abs(number) <= 1 ? number : number / 100;
+      return new Intl.NumberFormat("es-CL", {
+        style: "percent",
+        maximumFractionDigits: 1,
+      }).format(ratio);
+    }
+    if (normalizedUnit === "shares") {
+      return `${new Intl.NumberFormat("es-CL", { maximumFractionDigits: 0 }).format(number)} acciones`;
+    }
+    if (/^[A-Z]{3}$/.test(rawUnit.toUpperCase())) {
+      return compactCurrency(number, rawUnit.toUpperCase());
+    }
+    const perShareCurrency = rawUnit.match(/^([A-Z]{3})\/share$/i);
+    if (perShareCurrency) {
+      return `${compactCurrency(number, perShareCurrency[1].toUpperCase())} por acción`;
+    }
+    if (["year", "years"].includes(normalizedUnit)) {
+      return `${new Intl.NumberFormat("es-CL", { maximumFractionDigits: 1 }).format(number)} ${number === 1 ? "año" : "años"}`;
+    }
+    const value = new Intl.NumberFormat("es-CL", { maximumFractionDigits: 2 }).format(number);
+    const unit = humanizeEvidenceUnit(rawUnit);
+    return unit ? `${value} · ${unit}` : value;
+  }
+  const value = String(rawValue).slice(0, 32);
+  const unit = humanizeEvidenceUnit(rawUnit);
+  return unit ? `${value} · ${unit}` : value;
+}
+
 function humanizeSourceStatus(value) {
   const statuses = {
     ok: "Disponible",
@@ -380,6 +455,9 @@ function humanizeSourceStatus(value) {
     partial: "Parcial",
     pending: "Pendiente",
     blocked: "Bloqueada",
+    stale: "Vencida",
+    unavailable: "No disponible",
+    missing: "No disponible",
     skipped: "No ejecutada",
     needs_attention: "Requiere revisión",
     error: "No disponible",
@@ -525,10 +603,15 @@ function firstUsefulText(...values) {
   return values.find((value) => typeof value === "string" && value.trim()) || "";
 }
 
-function summarizeGaps(metrics) {
+function summarizeGaps(metrics, limit = Number.POSITIVE_INFINITY) {
   const list = [...new Set(safeList(metrics).map(humanizeMetric).filter(Boolean))];
   if (!list.length) return "Sin brechas de evidencia requeridas.";
-  return list.join(", ");
+  const safeLimit = Number.isFinite(Number(limit)) && Number(limit) > 0
+    ? Math.floor(Number(limit))
+    : list.length;
+  const visible = list.slice(0, safeLimit);
+  const remaining = list.length - visible.length;
+  return `${visible.join(", ")}${remaining > 0 ? `, +${remaining} más` : ""}`;
 }
 
 function unresolvedBridgeFields(valuation) {
@@ -829,19 +912,19 @@ function humanizeDriverUnit(value, row = {}) {
 function DriverTable({ title, rows, reading }) {
   if (!rows.length) return null;
   return (
-    <div className={styles.researchTable}>
-      <div className={styles.researchTableHeader}>
-        <span>{title}</span>
-        <span>Valor</span>
-        <span>Unidad</span>
-        <span>Lectura</span>
+    <div aria-label={title} className={styles.researchTable} role="table">
+      <div className={styles.researchTableHeader} role="row">
+        <span role="columnheader">{title}</span>
+        <span role="columnheader">Valor</span>
+        <span role="columnheader">Unidad</span>
+        <span role="columnheader">Lectura</span>
       </div>
       {rows.map((row) => (
-        <div className={styles.researchTableRow} key={`${title}-${row.key}`}>
-          <strong>{row.label}</strong>
-          <span>{formatDriverValue(row.value, row.unit, row)}</span>
-          <span>{humanizeDriverUnit(row.unit, row)}</span>
-          <span>{reading}</span>
+        <div className={styles.researchTableRow} key={`${title}-${row.key}`} role="row">
+          <strong role="rowheader">{row.label}</strong>
+          <span role="cell">{formatDriverValue(row.value, row.unit, row)}</span>
+          <span role="cell">{humanizeDriverUnit(row.unit, row)}</span>
+          <span role="cell">{row.reading || reading || "-"}</span>
         </div>
       ))}
     </div>
@@ -889,10 +972,12 @@ function boundedPercentage(value) {
 
 function MarketRequirements({ value, currency }) {
   if (!value || typeof value !== "object" || value.available === false) return null;
+  const requirementCurrency = value.currency || currency;
   const rowsFromPayload = normalizeDriverRows(value.requirements || value.rows);
+  const operatingRowsFromPayload = rowsFromPayload.filter((row) => !["assets_added", "obligations_deducted"].includes(row.key));
   const rawGrowthBound = firstDefined(value.implied_revenue_cagr_bound, value.growth_bound, value.bound);
   const impliedGrowthBound = boundedPercentage(rawGrowthBound) || (typeof rawGrowthBound === "string" ? rawGrowthBound : null);
-  const rows = rowsFromPayload.length ? rowsFromPayload : [
+  const operatingRows = (operatingRowsFromPayload.length ? operatingRowsFromPayload : [
     {
       key: "implied_revenue_cagr",
       label: "Crecimiento anual de ingresos",
@@ -923,16 +1008,32 @@ function MarketRequirements({ value, currency }) {
       value: value.terminal_growth,
       unit: "percent",
     },
+  ]).filter((row) => row.value !== null && row.value !== undefined && row.value !== "");
+  const bridgeRows = [
+    {
+      key: "assets_added",
+      label: "Caja e inversiones sumadas",
+      value: value.assets_added,
+      unit: requirementCurrency,
+      reading: "Sumado",
+    },
+    {
+      key: "obligations_deducted",
+      label: "Deuda y otros compromisos restados",
+      value: value.obligations_deducted,
+      unit: requirementCurrency,
+      reading: "Restado",
+    },
   ].filter((row) => row.value !== null && row.value !== undefined && row.value !== "");
-  if (!rows.length) return null;
+  if (!operatingRows.length && !bridgeRows.length) return null;
   const price = Number(value.reference_price ?? value.current_price ?? value.price);
   const marketDate = formatMarketDate(value.market_data_as_of);
   const priceLabel = Number.isFinite(price) && price > 0
     ? ["contextual", "provider_reconciled"].includes(value.price_context)
-      ? `precio del proveedor de ${compactCurrency(price, currency)} al ${marketDate}`
+      ? `precio del proveedor de ${compactCurrency(price, requirementCurrency)} al ${marketDate}`
       : value.price_context === "validated"
-        ? `precio validado de ${compactCurrency(price, currency)} al ${marketDate}`
-        : `precio de ${compactCurrency(price, currency)}`
+        ? `precio validado de ${compactCurrency(price, requirementCurrency)} al ${marketDate}`
+        : `precio de ${compactCurrency(price, requirementCurrency)}`
     : ["contextual", "provider_reconciled"].includes(value.price_context)
       ? `precio del proveedor al ${marketDate}`
       : value.price_context === "validated"
@@ -943,16 +1044,131 @@ function MarketRequirements({ value, currency }) {
       <div className={styles.researchAttentionCallout}>
         <span>Lectura inversa</span>
         <strong>{`Qué tendría que sostener el ${priceLabel}`}</strong>
-        <p>No es una estimación de valor razonable. Son los resultados operativos que el precio necesita para sostenerse bajo estos supuestos.</p>
+        <p>{bridgeRows.length
+          ? "No es una estimación de valor razonable. La primera tabla muestra los resultados operativos que justificarían el precio; la segunda explica cómo caja y compromisos convierten valor empresa en valor para el accionista."
+          : "No es una estimación de valor razonable. La tabla muestra los resultados operativos que justificarían el precio bajo estos supuestos."}</p>
       </div>
-      <DriverTable title="Requisito del precio" rows={rows} reading="Debe sostenerse" />
+      <DriverTable title="Requisito del precio" rows={operatingRows} reading="Debe sostenerse" />
+      <DriverTable title="Paso a valor del accionista" rows={bridgeRows} />
     </div>
   );
 }
 
-function BlockingGapSummary({ valuation }) {
-  const pendingChecks = valuationPendingChecks(valuation);
-  if (!pendingChecks.length) return null;
+const NON_ACTIONABLE_BLOCKED_OUTPUTS = new Set([
+  "valuation_range_central",
+  "reverse_dcf_status",
+  "ev_to_sales",
+  "price_to_fcf",
+]);
+
+function capitalizeLabel(value) {
+  const label = humanizeMetric(value);
+  return label ? label.charAt(0).toUpperCase() + label.slice(1) : "Control pendiente";
+}
+
+function blockedGapDetail(gap) {
+  const details = {
+    structural_scale_bridge: "Reconciliar el salto entre el historial y los últimos doce meses antes de asumir que la nueva escala es sostenible.",
+    ttm_scale_inputs_reconciliation: "Confirmar ingresos y acciones de cada trimestre con estados presentados y una secuencia fiscal coherente.",
+    ttm_equity_bridge_reconciliation: "Conciliar la caja y la deuda de los últimos doce meses con el balance más reciente antes de calcular el valor para el accionista.",
+    capacity_and_asset_turnover_support: "Comprobar que capacidad instalada, utilización y rotación de activos pueden sostener los ingresos actuales.",
+    organic_or_acquisition_revenue_bridge: "Separar crecimiento orgánico, adquisiciones, ventas de activos y cambios contables que expliquen el salto de ingresos.",
+    segment_reconciliation: "Reconciliar ingresos y rentabilidad por segmento para identificar qué negocio explica el cambio.",
+    wacc: "Calcular una tasa de descuento coherente con riesgo operativo, estructura de capital y costo de la deuda.",
+    terminal_growth: "Definir un crecimiento de largo plazo inferior a la tasa de descuento y compatible con el sector.",
+    current_price: "Obtener un precio reciente, comprobar fecha, moneda, mercado y número de acciones antes de compararlo con la empresa.",
+    latest_revenue: "Completar los ingresos recientes y contrastarlos con los estados presentados.",
+    latest_diluted_shares: "Conciliar acciones diluidas con acciones en circulación y posibles instrumentos convertibles.",
+    net_debt: "Conciliar caja, inversiones, deuda y arrendamientos para pasar de valor empresa a valor del patrimonio.",
+    latest_sec_filing: "Incorporar el último informe presentado para comprobar que los estados usados siguen vigentes.",
+    currency_consistency: "Confirmar que estados, cotización y estimaciones usan la misma moneda o documentar la conversión aplicada.",
+    sec_statement_reconciliation: "Conciliar ingresos, caja y acciones con los estados presentados antes de usar esos datos en la valoración.",
+    cycle_coverage: "Incorporar suficientes años buenos, débiles y de transición para que el margen normalizado represente un ciclo completo.",
+    discount_rate_support: "Actualizar tasa libre de riesgo, prima de mercado, beta y costo de deuda con fecha y fuente visibles.",
+    valuation_cross_check: "Contrastar el resultado con un método independiente y explicar cualquier diferencia material.",
+    range_reliability: "Reducir la dependencia del valor terminal o ampliar evidencia hasta que el rango pueda orientar una decisión.",
+    tangible_book_support: "Completar el historial de patrimonio tangible y rentabilidad sobre ese capital antes de valorar una entidad financiera.",
+    independent_price_confirmation: "Confirmar la cotización con un cierre oficial o una fuente independiente antes de usarla en una decisión.",
+    valuation_inputs: "Completar ingresos, acciones, caja, deuda y flujo de caja con fuente y fecha antes de elegir un método.",
+    share_dilution_support: "Completar el historial de acciones diluidas y revisar emisiones, recompras y convertibles que puedan cambiar el valor por acción.",
+    stock_compensation_treatment: "Separar la compensación en acciones y comprobar cómo afecta caja y dilución antes de calcular el valor por acción.",
+    equity_bridge_completeness: "Confirmar caja, deuda, participaciones de terceros y otros derechos para pasar de valor de la empresa a valor para el accionista sin asumir saldos en cero.",
+    operating_cash_separation: "Separar la caja necesaria para operar de la caja excedente y retirar del flujo la renta de activos no operativos.",
+    future_estimate_support: "Incorporar estimaciones con fecha, moneda y número de analistas, o usar un historial suficiente que justifique la trayectoria futura.",
+    growth_reinvestment_support: "Estimar cuánto capital adicional requiere el crecimiento y comprobarlo con rotación de activos histórica.",
+  };
+  return details[gap] || "Añadir evidencia suficiente y volver a calcular antes de publicar una cifra.";
+}
+
+function blockedValuationGapItems(research) {
+  const items = new Map();
+  const addItem = (item) => {
+    if (item?.key && !items.has(item.key)) items.set(item.key, item);
+  };
+  const addGap = (gap) => addItem({
+    key: gap,
+    label: capitalizeLabel(gap),
+    detail: blockedGapDetail(gap),
+  });
+
+  const valuationChecks = valuationPendingChecks(research?.valuation);
+  valuationChecks.forEach(addGap);
+
+  const priceStatus = String(research?.valuation?.price_validation?.status || "").toLowerCase();
+  const hasPriceGap = ["stale", "mismatch", "missing", "unavailable", "unknown"].includes(priceStatus);
+  if (hasPriceGap) {
+    addGap("current_price");
+  }
+
+  const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
+  const coverageGaps = [...new Set(safeList(coverage.missing_expected_metrics)
+    .map((gap) => String(gap || "").toLowerCase())
+    .filter((gap) => gap && !NON_ACTIONABLE_BLOCKED_OUTPUTS.has(gap)))];
+  coverageGaps.forEach(addGap);
+
+  const incompleteSources = safeList(research?.sources?.records).filter((source) => (
+    ["error", "unavailable", "stale", "partial"].includes(String(source?.status || "").toLowerCase())
+  ));
+  incompleteSources.forEach((source, index) => {
+    const sourceStatus = String(source?.status || "").toLowerCase();
+    addItem({
+      key: `source-${source?.source_id || index}`,
+      label: humanizeSourceType(source),
+      detail: sourceStatus === "stale"
+        ? "Esta fuente está vencida. Actualizar su fecha antes de completar la valoración."
+        : sourceStatus === "partial"
+          ? "Esta fuente está incompleta. Incorporar los períodos o campos faltantes antes de continuar."
+          : "Esta fuente no está disponible. Reintentar o sustituirla antes de completar la valoración.",
+    });
+  });
+
+  if (items.size) {
+    const representativeKeys = [
+      valuationChecks[0],
+      hasPriceGap ? "current_price" : null,
+      coverageGaps[0],
+      incompleteSources.length ? `source-${incompleteSources[0]?.source_id || 0}` : null,
+    ].filter(Boolean);
+    const prioritized = [];
+    const included = new Set();
+    [...representativeKeys, ...items.keys()].forEach((key) => {
+      if (!included.has(key) && items.has(key)) {
+        included.add(key);
+        prioritized.push(items.get(key));
+      }
+    });
+    return prioritized.slice(0, 8);
+  }
+
+  return [{
+    key: "valuation_inputs",
+    label: "Completar los insumos de valoración",
+    detail: "Revisar precio, acciones, caja, deuda, método y supuestos; el sistema no recibió una brecha más específica.",
+  }];
+}
+
+function BlockingGapSummary({ research }) {
+  const pendingItems = blockedValuationGapItems(research);
   return (
     <div className={styles.researchStack}>
       <div className={styles.researchAttentionCallout}>
@@ -961,12 +1177,10 @@ function BlockingGapSummary({ valuation }) {
         <p>Completa estos controles antes de convertir la lectura del precio en un rango de valor razonable.</p>
       </div>
       <div className={styles.researchFindingList}>
-        {pendingChecks.map((gap) => (
-          <article className={styles.researchFinding} data-tone="warn" key={gap}>
-            <strong>{humanizeMetric(gap)}</strong>
-            <p>{gap === "structural_scale_bridge"
-              ? "Reconciliar el cambio entre el historial y los últimos doce meses con capacidad, activos, adquisiciones y segmentos."
-              : "Añadir evidencia suficiente y volver a calcular la valoración."}</p>
+        {pendingItems.map((item) => (
+          <article className={styles.researchFinding} data-tone="warn" key={item.key}>
+            <strong>{item.label}</strong>
+            <p>{item.detail}</p>
           </article>
         ))}
       </div>
@@ -982,7 +1196,7 @@ function renderBlockedValuationHelp(research, valuationPresentation, heading) {
         <strong>No mostramos una cifra hasta validar datos y método</strong>
         <p>{valuationPresentation?.reason || "La valoración todavía no supera los controles necesarios."}</p>
       </div>
-      <BlockingGapSummary valuation={research?.valuation} />
+      <BlockingGapSummary research={research} />
       <MarketRequirements
         currency={research?.valuation?.currency || research?.company_profile?.currency}
         value={research?.valuation?.market_requirements}
@@ -1111,36 +1325,44 @@ function renderEvidence(research) {
         </div>
       </div>
 
-      <div className={styles.researchTable}>
-        <div className={styles.researchTableHeader}>
-          <span>Fuente</span>
-          <span>Proveedor</span>
-          <span>Estado</span>
-          <span>Filas</span>
+      <small className={styles.researchScrollHint}>Desliza para ver todas las columnas →</small>
+      <div aria-label="Fuentes consultadas" className={`${styles.researchTable} ${styles.researchSourceTable}`} role="table">
+        <div className={styles.researchTableHeader} role="row">
+          <span role="columnheader">Fuente</span>
+          <span role="columnheader">Proveedor</span>
+          <span role="columnheader">Estado y consulta</span>
+          <span role="columnheader">Filas</span>
         </div>
         {records.map((source) => (
-          <div className={styles.researchTableRow} key={source.source_id}>
-            <strong>{humanizeSourceType(source)}</strong>
-            <span>{humanizeProvider(source.provider)}</span>
-            <span>{humanizeSourceStatus(source.status)}</span>
-            <span>{source.row_count ?? "-"}</span>
+          <div className={styles.researchTableRow} key={source.source_id} role="row">
+            <strong role="rowheader">{humanizeSourceType(source)}</strong>
+            <span role="cell">{humanizeProvider(source.provider)}</span>
+            <span className={styles.researchSourceStatus} role="cell">
+              {humanizeSourceStatus(source.status)}
+              <small>{source.retrieved_at ? `Consulta: ${formatDateTime(source.retrieved_at)}` : "Consulta pendiente"}</small>
+            </span>
+            <span role="cell">{source.row_count ?? "-"}</span>
           </div>
         ))}
       </div>
 
-      <div className={styles.researchTable}>
-        <div className={styles.researchTableHeader}>
-          <span>Métrica</span>
-          <span>Etiqueta</span>
-          <span>Fuente</span>
-          <span>Valor</span>
+      <div aria-label="Valores y procedencia" className={`${styles.researchTable} ${styles.researchEvidenceValueTable}`} role="table">
+        <div className={styles.researchTableHeader} role="row">
+          <span role="columnheader">Métrica</span>
+          <span role="columnheader">Valor</span>
+          <span role="columnheader">Etiqueta</span>
+          <span role="columnheader">Fuente</span>
         </div>
         {points.map((point) => (
-          <div className={styles.researchTableRow} key={`${point.metric}-${point.claim_tag}`}>
-            <strong>{humanizeMetricPath(point.metric)}</strong>
-            <span>{humanizeClaimTag(point.claim_tag)}</span>
-            <span>{point.source_id ? humanizeSourceType({ source_id: point.source_id }) : "Cálculo"}</span>
-            <span>{point.normalized_value === null || point.normalized_value === undefined ? "-" : String(point.normalized_value).slice(0, 32)}</span>
+          <div className={styles.researchTableRow} key={`${point.metric}-${point.claim_tag}`} role="row">
+            <strong role="rowheader">{humanizeMetricPath(point.metric)}</strong>
+            <span role="cell">{formatEvidenceValue(point)}</span>
+            <span role="cell">{humanizeClaimTag(point.claim_tag)}</span>
+            <span role="cell">{point.source_id
+              ? humanizeSourceType({ source_id: point.source_id })
+              : safeList(point.source_ids).length
+                ? safeList(point.source_ids).map((sourceId) => humanizeSourceType({ source_id: sourceId })).join(" + ")
+                : "Cálculo"}</span>
           </div>
         ))}
       </div>
@@ -1159,7 +1381,7 @@ function renderAgents(research, valuationPresentation) {
   const sourceRecords = safeList(research?.sources?.records);
   const sourceErrors = sourceRecords.filter((source) => source.status === "error");
   const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
-  const statementProvider = coverage.statement_source_provider || (safeList(research?.financials?.annual).length ? "fmp" : null);
+  const statementProvider = coverage.statement_source_provider || null;
   const auditStatus = research?.audit?.status || "pending";
   const valuationReady = Boolean(research?.valuation?.available);
   const finalCallText = finalOrchestrator.enabled
@@ -1645,20 +1867,23 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
   const activeSource = sourceRecords.find((source) => source.status === "ok") || sourceRecords[0];
   const coverage = research?.sources?.coverage || research?.audit?.coverage || {};
   const hasStatementRows = annualRows.length > 0 && Number.isFinite(Number(ratios.latest_revenue));
-  const statementProvider = hasStatementRows ? coverage.statement_source_provider || "fmp" : null;
-  const sourceSpineLabel = statementProvider
-    ? humanizeProvider(statementProvider)
+  const statementProvider = hasStatementRows ? coverage.statement_source_provider || null : null;
+  const sourceSpineLabel = hasStatementRows
+    ? statementProvider
+      ? humanizeProvider(statementProvider)
+      : "Fuente de estados no confirmada"
     : activeSource?.provider
       ? humanizeProvider(activeSource.provider)
       : "Sin fuente todavía";
   const coverageWidth = `${Math.max(0, Math.min(100, Number(coverage.score) || 0))}%`;
   const missingRequiredMetrics = safeList(coverage.missing_expected_metrics);
+  const actionableMissingMetrics = missingRequiredMetrics.filter((metric) => !NON_ACTIONABLE_BLOCKED_OUTPUTS.has(String(metric || "").toLowerCase()));
   const unresolvedValuationFields = unresolvedBridgeFields(research?.valuation);
   const blockingValuationChecks = valuationPendingChecks(research?.valuation);
   const primaryPendingFields = [...new Set([
-    ...missingRequiredMetrics,
-    ...unresolvedValuationFields,
     ...blockingValuationChecks,
+    ...unresolvedValuationFields,
+    ...actionableMissingMetrics,
   ])];
   const coverageDetail =
     coverage.expected_metrics
@@ -1671,13 +1896,16 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
     () => buildEquityValuationPresentation(research, { executiveJudgment: executiveJudgmentCandidate }),
     [executiveJudgmentCandidate, research],
   );
+  const displayMarketDataAsOf = valuationPresentation.marketDataAsOf
+    || research?.valuation?.market_data_as_of
+    || research?.valuation?.market_requirements?.market_data_as_of;
   const safeDownloads = valuationPresentation.backed ? downloads : downloads.filter((artifact) => (
     /_(sources|audit)\.json$|_assumptions\.yml$/i.test(String(artifact?.filename || ""))
   ));
   const hasXlsx = safeDownloads.some((artifact) => String(artifact.filename || "").endsWith(".xlsx"));
   const researchStateLabel = research ? valuationStateLabel(valuationPresentation) : "En espera";
   const openIssueLabel = primaryPendingFields.length
-    ? summarizeGaps(primaryPendingFields)
+    ? summarizeGaps(primaryPendingFields, 3)
     : auditFindings[0]?.code
       ? humanizeMetric(auditFindings[0].code)
       : research && !valuationPresentation.showValuationFigures
@@ -1832,7 +2060,11 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
           <div className={styles.researchCoverageTrack} aria-hidden="true">
             <span style={{ width: coverageWidth }} />
           </div>
-          <p>{missingRequiredMetrics.length ? `Brechas abiertas: ${summarizeGaps(missingRequiredMetrics, 4)}` : humanizeSourceAuthority(coverage.statement_authority) || "La cobertura del registro es completa para las métricas requeridas."}</p>
+          <p>{actionableMissingMetrics.length
+            ? `Brechas abiertas: ${summarizeGaps(actionableMissingMetrics, 4)}`
+            : missingRequiredMetrics.length
+              ? "Los datos base están cubiertos; las cifras derivadas permanecen retenidas por los controles de valoración."
+              : humanizeSourceAuthority(coverage.statement_authority) || "La cobertura del registro es completa para las métricas requeridas."}</p>
         </div>
       ) : null}
 
@@ -1881,7 +2113,7 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
         </div>
         <div>
           <span>Precio de mercado al</span>
-          <strong>{research ? formatMarketDate(valuationPresentation.marketDataAsOf) : "Esperando"}</strong>
+          <strong>{research ? formatMarketDate(displayMarketDataAsOf) : "Esperando"}</strong>
         </div>
       </div>
 

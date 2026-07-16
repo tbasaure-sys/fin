@@ -16,6 +16,144 @@ import {
   startWorkspaceEquityResearch,
 } from "../lib/server/equity-research.js";
 
+const RECENT_MARKET_DATE = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const RECENT_FINANCIAL_DATE = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const RECENT_RETRIEVED_AT = new Date().toISOString();
+const RECENT_QUARTER_DATES = [
+  RECENT_FINANCIAL_DATE,
+  ...[135, 225, 315].map((days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)),
+];
+const RECENT_SEC_ACCESSION = "0000723125-26-000036";
+
+function completeCoverage() {
+  return {
+    status: "complete",
+    score: 100,
+    expected_metrics: 19,
+    covered_expected_metrics: 19,
+    missing_expected_metrics: [],
+    sourced_points_missing_ok_source: [],
+    calculated_points_missing_formula: [],
+  };
+}
+
+function attachDecisionReadyEvidence(payload) {
+  const valuation = payload.valuation;
+  const currency = valuation.currency || payload.company_profile?.currency || "USD";
+  const price = valuation.current_price;
+  const central = valuation.range?.central;
+  const revenue = payload.financials?.ttm?.revenue ?? payload.financials?.ratios?.latest_revenue ?? 100;
+  const shares = payload.financials?.ttm?.diluted_shares ?? 10;
+  const independentPrice = price;
+  const coverage = completeCoverage();
+  const calculated = (metric, normalizedValue) => ({
+    metric,
+    normalized_value: normalizedValue,
+    claim_tag: "calculated_metric",
+    formula: `reconciled calculation for ${metric}`,
+  });
+
+  valuation.financial_data_as_of = RECENT_FINANCIAL_DATE;
+  valuation.market_data_as_of = RECENT_MARKET_DATE;
+  if (valuation.price_validation?.status === "validated") {
+    valuation.price_validation = {
+      ...valuation.price_validation,
+      usable: true,
+      provider_corroborated: true,
+      independent_price_observation: true,
+      sources: ["FMP stable quote", "Official market close"],
+      independent_observation: {
+        source_id: "market:independent-close",
+        source_family: "official_exchange_feed",
+        price: independentPrice,
+        as_of: RECENT_MARKET_DATE,
+        currency,
+      },
+    };
+  }
+  payload.financials = {
+    ...(payload.financials || {}),
+    ttm: { date: RECENT_FINANCIAL_DATE, revenue, diluted_shares: shares },
+  };
+  payload.sources = {
+    ...(payload.sources || {}),
+    coverage,
+    records: [
+      { source_id: "fmp:profile", provider: "fmp", endpoint_or_filing: `profile/${payload.ticker}`, status: "ok", retrieved_at: RECENT_RETRIEVED_AT, row_count: 1 },
+      { source_id: "fmp:quote", provider: "fmp", endpoint_or_filing: `quote/${payload.ticker}`, status: "ok", retrieved_at: RECENT_RETRIEVED_AT, row_count: 1 },
+      { source_id: "fmp:prices", provider: "fmp", endpoint_or_filing: `historical-price-eod/full?symbol=${payload.ticker}`, status: "ok", retrieved_at: RECENT_RETRIEVED_AT, row_count: 10 },
+      { source_id: "fmp:income:quarterly", provider: "fmp", endpoint_or_filing: `income-statement/${payload.ticker}?period=quarter&limit=8`, status: "ok", retrieved_at: RECENT_RETRIEVED_AT, row_count: 8 },
+      {
+        source_id: "sec:companyfacts:income",
+        provider: "sec-edgar",
+        endpoint_or_filing: `api/xbrl/companyfacts/CIK{resolved_from_${payload.ticker}}.json`,
+        status: "ok",
+        retrieved_at: RECENT_RETRIEVED_AT,
+        row_count: 5,
+        targets_covered: ["revenue", "weightedAverageShsOutDil"],
+      },
+      {
+        source_id: "sec:submissions",
+        provider: "sec-edgar",
+        endpoint_or_filing: `submissions/CIK{resolved_from_${payload.ticker}}.json`,
+        status: "ok",
+        retrieved_at: RECENT_RETRIEVED_AT,
+        row_count: 5,
+      },
+      {
+        source_id: "market:independent-close",
+        source_family: "official_exchange_feed",
+        status: "ok",
+        retrieved_at: RECENT_RETRIEVED_AT,
+        observed_price: independentPrice,
+        as_of: RECENT_MARKET_DATE,
+        currency,
+      },
+    ],
+    data_points: [
+      { metric: "company_profile", normalized_value: payload.company_profile?.name || payload.ticker, claim_tag: "sourced_fact", source_id: "fmp:profile" },
+      calculated("latest_revenue", revenue),
+      calculated("latest_diluted_shares", shares),
+      calculated("latest_free_cash_flow", payload.financials?.ratios?.latest_fcf ?? 15),
+      calculated("revenue_cagr_5y", payload.financials?.ratios?.revenue_cagr_5y ?? 0.08),
+      calculated("gross_margin", 0.32),
+      calculated("operating_margin", 0.18),
+      calculated("fcf_margin", payload.financials?.ratios?.fcf_margin ?? 0.15),
+      calculated("roic", payload.financials?.ratios?.roic ?? 0.14),
+      calculated("net_debt", payload.financials?.ratios?.net_debt ?? 10),
+      { metric: "base_fcf_margin", normalized_value: 0.16, claim_tag: "assumption", formula: "normalized operating margin" },
+      { metric: "wacc", normalized_value: 0.09, claim_tag: "assumption", formula: "price-independent operating risk rate" },
+      { metric: "terminal_growth", normalized_value: 0.02, claim_tag: "assumption", formula: "bounded below discount rate" },
+      { metric: "current_price", normalized_value: price, claim_tag: "sourced_fact", source_id: "fmp:quote" },
+      calculated("valuation_range_low", valuation.range?.low),
+      calculated("valuation_range_central", central),
+      calculated("valuation_range_high", valuation.range?.high),
+      calculated("reverse_dcf_status", "solved"),
+      calculated("ev_to_sales", valuation.multiples?.ev_to_sales ?? 4.2),
+      calculated("price_to_fcf", valuation.multiples?.price_to_fcf ?? 18.5),
+      { metric: "latest_sec_filing", normalized_value: RECENT_SEC_ACCESSION, claim_tag: "sourced_fact", source_id: "sec:submissions" },
+      {
+        metric: "financials.ttm.revenue",
+        normalized_value: revenue,
+        claim_tag: "calculated_metric",
+        formula: "sum of four reconciled quarters",
+        source_ids: ["fmp:income:quarterly", "sec:companyfacts:income"],
+        quarter_dates: RECENT_QUARTER_DATES,
+      },
+      {
+        metric: "financials.ttm.diluted_shares",
+        normalized_value: shares,
+        claim_tag: "calculated_metric",
+        formula: "average diluted shares reconciled to SEC",
+        source_ids: ["fmp:income:quarterly", "sec:companyfacts:income"],
+        quarter_dates: RECENT_QUARTER_DATES,
+      },
+    ],
+  };
+  payload.audit = { ...(payload.audit || {}), status: "pass", findings: [], coverage: { ...coverage } };
+  return payload;
+}
+
 test("unbacked payload sanitizer is allowlisted, idempotent, and cannot leak precise valuation aliases", () => {
   const sentinel = 9876543;
   const unsafeText = `Our midpoint is $${sentinel} fair value`;
@@ -133,11 +271,21 @@ function institutionalValuation(overrides = {}) {
     primary_method: "forward_fcff_dcf",
     current_price: 104.5,
     currency: "USD",
-    market_data_as_of: "2026-07-14",
+    market_data_as_of: RECENT_MARKET_DATE,
+    financial_data_as_of: RECENT_FINANCIAL_DATE,
     price_validation: {
       status: "validated",
       usable: true,
-      sources: ["FMP stable quote", "FMP latest close"],
+      provider_corroborated: true,
+      independent_price_observation: true,
+      sources: ["FMP stable quote", "Official market close"],
+      independent_observation: {
+        source_id: "market:independent-close",
+        source_family: "official_exchange_feed",
+        price: 104.5,
+        as_of: RECENT_MARKET_DATE,
+        currency: "USD",
+      },
     },
     range: { low: 88, central: 112, high: 139 },
     selected_value: 112,
@@ -156,7 +304,7 @@ function institutionalValuation(overrides = {}) {
 }
 
 function researchPayloadWithValuation(valuation, overrides = {}) {
-  return {
+  return attachDecisionReadyEvidence({
     ticker: "MU",
     company_profile: { name: "Micron Technology, Inc.", currency: "USD" },
     financials: {
@@ -164,20 +312,10 @@ function researchPayloadWithValuation(valuation, overrides = {}) {
       ratios: { latest_revenue: 37_000, latest_fcf: 1_700, fcf_margin: 0.046 },
     },
     audit: { status: "pass", findings: [] },
-    sources: {
-      coverage: {
-        status: "complete",
-        score: 100,
-        expected_metrics: 19,
-        covered_expected_metrics: 19,
-        missing_expected_metrics: [],
-        sourced_points_missing_ok_source: [],
-        calculated_points_missing_formula: [],
-      },
-    },
+    sources: {},
     valuation,
     ...overrides,
-  };
+  });
 }
 
 test("downstream valuation context exposes precise figures only for fully validated decision-ready v2 payloads", () => {
@@ -190,7 +328,7 @@ test("downstream valuation context exposes precise figures only for fully valida
   assert.equal(ready.current_price, 104.5);
   assert.equal(ready.primary_method, "forward_fcff_dcf");
   assert.equal(ready.reliability.status, "high");
-  assert.equal(ready.market_data_as_of, "2026-07-14");
+  assert.equal(ready.market_data_as_of, RECENT_MARKET_DATE);
   assert.equal(ready.currency, "USD");
   assert.equal(ready.price_validation.status, "validated");
 
@@ -211,7 +349,7 @@ test("downstream valuation context exposes precise figures only for fully valida
   assert.equal(researchGrade.current_price, null);
   assert.equal(researchGrade.primary_method, "forward_fcff_dcf");
   assert.equal(researchGrade.reliability.status, "medium");
-  assert.equal(researchGrade.market_data_as_of, "2026-07-14");
+  assert.equal(researchGrade.market_data_as_of, RECENT_MARKET_DATE);
   assert.equal(researchGrade.currency, "USD");
   assert.equal(researchGrade.figures_withheld, true);
 
@@ -599,6 +737,7 @@ test("equity research adds one Vercel final orchestrator call when backend skips
     },
     downloads: [{ filename: "AAPL_report.md", media_type: "text/markdown", encoding: "base64", content_base64: "IyBBQVBM" }],
   };
+  attachDecisionReadyEvidence(backendBundle);
 
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), body: options.body ? JSON.parse(String(options.body)) : null });
@@ -645,7 +784,7 @@ test("equity research adds one Vercel final orchestrator call when backend skips
     assert.match(orchestratorPrompt, /"backed":true/);
     assert.match(orchestratorPrompt, /"range":\{"low":125,"central":140,"high":158\}/);
     assert.match(orchestratorPrompt, /"primary_method":"forward_fcff_dcf"/);
-    assert.match(orchestratorPrompt, /"market_data_as_of":"2026-07-14"/);
+    assert.match(orchestratorPrompt, new RegExp(`"market_data_as_of":"${RECENT_MARKET_DATE}"`));
     assert.match(orchestratorPrompt, /"currency":"USD"/);
     assert.doesNotMatch(orchestratorPrompt, /base_intrinsic_value_per_share/);
   } finally {

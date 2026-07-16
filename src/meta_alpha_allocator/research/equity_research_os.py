@@ -486,7 +486,10 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
     validation = ttm_row.get("ttm_validation") or {}
     quarter_dates = validation.get("quarter_dates") or []
     provider_reconciled = validation.get("provider_ttm_reconciled") is True
-    sec_reconciled = validation.get("sec_quarterly_reconciled") is True
+    provider_balance_reconciled = bool(
+        validation.get("provider_ttm_balance_date_current") is True
+        and validation.get("provider_ttm_balance_currency_reconciled") is True
+    )
     provider_reconciled_metrics = set(validation.get("provider_reconciled_metrics") or [])
     sec_reconciled_metrics = set(validation.get("sec_reconciled_metrics") or [])
 
@@ -542,7 +545,7 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
             if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to the provider's explicit TTM income statement"
-            elif sec_reconciled and metric_is_supported(field, sec_reconciled_metrics):
+            if metric_is_supported(field, sec_reconciled_metrics):
                 source_ids.append(SEC_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to SEC year-to-date filing identities"
         elif field in summed_cash:
@@ -556,7 +559,7 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
                 if field in {"fcff", "fcff_after_sbc"}:
                     source_ids.append(TTM_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to the provider's explicit TTM cash-flow statement"
-            if sec_reconciled and metric_is_supported(field, sec_reconciled_metrics):
+            if metric_is_supported(field, sec_reconciled_metrics):
                 source_ids.append(SEC_STATEMENT_SOURCE_IDS["cash_flow"])
                 if field in {"fcff", "fcff_after_sbc"}:
                     source_ids.append(SEC_STATEMENT_SOURCE_IDS["income"])
@@ -567,7 +570,7 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
             if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to the provider's explicit TTM income statement"
-            if sec_reconciled and metric_is_supported(field, sec_reconciled_metrics):
+            if metric_is_supported(field, sec_reconciled_metrics):
                 source_ids.append(SEC_STATEMENT_SOURCE_IDS["income"])
                 formula += "; reconciled to SEC year-to-date filing identities"
         else:
@@ -580,7 +583,7 @@ def _ttm_data_points(ttm_row: dict[str, Any] | None) -> list[dict[str, Any]]:
             else:
                 source_ids = [QUARTERLY_STATEMENT_SOURCE_IDS["balance"]]
                 formula = "latest balance-sheet observation within the validated four-quarter window"
-            if provider_reconciled and metric_is_supported(field, provider_reconciled_metrics):
+            if provider_balance_reconciled and metric_is_supported(field, provider_reconciled_metrics):
                 source_ids.append(TTM_STATEMENT_SOURCE_IDS["balance"])
                 formula += "; reconciled to the provider's explicit TTM balance sheet"
         point = _data_point(f"financials.ttm.{field}", value, "calculated_metric", formula=formula)
@@ -623,12 +626,21 @@ def _valuation_data_points(valuation: dict[str, Any]) -> list[dict[str, Any]]:
     for key in ["low", "central", "high"]:
         value = (valuation.get("range") or {}).get(key)
         if _has_value(value):
+            formula = "archetype-routed scenarios with explicit method cross-check weights"
             points.append(
                 _data_point(
                     f"valuation.range.{key}",
                     value,
                     "calculated_metric",
-                    formula="archetype-routed scenarios with explicit method cross-check weights",
+                    formula=formula,
+                )
+            )
+            points.append(
+                _data_point(
+                    f"valuation_range_{key}",
+                    value,
+                    "calculated_metric",
+                    formula=formula,
                 )
             )
     reliability = valuation.get("reliability") or {}
@@ -702,14 +714,25 @@ def _reconcile_statement_rows(primary_rows: list[dict[str, Any]], sec_rows: list
 
     pass_ratio = sum(check["passed"] for check in checks) / len(checks)
     latest_year = overlap[-1]
+    critical_metrics = {
+        "revenue",
+        "cash_from_operations",
+        "capital_expenditures",
+        "cash",
+        "total_debt",
+        "total_equity",
+        "diluted_shares",
+    }
+    latest_checks = [check for check in checks if check["period"] == latest_year]
     critical_failures = [
         check
-        for check in checks
-        if check["period"] == latest_year
-        and check["metric"] in {"revenue", "cash_from_operations", "diluted_shares"}
+        for check in latest_checks
+        if check["metric"] in critical_metrics
         and not check["passed"]
     ]
-    passed = pass_ratio >= 0.80 and not critical_failures
+    observed_critical_metrics = {check["metric"] for check in latest_checks}
+    missing_critical_metrics = sorted(critical_metrics - observed_critical_metrics)
+    passed = pass_ratio >= 0.80 and not critical_failures and not missing_critical_metrics
     return {
         "status": "reconciled" if passed else "mismatch",
         "passed": passed,
@@ -717,6 +740,7 @@ def _reconcile_statement_rows(primary_rows: list[dict[str, Any]], sec_rows: list
         "checks": checks,
         "pass_ratio": pass_ratio,
         "critical_failures": critical_failures,
+        "missing_critical_metrics": missing_critical_metrics,
     }
 
 
@@ -765,6 +789,21 @@ def _apply_statement_reconciliation_gate(
                 "reason": "Los estados requeridos no están conciliados con SEC/XBRL.",
                 "weight": 0,
             }
+            if "market_requirements" in valuation:
+                valuation["market_requirements"] = {
+                    "available": False,
+                    "status": "blocked_statement_reconciliation",
+                    "implied_revenue_cagr": None,
+                    "implied_revenue_cagr_bound": None,
+                    "normalized_margin": None,
+                    "discount_rate": None,
+                    "terminal_growth": None,
+                    "horizon_years": None,
+                    "price_context": None,
+                    "reference_price": None,
+                    "market_data_as_of": None,
+                    "currency": None,
+                }
         elif valuation.get("status") == "decision_ready":
             valuation["status"] = "research_grade"
             reliability["status"] = "medium"
@@ -900,7 +939,30 @@ def _apply_current_share_count_gate(
         "reason": "El denominador de acciones no está reconciliado.",
         "weight": 0,
     }
+    valuation["market_requirements"] = {
+        "available": False,
+        "status": "blocked_share_denominator",
+        "implied_revenue_cagr": None,
+        "implied_revenue_cagr_bound": None,
+        "normalized_margin": None,
+        "discount_rate": None,
+        "terminal_growth": None,
+        "horizon_years": None,
+        "price_context": None,
+        "reference_price": None,
+        "market_data_as_of": None,
+        "currency": None,
+        "assets_added": None,
+        "obligations_deducted": None,
+    }
     return valuation
+
+
+def _all_statement_families_use_sec(statement_source_ids: dict[str, str]) -> bool:
+    return all(
+        statement_source_ids.get(statement_key) == SEC_STATEMENT_SOURCE_IDS[statement_key]
+        for statement_key in DEFAULT_STATEMENT_SOURCE_IDS
+    )
 
 
 def _build_evidence_coverage(sources: list[dict[str, Any]], data_points: list[dict[str, Any]]) -> dict[str, Any]:
@@ -2332,6 +2394,15 @@ def _build_ttm_row(
 
     provider_rows = _normalize_financials(aligned_provider_frames, tax_rate)
     provider_row = provider_rows[-1] if provider_rows else None
+    balance_provider_rows = _normalize_financials(
+        {
+            "income": pd.DataFrame(),
+            "cash_flow": pd.DataFrame(),
+            "balance": aligned_provider_frames["balance"],
+        },
+        tax_rate,
+    ) if "balance" in aligned_provider_frames else []
+    balance_provider_row = balance_provider_rows[-1] if balance_provider_rows else None
     tolerances = {
         "revenue": 0.02,
         "net_income": 0.04,
@@ -2380,18 +2451,37 @@ def _build_ttm_row(
     required_checks = [check for check in provider_checks if check["metric"] in required_metrics]
     latest_quarter_date = pd.to_datetime(result["date"])
     provider_date_differences = {
-        key: abs((pd.to_datetime(value) - latest_quarter_date).days)
+        key: int((latest_quarter_date - pd.to_datetime(value)).days)
         for key, value in provider_dates.items()
     }
-    provider_dates_current = bool(provider_date_differences) and all(days <= 45 for days in provider_date_differences.values())
+    provider_dates_current = bool(provider_date_differences) and all(
+        0 <= days <= 45 for days in provider_date_differences.values()
+    )
+    balance_date_gap_days = provider_date_differences.get("balance")
+    provider_balance_date_current = bool(
+        balance_date_gap_days is not None
+        and 0 <= balance_date_gap_days <= 45
+    )
     provider_currency = str((provider_row or {}).get("reported_currency") or "").upper().strip()
+    balance_provider_currency = str((balance_provider_row or {}).get("reported_currency") or "").upper().strip()
     calculated_currency = str(result.get("reported_currency") or "").upper().strip()
-    currency_reconciled = not provider_currency or not calculated_currency or provider_currency == calculated_currency
+    currency_reconciled = bool(
+        provider_currency
+        and calculated_currency
+        and provider_currency == calculated_currency
+    )
+    provider_balance_currency_reconciled = bool(
+        balance_provider_currency
+        and calculated_currency
+        and balance_provider_currency == calculated_currency
+    )
     provider_ttm_reconciled = bool(
         discrete_periods_confirmed
         and len(required_checks) == len(required_metrics)
         and provider_dates_current
         and currency_reconciled
+        and provider_balance_date_current
+        and provider_balance_currency_reconciled
         and all(check["passed"] for check in provider_checks)
     )
     sec_ttm_reconciliation = _sec_ytd_reconciliation(selected, sec_company_facts)
@@ -2428,7 +2518,13 @@ def _build_ttm_row(
             "provider_ttm_dates": provider_dates,
             "provider_ttm_date_gaps_days": provider_date_differences,
             "provider_ttm_dates_current": provider_dates_current,
+            "provider_ttm_balance_date": provider_dates.get("balance"),
+            "provider_ttm_balance_date_gap_days": balance_date_gap_days,
+            "provider_ttm_balance_date_current": provider_balance_date_current,
             "provider_ttm_currency": provider_currency or None,
+            "provider_ttm_balance_currency": balance_provider_currency or None,
+            "provider_ttm_balance_currency_reconciled": provider_balance_currency_reconciled,
+            "calculated_currency": calculated_currency or None,
             "currency_reconciled": currency_reconciled,
             "sec_quarterly_reconciled": sec_quarterly_reconciled,
             "sec_reconciled_metrics": sec_reconciled_metrics,
@@ -2774,6 +2870,8 @@ def _data_points_for_output(data_points: list[dict[str, Any]], *, backed: bool) 
         "valuation.range.central",
         "valuation_range_central",
         "valuation.reverse_dcf.implied_revenue_cagr",
+        "valuation_reverse_dcf_implied_revenue_cagr",
+        "reverse_dcf_implied_revenue_cagr",
         "valuation.reverse_dcf.value_at_floor",
         "valuation.reverse_dcf.value_at_ceiling",
     )
@@ -3541,7 +3639,21 @@ def build_equity_research_bundle(
         ttm_row.setdefault("ttm_validation", {})["share_denominator_reconciliation"] = share_denominator_reconciliation
     valuation = _build_valuation(ticker, rows, ttm_row, profile, frames, assumptions, sources)
     valuation = _apply_current_share_count_gate(valuation, share_denominator_reconciliation)
-    using_sec_as_primary = any(source_id in set(SEC_STATEMENT_SOURCE_IDS.values()) for source_id in statement_source_ids.values())
+    independent_observation = (valuation.get("price_validation") or {}).get("independent_observation") or {}
+    if independent_observation:
+        sources.append(
+            _source_record(
+                "market:independent-close",
+                str(independent_observation.get("source_family") or "independent market"),
+                "independent market close observation",
+                "ok",
+                as_of=independent_observation.get("as_of"),
+                observed_price=independent_observation.get("price"),
+                currency=independent_observation.get("currency"),
+                source_family=independent_observation.get("source_family"),
+            )
+        )
+    using_sec_as_primary = _all_statement_families_use_sec(statement_source_ids)
     country = str(profile.get("country") or "").upper().strip()
     sec_reconciliation_required = country in {"US", "USA", "UNITED STATES", "UNITED STATES OF AMERICA"}
     if using_sec_as_primary:
@@ -3577,10 +3689,17 @@ def build_equity_research_bundle(
     )
     model_base_case = next((item for item in valuation.get("scenarios", []) if item.get("name") == "base"), {})
     model_base_assumptions = model_base_case.get("assumptions") or {}
+    market_requirements = valuation.get("market_requirements") or {}
     model_discount_rate = (
         model_base_assumptions.get("discount_rate")
         or model_base_assumptions.get("wacc")
         or model_base_assumptions.get("cost_of_equity")
+        or market_requirements.get("discount_rate")
+    )
+    model_terminal_growth = (
+        model_base_assumptions.get("terminal_growth")
+        if model_base_assumptions.get("terminal_growth") is not None
+        else market_requirements.get("terminal_growth")
     )
 
     if ttm_row:
@@ -3613,7 +3732,7 @@ def build_equity_research_bundle(
         _data_point("net_debt", ratios.get("net_debt"), "calculated_metric", formula="total_debt - cash_and_equivalents"),
         _data_point("base_fcf_margin", assumptions.get("base_fcf_margin"), "assumption", formula="historical cash-flow reference; cyclical valuation separately includes weak and loss years"),
         _data_point("wacc", model_discount_rate, "assumption", formula="price-independent operating risk rate; no debt tax shield is included without an explicit reproducible debt schedule"),
-        _data_point("terminal_growth", model_base_assumptions.get("terminal_growth"), "assumption", formula="bounded by company archetype and below the discount rate"),
+        _data_point("terminal_growth", model_terminal_growth, "assumption", formula="bounded by company archetype and below the discount rate"),
     ]
     current_basic_shares = _safe_float(share_denominator_reconciliation.get("current_basic_outstanding_shares"))
     if current_basic_shares is not None:
@@ -3650,14 +3769,58 @@ def build_equity_research_bundle(
     if valuation.get("available"):
         data_points.extend(
             [
-                _data_point("valuation_range_central", valuation.get("range", {}).get("central"), "calculated_metric", formula="archetype-routed scenario range with explicit method cross-check weights"),
                 _data_point("reverse_dcf_status", valuation.get("reverse_dcf", {}).get("status"), "calculated_metric", formula="bounded reverse-valuation solve status; reverse DCF has zero intrinsic-value weight"),
-                _data_point("reverse_dcf_implied_revenue_cagr", valuation.get("reverse_dcf", {}).get("implied_revenue_cagr"), "calculated_metric", formula="binary search for growth where DCF value equals current price"),
+                _data_point("valuation_reverse_dcf_implied_revenue_cagr", valuation.get("reverse_dcf", {}).get("implied_revenue_cagr"), "calculated_metric", formula="binary search for growth where DCF value equals current price"),
                 _data_point("ev_to_sales", valuation.get("multiples", {}).get("ev_to_sales"), "calculated_metric", formula="enterprise_value / latest_revenue"),
                 _data_point("price_to_fcf", valuation.get("multiples", {}).get("price_to_fcf"), "calculated_metric", formula="market_cap / latest_free_cash_flow"),
             ]
         )
         data_points.extend(_valuation_data_points(valuation))
+    elif market_requirements.get("available") is True:
+        market_assets_point = _data_point(
+            "market_requirement_assets_added",
+            market_requirements.get("assets_added"),
+            "calculated_metric",
+            formula="excess cash plus explicitly sourced non-operating investments added to enterprise value",
+        )
+        market_assets_point["source_ids"] = [
+            QUARTERLY_STATEMENT_SOURCE_IDS["balance"],
+            TTM_STATEMENT_SOURCE_IDS["balance"],
+        ]
+        market_obligations_point = _data_point(
+            "market_requirement_obligations_deducted",
+            market_requirements.get("obligations_deducted"),
+            "calculated_metric",
+            formula="debt plus explicitly sourced common-equity senior claims deducted from enterprise value",
+        )
+        market_obligations_point["source_ids"] = [
+            QUARTERLY_STATEMENT_SOURCE_IDS["balance"],
+            TTM_STATEMENT_SOURCE_IDS["balance"],
+        ]
+        data_points.extend(
+            [
+                _data_point(
+                    "reverse_dcf_status",
+                    market_requirements.get("status"),
+                    "calculated_metric",
+                    formula="bounded reverse-valuation solve status; no intrinsic value is published",
+                ),
+                _data_point(
+                    "market_requirement_implied_revenue_cagr",
+                    market_requirements.get("implied_revenue_cagr"),
+                    "calculated_metric",
+                    formula="binary search for growth where price-implied enterprise value equals discounted operating cash flow",
+                ),
+                _data_point(
+                    "market_requirement_normalized_margin",
+                    market_requirements.get("normalized_margin"),
+                    "calculated_metric",
+                    formula="through-cycle operating FCFF after SBC divided by revenue, using a complete observed cycle",
+                ),
+                market_assets_point,
+                market_obligations_point,
+            ]
+        )
     if filings:
         data_points.append(_data_point("latest_sec_filing", filings[0].get("accession_number"), "sourced_fact", "sec:submissions"))
     audit = _audit_bundle(symbol, rows, sources, valuation, data_points)
