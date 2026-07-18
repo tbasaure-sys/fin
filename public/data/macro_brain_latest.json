@@ -1,19 +1,19 @@
 {
-  "generated_on": "2026-07-17T15:19:26.671085+00:00",
+  "generated_on": "2026-07-18T11:45:15.571198+00:00",
   "run_date": "2026-07-17",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143327,
+  "observations": 143332,
   "series_count": 25,
   "impulse_changes": [
     {
       "series_id": "EEM",
       "date": "2026-07-17T00:00:00",
-      "value": 63.060001373291016,
-      "transformed": -0.017760797463300726,
-      "momentum": 0.07244978782757983,
-      "impulse": -0.7932579394664465,
-      "momentum_z": -0.41767650545259505,
-      "impulse_z": -3.6282629106799047,
+      "value": 63.290000915527344,
+      "transformed": -0.014120120104938572,
+      "momentum": 0.08701249726102844,
+      "impulse": -0.7786952300329979,
+      "momentum_z": -0.36828967133982243,
+      "impulse_z": -3.563694771691775,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -22,12 +22,12 @@
     {
       "series_id": "QQQ",
       "date": "2026-07-17T00:00:00",
-      "value": 694.2999877929688,
-      "transformed": -0.016626125326978602,
-      "momentum": 0.30316588547717416,
-      "impulse": -0.6198769314235122,
-      "momentum_z": 0.19504833771258173,
-      "impulse_z": -2.179800794672229,
+      "value": 695.3300170898438,
+      "transformed": -0.015143673909127742,
+      "momentum": 0.3090956911485776,
+      "impulse": -0.6139471257521087,
+      "momentum_z": 0.21477500758813026,
+      "impulse_z": -2.1583062723499182,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -133,13 +133,13 @@
     },
     {
       "series_id": "BAMLH0A0HYM2",
-      "date": "2026-07-15T00:00:00",
+      "date": "2026-07-16T00:00:00",
       "value": 2.71,
-      "transformed": -0.010000000000000231,
-      "momentum": -0.1200000000000001,
-      "impulse": 0.43999999999999995,
-      "momentum_z": 0.0,
-      "impulse_z": 1.0001069881894336,
+      "transformed": 0.0,
+      "momentum": -0.16000000000000014,
+      "impulse": 0.4500000000000002,
+      "momentum_z": -0.11012094032270957,
+      "impulse_z": 1.0001069881894356,
       "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -160,18 +160,18 @@
       "label": "MOVE index"
     },
     {
-      "series_id": "TLT",
-      "date": "2026-06-10T00:00:00",
-      "value": 84.87010192871094,
-      "transformed": -0.0029401828815194264,
-      "momentum": -0.031543495387751364,
-      "impulse": 0.11921906424300843,
-      "momentum_z": -0.04658234903569037,
-      "impulse_z": 0.6431737548147669,
+      "series_id": "DFII10",
+      "date": "2026-07-16T00:00:00",
+      "value": 2.35,
+      "transformed": 0.03000000000000025,
+      "momentum": 0.44000000000000017,
+      "impulse": 0.21999999999999997,
+      "momentum_z": 1.1650294936413916,
+      "impulse_z": 0.7419398354242561,
       "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Long Treasury ETF"
+      "label": "US 10Y real yield"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": -6.384,
-        "impulse_z": -0.15213553126743232
+        "impulse": -0.10100000000000009,
+        "impulse_z": -0.07969045985983517
       }
     }
   },

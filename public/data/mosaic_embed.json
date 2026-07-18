@@ -1,6 +1,6 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-07-17T15:21:02.540471+00:00",
+  "generated_at": "2026-07-18T11:46:52.611450+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
@@ -12,7 +12,7 @@
   "public_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
-    "newest_cached_at": "2026-07-17T15:21:02.527611+00:00",
+    "newest_cached_at": "2026-07-18T11:46:52.608203+00:00",
     "oldest_cached_at": "2026-06-18T16:47:34.412498+00:00"
   },
   "global_disequilibrium_index": 37,
@@ -26,7 +26,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "62 series used, 0 manual, 0 warming, 0 watch errors.",
-    "freshness": "Newest 2026-07-16; oldest used source age 138 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-07-16; oldest used source age 139 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -118,40 +118,15 @@
     "unused_error_series": [],
     "manual_series": 0,
     "newest_date": "2026-07-16",
-    "oldest_age_days": 138
+    "oldest_age_days": 139
   },
   "history_delta": {
-    "previous_gdi": 35,
+    "previous_gdi": 37,
     "current_gdi": 37,
-    "delta": 2,
-    "direction": "up"
+    "delta": 0,
+    "direction": "flat"
   },
-  "market_movers": [
-    {
-      "market_id": "china_industrials_copper",
-      "item": "refined copper",
-      "score": 24,
-      "delta": 5,
-      "direction": "up",
-      "reading": "Mixed"
-    },
-    {
-      "market_id": "global_uranium",
-      "item": "uranium enrichment",
-      "score": 9,
-      "delta": 5,
-      "direction": "up",
-      "reading": "Mixed"
-    },
-    {
-      "market_id": "china_property",
-      "item": "property",
-      "score": -36,
-      "delta": -3,
-      "direction": "down",
-      "reading": "Loosening"
-    }
-  ],
+  "market_movers": [],
   "markets": [
     {
       "market_id": "global_power_transformers",
@@ -441,10 +416,10 @@
         "margin_compression": -17
       },
       "market_delta": {
-        "previous_score": -33,
+        "previous_score": -36,
         "current_score": -36,
-        "delta": -3,
-        "direction": "down",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Loosening"
       },
       "research_angle": "Iron ore, steel, banks, local government finance.",
@@ -566,10 +541,10 @@
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 19,
+        "previous_score": 24,
         "current_score": 24,
-        "delta": 5,
-        "direction": "up",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Mixed"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
@@ -691,10 +666,10 @@
         "margin_compression": -6
       },
       "market_delta": {
-        "previous_score": 4,
+        "previous_score": 9,
         "current_score": 9,
-        "delta": 5,
-        "direction": "up",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Mixed"
       },
       "research_angle": "Miners, enrichers, utilities fuel contracts.",
