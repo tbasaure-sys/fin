@@ -339,6 +339,83 @@ def _current_window_metrics(window_returns: pd.DataFrame, weights: np.ndarray) -
     }
 
 
+def _shrinkage_correlation(window_returns: pd.DataFrame) -> np.ndarray:
+    model = LedoitWolf().fit(window_returns.to_numpy(dtype=float))
+    covariance = np.asarray(model.covariance_, dtype=float)
+    volatility = np.sqrt(np.clip(np.diag(covariance), 1e-12, None))
+    correlation = covariance / np.outer(volatility, volatility)
+    correlation = np.nan_to_num(correlation, nan=0.0, posinf=0.0, neginf=0.0)
+    correlation = np.clip(correlation, -1.0, 1.0)
+    np.fill_diagonal(correlation, 1.0)
+    return correlation
+
+
+def _correlation_clusters(
+    holdings: list[PortfolioHolding],
+    correlation: np.ndarray,
+    threshold: float = 0.65,
+) -> list[dict[str, Any]]:
+    remaining = set(range(len(holdings)))
+    components: list[list[int]] = []
+    while remaining:
+        start = min(remaining)
+        remaining.remove(start)
+        queue = [start]
+        indices: list[int] = []
+        while queue:
+            current = queue.pop(0)
+            indices.append(current)
+            connected = sorted(
+                candidate
+                for candidate in remaining
+                if float(correlation[current, candidate]) >= threshold
+            )
+            for candidate in connected:
+                remaining.remove(candidate)
+                queue.append(candidate)
+        components.append(indices)
+
+    clusters: list[dict[str, Any]] = []
+    for indices in components:
+        sector_counts: dict[str, int] = {}
+        for index in indices:
+            sector = holdings[index].sector
+            if sector and sector != "Unknown":
+                sector_counts[sector] = sector_counts.get(sector, 0) + 1
+        dominant_sector = (
+            sorted(sector_counts.items(), key=lambda item: (-item[1], item[0]))[0][0]
+            if sector_counts
+            else None
+        )
+        tickers = [holdings[index].ticker for index in indices]
+        pair_values = [
+            float(correlation[left, right])
+            for offset, left in enumerate(indices)
+            for right in indices[offset + 1 :]
+        ]
+        clusters.append({
+            "tickers": tickers,
+            "weight": sum(holdings[index].weight for index in indices),
+            "average_correlation": float(np.mean(pair_values)) if pair_values else 0.0,
+            "dominant_sector": dominant_sector,
+        })
+
+    clusters.sort(key=lambda cluster: (-cluster["weight"], cluster["tickers"][0]))
+    return [
+        {
+            "id": f"cluster-{index + 1}",
+            "label": cluster["dominant_sector"]
+            or (" + ".join(cluster["tickers"]) if len(cluster["tickers"]) > 1 else cluster["tickers"][0]),
+            "tickers": cluster["tickers"],
+            "holdings_count": len(cluster["tickers"]),
+            "weight": round(float(cluster["weight"]), 4),
+            "average_correlation": round(float(cluster["average_correlation"]), 3),
+            "dominant_sector": cluster["dominant_sector"],
+        }
+        for index, cluster in enumerate(clusters)
+    ]
+
+
 def _classification(tested_ratio: float) -> str:
     if tested_ratio >= 0.67:
         return "real-dominant"
@@ -465,6 +542,9 @@ def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = 
 
     series, current = _series_metrics(common_panel, resolved_holdings)
     contributors = _contributor_rows(common_panel, resolved_holdings, current)
+    latest_returns = np.log(common_panel / common_panel.shift(1)).dropna(how="any").iloc[-WINDOW_DAYS:]
+    correlation = _shrinkage_correlation(latest_returns)
+    clusters = _correlation_clusters(resolved_holdings, correlation)
     verdict, phantom_text, improve_text = _verdict_copy(current["tested_ratio"])
     latest_date = series[-1]["date"]
     classification = _classification(float(current["tested_ratio"]))
@@ -514,6 +594,13 @@ def analyze_portfolio(rows: list[dict[str, Any]], *, workspace_id: str | None = 
             }
             for row in series
         ],
+        "correlation_matrix": {
+            "tickers": [holding.ticker for holding in resolved_holdings],
+            "values": np.round(correlation, 3).tolist(),
+            "window_days": WINDOW_DAYS,
+            "method": "Ledoit-Wolf shrinkage correlation",
+        },
+        "clusters": clusters,
         "contributors": [
             {
                 **row,

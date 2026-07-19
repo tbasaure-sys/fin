@@ -42,9 +42,11 @@ test("legal copy is selected on the server from the request locale", () => {
 
 test("automatic cache recovery never clears browser storage", () => {
   const layout = source("app/layout.js");
-  assert.doesNotMatch(layout, /window\.localStorage\.clear\(\)/);
-  assert.doesNotMatch(layout, /window\.sessionStorage\.clear\(\)/);
-  assert.match(layout, /window\.caches\.delete/);
+  const recovery = source("lib/client/cache-recovery.js");
+  assert.match(layout, /buildCacheRecoveryScript/);
+  assert.doesNotMatch(recovery, /window\.localStorage\.clear\(\)/);
+  assert.doesNotMatch(recovery, /window\.sessionStorage\.clear\(\)/);
+  assert.match(recovery, /window\.caches\.delete/);
 });
 
 test("manual recovery requires confirmation and preserves language", async () => {

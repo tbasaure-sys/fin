@@ -13,6 +13,8 @@ import {
 } from "@/lib/channels/discovery-v2";
 import {
   assessPortfolioFreshness,
+  buildPortfolioDisplayRows,
+  computePortfolioOverlapShare,
   normalizePortfolioDraft,
   summarizePortfolioWeights,
 } from "@/lib/portfolio/intelligence";
@@ -57,6 +59,8 @@ const COPY = {
     price: "Precio actual",
     value: "Valor",
     weight: "Peso",
+    returnLabel: "Retorno",
+    portfolioBreakdown: "Detalle de posiciones",
     remove: "Eliminar",
     saveError: "No pudimos confirmar la cartera.",
     csvError: "No pudimos leer el archivo. Revisa que incluya ticker y quantity.",
@@ -65,12 +69,15 @@ const COPY = {
     analysisError: "No pudimos calcular la estructura con estos datos.",
     holdings: "Posiciones",
     effectiveBets: "Apuestas efectivas",
+    riskPositions: "Posiciones analizadas",
     effectiveDetail: "Cantidad de apuestas después de descontar correlación.",
     cash: "Caja y equivalentes",
     mainCluster: "Cluster principal",
     mainClusterDetail: "Peso de la agrupación más grande por movimiento conjunto.",
     visibleBreadth: "Diversificación por tamaño",
-    visibleDetail: "Lo que parecería diversificación si ignoráramos correlaciones.",
+    visibleDetail: "Excluye caja y equivalentes; son los nombres comparados entre sí.",
+    overlap: "Solapamiento implícito",
+    overlapDetail: "Parte del número aparente de posiciones que desaparece al descontar correlaciones.",
     resultLead: (names, bets) => `${names} nombres se comportan como aproximadamente ${bets} apuestas distintas.`,
     clusterTitle: "Tus verdaderas apuestas",
     clusterIntro: "Agrupamos posiciones cuando su correlación reciente supera 0,65. Un cluster es una exposición compartida, no una lista de empresas.",
@@ -137,6 +144,8 @@ const COPY = {
     price: "Current price",
     value: "Value",
     weight: "Weight",
+    returnLabel: "Return",
+    portfolioBreakdown: "Holding breakdown",
     remove: "Remove",
     saveError: "We could not confirm the portfolio.",
     csvError: "We could not read the file. Check that it includes ticker and quantity.",
@@ -145,12 +154,15 @@ const COPY = {
     analysisError: "We could not calculate structure from these inputs.",
     holdings: "Holdings",
     effectiveBets: "Effective bets",
+    riskPositions: "Positions analyzed",
     effectiveDetail: "Number of bets after accounting for correlation.",
     cash: "Cash and equivalents",
     mainCluster: "Largest cluster",
     mainClusterDetail: "Weight of the largest group by co-movement.",
     visibleBreadth: "Size-only breadth",
-    visibleDetail: "What diversification would look like if correlation were ignored.",
+    visibleDetail: "Excludes cash and equivalents; these are the names compared with each other.",
+    overlap: "Implied overlap",
+    overlapDetail: "Share of the apparent holding count that disappears after accounting for correlation.",
     resultLead: (names, bets) => `${names} names behave like roughly ${bets} distinct bets.`,
     clusterTitle: "Your actual bets",
     clusterIntro: "We group positions when recent correlation exceeds 0.65. A cluster is a shared exposure, not a company list.",
@@ -203,6 +215,7 @@ function formatMoney(value) {
 }
 
 function formatDate(value, language) {
+  if (!value) return "—";
   const date = new Date(value);
   if (!Number.isFinite(date.getTime())) return "—";
   return new Intl.DateTimeFormat(language === "en" ? "en-US" : "es-CL", { day: "numeric", month: "short", year: "numeric" }).format(date);
@@ -338,18 +351,61 @@ function PortfolioEditor({ copy, draftRows, onChange, onConfirm, onImport, pendi
   );
 }
 
+function PortfolioHoldingsTable({ copy, rows }) {
+  if (!rows.length) return null;
+  return (
+    <section aria-labelledby="portfolio-holdings-title" className={styles.holdingsPanel} data-testid="portfolio-holdings-table">
+      <div className={styles.holdingsHeader}>
+        <h3 id="portfolio-holdings-title">{copy.portfolioBreakdown}</h3>
+        <span>{rows.length} {copy.holdings.toLowerCase()}</span>
+      </div>
+      <div className={styles.holdingsTableWrap}>
+        <table className={styles.holdingsTable}>
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">{copy.ticker}</th>
+              <th scope="col">{copy.quantity}</th>
+              <th scope="col">{copy.value}</th>
+              <th scope="col">{copy.weight}</th>
+              <th scope="col">{copy.returnLabel}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => (
+              <tr key={row.ticker}>
+                <td>{String(index + 1).padStart(2, "0")}</td>
+                <th scope="row">
+                  <strong>{row.ticker}</strong>
+                  {row.company ? <span>{row.company}</span> : null}
+                </th>
+                <td>{new Intl.NumberFormat(undefined, { maximumFractionDigits: 4 }).format(row.quantity)}</td>
+                <td>{formatMoney(row.marketValueUsd)}</td>
+                <td>{formatPct(row.weight, 1)}</td>
+                <td data-tone={Number(row.totalReturn) > 0 ? "positive" : Number(row.totalReturn) < 0 ? "negative" : "neutral"}>
+                  {row.totalReturnLabel || (row.totalReturn === null ? "—" : formatPct(row.totalReturn, 1))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
 function CorrelationMatrix({ analysis, copy }) {
   const tickers = analysis?.correlation_matrix?.tickers || [];
   const values = analysis?.correlation_matrix?.values || [];
   if (!tickers.length) return null;
   return (
     <div className={styles.matrixWrap}>
-      <table className={styles.matrix}>
-        <thead><tr><th />{tickers.map((ticker) => <th key={ticker}>{ticker}</th>)}</tr></thead>
+      <table aria-label={copy.correlationTitle} className={styles.matrix}>
+        <thead><tr><th />{tickers.map((ticker) => <th key={ticker} scope="col">{ticker}</th>)}</tr></thead>
         <tbody>
           {tickers.map((ticker, rowIndex) => (
             <tr key={ticker}>
-              <th>{ticker}</th>
+              <th scope="row">{ticker}</th>
               {tickers.map((column, columnIndex) => {
                 const value = Number(values?.[rowIndex]?.[columnIndex] || 0);
                 return (
@@ -516,6 +572,7 @@ export function PortfolioChannelWorkbench() {
 
   const freshness = useMemo(() => assessPortfolioFreshness(portfolio?.updatedAt), [portfolio?.updatedAt]);
   const portfolioSummary = useMemo(() => summarizePortfolioWeights(portfolio?.holdings || []), [portfolio?.holdings]);
+  const displayRows = useMemo(() => buildPortfolioDisplayRows(portfolio?.holdings || []), [portfolio?.holdings]);
   const rowsForAnalysis = useMemo(() => analysisRows(portfolio?.holdings || []), [portfolio?.holdings]);
   const analysisKey = JSON.stringify(rowsForAnalysis.map((row) => [row.ticker, row.weight]));
 
@@ -604,8 +661,11 @@ export function PortfolioChannelWorkbench() {
   }
 
   const statusLabel = freshness.status === "current" ? copy.confirmed : freshness.status === "stale" ? copy.stale : copy.unconfirmed;
-  const mainCluster = analysis?.clusters?.[0] || null;
-  const independentCluster = [...(analysis?.clusters || [])].sort((left, right) => left.average_correlation - right.average_correlation)[0] || null;
+  const clusters = Array.isArray(analysis?.clusters) ? analysis.clusters : [];
+  const mainCluster = clusters[0] || null;
+  const independentCluster = [...clusters].sort((left, right) => left.average_correlation - right.average_correlation)[0] || null;
+  const effectiveBreadth = Number(analysis?.current?.raw_breadth || 0);
+  const overlapShare = computePortfolioOverlapShare(analysis?.current?.holdings_count, effectiveBreadth);
 
   return (
     <main className={`${styles.page} channels-route`} data-no-translate>
@@ -658,6 +718,7 @@ export function PortfolioChannelWorkbench() {
             {editorOpen || !portfolio?.holdings?.length || !freshness.canAnalyze ? (
               <PortfolioEditor copy={copy} draftRows={draftRows} error={saveError} onChange={changeDraft} onConfirm={confirmPortfolio} onImport={importPortfolio} pending={savePending} />
             ) : null}
+            {!editorOpen && displayRows.length ? <PortfolioHoldingsTable copy={copy} rows={displayRows} /> : null}
           </section>
 
           <section className={styles.structureSection}>
@@ -671,8 +732,9 @@ export function PortfolioChannelWorkbench() {
             {analysis ? (
               <>
                 <div className={styles.metrics}>
-                  <article><span>{copy.holdings}</span><strong>{analysis.current.holdings_count}</strong><p>{copy.visibleDetail}</p></article>
+                  <article><span>{copy.riskPositions}</span><strong>{analysis.current.holdings_count}</strong><p>{copy.visibleDetail}</p></article>
                   <article className={styles.metricAccent}><span>{copy.effectiveBets}</span><strong>{Number(analysis.current.raw_breadth).toFixed(1)}</strong><p>{copy.effectiveDetail}</p></article>
+                  <article><span>{copy.overlap}</span><strong>{formatPct(overlapShare)}</strong><p>{copy.overlapDetail}</p></article>
                   <article><span>{copy.mainCluster}</span><strong>{formatPct(mainCluster?.weight || 0)}</strong><p>{copy.mainClusterDetail}</p></article>
                   <article><span>{copy.cash}</span><strong>{formatPct(portfolioSummary.cashWeight)}</strong><p>{copy.visibleBreadth}: {portfolioSummary.sizeOnlyBreadth.toFixed(1)}</p></article>
                 </div>
@@ -681,7 +743,7 @@ export function PortfolioChannelWorkbench() {
                   <section className={styles.clusterPanel}>
                     <div><h3>{copy.clusterTitle}</h3><p>{copy.clusterIntro}</p></div>
                     <div className={styles.clusterList}>
-                      {analysis.clusters.map((cluster, index) => (
+                      {clusters.map((cluster, index) => (
                         <article key={cluster.id}>
                           <div className={styles.clusterIndex}>{String(index + 1).padStart(2, "0")}</div>
                           <div><strong>{cluster.label}</strong><p>{cluster.tickers.join(" · ")}</p></div>

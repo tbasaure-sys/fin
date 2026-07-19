@@ -3,6 +3,8 @@ import test from "node:test";
 
 import {
   assessPortfolioFreshness,
+  buildPortfolioDisplayRows,
+  computePortfolioOverlapShare,
   normalizePortfolioDraft,
 } from "../lib/portfolio/intelligence.js";
 import { discoverResearchCandidates } from "../lib/channels/discovery-v2.js";
@@ -34,6 +36,26 @@ test("portfolio draft aggregates duplicates, removes zero positions, and recompu
   assert.equal(rows[0].quantity, 3);
   assert.equal(rows[0].weight, 0.6);
   assert.equal(rows[1].weight, 0.4);
+});
+
+test("portfolio display rows expose every confirmed holding with value and weight", () => {
+  const rows = buildPortfolioDisplayRows([
+    { ticker: "BFLY", quantity: 100, currentPriceUsd: 4, marketValueUsd: 400 },
+    { ticker: "UNH", quantity: 2, currentPriceUsd: 500, marketValueUsd: 1000 },
+    { ticker: "SEZL", quantity: 0, currentPriceUsd: 90, marketValueUsd: 0 },
+  ]);
+
+  assert.deepEqual(rows.map((row) => row.ticker), ["UNH", "BFLY"]);
+  assert.deepEqual(rows.map((row) => row.marketValueUsd), [1000, 400]);
+  assert.equal(rows[0].weight, 1000 / 1400);
+  assert.equal(rows[1].weight, 400 / 1400);
+  assert.equal(rows[0].totalReturn, null);
+});
+
+test("portfolio overlap compares invested names with effective bets", () => {
+  assert.equal(computePortfolioOverlapShare(33, 4.89), 0.8518);
+  assert.equal(computePortfolioOverlapShare(4, 3.7), 0.075);
+  assert.equal(computePortfolioOverlapShare(0, 0), 0);
 });
 
 test("channel discovery returns concrete issuers and an executable public test", () => {
