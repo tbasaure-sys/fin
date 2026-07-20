@@ -1218,7 +1218,7 @@ function formatOptionalRatio(value, digits = 0) {
   return Number.isFinite(Number(value)) ? formatPct(Number(value), digits) : "-";
 }
 
-const PHANTOM_MAX_HOLDINGS = 24;
+const PHANTOM_MAX_HOLDINGS = 60;
 const PHANTOM_CASHLIKE_TICKERS = new Set(["SGOV", "SHY", "BIL", "SHV", "VGSH", "JPST", "DWBDS"]);
 
 function isExcludedPhantomHolding(holding) {
@@ -1828,28 +1828,10 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
   const [analysis, setAnalysis] = useState(null);
   const [analysisPending, setAnalysisPending] = useState(false);
   const [analysisError, setAnalysisError] = useState("");
+  const lastAutoAnalysisKey = useRef("");
 
-  useEffect(() => {
-    setAnalysis(null);
-    setAnalysisError("");
-  }, [baseKey]);
-
-  if (!workspaceId || rows.length < 3) return null;
-
-  const current = analysis?.current || null;
-  const diagnostics = analysis?.diagnostics || {};
-  const guidance = phantomSimpleGuidance(current);
-  const testedWidth = current ? Math.max(3, Math.min(100, Math.round((Number(current.tested_ratio) || 0) * 100))) : 0;
-  const phantomWidth = current ? Math.max(0, 100 - testedWidth) : 0;
-  const contributors = safeList(analysis?.contributors).slice(0, 3);
-  const sources = safeList(diagnostics.source_labels);
-  const supportedCount = safeList(diagnostics.supported_tickers).length;
-  const coverageLabel = supportedCount
-    ? `${supportedCount}/${rows.length} posiciones con historial usable`
-    : `${rows.length} posiciones listas`;
-
-  async function runAnalysis() {
-    if (!workspaceId || analysisPending) return;
+  const runAnalysis = useCallback(async () => {
+    if (!workspaceId || rows.length < 3) return;
     setAnalysisPending(true);
     setAnalysisError("");
     try {
@@ -1871,110 +1853,144 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
       setAnalysis(payload);
     } catch (requestError) {
       setAnalysis(null);
-      setAnalysisError(String(requestError?.message || requestError || "Analysis failed."));
+      setAnalysisError(String(requestError?.message || requestError || "No pudimos calcular la estructura."));
     } finally {
       setAnalysisPending(false);
     }
+  }, [rows, workspaceId]);
+
+  useEffect(() => {
+    const autoAnalysisKey = `${workspaceId || "none"}:${baseKey}`;
+    if (!workspaceId || rows.length < 3) {
+      lastAutoAnalysisKey.current = "";
+      setAnalysis(null);
+      setAnalysisError("");
+      return;
+    }
+    if (lastAutoAnalysisKey.current === autoAnalysisKey) return;
+    lastAutoAnalysisKey.current = autoAnalysisKey;
+    setAnalysis(null);
+    setAnalysisError("");
+    void runAnalysis();
+  }, [baseKey, rows.length, runAnalysis, workspaceId]);
+
+  if (!workspaceId) return null;
+
+  if (rows.length < 3) {
+    return (
+      <section className={styles.panel} data-testid="portfolio-structure-empty">
+        <div className={styles.panelHeader}>
+          <div>
+            <p className={styles.kicker}>Estructura real de tu cartera</p>
+            <h2>{portfolioModule?.holdings?.length ? "Se necesitan al menos tres posiciones" : "Confirma tu cartera para comenzar"}</h2>
+            <p className={styles.supportText}>
+              {portfolioModule?.holdings?.length
+                ? "Con menos de tres posiciones no existe una matriz de correlación útil. Tus posiciones siguen siendo visibles arriba."
+                : "Este espacio no mostrará posiciones, ratios ni diagnósticos de otro usuario. Importa o confirma tus holdings para calcular todo desde tu propia cartera."}
+            </p>
+          </div>
+          <Link className={styles.primaryButton} href="/channels">Importar o confirmar cartera</Link>
+        </div>
+      </section>
+    );
   }
 
+  const current = analysis?.current || null;
+  const diagnostics = analysis?.diagnostics || {};
+  const guidance = phantomSimpleGuidance(current);
+  const sources = safeList(diagnostics.source_labels);
+  const supportedCount = safeList(diagnostics.supported_tickers).length;
+  const coverageLabel = supportedCount
+    ? `${supportedCount}/${rows.length} posiciones con historial usable`
+    : `${rows.length} posiciones listas`;
+  const clusters = safeList(analysis?.clusters);
+  const mainCluster = clusters[0] || null;
+  const holdingsCount = Number(current?.holdings_count || rows.length);
+  const effectiveBets = Number(current?.raw_breadth || 0);
+  const overlapShare = holdingsCount > 0 ? Math.max(0, 1 - (effectiveBets / holdingsCount)) : 0;
+  const cashWeight = safeList(portfolioModule?.holdings).reduce((total, holding) => (
+    isExcludedPhantomHolding(holding) ? total + (Number(parseDisplayPercent(holding?.weight)) || 0) : total
+  ), 0);
+  const matrixTickers = safeList(analysis?.correlation_matrix?.tickers);
+  const matrixValues = safeList(analysis?.correlation_matrix?.values);
+
   return (
-    <section className={styles.panel}>
+    <section className={styles.panel} data-testid="portfolio-structure-diagnostic">
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Solapamiento estructural</p>
-          <h2>Cuánta diversificación sobrevive cuando llega el estrés</h2>
+          <p className={styles.kicker}>Estructura real de tu cartera</p>
+          <h2>{analysis ? `${holdingsCount} posiciones se comportan como ${effectiveBets.toFixed(1)} apuestas efectivas` : "Calculando apuestas efectivas y correlaciones"}</h2>
           <p className={styles.supportText}>
-            Mide si las posiciones siguen siendo apuestas distintas cuando los mercados se ponen nerviosos.
-            Si varias se mueven juntas, la diversificación visible puede exagerar la protección real.
+            El diagnóstico usa únicamente las posiciones confirmadas de este workspace. Agrupa nombres que comparten movimiento y muestra la matriz completa detrás del resultado.
           </p>
         </div>
         <button className={styles.primaryButton} disabled={analysisPending} onClick={runAnalysis} type="button">
-          {analysisPending ? "Revisando..." : analysis ? "Actualizar" : "Revisar estructura"}
+          {analysisPending ? "Calculando..." : "Recalcular"}
         </button>
       </div>
 
-      <div className={styles.phantomSimpleGrid}>
-        <div className={styles.phantomSimpleMain}>
-          <div className={styles.phantomSimpleVerdict}>
-            <ToneBadge tone={analysis ? phantomTone(current?.classification) : "neutral"}>
-              {current ? phantomClassificationLabel(current?.classification, current?.classification_label) : "Listo"}
-            </ToneBadge>
-            <strong>{analysis ? guidance.title : coverageLabel}</strong>
-            <p>{analysis ? guidance.body : "Las posiciones tipo caja se excluyen. El servidor normaliza los pesos antes de calcular amplitud."}</p>
+      {analysisError ? <p className={styles.errorText}>{analysisError}</p> : null}
+      {analysisPending && !analysis ? <div className={styles.phantomSimpleEmpty}><strong>{coverageLabel}</strong><p>Descargando historiales y calculando la matriz de este portfolio.</p></div> : null}
+
+      {analysis ? (
+        <>
+          <div className={styles.portfolioIntelligenceMetrics}>
+            <MetricTile detail="Nombres con historial suficiente, sin caja." label="Posiciones analizadas" value={holdingsCount} />
+            <div data-testid="portfolio-effective-bets"><MetricTile detail="Apuestas independientes después de descontar correlación." label="Apuestas efectivas" tone={guidance.tone} value={effectiveBets.toFixed(1)} /></div>
+            <MetricTile detail="Parte del número aparente de posiciones que desaparece por correlación." label="Solapamiento implícito" tone={guidance.tone} value={formatPct(overlapShare, 0)} />
+            <MetricTile detail="Peso de la agrupación más grande por movimiento conjunto." label="Cluster principal" value={formatPct(mainCluster?.weight || 0, 0)} />
+            <MetricTile detail="Se excluye del cálculo de correlación entre activos de riesgo." label="Caja y equivalentes" value={formatPct(cashWeight, 0)} />
           </div>
 
-          {analysisError ? <p className={styles.errorText}>{analysisError}</p> : null}
-
-          {analysis ? (
-            <>
-              <div className={styles.phantomSimpleMetrics}>
-                <MetricTile
-                  detail="Apuestas independientes sugeridas por el historial de precios."
-                  label="Apuestas visibles"
-                  value={formatBreadth(current?.raw_breadth)}
-                />
-                <MetricTile
-                  detail="Amplitud que sobrevive al ajuste de estrés."
-                  label="Apuestas probadas"
-                  tone={guidance.tone}
-                  value={formatBreadth(current?.real_breadth)}
-                />
-                <MetricTile
-                  detail="Amplitud visible que aún no queda validada."
-                  label="En riesgo"
-                  tone={guidance.tone}
-                  value={formatPct(current?.phantom_share || 0, 0)}
-                />
+          <div className={styles.portfolioIntelligenceGrid}>
+            <section className={styles.portfolioClusterPanel} data-testid="portfolio-cluster-list">
+              <div>
+                <p className={styles.kicker}>Tus verdaderas apuestas</p>
+                <h3>{guidance.title}</h3>
+                <p className={styles.supportText}>{guidance.body}</p>
               </div>
-
-              <div className={styles.phantomSimpleBar} aria-label="Amplitud probada versus solapamiento oculto">
-                <span className={styles.phantomSimpleBarTested} style={{ width: `${testedWidth}%` }} />
-                {phantomWidth ? <span className={styles.phantomSimpleBarRisk} style={{ width: `${phantomWidth}%` }} /> : null}
+              <div className={styles.portfolioClusterList}>
+                {clusters.map((cluster, index) => (
+                  <article key={cluster.id || `${cluster.label}-${index}`}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <div><strong>{cluster.label || `Cluster ${index + 1}`}</strong><p>{safeList(cluster.tickers).join(" · ")}</p></div>
+                    <div><strong>{formatPct(cluster.weight || 0, 0)}</strong><small>{cluster.holdings_count || safeList(cluster.tickers).length} posiciones</small></div>
+                    <div><strong>{Number(cluster.average_correlation || 0).toFixed(2)}</strong><small>correlación media</small></div>
+                  </article>
+                ))}
               </div>
-              <div className={styles.phantomSimpleLegend}>
-                <span>Probada: {formatBreadth(current?.real_breadth)}</span>
-                <span>Oculto: {formatBreadth(current?.phantom_breadth)}</span>
-              </div>
-            </>
-          ) : (
-            <div className={styles.phantomSimpleEmpty}>
-              <strong>Un clic, tres números.</strong>
-              <p>Apuestas visibles, apuestas probadas y porcentaje de diversificación todavía en riesgo.</p>
-            </div>
-          )}
-        </div>
+            </section>
 
-        <aside className={styles.phantomSimpleAside}>
-          <div>
-            <p className={styles.kicker}>Lectura del portafolio</p>
-            <strong>{analysis ? guidance.title : "Esperando prueba"}</strong>
-            <p className={styles.supportText}>
-              {analysis ? `Ventana: ${diagnostics.window_days || 63} sesiones. Al ${formatDate(analysis?.as_of)}.` : coverageLabel}
-            </p>
+            <section className={styles.portfolioMatrixPanel} data-testid="portfolio-correlation-matrix">
+              <div>
+                <p className={styles.kicker}>Matriz de correlación</p>
+                <h3>Qué posiciones realmente se mueven juntas</h3>
+                <p className={styles.supportText}>Verde indica comportamiento más distinto; naranja, mayor movimiento conjunto.</p>
+              </div>
+              <div className={styles.portfolioMatrixWrap}>
+                <table aria-label="Matriz de correlación del portfolio">
+                  <thead><tr><th />{matrixTickers.map((ticker) => <th key={ticker} scope="col">{ticker}</th>)}</tr></thead>
+                  <tbody>
+                    {matrixTickers.map((ticker, rowIndex) => (
+                      <tr key={ticker}>
+                        <th scope="row">{ticker}</th>
+                        {matrixTickers.map((column, columnIndex) => {
+                          const value = Number(matrixValues?.[rowIndex]?.[columnIndex] || 0);
+                          return <td key={column} style={{ "--heat": Math.max(0, value), "--cool": Math.max(0, -value) }} title={`${ticker} / ${column}: ${value.toFixed(2)}`}>{rowIndex === columnIndex ? "1" : value.toFixed(2)}</td>;
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className={styles.phantomSimpleSource}>
+                Ventana: {diagnostics.window_days || 63} sesiones. {sources.length ? `Precios: ${sources.join(", ")}.` : ""}
+                {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} posición${draftDefaults.excludedCount === 1 ? "" : "es"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"}.` : ""}
+              </p>
+            </section>
           </div>
-
-          {contributors.length ? (
-            <div className={styles.phantomSimpleList}>
-              {contributors.map((row) => (
-                <article key={`simple-phantom-${row.ticker}`}>
-                  <div>
-                    <strong>{row.ticker}</strong>
-                    <span>{cleanWorkspaceCopy(row.role_summary || row.role)}</span>
-                  </div>
-                  <ToneBadge tone={contributorTone(row.role)}>{contributorRoleLabel(row.role)}</ToneBadge>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.emptyCopy}>Las notas por posición aparecen después del chequeo.</p>
-          )}
-
-          <p className={styles.phantomSimpleSource}>
-            {sources.length ? `Precios: ${sources.join(", ")}.` : "La fuente de precios aparecerá después del análisis."}
-            {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} posición${draftDefaults.excludedCount === 1 ? "" : "es"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"}.` : ""}
-          </p>
-        </aside>
-      </div>
+        </>
+      ) : null}
     </section>
   );
 }
@@ -5696,18 +5712,6 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "holdings":
       activeWorkspacePanels = (
         <>
-          <PortfolioPanel
-            compact
-            onRangeChange={setPortfolioRange}
-            language={language}
-            onOpenRisk={() => selectWorkspaceSection("holdings")}
-            portfolioModule={portfolioModule}
-            range={portfolioRange}
-            showAuroraAction
-            xray={dashboard?.xray}
-          />
-          <StressEnginePanel portfolioValueUsd={portfolioModule?.analytics?.totalValueUsd} workspaceId={workspaceId} />
-          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
           <HoldingsPanel
             holdingDraft={holdingDraft}
             onHoldingDraftChange={updateHoldingDraft}
@@ -5729,16 +5733,36 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             tradeInstructionError={tradeInstructionError}
             tradeInstruction={tradeInstruction}
           />
-          <TodayDecisionPanel
-            blockedAction={blockedAction}
-            onDefer={(action) => recordDecision(action, "deferred")}
-            onReject={(action) => recordDecision(action, "rejected")}
-            onStage={stageAction}
-            pendingKey={pendingKey}
-            primaryAction={primaryAction}
-            stateSummary={stateSummary}
-          />
-          {escrowPanel}
+          {hasPortfolioHoldings ? (
+            <>
+              <PortfolioPanel
+                compact
+                onRangeChange={setPortfolioRange}
+                language={language}
+                onOpenRisk={() => selectWorkspaceSection("holdings")}
+                portfolioModule={portfolioModule}
+                range={portfolioRange}
+                showAuroraAction
+                xray={dashboard?.xray}
+              />
+              <StressEnginePanel portfolioValueUsd={portfolioModule?.analytics?.totalValueUsd} workspaceId={workspaceId} />
+            </>
+          ) : null}
+          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
+          {hasPortfolioHoldings ? (
+            <>
+              <TodayDecisionPanel
+                blockedAction={blockedAction}
+                onDefer={(action) => recordDecision(action, "deferred")}
+                onReject={(action) => recordDecision(action, "rejected")}
+                onStage={stageAction}
+                pendingKey={pendingKey}
+                primaryAction={primaryAction}
+                stateSummary={stateSummary}
+              />
+              {escrowPanel}
+            </>
+          ) : null}
         </>
       );
       break;
@@ -6272,19 +6296,41 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
           )}
 
-          <TruthInterfacePanel
-            blockedAction={blockedAction}
-            dashboard={dashboard}
-            onSelectSection={selectWorkspaceSection}
-            personalFinance={personalFinance}
-            portfolioModule={portfolioModule}
-            primaryAction={primaryAction}
-            showChat={showChat}
-            stateSummary={stateSummary}
-            onToggleChat={() => setShowChat((value) => !value)}
-          />
+          {hasPortfolioHoldings ? (
+            <TruthInterfacePanel
+              blockedAction={blockedAction}
+              dashboard={dashboard}
+              onSelectSection={selectWorkspaceSection}
+              personalFinance={personalFinance}
+              portfolioModule={portfolioModule}
+              primaryAction={primaryAction}
+              showChat={showChat}
+              stateSummary={stateSummary}
+              onToggleChat={() => setShowChat((value) => !value)}
+            />
+          ) : (
+            <section className={styles.truthSurface} data-testid="portfolio-empty-hero">
+              <div className={styles.answerWorkspace}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <p className={styles.kicker}>Tu cartera, no una cartera de muestra</p>
+                    <h2>Confirma tus posiciones para construir el workspace</h2>
+                    <p className={styles.supportText}>
+                      Hasta entonces no mostraremos holdings, rendimientos, ratios, stress tests ni amplitud calculados desde otro usuario.
+                    </p>
+                  </div>
+                  <Link className={styles.primaryButton} href="/channels">Importar cartera completa</Link>
+                </div>
+                <div className={styles.statusGrid}>
+                  <MetricTile detail="Cada espacio guarda sus posiciones por workspace." label="Fuente" tone="good" value="Espacio privado" />
+                  <MetricTile detail="Puedes cargar un CSV o escribir las posiciones manualmente." label="Primer paso" value="Confirmar holdings" />
+                  <MetricTile detail="Se calcula después de confirmar al menos tres activos de riesgo." label="Diagnóstico" value="Clusters + correlación" />
+                </div>
+              </div>
+            </section>
+          )}
 
-          <section className={styles.statusGrid}>
+          {hasPortfolioHoldings ? <section className={styles.statusGrid}>
             <MetricTile
               detail={holdingsCount ? "Conectadas a este espacio." : "Agrega posiciones para desbloquear la lectura."}
               label="Posiciones"
@@ -6309,7 +6355,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               tone={escrowItems.length ? "warn" : "neutral"}
               value={escrowItems.length ? `${escrowItems.length} acción${escrowItems.length === 1 ? "" : "es"}` : "—"}
             />
-          </section>
+          </section> : null}
 
           <ComplianceNotice copy={shellCopy} />
 

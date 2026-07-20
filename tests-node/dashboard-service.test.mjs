@@ -3,6 +3,35 @@ import assert from "node:assert/strict";
 
 import { normalizeWorkspaceDashboard } from "../lib/server/normalizers.js";
 
+test("an empty workspace explains that no other user's portfolio is being shown", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "empty-user",
+    snapshot: {
+      generated_at: "2026-07-20T12:00:00.000Z",
+      overview: {},
+      portfolio: {
+        holdings: [],
+        holdings_source: "workspace_portfolio_empty",
+        holdings_source_label: "Sin cartera confirmada",
+        holdings_source_available: false,
+      },
+      screener: { rows: [] },
+      status: { warnings: [], panels: [] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  assert.equal(dashboard.modules.portfolio.holdingsSource.connected, false);
+  assert.match(dashboard.modules.portfolio.holdingsSource.detail, /no hay una cartera confirmada/i);
+  assert.ok(dashboard.data_control.notes.some((note) => /no se muestran posiciones ni métricas de otro usuario/i.test(note)));
+});
+
 test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snapshots", () => {
   const dashboard = normalizeWorkspaceDashboard({
     workspaceId: "alpha-retail",
