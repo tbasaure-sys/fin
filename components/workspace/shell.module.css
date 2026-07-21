@@ -7963,3 +7963,198 @@
     transform: none;
   }
 }
+
+.portfolioOnlyHeader {
+  align-items: flex-end;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin: 0 0 1rem;
+  padding: 0.25rem 0.15rem;
+}
+
+.portfolioOnlyHeader h2 {
+  font-size: clamp(1.35rem, 2vw, 2rem);
+  margin: 0.2rem 0 0;
+}
+
+.portfolioHeaderCompact {
+  align-items: center;
+  padding: 1rem 1.2rem;
+}
+
+.portfolioHeaderCompact h1 {
+  font-size: clamp(1.45rem, 2.6vw, 2.2rem);
+}
+
+.portfolioHeaderCompact .subtitle {
+  font-size: 0.84rem;
+  margin-top: 0.35rem;
+}
+
+.portfolioHeaderCompact .headerActions {
+  justify-content: center;
+}
+
+.portfolioHeaderCompact .buttonRow {
+  align-items: center;
+}
+
+.portfolioHeaderCompact .primaryButton,
+.portfolioHeaderCompact .textButton {
+  min-height: 2.35rem;
+  padding: 0.55rem 0.9rem;
+}
+
+.returnContributionChart {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.9rem;
+  padding: 1rem;
+}
+
+.returnContributionLegend,
+.returnContributionRow {
+  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(3.5rem, 0.5fr) minmax(12rem, 3fr) minmax(7.5rem, 1fr);
+  gap: 0.8rem;
+}
+
+.returnContributionLegend {
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-bottom: 0.75rem;
+}
+
+.returnContributionLegend span:first-child {
+  grid-column: 2;
+  justify-self: start;
+}
+
+.returnContributionLegend strong {
+  display: none;
+}
+
+.returnContributionLegend span:last-child {
+  grid-column: 2;
+  justify-self: end;
+}
+
+.returnContributionRows {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.returnContributionRow > strong {
+  letter-spacing: 0.04em;
+}
+
+.returnContributionTrack {
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 999px;
+  height: 0.7rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.returnContributionTrack i {
+  background: rgba(255, 255, 255, 0.24);
+  bottom: 0;
+  left: 50%;
+  position: absolute;
+  top: 0;
+  width: 1px;
+  z-index: 2;
+}
+
+.returnContributionTrack span {
+  border-radius: 999px;
+  bottom: 0.08rem;
+  position: absolute;
+  top: 0.08rem;
+}
+
+.returnContributionTrack span[data-tone="good"] {
+  background: linear-gradient(90deg, rgba(84, 184, 164, 0.65), rgba(122, 210, 194, 0.95));
+}
+
+.returnContributionTrack span[data-tone="bad"] {
+  background: linear-gradient(90deg, rgba(241, 133, 113, 0.95), rgba(218, 97, 86, 0.65));
+}
+
+.returnContributionRow > div:last-child {
+  display: grid;
+  justify-items: end;
+}
+
+.returnContributionRow small {
+  color: var(--muted);
+}
+
+.returnContributionRow strong[data-tone="good"] {
+  color: var(--good);
+}
+
+.returnContributionRow strong[data-tone="bad"] {
+  color: var(--bad);
+}
+
+.holdingsEditorDisclosure {
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 0.85rem;
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.holdingsEditorDisclosure > summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.holdingsEditorDisclosure[open] > summary {
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.holdingsEditorDisclosure .tradeComposer {
+  margin-top: 0.8rem;
+}
+
+@media (max-width: 720px) {
+  .portfolioHeaderCompact {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .portfolioHeaderCompact .headerActions {
+    align-items: flex-end;
+    width: auto;
+  }
+
+  .portfolioHeaderCompact .buttonRow {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+  }
+
+  .portfolioHeaderCompact .subtitle {
+    max-width: 19rem;
+  }
+
+  .portfolioOnlyHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .returnContributionLegend,
+  .returnContributionRow {
+    grid-template-columns: 3.5rem minmax(7rem, 1fr) 6.5rem;
+    gap: 0.45rem;
+  }
+
+  .returnContributionRow > div:last-child strong {
+    font-size: 0.8rem;
+  }
+}

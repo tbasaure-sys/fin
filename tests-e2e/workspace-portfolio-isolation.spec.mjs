@@ -34,8 +34,14 @@ test.describe("Portfolio aislado por workspace", () => {
     expect(response.ok(), await response.text()).toBeTruthy();
 
     await page.reload();
+    await expect(page.getByTestId("portfolio-only-workspace")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Análisis de holdings" })).toBeVisible();
     await expect(page.getByRole("table", { name: "Posiciones conectadas" })).toContainText("AAPL");
+    await expect(page.getByTestId("portfolio-return-contribution-chart")).toBeVisible();
+    await expect(page.getByText("Retorno total", { exact: true }).locator("..")).toContainText(/[+-]\d+[.,]\d%/);
+    await expect(page.getByText("P&L total", { exact: true }).locator("..")).not.toContainText(/\$0(?:[.,]00)?/);
+    await expect(page.getByText("Respuesta actual", { exact: true })).toHaveCount(0);
+    await expect(page.getByText("Stress Engine", { exact: true })).toHaveCount(0);
     await expect(page.getByTestId("portfolio-effective-bets")).toBeVisible({ timeout: 45_000 });
     await expect(page.getByTestId("portfolio-cluster-list")).toBeVisible();
     await expect(page.getByTestId("portfolio-correlation-matrix")).toBeVisible();

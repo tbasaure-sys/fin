@@ -12,14 +12,26 @@ test("the authenticated workspace exposes the full portfolio structure diagnosti
   assert.match(terminalSource, /void runAnalysis\(\);/);
 });
 
-test("portfolio confirmation is shown before analytics in the holdings workspace", () => {
+test("the holdings workspace is a focused portfolio page without decision noise", () => {
   const holdingsSection = terminalSource.slice(
     terminalSource.indexOf('case "holdings":'),
-    terminalSource.indexOf('case "holdings":') + 5000,
+    terminalSource.indexOf('case "today":'),
   );
-  assert.ok(holdingsSection.indexOf("<HoldingsPanel") < holdingsSection.indexOf("<PortfolioPanel"));
+  assert.ok(holdingsSection.indexOf("<PortfolioPanel") < holdingsSection.indexOf("<HoldingsPanel"));
   assert.match(holdingsSection, /<SimplePhantomDiversificationPanel/);
   assert.match(holdingsSection, /\{hasPortfolioHoldings \? \(/);
+  assert.doesNotMatch(holdingsSection, /<StressEnginePanel/);
+  assert.doesNotMatch(holdingsSection, /<TodayDecisionPanel/);
+  assert.match(terminalSource, /"portfolio-only-workspace"/);
+  assert.match(terminalSource, /isPortfolioWorkspace \? null : \(/);
   assert.match(terminalSource, /data-testid="portfolio-empty-hero"/);
-  assert.match(terminalSource, /hasPortfolioHoldings \? \(\s*<TruthInterfacePanel/);
+});
+
+test("the portfolio always has an honest return visualization", () => {
+  assert.match(terminalSource, /function HoldingReturnContributionChart/);
+  assert.match(terminalSource, /data-testid="portfolio-return-contribution-chart"/);
+  assert.match(terminalSource, /analytics\.hasPerformanceHistory\s*\?\s*\(/);
+  assert.match(terminalSource, /<HoldingReturnContributionChart/);
+  assert.doesNotMatch(terminalSource, /Number\.isFinite\(Number\(analytics\.totalPnlInclRealizedDividendsUsd\)\)/);
+  assert.doesNotMatch(terminalSource, /Number\.isFinite\(Number\(analytics\.totalReturnInclDividends\)\)/);
 });

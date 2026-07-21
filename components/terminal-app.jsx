@@ -573,6 +573,73 @@ function HoldingsReturnBreakdown({ returns }) {
   );
 }
 
+function HoldingReturnContributionChart({ holdings, performanceReport }) {
+  const reportRows = safeList(performanceReport?.current?.contributions)
+    .map((row) => ({
+      ticker: row?.ticker,
+      pnlUsd: firstFiniteNumber(row?.pnlUsd),
+      returnValue: firstFiniteNumber(row?.returnValue),
+    }))
+    .filter((row) => row.ticker && row.pnlUsd !== null);
+  const fallbackRows = safeList(holdings)
+    .map((holding) => {
+      const costBasis = holdingCostBasis(holding);
+      const marketValue = holdingAnalysisValue(holding);
+      if (costBasis === null || marketValue === null || costBasis <= 0) return null;
+      return {
+        ticker: holding.ticker,
+        pnlUsd: marketValue - costBasis,
+        returnValue: (marketValue / costBasis) - 1,
+      };
+    })
+    .filter(Boolean);
+  const rows = (reportRows.length ? reportRows : fallbackRows)
+    .sort((left, right) => Math.abs(right.pnlUsd) - Math.abs(left.pnlUsd))
+    .slice(0, 12);
+  const maxAbsPnl = Math.max(...rows.map((row) => Math.abs(row.pnlUsd)), 1);
+
+  if (!rows.length) {
+    return (
+      <div className={styles.chartEmptyState}>
+        <strong>Falta costo base para calcular retornos</strong>
+        <p>Agrega el precio promedio de compra. Con eso mostraremos P&amp;L y aporte por posición; con fecha de compra podremos reconstruir también la trayectoria histórica.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.returnContributionChart} data-testid="portfolio-return-contribution-chart">
+      <div className={styles.returnContributionLegend}>
+        <span>Pérdida</span>
+        <strong>Aporte al P&amp;L actual</strong>
+        <span>Ganancia</span>
+      </div>
+      <div className={styles.returnContributionRows}>
+        {rows.map((row) => {
+          const width = `${Math.max(2, (Math.abs(row.pnlUsd) / maxAbsPnl) * 48)}%`;
+          const isPositive = row.pnlUsd >= 0;
+          return (
+            <div className={styles.returnContributionRow} key={`return-contribution-${row.ticker}`}>
+              <strong>{row.ticker}</strong>
+              <div className={styles.returnContributionTrack}>
+                <i aria-hidden="true" />
+                <span
+                  data-tone={isPositive ? "good" : "bad"}
+                  style={isPositive ? { left: "50%", width } : { right: "50%", width }}
+                />
+              </div>
+              <div>
+                <strong data-tone={isPositive ? "good" : "bad"}>{formatCurrency(row.pnlUsd)}</strong>
+                <small>{row.returnValue === null ? "-" : formatSignedPct(row.returnValue)}</small>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function holdingWeightValue(holding) {
   const direct = Number(holding?.weightValue);
   if (Number.isFinite(direct)) return direct;
@@ -721,6 +788,7 @@ const PORTFOLIO_DONUT_COLORS = [
 ];
 
 function numericValue(value) {
+  if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -2317,7 +2385,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
   );
 }
 
-function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, onOpenRisk = null, language = "es" }) {
+function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, onOpenRisk = null, showPositionTable = true, language = "es" }) {
   const portfolio = portfolioModule || {};
   const analytics = portfolio.analytics || {};
   const holdings = safeList(portfolio.holdings);
@@ -2343,45 +2411,20 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
       ? holdings.reduce((sum, holding) => sum + (holdingCostBasis(holding) || 0), 0)
       : null;
   const activeCostBasisLabel = activeCostBasisValue !== null ? formatCurrency(activeCostBasisValue) : "-";
-  const totalPnlLabel = Number.isFinite(Number(analytics.totalPnlInclRealizedDividendsUsd))
-    ? formatCurrency(analytics.totalPnlInclRealizedDividendsUsd)
-    : (returnBreakdown?.totalPnlLabel || "-");
-  const hasUnrealizedPnlData = Number.isFinite(Number(analytics.unrealizedPnlUsd))
-    || holdings.some((holding) => numericValue(holding?.unrealizedPnlUsd) !== null);
-  const unrealizedPnlValue = Number.isFinite(Number(analytics.unrealizedPnlUsd))
-    ? Number(analytics.unrealizedPnlUsd)
-    : holdings.reduce((sum, holding) => sum + (numericValue(holding?.unrealizedPnlUsd) || 0), 0);
-  const unrealizedPnlLabel = hasUnrealizedPnlData
-    ? formatCurrency(unrealizedPnlValue)
-    : "-";
-  const realizedDividendValue = firstFiniteNumber(analytics.realizedPnlUsd) !== null || firstFiniteNumber(analytics.dividendsUsd) !== null
-    ? (firstFiniteNumber(analytics.realizedPnlUsd) || 0) + (firstFiniteNumber(analytics.dividendsUsd) || 0)
-    : null;
-  const realizedDividendLabel = realizedDividendValue !== null ? formatCurrency(realizedDividendValue) : "-";
-  const usdClpLabel = firstFiniteNumber(analytics.usdClp) !== null ? formatFxRate(analytics.usdClp) : "-";
-  const currentPerformanceValue = Number.isFinite(Number(analytics.totalReturnInclDividends))
-    ? Number(analytics.totalReturnInclDividends)
-    : Number.isFinite(Number(analytics.unrealizedReturn))
-      ? Number(analytics.unrealizedReturn)
-      : null;
+  const totalPnlValue = firstFiniteNumber(analytics.totalPnlInclRealizedDividendsUsd, returnBreakdown?.totalPnlUsd);
+  const totalPnlLabel = totalPnlValue !== null ? formatCurrency(totalPnlValue) : "-";
+  const currentPerformanceValue = firstFiniteNumber(
+    analytics.totalReturnInclDividends,
+    analytics.unrealizedReturn,
+    activeCostBasisValue ? totalPnlValue / activeCostBasisValue : null,
+  );
   const currentPerformanceLabel = currentPerformanceValue !== null
     ? formatSignedPct(currentPerformanceValue)
     : null;
   const topHolding = [...holdings].sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left))[0] || null;
   const reviewQueue = buildReviewQueue(holdings);
   const highRiskCount = reviewQueue.filter((holding) => Number(holding.riskScore) >= 4).length;
-  const dayPnl = holdings.reduce((sum, holding) => {
-    const value = Number(holding?.dayPnlUsd);
-    return sum + (Number.isFinite(value) ? value : 0);
-  }, 0);
-  const hasDayPnl = holdings.some((holding) => {
-    const dayPnlValue = Number(holding?.dayPnlUsd);
-    const dayReturnValue = Number(holding?.dayReturn);
-    return (Number.isFinite(dayPnlValue) && Math.abs(dayPnlValue) > 0.005)
-      || (Number.isFinite(dayReturnValue) && Math.abs(dayReturnValue) > 0.00005);
-  });
   const performanceSeriesWarning = analytics.performanceSeriesWarning;
-  const executiveRead = buildPortfolioExecutiveRead({ analytics, holdings, hasDayPnl, dayPnl, topHolding, reviewQueue });
 
   return (
     <section className={styles.panel}>
@@ -2413,18 +2456,6 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
         <MetricTile detail="Suma de posiciones activas." label="Valor total" value={totalValueLabel} />
         <MetricTile detail="Capital invertido en posiciones activas." label="Costo base" value={activeCostBasisLabel} />
         <MetricTile
-          detail="Resultado abierto de las posiciones actuales."
-          label="P&L no realizado"
-          tone={hasUnrealizedPnlData ? signedMoneyTone(unrealizedPnlValue) : "neutral"}
-          value={unrealizedPnlLabel}
-        />
-        <MetricTile
-          detail="Ganancias cerradas más dividendos cargados."
-          label="Realizado + dividendos"
-          tone={signedMoneyTone(realizedDividendValue)}
-          value={realizedDividendLabel}
-        />
-        <MetricTile
           detail={currentPerformanceLabel ? `Sobre base ${activeCostBasisLabel}.` : "Falta costo base para calcular performance."}
           label="P&L total"
           tone={signedMoneyTone(currentPerformanceValue)}
@@ -2436,26 +2467,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           tone={signedMoneyTone(currentPerformanceValue)}
           value={currentPerformanceLabel || "-"}
         />
-        <MetricTile
-          detail={firstFiniteNumber(analytics.totalValueClp) !== null ? `Valor CLP ${formatFxRate(analytics.totalValueClp)}.` : "Conversión local si está cargada."}
-          label="USD/CLP"
-          value={usdClpLabel}
-        />
       </div>
-
-      {executiveRead.length ? (
-        <section className={styles.portfolioExecutiveRead}>
-          <div>
-            <p className={styles.kicker}>Lectura ejecutiva</p>
-            <h3>Qué significan estos números</h3>
-          </div>
-          <ul>
-            {executiveRead.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       <div className={styles.portfolioDeskGrid}>
         <section className={styles.chartPanel}>
@@ -2464,9 +2476,13 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
               <p className={styles.kicker}>Historial</p>
               <h3>{analytics.hasPerformanceHistory ? `${performanceMethodLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "Performance actual"}</h3>
             </div>
-            <RangeTabs language={language} onChange={onRangeChange} value={range} />
+            {analytics.hasPerformanceHistory ? <RangeTabs language={language} onChange={onRangeChange} value={range} /> : null}
           </div>
-          <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
+          {analytics.hasPerformanceHistory ? (
+            <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
+          ) : (
+            <HoldingReturnContributionChart holdings={holdings} performanceReport={performanceReport} />
+          )}
           <p className={styles.supportText}>
             {analytics.hasPerformanceHistory
               ? performanceIsReconstructed
@@ -2571,7 +2587,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
         <PortfolioDonutPanel holdings={holdings} topHolding={topHolding} />
       </div>
 
-      <PortfolioPositionTable holdings={holdings} />
+      {showPositionTable ? <PortfolioPositionTable holdings={holdings} /> : null}
 
       {compact ? null : (
         <>
@@ -3635,6 +3651,8 @@ function HoldingsPanel({
         <p className={styles.emptyCopy}>Agrega una nota de operación o sincroniza tus posiciones privadas para armar la lista.</p>
       )}
 
+      <details className={styles.holdingsEditorDisclosure} open={!holdings.length}>
+        <summary>Editar holdings o registrar una operación</summary>
       <form
         className={styles.tradeComposer}
         onSubmit={(event) => {
@@ -3777,6 +3795,7 @@ function HoldingsPanel({
         ) : null}
         {tradeInstructionError ? <p className={styles.errorText}>{tradeInstructionError}</p> : null}
       </form>
+      </details>
     </section>
   );
 }
@@ -3806,20 +3825,11 @@ function CompactActionPanel({ title, kicker, emptyLabel, items, renderItem }) {
 
 function WorkspaceSidebar({
   activeSection,
-  advancedItems,
   copy,
-  holdingsCount,
   navItems,
   onSelectSection,
-  stagedCount,
-  showChat,
-  onOpenChat,
-  onOpenGlossary,
-  onOpenGuide,
   workspaceName,
 }) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
   return (
     <section className={styles.workspaceSidebar} aria-label={copy.sidebarAria}>
       <div className={styles.workspaceSidebarTop}>
@@ -3827,7 +3837,6 @@ function WorkspaceSidebar({
           <span className={styles.workspaceBrandMark} aria-hidden="true">B</span>
           <span>{workspaceName}</span>
         </Link>
-        <p className={styles.supportText}>{copy.sidebarSupport}</p>
       </div>
 
       <nav className={styles.workspaceSidebarNav} aria-label={copy.sidebarAria}>
@@ -3843,72 +3852,13 @@ function WorkspaceSidebar({
             <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
             <div>
               <span>{item.label}</span>
-              <small>{item.detail}</small>
             </div>
-            {item.id === "decisions" && stagedCount > 0 ? (
-              <em data-tone="warn">{stagedCount}</em>
-            ) : (
-              <em>{item.priority}</em>
-            )}
-          </button>
-        ))}
-
-        {showAdvanced && advancedItems.map((item) => (
-          <button
-            className={styles.workspaceSidebarLink}
-            data-active={activeSection === item.id}
-            data-priority="secondary"
-            key={item.id}
-            onClick={() => onSelectSection(item.id)}
-            type="button"
-          >
-            <span className={styles.workspaceSidebarIndex}>-</span>
-            <div>
-              <span>{item.label}</span>
-              <small>{item.detail}</small>
-            </div>
-            <em>{item.priority}</em>
           </button>
         ))}
       </nav>
-
-      <div className={styles.workspaceSidebarMeta}>
-        <article className={styles.workspaceSidebarStat}>
-          <strong>{holdingsCount || "-"}</strong>
-          <span>{copy.holdings}</span>
-        </article>
-        <article className={styles.workspaceSidebarStat}>
-          <strong>{stagedCount || "-"}</strong>
-          <span>{copy.staged}</span>
-        </article>
-      </div>
-
       <div className={styles.workspaceSidebarActions}>
-        <button className={styles.chatTrigger} data-active={showChat} onClick={onOpenChat} type="button">
-          {copy.ask}
-        </button>
-        <div className={styles.workspaceSidebarUtility}>
-          <button className={styles.glossaryTrigger} onClick={onOpenGlossary} type="button">
-            {copy.glossary}
-          </button>
-          <button className={styles.welcomeTrigger} onClick={onOpenGuide} type="button">
-            {copy.guide}
-          </button>
-          {advancedItems.length ? (
-            <button
-              className={styles.glossaryTrigger}
-              data-active={showAdvanced}
-              onClick={() => setShowAdvanced((v) => !v)}
-              type="button"
-            >
-              {showAdvanced ? copy.hideAdvanced : copy.advanced}
-            </button>
-          ) : null}
-        </div>
         <div className={styles.workspaceSidebarLinks}>
-          <Link className={styles.secondaryLink} href="/channels">{copy.channels}</Link>
-          <Link className={styles.secondaryLink} href="/terms">{copy.terms}</Link>
-          <Link className={styles.secondaryLink} href="/">{copy.home}</Link>
+          <Link className={styles.secondaryLink} href="/channels">Importar cartera</Link>
         </div>
       </div>
     </section>
@@ -5570,6 +5520,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   );
   const holdingsCount = safeList(portfolioModule?.holdings).length;
   const activeSectionConfig = [...workspaceNav, ...workspaceNavAdvanced].find((item) => item.id === activeWorkspaceSection) || workspaceNav[0];
+  const isPortfolioWorkspace = activeWorkspaceSection === "holdings";
   const currentBriefPanel = (
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
@@ -5712,6 +5663,17 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "holdings":
       activeWorkspacePanels = (
         <>
+          {hasPortfolioHoldings ? (
+            <PortfolioPanel
+              compact
+              language={language}
+              onRangeChange={setPortfolioRange}
+              portfolioModule={portfolioModule}
+              range={portfolioRange}
+              showPositionTable={false}
+              xray={dashboard?.xray}
+            />
+          ) : null}
           <HoldingsPanel
             holdingDraft={holdingDraft}
             onHoldingDraftChange={updateHoldingDraft}
@@ -5733,36 +5695,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             tradeInstructionError={tradeInstructionError}
             tradeInstruction={tradeInstruction}
           />
-          {hasPortfolioHoldings ? (
-            <>
-              <PortfolioPanel
-                compact
-                onRangeChange={setPortfolioRange}
-                language={language}
-                onOpenRisk={() => selectWorkspaceSection("holdings")}
-                portfolioModule={portfolioModule}
-                range={portfolioRange}
-                showAuroraAction
-                xray={dashboard?.xray}
-              />
-              <StressEnginePanel portfolioValueUsd={portfolioModule?.analytics?.totalValueUsd} workspaceId={workspaceId} />
-            </>
-          ) : null}
           <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
-          {hasPortfolioHoldings ? (
-            <>
-              <TodayDecisionPanel
-                blockedAction={blockedAction}
-                onDefer={(action) => recordDecision(action, "deferred")}
-                onReject={(action) => recordDecision(action, "rejected")}
-                onStage={stageAction}
-                pendingKey={pendingKey}
-                primaryAction={primaryAction}
-                stateSummary={stateSummary}
-              />
-              {escrowPanel}
-            </>
-          ) : null}
         </>
       );
       break;
@@ -6151,20 +6084,22 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </aside>
 
         <div className={styles.workspaceContent}>
-          <header className={styles.header}>
+          <header className={`${styles.header} ${isPortfolioWorkspace ? styles.portfolioHeaderCompact : ""}`}>
           <div>
-              <p className={styles.eyebrow}>{shellCopy.privateSpace}</p>
+              <p className={styles.eyebrow}>{isPortfolioWorkspace ? "Espacio privado" : shellCopy.privateSpace}</p>
               <h1>{workspaceName}</h1>
               <p className={styles.subtitle}>
-                {shellCopy.syncedStatus({
-                  count: holdingsCount,
-                  date: dashboard?.workspace_summary?.last_updated_label || shellCopy.noUpdate,
-                })}
+                {isPortfolioWorkspace
+                  ? `${holdingsCount} posiciones · ${dashboard?.workspace_summary?.last_updated_label || "sin hora de actualización"}`
+                  : shellCopy.syncedStatus({
+                      count: holdingsCount,
+                      date: dashboard?.workspace_summary?.last_updated_label || shellCopy.noUpdate,
+                    })}
               </p>
             </div>
 
             <div className={styles.headerActions}>
-              <div className={styles.headerMeta}>
+              {isPortfolioWorkspace ? null : <div className={styles.headerMeta}>
                 <ToneBadge tone="neutral">{initialSession?.user?.name || shellCopy.userFallback}</ToneBadge>
                 <ToneBadge tone={statusTone(dashboard?.workspace_summary?.backend_status)}>
                   {capitalize(cleanWorkspaceCopy(dashboard?.workspace_summary?.backend_status || shellCopy.liveFallback))}
@@ -6173,14 +6108,14 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                   {connection.label}
                 </ToneBadge>
                 <ToneBadge tone="neutral">{dashboard?.workspace_summary?.last_updated_label || shellCopy.noUpdate}</ToneBadge>
-              </div>
+              </div>}
 
               <div className={styles.buttonRow}>
                 <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
-                  {pendingKey === "refresh" ? shellCopy.refreshing : shellCopy.refresh}
+                  {pendingKey === "refresh" ? "Actualizando..." : isPortfolioWorkspace ? "Actualizar" : shellCopy.refresh}
                 </button>
                 <form action="/api/auth/logout" method="post">
-                  <button className={styles.textButton} type="submit">{shellCopy.logout}</button>
+                  <button className={styles.textButton} type="submit">{isPortfolioWorkspace ? "Salir" : shellCopy.logout}</button>
                 </form>
               </div>
             </div>
@@ -6189,7 +6124,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           {banner ? <div className={styles.banner}>{banner}</div> : null}
           {error ? <div className={styles.banner} data-tone="error">{error}</div> : null}
 
-          {showWelcomeGuide && (
+          {!isPortfolioWorkspace && showWelcomeGuide && (
             <div className={styles.welcomeGuide}>
               <div className={styles.welcomeGuideInner}>
                 <div className={styles.welcomeGuideHead}>
@@ -6250,7 +6185,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
           )}
 
-          {showGlossary && (
+          {!isPortfolioWorkspace && showGlossary && (
             <div
               className={styles.glossaryOverlay}
               role="dialog"
@@ -6296,6 +6231,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
           )}
 
+          {isPortfolioWorkspace ? null : (
+          <div>
           {hasPortfolioHoldings ? (
             <TruthInterfacePanel
               blockedAction={blockedAction}
@@ -6358,9 +6295,35 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </section> : null}
 
           <ComplianceNotice copy={shellCopy} />
+          </div>
+          )}
 
-          <section className={styles.mainColumn}>
-          <div className={styles.workspaceStageHeader}>
+          <section className={styles.mainColumn} data-testid={isPortfolioWorkspace ? "portfolio-only-workspace" : undefined}>
+          {isPortfolioWorkspace ? (
+            <>
+            <div className={styles.portfolioOnlyHeader}>
+              <div>
+                <p className={styles.kicker}>Cartera</p>
+                <h2>Valor, retorno y diversificación real</h2>
+              </div>
+              <Link className={styles.secondaryLink} href="/channels">Importar o reemplazar holdings</Link>
+            </div>
+            {!hasPortfolioHoldings ? (
+              <section className={styles.truthSurface} data-testid="portfolio-empty-hero">
+                <div className={styles.answerWorkspace}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.kicker}>Tu cartera, no una cartera de muestra</p>
+                      <h2>Confirma tus posiciones para comenzar</h2>
+                      <p className={styles.supportText}>Importa un CSV o agrega holdings. El análisis se construye únicamente con la cartera de este usuario.</p>
+                    </div>
+                    <Link className={styles.primaryButton} href="/channels">Importar cartera completa</Link>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+            </>
+          ) : <div className={styles.workspaceStageHeader}>
             <div>
               <p className={styles.kicker}>{activeSectionConfig.label}</p>
               <h2>{activeSectionConfig.title}</h2>
@@ -6372,7 +6335,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 {connection.label}
               </ToneBadge>
             </div>
-          </div>
+          </div>}
 
           <div className={styles.sectionAnchor} id={activeSectionConfig.id}>
             {activeWorkspacePanels}
