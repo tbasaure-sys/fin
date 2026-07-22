@@ -1,6 +1,6 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-07-21T11:46:41.008165+00:00",
+  "generated_at": "2026-07-22T11:48:52.496036+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
@@ -12,7 +12,7 @@
   "public_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
-    "newest_cached_at": "2026-07-21T11:46:41.005770+00:00",
+    "newest_cached_at": "2026-07-22T11:48:52.490773+00:00",
     "oldest_cached_at": "2026-06-18T16:47:34.412498+00:00"
   },
   "global_disequilibrium_index": 37,
@@ -20,13 +20,13 @@
   "plain_summary": {
     "headline": "Top imbalance: grid transformers (shortage probable).",
     "pressure": "Pressure to inspect first: grid transformers at score 72.",
-    "break": "Weakest demand read: property at score -36.",
+    "break": "Weakest demand read: property at score -34.",
     "warning": "No source errors."
   },
   "source_summary": {
     "headline": "9/9 markets use live public data.",
-    "series": "62 series used, 0 manual, 0 warming, 0 watch errors.",
-    "freshness": "Newest 2026-07-16; oldest used source age 142 days. FRED cache 44; public cache 24.",
+    "series": "57 series used, 0 manual, 0 warming, 5 watch errors.",
+    "freshness": "Newest 2026-07-16; oldest used source age 143 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -39,20 +39,20 @@
         "latest_date": "2026-06-15"
       },
       {
-        "name": "China NBS",
-        "kind": "official release",
-        "url": "http://www.stats.gov.cn/english/PressRelease/",
-        "used_series": 11,
-        "warming_series": 0,
-        "latest_date": "2026-07-16"
-      },
-      {
         "name": "Swiss Energy Dashboard",
         "kind": "public energy data",
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
         "latest_date": "2026-06-16"
+      },
+      {
+        "name": "China NBS",
+        "kind": "official release",
+        "url": "http://www.stats.gov.cn/english/PressRelease/",
+        "used_series": 6,
+        "warming_series": 0,
+        "latest_date": "2026-07-16"
       },
       {
         "name": "Westmetall",
@@ -98,7 +98,7 @@
       },
       {
         "market": "property",
-        "score": -36,
+        "score": -34,
         "missing_layer": "City-level inventory and developer balance-sheet detail",
         "next_connector": "City inventory releases / developer financing mix / listed developer disclosures"
       }
@@ -108,17 +108,23 @@
   "source_health": {
     "rows_with_sources": 9,
     "market_rows": 9,
-    "used_series": 62,
-    "ok_series": 62,
+    "used_series": 57,
+    "ok_series": 57,
     "error_series": 0,
     "watched_series": 67,
-    "watched_ok_series": 67,
+    "watched_ok_series": 62,
     "watched_warming_series": 0,
-    "watched_error_series": 0,
-    "unused_error_series": [],
+    "watched_error_series": 5,
+    "unused_error_series": [
+      "NBS_CHINA_PROPERTY_SOLD_YOY",
+      "NBS_CHINA_PROPERTY_STARTS_YOY",
+      "NBS_CHINA_PROPERTY_COMPLETED_YOY",
+      "NBS_CHINA_PROPERTY_FUNDS_YOY",
+      "NBS_CHINA_NEW_HOME_PRICE_YOY_INDEX"
+    ],
     "manual_series": 0,
     "newest_date": "2026-07-16",
-    "oldest_age_days": 142
+    "oldest_age_days": 143
   },
   "history_delta": {
     "previous_gdi": 37,
@@ -126,7 +132,16 @@
     "delta": 0,
     "direction": "flat"
   },
-  "market_movers": [],
+  "market_movers": [
+    {
+      "market_id": "china_property",
+      "item": "property",
+      "score": -34,
+      "delta": 2,
+      "direction": "up",
+      "reading": "Loosening"
+    }
+  ],
   "markets": [
     {
       "market_id": "global_power_transformers",
@@ -389,70 +404,6 @@
       "manual_impacts": []
     },
     {
-      "market_id": "china_property",
-      "market": "China -> construction -> final demand -> property",
-      "region": "China",
-      "sector": "construction",
-      "link": "final demand",
-      "item": "property",
-      "score": -36,
-      "reading": "Loosening",
-      "state": "loosening",
-      "conflict": "mixed",
-      "data_quality": 95,
-      "data_note": "1 lagged source(s); check before acting.",
-      "use_with_caution": false,
-      "why": "demand is slowing; partly offset by delivery friction is rising.",
-      "top_positive_driver": "delivery_stress",
-      "top_negative_driver": "demand_slowdown",
-      "driver_contributions": {
-        "price_acceleration": 13,
-        "inventory_drawdown": 1,
-        "delivery_stress": 14,
-        "capacity_tightness": 1,
-        "trade_stress": 8,
-        "demand_slowdown": -39,
-        "inventory_buildup": -17,
-        "margin_compression": -17
-      },
-      "market_delta": {
-        "previous_score": -36,
-        "current_score": -36,
-        "delta": 0,
-        "direction": "flat",
-        "previous_reading": "Loosening"
-      },
-      "research_angle": "Iron ore, steel, banks, local government finance.",
-      "source_series": [
-        "NBS_CHINA_NEW_HOME_PRICE_YOY_INDEX",
-        "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX",
-        "PIORECRUSDM",
-        "NBS_CHINA_PROPERTY_SOLD_YOY",
-        "NBS_CHINA_PROPERTY_STARTS_YOY",
-        "NBS_CHINA_PROPERTY_FOR_SALE_YOY",
-        "NBS_CHINA_PROPERTY_COMPLETED_YOY",
-        "NBS_CHINA_PROPERTY_FUNDS_YOY"
-      ],
-      "source_coverage": {
-        "mode": "live_proxy",
-        "connected_series": 8,
-        "warming_series": 0,
-        "connected_layers": [
-          "capacity",
-          "demand",
-          "prices",
-          "quantities"
-        ],
-        "warming_layers": [],
-        "proxy_note": "Official NBS property prices, sales, starts, completions, funding and inventory plus iron-ore proxy",
-        "missing_layer": "City-level inventory and developer balance-sheet detail",
-        "next_connector": "City inventory releases / developer financing mix / listed developer disclosures",
-        "connector_priority": "medium",
-        "manual_gap_filled": false
-      },
-      "manual_impacts": []
-    },
-    {
       "market_id": "us_retail_goods",
       "market": "US -> consumer -> retail -> durable goods",
       "region": "US",
@@ -509,6 +460,63 @@
         "missing_layer": "",
         "next_connector": "",
         "connector_priority": "",
+        "manual_gap_filled": false
+      },
+      "manual_impacts": []
+    },
+    {
+      "market_id": "china_property",
+      "market": "China -> construction -> final demand -> property",
+      "region": "China",
+      "sector": "construction",
+      "link": "final demand",
+      "item": "property",
+      "score": -34,
+      "reading": "Loosening",
+      "state": "loosening",
+      "conflict": "mixed",
+      "data_quality": 89,
+      "data_note": "1 lagged source(s); check before acting.",
+      "use_with_caution": false,
+      "why": "demand is slowing; partly offset by prices are moving faster.",
+      "top_positive_driver": "price_acceleration",
+      "top_negative_driver": "demand_slowdown",
+      "driver_contributions": {
+        "price_acceleration": 13,
+        "inventory_drawdown": 1,
+        "delivery_stress": 11,
+        "capacity_tightness": 3,
+        "trade_stress": 8,
+        "demand_slowdown": -38,
+        "inventory_buildup": -15,
+        "margin_compression": -17
+      },
+      "market_delta": {
+        "previous_score": -36,
+        "current_score": -34,
+        "delta": 2,
+        "direction": "up",
+        "previous_reading": "Loosening"
+      },
+      "research_angle": "Iron ore, steel, banks, local government finance.",
+      "source_series": [
+        "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX",
+        "PIORECRUSDM",
+        "NBS_CHINA_PROPERTY_FOR_SALE_YOY"
+      ],
+      "source_coverage": {
+        "mode": "live_proxy",
+        "connected_series": 3,
+        "warming_series": 0,
+        "connected_layers": [
+          "prices",
+          "quantities"
+        ],
+        "warming_layers": [],
+        "proxy_note": "Official NBS property prices, sales, starts, completions, funding and inventory plus iron-ore proxy",
+        "missing_layer": "City-level inventory and developer balance-sheet detail",
+        "next_connector": "City inventory releases / developer financing mix / listed developer disclosures",
+        "connector_priority": "medium",
         "manual_gap_filled": false
       },
       "manual_impacts": []
@@ -708,7 +716,7 @@
       "kind": "risk_check",
       "market_id": "china_property",
       "title": "Check demand risk in property",
-      "reason": "demand is slowing; partly offset by delivery friction is rising.",
+      "reason": "demand is slowing; partly offset by prices are moving faster.",
       "priority": "medium"
     },
     {
