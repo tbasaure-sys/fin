@@ -137,6 +137,7 @@ const WORKSPACE_SHELL_COPY = {
     ask: "Ask workspace",
     glossary: "Glossary",
     guide: "Guide",
+    channels: "Portfolio intelligence",
     hideAdvanced: "Hide advanced",
     advanced: "Advanced",
     terms: "Terms",
@@ -173,6 +174,7 @@ const WORKSPACE_SHELL_COPY = {
     ask: "Preguntar al espacio",
     glossary: "Glosario",
     guide: "Guía",
+    channels: "Estructura y canales",
     hideAdvanced: "Ocultar avanzado",
     advanced: "Avanzado",
     terms: "Términos",
@@ -571,6 +573,73 @@ function HoldingsReturnBreakdown({ returns }) {
   );
 }
 
+function HoldingReturnContributionChart({ holdings, performanceReport }) {
+  const reportRows = safeList(performanceReport?.current?.contributions)
+    .map((row) => ({
+      ticker: row?.ticker,
+      pnlUsd: firstFiniteNumber(row?.pnlUsd),
+      returnValue: firstFiniteNumber(row?.returnValue),
+    }))
+    .filter((row) => row.ticker && row.pnlUsd !== null);
+  const fallbackRows = safeList(holdings)
+    .map((holding) => {
+      const costBasis = holdingCostBasis(holding);
+      const marketValue = holdingAnalysisValue(holding);
+      if (costBasis === null || marketValue === null || costBasis <= 0) return null;
+      return {
+        ticker: holding.ticker,
+        pnlUsd: marketValue - costBasis,
+        returnValue: (marketValue / costBasis) - 1,
+      };
+    })
+    .filter(Boolean);
+  const rows = (reportRows.length ? reportRows : fallbackRows)
+    .sort((left, right) => Math.abs(right.pnlUsd) - Math.abs(left.pnlUsd))
+    .slice(0, 12);
+  const maxAbsPnl = Math.max(...rows.map((row) => Math.abs(row.pnlUsd)), 1);
+
+  if (!rows.length) {
+    return (
+      <div className={styles.chartEmptyState}>
+        <strong>Falta costo base para calcular retornos</strong>
+        <p>Agrega el precio promedio de compra. Con eso mostraremos P&amp;L y aporte por posición; con fecha de compra podremos reconstruir también la trayectoria histórica.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.returnContributionChart} data-testid="portfolio-return-contribution-chart">
+      <div className={styles.returnContributionLegend}>
+        <span>Pérdida</span>
+        <strong>Aporte al P&amp;L actual</strong>
+        <span>Ganancia</span>
+      </div>
+      <div className={styles.returnContributionRows}>
+        {rows.map((row) => {
+          const width = `${Math.max(2, (Math.abs(row.pnlUsd) / maxAbsPnl) * 48)}%`;
+          const isPositive = row.pnlUsd >= 0;
+          return (
+            <div className={styles.returnContributionRow} key={`return-contribution-${row.ticker}`}>
+              <strong>{row.ticker}</strong>
+              <div className={styles.returnContributionTrack}>
+                <i aria-hidden="true" />
+                <span
+                  data-tone={isPositive ? "good" : "bad"}
+                  style={isPositive ? { left: "50%", width } : { right: "50%", width }}
+                />
+              </div>
+              <div>
+                <strong data-tone={isPositive ? "good" : "bad"}>{formatCurrency(row.pnlUsd)}</strong>
+                <small>{row.returnValue === null ? "-" : formatSignedPct(row.returnValue)}</small>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function holdingWeightValue(holding) {
   const direct = Number(holding?.weightValue);
   if (Number.isFinite(direct)) return direct;
@@ -719,6 +788,7 @@ const PORTFOLIO_DONUT_COLORS = [
 ];
 
 function numericValue(value) {
+  if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 }
@@ -1216,7 +1286,7 @@ function formatOptionalRatio(value, digits = 0) {
   return Number.isFinite(Number(value)) ? formatPct(Number(value), digits) : "-";
 }
 
-const PHANTOM_MAX_HOLDINGS = 24;
+const PHANTOM_MAX_HOLDINGS = 60;
 const PHANTOM_CASHLIKE_TICKERS = new Set(["SGOV", "SHY", "BIL", "SHV", "VGSH", "JPST", "DWBDS"]);
 
 function isExcludedPhantomHolding(holding) {
@@ -1826,28 +1896,10 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
   const [analysis, setAnalysis] = useState(null);
   const [analysisPending, setAnalysisPending] = useState(false);
   const [analysisError, setAnalysisError] = useState("");
+  const lastAutoAnalysisKey = useRef("");
 
-  useEffect(() => {
-    setAnalysis(null);
-    setAnalysisError("");
-  }, [baseKey]);
-
-  if (!workspaceId || rows.length < 3) return null;
-
-  const current = analysis?.current || null;
-  const diagnostics = analysis?.diagnostics || {};
-  const guidance = phantomSimpleGuidance(current);
-  const testedWidth = current ? Math.max(3, Math.min(100, Math.round((Number(current.tested_ratio) || 0) * 100))) : 0;
-  const phantomWidth = current ? Math.max(0, 100 - testedWidth) : 0;
-  const contributors = safeList(analysis?.contributors).slice(0, 3);
-  const sources = safeList(diagnostics.source_labels);
-  const supportedCount = safeList(diagnostics.supported_tickers).length;
-  const coverageLabel = supportedCount
-    ? `${supportedCount}/${rows.length} posiciones con historial usable`
-    : `${rows.length} posiciones listas`;
-
-  async function runAnalysis() {
-    if (!workspaceId || analysisPending) return;
+  const runAnalysis = useCallback(async () => {
+    if (!workspaceId || rows.length < 3) return;
     setAnalysisPending(true);
     setAnalysisError("");
     try {
@@ -1869,110 +1921,144 @@ function SimplePhantomDiversificationPanel({ portfolioModule, workspaceId }) {
       setAnalysis(payload);
     } catch (requestError) {
       setAnalysis(null);
-      setAnalysisError(String(requestError?.message || requestError || "Analysis failed."));
+      setAnalysisError(String(requestError?.message || requestError || "No pudimos calcular la estructura."));
     } finally {
       setAnalysisPending(false);
     }
+  }, [rows, workspaceId]);
+
+  useEffect(() => {
+    const autoAnalysisKey = `${workspaceId || "none"}:${baseKey}`;
+    if (!workspaceId || rows.length < 3) {
+      lastAutoAnalysisKey.current = "";
+      setAnalysis(null);
+      setAnalysisError("");
+      return;
+    }
+    if (lastAutoAnalysisKey.current === autoAnalysisKey) return;
+    lastAutoAnalysisKey.current = autoAnalysisKey;
+    setAnalysis(null);
+    setAnalysisError("");
+    void runAnalysis();
+  }, [baseKey, rows.length, runAnalysis, workspaceId]);
+
+  if (!workspaceId) return null;
+
+  if (rows.length < 3) {
+    return (
+      <section className={styles.panel} data-testid="portfolio-structure-empty">
+        <div className={styles.panelHeader}>
+          <div>
+            <p className={styles.kicker}>Estructura real de tu cartera</p>
+            <h2>{portfolioModule?.holdings?.length ? "Se necesitan al menos tres posiciones" : "Confirma tu cartera para comenzar"}</h2>
+            <p className={styles.supportText}>
+              {portfolioModule?.holdings?.length
+                ? "Con menos de tres posiciones no existe una matriz de correlación útil. Tus posiciones siguen siendo visibles arriba."
+                : "Este espacio no mostrará posiciones, ratios ni diagnósticos de otro usuario. Importa o confirma tus holdings para calcular todo desde tu propia cartera."}
+            </p>
+          </div>
+          <Link className={styles.primaryButton} href="/channels">Importar o confirmar cartera</Link>
+        </div>
+      </section>
+    );
   }
 
+  const current = analysis?.current || null;
+  const diagnostics = analysis?.diagnostics || {};
+  const guidance = phantomSimpleGuidance(current);
+  const sources = safeList(diagnostics.source_labels);
+  const supportedCount = safeList(diagnostics.supported_tickers).length;
+  const coverageLabel = supportedCount
+    ? `${supportedCount}/${rows.length} posiciones con historial usable`
+    : `${rows.length} posiciones listas`;
+  const clusters = safeList(analysis?.clusters);
+  const mainCluster = clusters[0] || null;
+  const holdingsCount = Number(current?.holdings_count || rows.length);
+  const effectiveBets = Number(current?.raw_breadth || 0);
+  const overlapShare = holdingsCount > 0 ? Math.max(0, 1 - (effectiveBets / holdingsCount)) : 0;
+  const cashWeight = safeList(portfolioModule?.holdings).reduce((total, holding) => (
+    isExcludedPhantomHolding(holding) ? total + (Number(parseDisplayPercent(holding?.weight)) || 0) : total
+  ), 0);
+  const matrixTickers = safeList(analysis?.correlation_matrix?.tickers);
+  const matrixValues = safeList(analysis?.correlation_matrix?.values);
+
   return (
-    <section className={styles.panel}>
+    <section className={styles.panel} data-testid="portfolio-structure-diagnostic">
       <div className={styles.panelHeader}>
         <div>
-          <p className={styles.kicker}>Solapamiento estructural</p>
-          <h2>Cuánta diversificación sobrevive cuando llega el estrés</h2>
+          <p className={styles.kicker}>Estructura real de tu cartera</p>
+          <h2>{analysis ? `${holdingsCount} posiciones se comportan como ${effectiveBets.toFixed(1)} apuestas efectivas` : "Calculando apuestas efectivas y correlaciones"}</h2>
           <p className={styles.supportText}>
-            Mide si las posiciones siguen siendo apuestas distintas cuando los mercados se ponen nerviosos.
-            Si varias se mueven juntas, la diversificación visible puede exagerar la protección real.
+            El diagnóstico usa únicamente las posiciones confirmadas de este workspace. Agrupa nombres que comparten movimiento y muestra la matriz completa detrás del resultado.
           </p>
         </div>
         <button className={styles.primaryButton} disabled={analysisPending} onClick={runAnalysis} type="button">
-          {analysisPending ? "Revisando..." : analysis ? "Actualizar" : "Revisar estructura"}
+          {analysisPending ? "Calculando..." : "Recalcular"}
         </button>
       </div>
 
-      <div className={styles.phantomSimpleGrid}>
-        <div className={styles.phantomSimpleMain}>
-          <div className={styles.phantomSimpleVerdict}>
-            <ToneBadge tone={analysis ? phantomTone(current?.classification) : "neutral"}>
-              {current ? phantomClassificationLabel(current?.classification, current?.classification_label) : "Listo"}
-            </ToneBadge>
-            <strong>{analysis ? guidance.title : coverageLabel}</strong>
-            <p>{analysis ? guidance.body : "Las posiciones tipo caja se excluyen. El servidor normaliza los pesos antes de calcular amplitud."}</p>
+      {analysisError ? <p className={styles.errorText}>{analysisError}</p> : null}
+      {analysisPending && !analysis ? <div className={styles.phantomSimpleEmpty}><strong>{coverageLabel}</strong><p>Descargando historiales y calculando la matriz de este portfolio.</p></div> : null}
+
+      {analysis ? (
+        <>
+          <div className={styles.portfolioIntelligenceMetrics}>
+            <MetricTile detail="Nombres con historial suficiente, sin caja." label="Posiciones analizadas" value={holdingsCount} />
+            <div data-testid="portfolio-effective-bets"><MetricTile detail="Apuestas independientes después de descontar correlación." label="Apuestas efectivas" tone={guidance.tone} value={effectiveBets.toFixed(1)} /></div>
+            <MetricTile detail="Parte del número aparente de posiciones que desaparece por correlación." label="Solapamiento implícito" tone={guidance.tone} value={formatPct(overlapShare, 0)} />
+            <MetricTile detail="Peso de la agrupación más grande por movimiento conjunto." label="Cluster principal" value={formatPct(mainCluster?.weight || 0, 0)} />
+            <MetricTile detail="Se excluye del cálculo de correlación entre activos de riesgo." label="Caja y equivalentes" value={formatPct(cashWeight, 0)} />
           </div>
 
-          {analysisError ? <p className={styles.errorText}>{analysisError}</p> : null}
-
-          {analysis ? (
-            <>
-              <div className={styles.phantomSimpleMetrics}>
-                <MetricTile
-                  detail="Apuestas independientes sugeridas por el historial de precios."
-                  label="Apuestas visibles"
-                  value={formatBreadth(current?.raw_breadth)}
-                />
-                <MetricTile
-                  detail="Amplitud que sobrevive al ajuste de estrés."
-                  label="Apuestas probadas"
-                  tone={guidance.tone}
-                  value={formatBreadth(current?.real_breadth)}
-                />
-                <MetricTile
-                  detail="Amplitud visible que aún no queda validada."
-                  label="En riesgo"
-                  tone={guidance.tone}
-                  value={formatPct(current?.phantom_share || 0, 0)}
-                />
+          <div className={styles.portfolioIntelligenceGrid}>
+            <section className={styles.portfolioClusterPanel} data-testid="portfolio-cluster-list">
+              <div>
+                <p className={styles.kicker}>Tus verdaderas apuestas</p>
+                <h3>{guidance.title}</h3>
+                <p className={styles.supportText}>{guidance.body}</p>
               </div>
-
-              <div className={styles.phantomSimpleBar} aria-label="Amplitud probada versus solapamiento oculto">
-                <span className={styles.phantomSimpleBarTested} style={{ width: `${testedWidth}%` }} />
-                {phantomWidth ? <span className={styles.phantomSimpleBarRisk} style={{ width: `${phantomWidth}%` }} /> : null}
+              <div className={styles.portfolioClusterList}>
+                {clusters.map((cluster, index) => (
+                  <article key={cluster.id || `${cluster.label}-${index}`}>
+                    <span>{String(index + 1).padStart(2, "0")}</span>
+                    <div><strong>{cluster.label || `Cluster ${index + 1}`}</strong><p>{safeList(cluster.tickers).join(" · ")}</p></div>
+                    <div><strong>{formatPct(cluster.weight || 0, 0)}</strong><small>{cluster.holdings_count || safeList(cluster.tickers).length} posiciones</small></div>
+                    <div><strong>{Number(cluster.average_correlation || 0).toFixed(2)}</strong><small>correlación media</small></div>
+                  </article>
+                ))}
               </div>
-              <div className={styles.phantomSimpleLegend}>
-                <span>Probada: {formatBreadth(current?.real_breadth)}</span>
-                <span>Oculto: {formatBreadth(current?.phantom_breadth)}</span>
-              </div>
-            </>
-          ) : (
-            <div className={styles.phantomSimpleEmpty}>
-              <strong>Un clic, tres números.</strong>
-              <p>Apuestas visibles, apuestas probadas y porcentaje de diversificación todavía en riesgo.</p>
-            </div>
-          )}
-        </div>
+            </section>
 
-        <aside className={styles.phantomSimpleAside}>
-          <div>
-            <p className={styles.kicker}>Lectura del portafolio</p>
-            <strong>{analysis ? guidance.title : "Esperando prueba"}</strong>
-            <p className={styles.supportText}>
-              {analysis ? `Ventana: ${diagnostics.window_days || 63} sesiones. Al ${formatDate(analysis?.as_of)}.` : coverageLabel}
-            </p>
+            <section className={styles.portfolioMatrixPanel} data-testid="portfolio-correlation-matrix">
+              <div>
+                <p className={styles.kicker}>Matriz de correlación</p>
+                <h3>Qué posiciones realmente se mueven juntas</h3>
+                <p className={styles.supportText}>Verde indica comportamiento más distinto; naranja, mayor movimiento conjunto.</p>
+              </div>
+              <div className={styles.portfolioMatrixWrap}>
+                <table aria-label="Matriz de correlación del portfolio">
+                  <thead><tr><th />{matrixTickers.map((ticker) => <th key={ticker} scope="col">{ticker}</th>)}</tr></thead>
+                  <tbody>
+                    {matrixTickers.map((ticker, rowIndex) => (
+                      <tr key={ticker}>
+                        <th scope="row">{ticker}</th>
+                        {matrixTickers.map((column, columnIndex) => {
+                          const value = Number(matrixValues?.[rowIndex]?.[columnIndex] || 0);
+                          return <td key={column} style={{ "--heat": Math.max(0, value), "--cool": Math.max(0, -value) }} title={`${ticker} / ${column}: ${value.toFixed(2)}`}>{rowIndex === columnIndex ? "1" : value.toFixed(2)}</td>;
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className={styles.phantomSimpleSource}>
+                Ventana: {diagnostics.window_days || 63} sesiones. {sources.length ? `Precios: ${sources.join(", ")}.` : ""}
+                {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} posición${draftDefaults.excludedCount === 1 ? "" : "es"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"}.` : ""}
+              </p>
+            </section>
           </div>
-
-          {contributors.length ? (
-            <div className={styles.phantomSimpleList}>
-              {contributors.map((row) => (
-                <article key={`simple-phantom-${row.ticker}`}>
-                  <div>
-                    <strong>{row.ticker}</strong>
-                    <span>{cleanWorkspaceCopy(row.role_summary || row.role)}</span>
-                  </div>
-                  <ToneBadge tone={contributorTone(row.role)}>{contributorRoleLabel(row.role)}</ToneBadge>
-                </article>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.emptyCopy}>Las notas por posición aparecen después del chequeo.</p>
-          )}
-
-          <p className={styles.phantomSimpleSource}>
-            {sources.length ? `Precios: ${sources.join(", ")}.` : "La fuente de precios aparecerá después del análisis."}
-            {draftDefaults.excludedCount ? ` ${draftDefaults.excludedCount} posición${draftDefaults.excludedCount === 1 ? "" : "es"} tipo caja excluida${draftDefaults.excludedCount === 1 ? "" : "s"}.` : ""}
-          </p>
-        </aside>
-      </div>
+        </>
+      ) : null}
     </section>
   );
 }
@@ -2299,7 +2385,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
   );
 }
 
-function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, onOpenRisk = null, language = "es" }) {
+function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, onOpenRisk = null, showPositionTable = true, language = "es" }) {
   const portfolio = portfolioModule || {};
   const analytics = portfolio.analytics || {};
   const holdings = safeList(portfolio.holdings);
@@ -2325,45 +2411,20 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
       ? holdings.reduce((sum, holding) => sum + (holdingCostBasis(holding) || 0), 0)
       : null;
   const activeCostBasisLabel = activeCostBasisValue !== null ? formatCurrency(activeCostBasisValue) : "-";
-  const totalPnlLabel = Number.isFinite(Number(analytics.totalPnlInclRealizedDividendsUsd))
-    ? formatCurrency(analytics.totalPnlInclRealizedDividendsUsd)
-    : (returnBreakdown?.totalPnlLabel || "-");
-  const hasUnrealizedPnlData = Number.isFinite(Number(analytics.unrealizedPnlUsd))
-    || holdings.some((holding) => numericValue(holding?.unrealizedPnlUsd) !== null);
-  const unrealizedPnlValue = Number.isFinite(Number(analytics.unrealizedPnlUsd))
-    ? Number(analytics.unrealizedPnlUsd)
-    : holdings.reduce((sum, holding) => sum + (numericValue(holding?.unrealizedPnlUsd) || 0), 0);
-  const unrealizedPnlLabel = hasUnrealizedPnlData
-    ? formatCurrency(unrealizedPnlValue)
-    : "-";
-  const realizedDividendValue = firstFiniteNumber(analytics.realizedPnlUsd) !== null || firstFiniteNumber(analytics.dividendsUsd) !== null
-    ? (firstFiniteNumber(analytics.realizedPnlUsd) || 0) + (firstFiniteNumber(analytics.dividendsUsd) || 0)
-    : null;
-  const realizedDividendLabel = realizedDividendValue !== null ? formatCurrency(realizedDividendValue) : "-";
-  const usdClpLabel = firstFiniteNumber(analytics.usdClp) !== null ? formatFxRate(analytics.usdClp) : "-";
-  const currentPerformanceValue = Number.isFinite(Number(analytics.totalReturnInclDividends))
-    ? Number(analytics.totalReturnInclDividends)
-    : Number.isFinite(Number(analytics.unrealizedReturn))
-      ? Number(analytics.unrealizedReturn)
-      : null;
+  const totalPnlValue = firstFiniteNumber(analytics.totalPnlInclRealizedDividendsUsd, returnBreakdown?.totalPnlUsd);
+  const totalPnlLabel = totalPnlValue !== null ? formatCurrency(totalPnlValue) : "-";
+  const currentPerformanceValue = firstFiniteNumber(
+    analytics.totalReturnInclDividends,
+    analytics.unrealizedReturn,
+    activeCostBasisValue ? totalPnlValue / activeCostBasisValue : null,
+  );
   const currentPerformanceLabel = currentPerformanceValue !== null
     ? formatSignedPct(currentPerformanceValue)
     : null;
   const topHolding = [...holdings].sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left))[0] || null;
   const reviewQueue = buildReviewQueue(holdings);
   const highRiskCount = reviewQueue.filter((holding) => Number(holding.riskScore) >= 4).length;
-  const dayPnl = holdings.reduce((sum, holding) => {
-    const value = Number(holding?.dayPnlUsd);
-    return sum + (Number.isFinite(value) ? value : 0);
-  }, 0);
-  const hasDayPnl = holdings.some((holding) => {
-    const dayPnlValue = Number(holding?.dayPnlUsd);
-    const dayReturnValue = Number(holding?.dayReturn);
-    return (Number.isFinite(dayPnlValue) && Math.abs(dayPnlValue) > 0.005)
-      || (Number.isFinite(dayReturnValue) && Math.abs(dayReturnValue) > 0.00005);
-  });
   const performanceSeriesWarning = analytics.performanceSeriesWarning;
-  const executiveRead = buildPortfolioExecutiveRead({ analytics, holdings, hasDayPnl, dayPnl, topHolding, reviewQueue });
 
   return (
     <section className={styles.panel}>
@@ -2395,18 +2456,6 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
         <MetricTile detail="Suma de posiciones activas." label="Valor total" value={totalValueLabel} />
         <MetricTile detail="Capital invertido en posiciones activas." label="Costo base" value={activeCostBasisLabel} />
         <MetricTile
-          detail="Resultado abierto de las posiciones actuales."
-          label="P&L no realizado"
-          tone={hasUnrealizedPnlData ? signedMoneyTone(unrealizedPnlValue) : "neutral"}
-          value={unrealizedPnlLabel}
-        />
-        <MetricTile
-          detail="Ganancias cerradas más dividendos cargados."
-          label="Realizado + dividendos"
-          tone={signedMoneyTone(realizedDividendValue)}
-          value={realizedDividendLabel}
-        />
-        <MetricTile
           detail={currentPerformanceLabel ? `Sobre base ${activeCostBasisLabel}.` : "Falta costo base para calcular performance."}
           label="P&L total"
           tone={signedMoneyTone(currentPerformanceValue)}
@@ -2418,26 +2467,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           tone={signedMoneyTone(currentPerformanceValue)}
           value={currentPerformanceLabel || "-"}
         />
-        <MetricTile
-          detail={firstFiniteNumber(analytics.totalValueClp) !== null ? `Valor CLP ${formatFxRate(analytics.totalValueClp)}.` : "Conversión local si está cargada."}
-          label="USD/CLP"
-          value={usdClpLabel}
-        />
       </div>
-
-      {executiveRead.length ? (
-        <section className={styles.portfolioExecutiveRead}>
-          <div>
-            <p className={styles.kicker}>Lectura ejecutiva</p>
-            <h3>Qué significan estos números</h3>
-          </div>
-          <ul>
-            {executiveRead.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       <div className={styles.portfolioDeskGrid}>
         <section className={styles.chartPanel}>
@@ -2446,9 +2476,13 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
               <p className={styles.kicker}>Historial</p>
               <h3>{analytics.hasPerformanceHistory ? `${performanceMethodLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "Performance actual"}</h3>
             </div>
-            <RangeTabs language={language} onChange={onRangeChange} value={range} />
+            {analytics.hasPerformanceHistory ? <RangeTabs language={language} onChange={onRangeChange} value={range} /> : null}
           </div>
-          <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
+          {analytics.hasPerformanceHistory ? (
+            <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
+          ) : (
+            <HoldingReturnContributionChart holdings={holdings} performanceReport={performanceReport} />
+          )}
           <p className={styles.supportText}>
             {analytics.hasPerformanceHistory
               ? performanceIsReconstructed
@@ -2553,7 +2587,7 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
         <PortfolioDonutPanel holdings={holdings} topHolding={topHolding} />
       </div>
 
-      <PortfolioPositionTable holdings={holdings} />
+      {showPositionTable ? <PortfolioPositionTable holdings={holdings} /> : null}
 
       {compact ? null : (
         <>
@@ -3538,6 +3572,11 @@ function HoldingsPanel({
   tradeInstruction,
   onTradeInstructionChange,
   onSubmitTrade,
+  tradePreview,
+  tradeDate,
+  onTradeDateChange,
+  onConfirmTrade,
+  onCancelTrade,
   pendingTrade,
   holdingDraftError,
   tradeInstructionError,
@@ -3612,6 +3651,8 @@ function HoldingsPanel({
         <p className={styles.emptyCopy}>Agrega una nota de operación o sincroniza tus posiciones privadas para armar la lista.</p>
       )}
 
+      <details className={styles.holdingsEditorDisclosure} open={!holdings.length}>
+        <summary>Editar holdings o registrar una operación</summary>
       <form
         className={styles.tradeComposer}
         onSubmit={(event) => {
@@ -3620,9 +3661,9 @@ function HoldingsPanel({
         }}
       >
         <div className={styles.tradeCopy}>
-          <p className={styles.kicker}>Edición directa</p>
-          <h3>Define una posición directamente</h3>
-          <p>Ingresa un ticker y acciones objetivo o valor objetivo en USD. Usa 0 para eliminar una posición limpiamente.</p>
+          <p className={styles.kicker}>Edición manual</p>
+          <h3>Corrige una posición existente</h3>
+          <p>Usa esta opción solo si prefieres definir el resultado final directamente. Para registrar una compra o venta, usa el campo simple de abajo.</p>
         </div>
         <div className={styles.holdingQuickGrid}>
           <label className={styles.fieldStack}>
@@ -3698,25 +3739,63 @@ function HoldingsPanel({
         }}
       >
         <div className={styles.tradeCopy}>
-          <p className={styles.kicker}>Actualización avanzada</p>
-          <h3>Usa lenguaje simple para compras y ventas</h3>
-          <p>Ejemplos: <em>compre 100 USD de NVDA</em> o <em>vendi 2 acciones de AAPL</em>.</p>
+          <p className={styles.kicker}>Registrar una operación</p>
+          <h3>Escribe lo que hiciste</h3>
+          <p>Por ejemplo: <em>compré USD 200 de NVDA</em> o <em>vendí 2 acciones de AAPL</em>. Primero te pediremos la fecha y te mostraremos el precio antes de guardar.</p>
         </div>
         <div className={styles.tradeForm}>
           <input
             aria-label="Nota de compra o venta en lenguaje simple"
             className={styles.textInput}
             onChange={(event) => onTradeInstructionChange(event.target.value)}
-            placeholder="compre 100 USD de NVDA"
+            placeholder="compré USD 200 de NVDA"
             type="text"
             value={tradeInstruction}
           />
           <button className={styles.secondaryButton} disabled={pendingTrade || !String(tradeInstruction || "").trim()} type="submit">
-            {pendingTrade ? "Actualizando..." : "Actualizar desde texto"}
+            {pendingTrade ? "Revisando..." : "Continuar"}
           </button>
         </div>
+        {tradePreview?.status === "needs_date" ? (
+          <div className={styles.tradePreview} role="status">
+            <p>{tradePreview.message}</p>
+            <div className={styles.tradePreviewActions}>
+              <label className={styles.fieldStack}>
+                <span>Fecha de la operación</span>
+                <input
+                  className={styles.textInput}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(event) => onTradeDateChange(event.target.value)}
+                  type="date"
+                  value={tradeDate}
+                />
+              </label>
+              <button className={styles.primaryButton} disabled={pendingTrade || !tradeDate} onClick={onSubmitTrade} type="button">
+                Buscar precio y revisar
+              </button>
+              <button className={styles.tertiaryButton} disabled={pendingTrade} onClick={onCancelTrade} type="button">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : null}
+        {tradePreview?.status === "ready" ? (
+          <div className={styles.tradePreview} role="status">
+            <p><strong>Revisa antes de guardar.</strong> {tradePreview.side === "buy" ? "Compra" : "Venta"} de {Number(tradePreview.quantity || 0).toLocaleString("es-CL", { maximumFractionDigits: 4 })} acciones de {tradePreview.ticker} por USD {Number(tradePreview.price || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.</p>
+            <small>{tradePreview.priceSource === "historical_close" ? `Cierre disponible del ${tradePreview.priceDate}.` : "Precio ingresado manualmente."} Esta acción aún no modifica tu cartera.</small>
+            <div className={styles.tradePreviewActions}>
+              <button className={styles.primaryButton} disabled={pendingTrade} onClick={onConfirmTrade} type="button">
+                {pendingTrade ? "Guardando..." : "Confirmar y guardar"}
+              </button>
+              <button className={styles.tertiaryButton} disabled={pendingTrade} onClick={onCancelTrade} type="button">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : null}
         {tradeInstructionError ? <p className={styles.errorText}>{tradeInstructionError}</p> : null}
       </form>
+      </details>
     </section>
   );
 }
@@ -3746,20 +3825,11 @@ function CompactActionPanel({ title, kicker, emptyLabel, items, renderItem }) {
 
 function WorkspaceSidebar({
   activeSection,
-  advancedItems,
   copy,
-  holdingsCount,
   navItems,
   onSelectSection,
-  stagedCount,
-  showChat,
-  onOpenChat,
-  onOpenGlossary,
-  onOpenGuide,
   workspaceName,
 }) {
-  const [showAdvanced, setShowAdvanced] = useState(false);
-
   return (
     <section className={styles.workspaceSidebar} aria-label={copy.sidebarAria}>
       <div className={styles.workspaceSidebarTop}>
@@ -3767,7 +3837,6 @@ function WorkspaceSidebar({
           <span className={styles.workspaceBrandMark} aria-hidden="true">B</span>
           <span>{workspaceName}</span>
         </Link>
-        <p className={styles.supportText}>{copy.sidebarSupport}</p>
       </div>
 
       <nav className={styles.workspaceSidebarNav} aria-label={copy.sidebarAria}>
@@ -3783,71 +3852,13 @@ function WorkspaceSidebar({
             <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
             <div>
               <span>{item.label}</span>
-              <small>{item.detail}</small>
             </div>
-            {item.id === "decisions" && stagedCount > 0 ? (
-              <em data-tone="warn">{stagedCount}</em>
-            ) : (
-              <em>{item.priority}</em>
-            )}
-          </button>
-        ))}
-
-        {showAdvanced && advancedItems.map((item) => (
-          <button
-            className={styles.workspaceSidebarLink}
-            data-active={activeSection === item.id}
-            data-priority="secondary"
-            key={item.id}
-            onClick={() => onSelectSection(item.id)}
-            type="button"
-          >
-            <span className={styles.workspaceSidebarIndex}>-</span>
-            <div>
-              <span>{item.label}</span>
-              <small>{item.detail}</small>
-            </div>
-            <em>{item.priority}</em>
           </button>
         ))}
       </nav>
-
-      <div className={styles.workspaceSidebarMeta}>
-        <article className={styles.workspaceSidebarStat}>
-          <strong>{holdingsCount || "-"}</strong>
-          <span>{copy.holdings}</span>
-        </article>
-        <article className={styles.workspaceSidebarStat}>
-          <strong>{stagedCount || "-"}</strong>
-          <span>{copy.staged}</span>
-        </article>
-      </div>
-
       <div className={styles.workspaceSidebarActions}>
-        <button className={styles.chatTrigger} data-active={showChat} onClick={onOpenChat} type="button">
-          {copy.ask}
-        </button>
-        <div className={styles.workspaceSidebarUtility}>
-          <button className={styles.glossaryTrigger} onClick={onOpenGlossary} type="button">
-            {copy.glossary}
-          </button>
-          <button className={styles.welcomeTrigger} onClick={onOpenGuide} type="button">
-            {copy.guide}
-          </button>
-          {advancedItems.length ? (
-            <button
-              className={styles.glossaryTrigger}
-              data-active={showAdvanced}
-              onClick={() => setShowAdvanced((v) => !v)}
-              type="button"
-            >
-              {showAdvanced ? copy.hideAdvanced : copy.advanced}
-            </button>
-          ) : null}
-        </div>
         <div className={styles.workspaceSidebarLinks}>
-          <Link className={styles.secondaryLink} href="/terms">{copy.terms}</Link>
-          <Link className={styles.secondaryLink} href="/">{copy.home}</Link>
+          <Link className={styles.secondaryLink} href="/channels">Importar cartera</Link>
         </div>
       </div>
     </section>
@@ -4874,15 +4885,101 @@ function MacroSourcesPanel({ macro, mosaic }) {
   );
 }
 
+function mosaicAxisReading(value, positive, negative) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "Sin lectura";
+  if (number >= 20) return positive;
+  if (number <= -20) return negative;
+  return "Equilibrado";
+}
+
+function MosaicGlobalScreener({ snapshot }) {
+  const context = snapshot?.context || {};
+  const dataState = context.status || snapshot?.dataState || (context.asOf ? "lagged" : "unknown");
+  const dataStateLabel = dataState === "current" ? "Vigente" : dataState === "lagged" ? "Con rezago" : "No utilizable";
+  const stale = dataState === "stale";
+  const markets = stale
+    ? []
+    : safeList(snapshot?.markets)
+      .slice()
+      .sort((left, right) => {
+        const leftMagnitude = Math.max(Math.abs(Number(left?.axes?.supply) || 0), Math.abs(Number(left?.axes?.demand) || 0));
+        const rightMagnitude = Math.max(Math.abs(Number(right?.axes?.supply) || 0), Math.abs(Number(right?.axes?.demand) || 0));
+        return rightMagnitude - leftMagnitude;
+      });
+  const axes = context.axes || {};
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.mosaicLead}>
+        <div>
+          <p className={styles.kicker}>Screener global</p>
+          <h2>Oferta, demanda y liquidez</h2>
+          <p>Cada mercado conserva sus motores físicos. La liquidez es un eje separado y sólo entra a AURORA mediante una exposición causal.</p>
+        </div>
+        <div className={styles.mosaicDial} aria-label={`Estado de datos ${dataStateLabel}`}>
+          <strong>{markets.length}</strong>
+          <span>mercados activos</span>
+        </div>
+      </div>
+
+      <div className={styles.mosaicGuide} aria-label="Ejes MOSAIC">
+        <div className={styles.mosaicGuideItem}>
+          <strong>{macroSignedLabel(axes.supply)}</strong>
+          <span>Oferta</span>
+          <small>{mosaicAxisReading(axes.supply, "Restricción física", "Holgura de capacidad")}</small>
+        </div>
+        <div className={styles.mosaicGuideItem}>
+          <strong>{macroSignedLabel(axes.demand)}</strong>
+          <span>Demanda</span>
+          <small>{mosaicAxisReading(axes.demand, "Demanda acelerando", "Demanda debilitándose")}</small>
+        </div>
+        <div className={styles.mosaicGuideItem}>
+          <strong>{macroSignedLabel(axes.liquidity)}</strong>
+          <span>Liquidez</span>
+          <small>{mosaicAxisReading(axes.liquidity, "Impulso expansivo", "Impulso contractivo")}</small>
+        </div>
+        <div className={styles.mosaicGuideItem}>
+          <strong>{dataStateLabel}</strong>
+          <span>Frescura</span>
+          <small>{context.asOf ? `Corte ${String(context.asOf).slice(0, 10)}` : "Sin fecha verificable"}</small>
+        </div>
+      </div>
+
+      {stale ? (
+        <div className={styles.mosaicPlainNote}>
+          <strong>Snapshot vencido</strong>
+          <span>Los mercados quedan fuera del screener hasta refrescar las fuentes. MOSAIC no presenta datos guardados como actuales.</span>
+        </div>
+      ) : (
+        <div className={styles.mosaicRows}>
+          {markets.map((item) => (
+            <div className={styles.mosaicRow} data-tone={mosaicTone(item.score)} key={item.id}>
+              <div>
+                <strong>{macroPlainText(item.name)}</strong>
+                <span>{macroPlainText(item.why)} · calidad {Math.round(Number(item.quality) || 0)}/100 · {Number(item.sources) || 0} series</span>
+              </div>
+              <div>
+                <strong>O {macroSignedLabel(item.axes?.supply)} · D {macroSignedLabel(item.axes?.demand)}</strong>
+                <span>{Number(item.delta) ? `Cambio ${macroSignedLabel(item.delta)}` : "Sin inflexión nueva"}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function MosaicCommandCenter() {
   const macro = useMacroBrainLiveSnapshot();
   const mosaic = useMosaicLiveSnapshot();
-  const pressure = Number(macro.snapshot?.stability?.pressure);
   const headline = macroPlainText(macro.snapshot?.shortRead || mosaic.snapshot?.headline || "Lectura macro en preparación.");
   const topSignal = safeList(macro.snapshot?.impulseChanges)[0];
   const meaning = topSignal ? macroSignalMeaning(topSignal) : macroStressMeaning(macro.snapshot?.stability);
   const alert = macroAlertSummary(macro.snapshot, mosaic.snapshot);
   const watch = macroWatchSummary(macro.snapshot, mosaic.snapshot);
+  const axes = mosaic.snapshot?.context?.axes || {};
 
   return (
     <div className={styles.mosaicCommandCenter}>
@@ -4890,13 +4987,13 @@ function MosaicCommandCenter() {
         <div className={styles.mosaicCommandHero}>
           <div>
             <p className={styles.kicker}>MOSAIC</p>
-            <h2>Contexto externo</h2>
+            <h2>Mapa macro global verificable</h2>
             <p>{headline}</p>
           </div>
           <div className={styles.mosaicCommandStats}>
-            <span><strong>{mosaic.snapshot?.index ?? "-"}</strong> presión global</span>
-            <span><strong>{mosaic.snapshot?.conflict ?? "-"}</strong> señales mixtas</span>
-            <span><strong>{macroPercentLabel(pressure)}</strong> estrés macro</span>
+            <span><strong>{macroSignedLabel(axes.supply)}</strong> oferta</span>
+            <span><strong>{macroSignedLabel(axes.demand)}</strong> demanda</span>
+            <span><strong>{macroSignedLabel(axes.liquidity)}</strong> liquidez</span>
           </div>
         </div>
         <div className={styles.mosaicExplainGrid}>
@@ -4918,10 +5015,8 @@ function MosaicCommandCenter() {
         ) : null}
       </section>
 
-      <MosaicObservatoryPanel />
-      <MacroBrainWorkspacePanel />
+      <MosaicGlobalScreener snapshot={mosaic.snapshot} />
       <div className={styles.mosaicCommandGrid}>
-        <MacroLiquidityPanel snapshot={macro.snapshot} />
         <MacroThesisPanel snapshot={macro.snapshot} />
         <MacroEventRiskPanel snapshot={macro.snapshot} />
         <MacroSourcesPanel macro={macro.snapshot} mosaic={mosaic.snapshot} />
@@ -5388,6 +5483,13 @@ function cleanWorkspaceCopy(value) {
 function friendlyWorkspaceMessage(value, fallback = "") {
   const text = cleanWorkspaceCopy(value).trim();
   if (!text) return fallback;
+  const missingPrice = text.match(/No current price found for\s+([A-Z0-9.-]+)/i);
+  if (missingPrice) {
+    return `No encontramos un precio para ${missingPrice[1].toUpperCase()}. Indica la fecha de la operación o agrega el precio manualmente.`;
+  }
+  if (/Could not parse a buy\/sell instruction/i.test(text)) {
+    return "No pudimos entender la operación. Prueba con ‘compré USD 200 de NVDA’ o ‘vendí 2 acciones de AAPL’.";
+  }
   if (isTechnicalWorkspaceMessage(text)) {
     return fallback || "La actualización de mercado aún está alcanzando. Por ahora se usa la última sesión completa.";
   }
@@ -5464,6 +5566,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   });
   const pendingSectionScrollRef = useRef(null);
   const [tradeInstruction, setTradeInstruction] = useState("");
+  const [tradeDate, setTradeDate] = useState("");
+  const [tradePreview, setTradePreview] = useState(null);
   const [holdingDraftError, setHoldingDraftError] = useState("");
   const [tradeInstructionError, setTradeInstructionError] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -5500,6 +5604,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   );
   const holdingsCount = safeList(portfolioModule?.holdings).length;
   const activeSectionConfig = [...workspaceNav, ...workspaceNavAdvanced].find((item) => item.id === activeWorkspaceSection) || workspaceNav[0];
+  const isPortfolioWorkspace = activeWorkspaceSection === "holdings";
   const currentBriefPanel = (
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
@@ -5642,40 +5747,39 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     case "holdings":
       activeWorkspacePanels = (
         <>
-          <PortfolioPanel
-            compact
-            onRangeChange={setPortfolioRange}
-            language={language}
-            onOpenRisk={() => selectWorkspaceSection("holdings")}
-            portfolioModule={portfolioModule}
-            range={portfolioRange}
-            showAuroraAction
-            xray={dashboard?.xray}
-          />
-          <StressEnginePanel portfolioValueUsd={portfolioModule?.analytics?.totalValueUsd} workspaceId={workspaceId} />
-          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
+          {hasPortfolioHoldings ? (
+            <PortfolioPanel
+              compact
+              language={language}
+              onRangeChange={setPortfolioRange}
+              portfolioModule={portfolioModule}
+              range={portfolioRange}
+              showPositionTable={false}
+              xray={dashboard?.xray}
+            />
+          ) : null}
           <HoldingsPanel
             holdingDraft={holdingDraft}
             onHoldingDraftChange={updateHoldingDraft}
             onSubmitHoldingDraft={submitHoldingDraft}
             onSubmitTrade={submitTradeInstruction}
-            onTradeInstructionChange={setTradeInstruction}
+            onTradeInstructionChange={(value) => {
+              setTradeInstruction(value);
+              setTradePreview(null);
+              setTradeInstructionError("");
+            }}
+            tradePreview={tradePreview}
+            tradeDate={tradeDate}
+            onTradeDateChange={setTradeDate}
+            onConfirmTrade={confirmTradeInstruction}
+            onCancelTrade={resetTradeInstruction}
             pendingTrade={Boolean(pendingKey?.startsWith("trade:"))}
             portfolioModule={portfolioModule}
             holdingDraftError={holdingDraftError}
             tradeInstructionError={tradeInstructionError}
             tradeInstruction={tradeInstruction}
           />
-          <TodayDecisionPanel
-            blockedAction={blockedAction}
-            onDefer={(action) => recordDecision(action, "deferred")}
-            onReject={(action) => recordDecision(action, "rejected")}
-            onStage={stageAction}
-            pendingKey={pendingKey}
-            primaryAction={primaryAction}
-            stateSummary={stateSummary}
-          />
-          {escrowPanel}
+          <SimplePhantomDiversificationPanel portfolioModule={portfolioModule} workspaceId={workspaceId} />
         </>
       );
       break;
@@ -5940,13 +6044,47 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ instruction: trimmed }),
+        body: JSON.stringify({ instruction: trimmed, preview: true, ...(tradeDate ? { tradeDate } : {}) }),
+      });
+      const payload = await parseResponse(response);
+      setTradePreview(payload);
+    } catch (requestError) {
+      setTradeInstructionError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la operación."));
+    } finally {
+      setPendingKey(null);
+    }
+  }
+
+  function resetTradeInstruction() {
+    setTradePreview(null);
+    setTradeDate("");
+    setTradeInstructionError("");
+  }
+
+  async function confirmTradeInstruction() {
+    const trimmed = String(tradeInstruction || "").trim();
+    if (!workspaceId || !trimmed || tradePreview?.status !== "ready") return;
+
+    setPendingKey(`trade:${trimmed}`);
+    setTradeInstructionError("");
+    setError("");
+
+    try {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instruction: trimmed,
+          price: tradePreview.price,
+          ...(tradeDate ? { tradeDate } : {}),
+        }),
       });
       const payload = await parseResponse(response);
       await applyWorkspacePayload(payload, payload?.holdings_update?.sync_label || "Posiciones guardadas.");
       setTradeInstruction("");
+      resetTradeInstruction();
     } catch (requestError) {
-      setTradeInstructionError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo actualizar la operación."));
+      setTradeInstructionError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudo guardar la operación."));
     } finally {
       setPendingKey(null);
     }
@@ -6030,20 +6168,22 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         </aside>
 
         <div className={styles.workspaceContent}>
-          <header className={styles.header}>
+          <header className={`${styles.header} ${isPortfolioWorkspace ? styles.portfolioHeaderCompact : ""}`}>
           <div>
-              <p className={styles.eyebrow}>{shellCopy.privateSpace}</p>
+              <p className={styles.eyebrow}>{isPortfolioWorkspace ? "Espacio privado" : shellCopy.privateSpace}</p>
               <h1>{workspaceName}</h1>
               <p className={styles.subtitle}>
-                {shellCopy.syncedStatus({
-                  count: holdingsCount,
-                  date: dashboard?.workspace_summary?.last_updated_label || shellCopy.noUpdate,
-                })}
+                {isPortfolioWorkspace
+                  ? `${holdingsCount} posiciones · ${dashboard?.workspace_summary?.last_updated_label || "sin hora de actualización"}`
+                  : shellCopy.syncedStatus({
+                      count: holdingsCount,
+                      date: dashboard?.workspace_summary?.last_updated_label || shellCopy.noUpdate,
+                    })}
               </p>
             </div>
 
             <div className={styles.headerActions}>
-              <div className={styles.headerMeta}>
+              {isPortfolioWorkspace ? null : <div className={styles.headerMeta}>
                 <ToneBadge tone="neutral">{initialSession?.user?.name || shellCopy.userFallback}</ToneBadge>
                 <ToneBadge tone={statusTone(dashboard?.workspace_summary?.backend_status)}>
                   {capitalize(cleanWorkspaceCopy(dashboard?.workspace_summary?.backend_status || shellCopy.liveFallback))}
@@ -6052,14 +6192,14 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                   {connection.label}
                 </ToneBadge>
                 <ToneBadge tone="neutral">{dashboard?.workspace_summary?.last_updated_label || shellCopy.noUpdate}</ToneBadge>
-              </div>
+              </div>}
 
               <div className={styles.buttonRow}>
                 <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
-                  {pendingKey === "refresh" ? shellCopy.refreshing : shellCopy.refresh}
+                  {pendingKey === "refresh" ? "Actualizando..." : isPortfolioWorkspace ? "Actualizar" : shellCopy.refresh}
                 </button>
                 <form action="/api/auth/logout" method="post">
-                  <button className={styles.textButton} type="submit">{shellCopy.logout}</button>
+                  <button className={styles.textButton} type="submit">{isPortfolioWorkspace ? "Salir" : shellCopy.logout}</button>
                 </form>
               </div>
             </div>
@@ -6068,7 +6208,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           {banner ? <div className={styles.banner}>{banner}</div> : null}
           {error ? <div className={styles.banner} data-tone="error">{error}</div> : null}
 
-          {showWelcomeGuide && (
+          {!isPortfolioWorkspace && showWelcomeGuide && (
             <div className={styles.welcomeGuide}>
               <div className={styles.welcomeGuideInner}>
                 <div className={styles.welcomeGuideHead}>
@@ -6129,7 +6269,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
           )}
 
-          {showGlossary && (
+          {!isPortfolioWorkspace && showGlossary && (
             <div
               className={styles.glossaryOverlay}
               role="dialog"
@@ -6175,19 +6315,43 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             </div>
           )}
 
-          <TruthInterfacePanel
-            blockedAction={blockedAction}
-            dashboard={dashboard}
-            onSelectSection={selectWorkspaceSection}
-            personalFinance={personalFinance}
-            portfolioModule={portfolioModule}
-            primaryAction={primaryAction}
-            showChat={showChat}
-            stateSummary={stateSummary}
-            onToggleChat={() => setShowChat((value) => !value)}
-          />
+          {isPortfolioWorkspace ? null : (
+          <div>
+          {hasPortfolioHoldings ? (
+            <TruthInterfacePanel
+              blockedAction={blockedAction}
+              dashboard={dashboard}
+              onSelectSection={selectWorkspaceSection}
+              personalFinance={personalFinance}
+              portfolioModule={portfolioModule}
+              primaryAction={primaryAction}
+              showChat={showChat}
+              stateSummary={stateSummary}
+              onToggleChat={() => setShowChat((value) => !value)}
+            />
+          ) : (
+            <section className={styles.truthSurface} data-testid="portfolio-empty-hero">
+              <div className={styles.answerWorkspace}>
+                <div className={styles.panelHeader}>
+                  <div>
+                    <p className={styles.kicker}>Tu cartera, no una cartera de muestra</p>
+                    <h2>Confirma tus posiciones para construir el workspace</h2>
+                    <p className={styles.supportText}>
+                      Hasta entonces no mostraremos holdings, rendimientos, ratios, stress tests ni amplitud calculados desde otro usuario.
+                    </p>
+                  </div>
+                  <Link className={styles.primaryButton} href="/channels">Importar cartera completa</Link>
+                </div>
+                <div className={styles.statusGrid}>
+                  <MetricTile detail="Cada espacio guarda sus posiciones por workspace." label="Fuente" tone="good" value="Espacio privado" />
+                  <MetricTile detail="Puedes cargar un CSV o escribir las posiciones manualmente." label="Primer paso" value="Confirmar holdings" />
+                  <MetricTile detail="Se calcula después de confirmar al menos tres activos de riesgo." label="Diagnóstico" value="Clusters + correlación" />
+                </div>
+              </div>
+            </section>
+          )}
 
-          <section className={styles.statusGrid}>
+          {hasPortfolioHoldings ? <section className={styles.statusGrid}>
             <MetricTile
               detail={holdingsCount ? "Conectadas a este espacio." : "Agrega posiciones para desbloquear la lectura."}
               label="Posiciones"
@@ -6212,12 +6376,38 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               tone={escrowItems.length ? "warn" : "neutral"}
               value={escrowItems.length ? `${escrowItems.length} acción${escrowItems.length === 1 ? "" : "es"}` : "—"}
             />
-          </section>
+          </section> : null}
 
           <ComplianceNotice copy={shellCopy} />
+          </div>
+          )}
 
-          <section className={styles.mainColumn}>
-          <div className={styles.workspaceStageHeader}>
+          <section className={styles.mainColumn} data-testid={isPortfolioWorkspace ? "portfolio-only-workspace" : undefined}>
+          {isPortfolioWorkspace ? (
+            <>
+            <div className={styles.portfolioOnlyHeader}>
+              <div>
+                <p className={styles.kicker}>Cartera</p>
+                <h2>Valor, retorno y diversificación real</h2>
+              </div>
+              <Link className={styles.secondaryLink} href="/channels">Importar o reemplazar holdings</Link>
+            </div>
+            {!hasPortfolioHoldings ? (
+              <section className={styles.truthSurface} data-testid="portfolio-empty-hero">
+                <div className={styles.answerWorkspace}>
+                  <div className={styles.panelHeader}>
+                    <div>
+                      <p className={styles.kicker}>Tu cartera, no una cartera de muestra</p>
+                      <h2>Confirma tus posiciones para comenzar</h2>
+                      <p className={styles.supportText}>Importa un CSV o agrega holdings. El análisis se construye únicamente con la cartera de este usuario.</p>
+                    </div>
+                    <Link className={styles.primaryButton} href="/channels">Importar cartera completa</Link>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+            </>
+          ) : <div className={styles.workspaceStageHeader}>
             <div>
               <p className={styles.kicker}>{activeSectionConfig.label}</p>
               <h2>{activeSectionConfig.title}</h2>
@@ -6229,7 +6419,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 {connection.label}
               </ToneBadge>
             </div>
-          </div>
+          </div>}
 
           <div className={styles.sectionAnchor} id={activeSectionConfig.id}>
             {activeWorkspacePanels}

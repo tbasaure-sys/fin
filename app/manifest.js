@@ -6,8 +6,8 @@ export default function manifest() {
     name: appName,
     short_name: "BLS Prime",
     description:
-      "AURORA valuation, factor, and macro research tools for investment decisions.",
-    start_url: "/aurora",
+      "Institutional equity research connecting valuation, factor discovery, portfolio stress, and decision memory.",
+    start_url: "/",
     scope: "/",
     display: "standalone",
     background_color: "#0b0f16",

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import time
+from time import sleep
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -16,6 +17,12 @@ import requests
 FMP_BASE_URL = "https://financialmodelingprep.com/api/v3"
 FMP_STABLE_BASE_URL = "https://financialmodelingprep.com/stable"
 PLACEHOLDER_API_KEYS = {"replace_me", "your_key_here", "changeme", "todo", "none", "null", "dummy"}
+DEFAULT_PROFILE_CACHE_TTL_SECONDS = 1800
+DEFAULT_QUOTE_CACHE_TTL_SECONDS = 300
+DEFAULT_TTM_CACHE_TTL_SECONDS = 21600
+DEFAULT_ANALYST_ESTIMATES_CACHE_TTL_SECONDS = 21600
+DEFAULT_QUARTERLY_STATEMENT_CACHE_TTL_SECONDS = 21600
+DEFAULT_ANNUAL_STATEMENT_CACHE_TTL_SECONDS = 86400
 
 
 def _usable_env_value(value: str | None) -> str | None:
@@ -25,6 +32,58 @@ def _usable_env_value(value: str | None) -> str | None:
     if cleaned.lower() in PLACEHOLDER_API_KEYS:
         return None
     return cleaned
+
+
+def _positive_int(value: Any, fallback: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        parsed = fallback
+    return max(1, parsed)
+
+
+def _payload_records(payload: Any, *wrapper_keys: str) -> list[dict[str, Any]]:
+    if isinstance(payload, list):
+        return [row for row in payload if isinstance(row, dict)]
+    if not isinstance(payload, dict):
+        return []
+    for key in wrapper_keys:
+        rows = payload.get(key)
+        if isinstance(rows, list):
+            return [row for row in rows if isinstance(row, dict)]
+        if isinstance(rows, dict):
+            return [rows]
+    return [payload] if payload else []
+
+
+def _with_payload_as_of(record: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(record)
+    if normalized.get("as_of"):
+        return normalized
+
+    timestamp = normalized.get("timestamp")
+    try:
+        numeric_timestamp = float(timestamp)
+    except (TypeError, ValueError):
+        numeric_timestamp = None
+    if numeric_timestamp is not None:
+        if numeric_timestamp > 10_000_000_000:
+            numeric_timestamp /= 1000
+        try:
+            normalized["as_of"] = datetime.fromtimestamp(numeric_timestamp, tz=timezone.utc).isoformat()
+            return normalized
+        except (OverflowError, OSError, ValueError):
+            pass
+
+    for key in ("date", "lastUpdated", "updatedAt"):
+        value = normalized.get(key)
+        if value in (None, ""):
+            continue
+        parsed = pd.to_datetime(value, errors="coerce", utc=True)
+        if not pd.isna(parsed):
+            normalized["as_of"] = parsed.isoformat()
+            break
+    return normalized
 
 
 def _raise_for_fmp_status(response: requests.Response, endpoint: str) -> None:
@@ -43,13 +102,34 @@ class FMPClient:
     price_cache_ttl_seconds: int = 1800
     max_retries: int = 4
     retry_base_seconds: float = 1.0
+    profile_cache_ttl_seconds: int = DEFAULT_PROFILE_CACHE_TTL_SECONDS
+    quote_cache_ttl_seconds: int = DEFAULT_QUOTE_CACHE_TTL_SECONDS
+    ttm_cache_ttl_seconds: int = DEFAULT_TTM_CACHE_TTL_SECONDS
+    analyst_estimates_cache_ttl_seconds: int = DEFAULT_ANALYST_ESTIMATES_CACHE_TTL_SECONDS
+    quarterly_statement_cache_ttl_seconds: int = DEFAULT_QUARTERLY_STATEMENT_CACHE_TTL_SECONDS
+    annual_statement_cache_ttl_seconds: int = DEFAULT_ANNUAL_STATEMENT_CACHE_TTL_SECONDS
 
     @classmethod
     def from_env(cls, cache_root: Path) -> "FMPClient | None":
         api_key = _usable_env_value(os.environ.get("FMP_API_KEY")) or _usable_env_value(os.environ.get("FINANCIAL_MODELING_PREP_API_KEY"))
         if not api_key:
             return None
-        ttl = int(os.environ.get("FMP_PRICE_CACHE_TTL_SECONDS", "1800"))
+        ttl = _positive_int(os.environ.get("FMP_PRICE_CACHE_TTL_SECONDS"), 1800)
+        profile_ttl = _positive_int(os.environ.get("FMP_PROFILE_CACHE_TTL_SECONDS"), ttl)
+        quote_ttl = _positive_int(os.environ.get("FMP_QUOTE_CACHE_TTL_SECONDS"), DEFAULT_QUOTE_CACHE_TTL_SECONDS)
+        ttm_ttl = _positive_int(os.environ.get("FMP_TTM_CACHE_TTL_SECONDS"), DEFAULT_TTM_CACHE_TTL_SECONDS)
+        analyst_estimates_ttl = _positive_int(
+            os.environ.get("FMP_ANALYST_ESTIMATES_CACHE_TTL_SECONDS"),
+            DEFAULT_ANALYST_ESTIMATES_CACHE_TTL_SECONDS,
+        )
+        quarterly_statement_ttl = _positive_int(
+            os.environ.get("FMP_QUARTERLY_STATEMENT_CACHE_TTL_SECONDS"),
+            DEFAULT_QUARTERLY_STATEMENT_CACHE_TTL_SECONDS,
+        )
+        annual_statement_ttl = _positive_int(
+            os.environ.get("FMP_ANNUAL_STATEMENT_CACHE_TTL_SECONDS"),
+            DEFAULT_ANNUAL_STATEMENT_CACHE_TTL_SECONDS,
+        )
         pause_seconds = float(os.environ.get("FMP_REQUEST_PAUSE_SECONDS", "0.35"))
         max_retries = int(os.environ.get("FMP_MAX_RETRIES", "4"))
         retry_base_seconds = float(os.environ.get("FMP_RETRY_BASE_SECONDS", "1.0"))
@@ -60,6 +140,12 @@ class FMPClient:
             price_cache_ttl_seconds=ttl,
             max_retries=max(0, max_retries),
             retry_base_seconds=max(0.1, retry_base_seconds),
+            profile_cache_ttl_seconds=profile_ttl,
+            quote_cache_ttl_seconds=quote_ttl,
+            ttm_cache_ttl_seconds=ttm_ttl,
+            analyst_estimates_cache_ttl_seconds=analyst_estimates_ttl,
+            quarterly_statement_cache_ttl_seconds=quarterly_statement_ttl,
+            annual_statement_cache_ttl_seconds=annual_statement_ttl,
         )
 
     def _cache_path(self, group: str, name: str, suffix: str) -> Path:
@@ -95,7 +181,7 @@ class FMPClient:
                 return response.json()
             retryable = response.status_code == 429 or 500 <= response.status_code < 600
             if retryable and attempt < self.max_retries:
-                time.sleep(self._retry_delay(response, attempt))
+                sleep(self._retry_delay(response, attempt))
                 continue
             _raise_for_fmp_status(response, endpoint)
         if response is not None:
@@ -117,7 +203,7 @@ class FMPClient:
 
         payload = self._get_response_json(FMP_BASE_URL, endpoint, params)
         cache_path.write_text(json.dumps(payload), encoding="utf-8")
-        time.sleep(self.pause_seconds)
+        sleep(self.pause_seconds)
         return payload
 
     def _get_stable_json(
@@ -135,7 +221,7 @@ class FMPClient:
 
         payload = self._get_response_json(FMP_STABLE_BASE_URL, endpoint, params)
         cache_path.write_text(json.dumps(payload), encoding="utf-8")
-        time.sleep(self.pause_seconds)
+        sleep(self.pause_seconds)
         return payload
 
     def get_historical_prices(self, symbol: str, start_date: str | None = None, end_date: str | None = None) -> pd.DataFrame:
@@ -144,7 +230,7 @@ class FMPClient:
         requested_end = pd.to_datetime(end_date).date() if end_date else None
         today_utc = datetime.now(timezone.utc).date()
         needs_recent_data = requested_end is None or requested_end >= today_utc - timedelta(days=1)
-        ttl_seconds = self.price_cache_ttl_seconds if needs_recent_data else None
+        ttl_seconds = _positive_int(self.price_cache_ttl_seconds, 1800) if needs_recent_data else None
 
         if self._cache_is_fresh(cache_path, ttl_seconds):
             frame = pd.read_csv(cache_path)
@@ -163,7 +249,7 @@ class FMPClient:
                     },
                 )
                 raw_cache.write_text(json.dumps(payload), encoding="utf-8")
-                time.sleep(self.pause_seconds)
+                sleep(self.pause_seconds)
             rows = payload if isinstance(payload, list) else payload.get("historical", []) if isinstance(payload, dict) else []
             frame = pd.DataFrame(rows)
             if frame.empty:
@@ -189,22 +275,125 @@ class FMPClient:
         return frame.reset_index(drop=True)
 
     def get_profile(self, symbol: str) -> dict[str, Any]:
-        payload = self._get_stable_json("profile", {"symbol": symbol}, cache_group="profile", cache_name=symbol)
-        if isinstance(payload, list) and payload:
-            return payload[0]
-        return payload if isinstance(payload, dict) else {}
+        payload = self._get_stable_json(
+            "profile",
+            {"symbol": symbol},
+            cache_group="profile",
+            cache_name=symbol,
+            ttl_seconds=_positive_int(self.profile_cache_ttl_seconds, DEFAULT_PROFILE_CACHE_TTL_SECONDS),
+        )
+        records = _payload_records(payload, "data", "profile")
+        return _with_payload_as_of(records[0]) if records else {}
+
+    def get_quote(self, symbol: str) -> dict[str, Any]:
+        payload = self._get_stable_json(
+            "quote",
+            {"symbol": symbol},
+            cache_group="quote",
+            cache_name=symbol,
+            ttl_seconds=_positive_int(self.quote_cache_ttl_seconds, DEFAULT_QUOTE_CACHE_TTL_SECONDS),
+        )
+        records = _payload_records(payload, "data", "quote")
+        return _with_payload_as_of(records[0]) if records else {}
+
+    def get_shares_float(self, symbol: str) -> dict[str, Any]:
+        """Return FMP's current basic outstanding-share snapshot.
+
+        This is deliberately kept separate from weighted-average diluted shares
+        reported in the income statement: it is reconciliation evidence, not a
+        drop-in valuation denominator.
+        """
+        payload = self._get_stable_json(
+            "shares-float",
+            {"symbol": symbol},
+            cache_group="shares_float",
+            cache_name=symbol,
+            ttl_seconds=_positive_int(self.quote_cache_ttl_seconds, DEFAULT_QUOTE_CACHE_TTL_SECONDS),
+        )
+        records = _payload_records(payload, "data", "sharesFloat", "shares")
+        return _with_payload_as_of(records[0]) if records else {}
 
     def get_key_metrics_ttm(self, symbol: str) -> dict[str, Any]:
-        payload = self._get_stable_json("key-metrics-ttm", {"symbol": symbol}, cache_group="key_metrics_ttm", cache_name=symbol)
-        if isinstance(payload, list) and payload:
-            return payload[0]
-        return payload if isinstance(payload, dict) else {}
+        payload = self._get_stable_json(
+            "key-metrics-ttm",
+            {"symbol": symbol},
+            cache_group="key_metrics_ttm",
+            cache_name=symbol,
+            ttl_seconds=_positive_int(self.ttm_cache_ttl_seconds, DEFAULT_TTM_CACHE_TTL_SECONDS),
+        )
+        records = _payload_records(payload, "data", "metrics")
+        return _with_payload_as_of(records[0]) if records else {}
 
     def get_ratios_ttm(self, symbol: str) -> dict[str, Any]:
-        payload = self._get_stable_json("ratios-ttm", {"symbol": symbol}, cache_group="ratios_ttm", cache_name=symbol)
-        if isinstance(payload, list) and payload:
-            return payload[0]
-        return payload if isinstance(payload, dict) else {}
+        payload = self._get_stable_json(
+            "ratios-ttm",
+            {"symbol": symbol},
+            cache_group="ratios_ttm",
+            cache_name=symbol,
+            ttl_seconds=_positive_int(self.ttm_cache_ttl_seconds, DEFAULT_TTM_CACHE_TTL_SECONDS),
+        )
+        records = _payload_records(payload, "data", "ratios")
+        return _with_payload_as_of(records[0]) if records else {}
+
+    def _get_statement_ttm(self, symbol: str, *, endpoint: str, cache_group: str) -> pd.DataFrame:
+        payload = self._get_stable_json(
+            endpoint,
+            {"symbol": symbol},
+            cache_group=cache_group,
+            cache_name=symbol,
+            ttl_seconds=_positive_int(self.ttm_cache_ttl_seconds, DEFAULT_TTM_CACHE_TTL_SECONDS),
+        )
+        records = _payload_records(payload, "data", "statements", "financials")
+        frame = pd.DataFrame(records)
+        if frame.empty:
+            return frame
+        for column in ("date", "fillingDate", "acceptedDate"):
+            if column in frame.columns:
+                frame[column] = pd.to_datetime(frame[column], errors="coerce")
+        if "date" in frame.columns:
+            frame = frame.sort_values("date")
+            frame["as_of"] = frame["date"].dt.strftime("%Y-%m-%d")
+        return frame.reset_index(drop=True)
+
+    def get_income_statement_ttm(self, symbol: str) -> pd.DataFrame:
+        return self._get_statement_ttm(symbol, endpoint="income-statement-ttm", cache_group="income_statement_ttm")
+
+    def get_cash_flow_statement_ttm(self, symbol: str) -> pd.DataFrame:
+        return self._get_statement_ttm(symbol, endpoint="cash-flow-statement-ttm", cache_group="cash_flow_statement_ttm")
+
+    def get_balance_sheet_statement_ttm(self, symbol: str) -> pd.DataFrame:
+        return self._get_statement_ttm(symbol, endpoint="balance-sheet-statement-ttm", cache_group="balance_sheet_statement_ttm")
+
+    def get_analyst_estimates(
+        self,
+        symbol: str,
+        *,
+        period: str = "annual",
+        page: int = 0,
+        limit: int = 10,
+    ) -> pd.DataFrame:
+        normalized_period = str(period or "annual").strip().lower()
+        normalized_page = max(0, int(page))
+        payload = self._get_stable_json(
+            "analyst-estimates",
+            {"symbol": symbol, "period": normalized_period, "page": normalized_page, "limit": limit},
+            cache_group="analyst_estimates",
+            cache_name=f"{symbol}_{normalized_period}_{normalized_page}_{limit}",
+            ttl_seconds=_positive_int(
+                self.analyst_estimates_cache_ttl_seconds,
+                DEFAULT_ANALYST_ESTIMATES_CACHE_TTL_SECONDS,
+            ),
+        )
+        records = _payload_records(payload, "data", "analystEstimates", "estimates")
+        frame = pd.DataFrame(records)
+        if frame.empty:
+            return frame
+        for column in ["date", "publishedDate", "updatedAt"]:
+            if column in frame.columns:
+                frame[column] = pd.to_datetime(frame[column], errors="coerce")
+        if "date" in frame.columns:
+            frame = frame.sort_values("date")
+        return frame.reset_index(drop=True)
 
     def get_fundamental_snapshot(self, symbols: list[str]) -> pd.DataFrame:
         rows: list[dict[str, Any]] = []
@@ -217,7 +406,7 @@ class FMPClient:
                 "sector_fmp": profile.get("sector"),
                 "industry_fmp": profile.get("industry"),
                 "beta_fmp": profile.get("beta"),
-                "market_cap_fmp": profile.get("mktCap"),
+                "market_cap_fmp": profile.get("marketCap") or profile.get("mktCap"),
                 "pe_ttm_fmp": ratios.get("peRatioTTM") or ratios.get("priceEarningsRatioTTM"),
                 "pb_ttm_fmp": ratios.get("priceToBookRatioTTM"),
                 "roe_ttm_fmp": ratios.get("returnOnEquityTTM"),
@@ -236,20 +425,35 @@ class FMPClient:
         limit: int = 40,
         cache_group: str,
     ) -> pd.DataFrame:
+        normalized_period = str(period or "quarter").strip().lower()
+        statement_ttl = (
+            self.annual_statement_cache_ttl_seconds
+            if normalized_period == "annual"
+            else self.quarterly_statement_cache_ttl_seconds
+        )
+        statement_ttl = _positive_int(
+            statement_ttl,
+            DEFAULT_ANNUAL_STATEMENT_CACHE_TTL_SECONDS
+            if normalized_period == "annual"
+            else DEFAULT_QUARTERLY_STATEMENT_CACHE_TTL_SECONDS,
+        )
         payload = self._get_stable_json(
             endpoint,
-            {"symbol": symbol, "period": period, "limit": limit},
+            {"symbol": symbol, "period": normalized_period, "limit": limit},
             cache_group=cache_group,
-            cache_name=f"{symbol}_{period}_{limit}",
+            cache_name=f"{symbol}_{normalized_period}_{limit}",
+            ttl_seconds=statement_ttl,
         )
-        if not isinstance(payload, list) or not payload:
+        records = _payload_records(payload, "data", "statements", "financials")
+        if not records:
             return pd.DataFrame()
-        frame = pd.DataFrame(payload)
+        frame = pd.DataFrame(records)
         for column in ["date", "fillingDate", "acceptedDate"]:
             if column in frame.columns:
                 frame[column] = pd.to_datetime(frame[column], errors="coerce")
         if "date" in frame.columns:
             frame = frame.sort_values("date")
+            frame["as_of"] = frame["date"].dt.strftime("%Y-%m-%d")
         return frame.reset_index(drop=True)
 
     def get_income_statements(self, symbol: str, *, period: str = "quarter", limit: int = 40) -> pd.DataFrame:

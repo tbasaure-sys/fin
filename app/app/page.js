@@ -6,6 +6,10 @@ import { buildDecisionOsSections } from "@/lib/server/decision-os";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  robots: { index: false, follow: false },
+};
+
 function buildWorkspacePageFallback(authSession, error) {
   const config = getServerConfig();
   const message = String(error?.message || error || "The workspace could not be assembled.");

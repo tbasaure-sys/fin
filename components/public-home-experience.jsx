@@ -4,72 +4,84 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import styles from "@/app/home-page.module.css";
-import { LANGUAGE_STORAGE_KEY, writeStoredLanguage } from "@/components/language-layer";
+import { writeStoredLanguage } from "@/components/language-layer";
 import { StressAccountGate } from "@/components/stress-account-gate";
+import { BreakpointHero } from "@/components/breakpoint/breakpoint-hero";
 
 const COPY = {
   es: {
     languageName: "Español",
     languageAria: "Elegir idioma",
     login: "Iniciar sesión",
-    kicker: "BLS Prime · Terminal de research institucional",
-    category: "Terminal de research institucional para decisiones de renta variable.",
-    headline: "La tesis se prueba antes de mover el capital.",
+    kicker: "BLS Prime · Decisiones de inversión con información clara",
+    category: "Una forma ordenada de estudiar empresas, oportunidades y riesgo antes de invertir.",
+    headline: "La información importa más cuando tienes que decidir.",
     subheadline:
-      "Valoración fundamental, selección con reglas visibles y estrés de cartera. Un solo sistema disciplinado.",
-    ctaPrimary: "Entrar a la terminal",
+      "BLS Prime reúne valoración, búsqueda de oportunidades y riesgo de cartera en un solo proceso.",
+    ctaPrimary: "Crear espacio de trabajo",
     ctaSecondary: "Ver los módulos",
+    sampleDisclosure: "Ejemplo con datos ilustrativos.",
     footer: "Software de análisis. No es asesoría financiera.",
     terms: "Términos",
     terminal: {
       title: "BLS PRIME · RESEARCH",
-      meta: "sesión auditada",
+      meta: "Ejemplo con datos ilustrativos",
       pane1Title: "Valoración",
       pane1Tag: "AURORA",
       ticker: "TXN",
       kv1: [
         ["Precio", "price"],
         ["Valor intrínseco", "$168 – 214"],
-        ["Margen de seguridad", "mos"],
+        ["Diferencia frente al valor", "mos"],
         ["ROIC", "32.8%"],
-        ["FCF yield", "3.6%"],
+        ["Rendimiento de caja", "3.6%"],
       ],
       verdict: "En rango",
       pane2Title: "Selección",
-      pane2Tag: "FACTORLAB",
-      rankHeader: ["Ticker", "Score"],
+      pane2Tag: "BÚSQUEDA",
+      rankHeader: ["Empresa", "Prioridad"],
       pane3Title: "Estrés",
-      pane3Tag: "STRESS ENGINE",
+      pane3Tag: "RIESGO",
       stressBigLabel: "CVaR 5% · 20 días",
       kv3: [
         ["P(pérdida)", "ploss"],
         ["P(caída ≤ −10%)", "dd"],
         ["Peor escenario", "worst"],
       ],
-      stressFoot: "5.000 escenarios · régimen: crisis · seed 8841",
-      statusline: "banco factorial auditado · corrida reproducible · escenarios, no predicciones",
+      stressFoot: "Ejemplo · escenarios adversos, no pronósticos",
+      statusline: "Ejemplo con datos ilustrativos · reglas y supuestos visibles",
     },
-    modulesKicker: "El sistema",
-    modulesTitle: "Tres módulos. Una decisión.",
-    modulesSub: "Cada módulo es una pieza de la misma terminal, no una herramienta suelta.",
+    modulesKicker: "El proceso",
+    modulesTitle: "Antes de invertir, responde cinco preguntas.",
+    modulesSub: "BLS Prime no decide por ti. Ordena la información para que puedas decidir mejor.",
+    channel: {
+      index: "00",
+      label: "Inteligencia de cartera",
+      title: "Portfolio Intelligence",
+      question: "¿Cuántas apuestas distintas tienes realmente?",
+      body:
+        "Confirma tus posiciones, identifica clusters y correlaciones ocultas, y construye una cola semanal de empresas con KPI y pruebas concretas.",
+      note: "Cartera propia · apuestas efectivas · canales investigables",
+      cta: "Analizar mi cartera",
+    },
     modules: [
       {
         index: "01",
         label: "Valoración",
         title: "AURORA",
-        question: "¿Vale la acción lo que cuesta?",
-        body: "Precio contra valor, calidad del negocio y qué tendría que ser cierto para que la tesis falle.",
-        spec: "10-K · ROIC · FCF · margen de seguridad",
+        question: "¿Qué valor tiene?",
+        body: "Compara el precio con una estimación de valor y revisa qué supuestos la sostienen.",
+        spec: "Precio · caja · rentabilidad · supuestos",
         href: "/aurora",
         cta: "Abrir AURORA",
       },
       {
         index: "02",
-        label: "Selección",
+        label: "Búsqueda de oportunidades",
         title: "FactorLab",
-        question: "¿Qué acciones merecen atención?",
-        body: "Candidatas ordenadas con las reglas a la vista. Sin cajas negras, sin señales mágicas.",
-        spec: "ranking reproducible · reglas visibles",
+        question: "¿Qué oportunidad merece atención?",
+        body: "Encuentra empresas que vale la pena revisar antes de dedicarles horas.",
+        spec: "filtros básicos · razones para revisar",
         href: "/factorlab",
         cta: "Abrir FactorLab",
       },
@@ -77,85 +89,97 @@ const COPY = {
         index: "03",
         label: "Riesgo de cartera",
         title: "Stress Engine",
-        question: "¿Qué tan mal puede salir?",
-        body: "Miles de escenarios adversos contra la cartera real. La pérdida, su probabilidad y sus causas, a la vista.",
-        spec: "5.000 escenarios · CVaR · atribución de cola",
+        question: "¿Qué puede salir mal?",
+        body: "Mide cuánto puede caer tu cartera y qué posiciones explican la pérdida.",
+        spec: "escenarios adversos · pérdida · causas",
         href: "/stress",
         cta: "Probar mi cartera",
         gated: true,
         requiresAccount: true,
       },
     ],
-    workflowKicker: "El proceso",
+    workflowKicker: "La decisión completa",
     workflowSteps: [
-      ["01", "Valora la empresa."],
-      ["02", "Ordena la oportunidad."],
-      ["03", "Estresa la cartera."],
+      ["00", "¿Qué apuestas tienes y dónde podrías tener una señal?"],
+      ["01", "¿Qué valor tiene?"],
+      ["02", "¿Merece atención?"],
+      ["03", "¿Qué puede salir mal?"],
     ],
-    workflowClosing: "Recién entonces se mueve el capital.",
+    workflowClosing: "Y por último: ¿qué tamaño merece?",
   },
   en: {
     languageName: "English",
     languageAria: "Choose language",
     login: "Sign in",
-    kicker: "BLS Prime · Institutional research terminal",
-    category: "Institutional research terminal for equity decisions.",
-    headline: "Before capital moves, the thesis is tested.",
+    kicker: "BLS Prime · Clear information for investment decisions",
+    category: "A practical way to study companies, opportunities, and portfolio risk before investing.",
+    headline: "Information matters most when you have to decide.",
     subheadline:
-      "Fundamental valuation, rule-visible selection, and portfolio stress. One disciplined system.",
-    ctaPrimary: "Enter the terminal",
+      "BLS Prime brings valuation, opportunity search, and portfolio risk into one process.",
+    ctaPrimary: "Create workspace",
     ctaSecondary: "See the modules",
+    sampleDisclosure: "Illustrative example with sample data.",
     footer: "Research software. Not financial advice.",
     terms: "Terms",
     terminal: {
       title: "BLS PRIME · RESEARCH",
-      meta: "audited session",
+      meta: "Illustrative example with sample data",
       pane1Title: "Valuation",
       pane1Tag: "AURORA",
       ticker: "TXN",
       kv1: [
         ["Price", "price"],
         ["Intrinsic value", "$168 – 214"],
-        ["Margin of safety", "mos"],
+        ["Difference from estimated value", "mos"],
         ["ROIC", "32.8%"],
-        ["FCF yield", "3.6%"],
+        ["Cash return", "3.6%"],
       ],
       verdict: "In range",
       pane2Title: "Selection",
-      pane2Tag: "FACTORLAB",
-      rankHeader: ["Ticker", "Score"],
+      pane2Tag: "SEARCH",
+      rankHeader: ["Company", "Priority"],
       pane3Title: "Stress",
-      pane3Tag: "STRESS ENGINE",
+      pane3Tag: "RISK",
       stressBigLabel: "CVaR 5% · 20 days",
       kv3: [
         ["P(loss)", "ploss"],
         ["P(drawdown ≤ −10%)", "dd"],
         ["Worst scenario", "worst"],
       ],
-      stressFoot: "5,000 scenarios · regime: crisis · seed 8841",
-      statusline: "audited factor bank · reproducible run · scenarios, not predictions",
+      stressFoot: "Example · adverse scenarios, not forecasts",
+      statusline: "Illustrative example · visible rules and assumptions",
     },
-    modulesKicker: "The system",
-    modulesTitle: "Three modules. One decision.",
-    modulesSub: "Each module is a part of the same terminal, not a loose tool.",
+    modulesKicker: "The process",
+    modulesTitle: "Before investing, answer five questions.",
+    modulesSub: "BLS Prime does not decide for you. It organizes the information so you can decide better.",
+    channel: {
+      index: "00",
+      label: "Portfolio intelligence",
+      title: "Portfolio Intelligence",
+      question: "How many distinct bets do you actually own?",
+      body:
+        "Confirm your holdings, find hidden correlation clusters, and build a weekly company queue with concrete KPIs and public tests.",
+      note: "Your portfolio · effective bets · testable channels",
+      cta: "Analyze my portfolio",
+    },
     modules: [
       {
         index: "01",
         label: "Valuation",
         title: "AURORA",
-        question: "Is the stock worth its price?",
-        body: "Price against value, business quality, and what would have to be true for the thesis to fail.",
-        spec: "10-K · ROIC · FCF · margin of safety",
+        question: "What is it worth?",
+        body: "Compare price with an estimated value and review the assumptions behind it.",
+        spec: "Price · cash · returns · assumptions",
         href: "/aurora",
         cta: "Open AURORA",
       },
       {
         index: "02",
-        label: "Selection",
+        label: "Opportunity search",
         title: "FactorLab",
-        question: "Which stocks deserve attention?",
-        body: "Candidates ranked with the rules in plain sight. No black boxes, no magic signals.",
-        spec: "reproducible ranking · visible rules",
+        question: "Which opportunity deserves attention?",
+        body: "Find companies worth reviewing before you spend hours on them.",
+        spec: "basic filters · reasons to review",
         href: "/factorlab",
         cta: "Open FactorLab",
       },
@@ -163,22 +187,23 @@ const COPY = {
         index: "03",
         label: "Portfolio risk",
         title: "Stress Engine",
-        question: "How bad can it get?",
-        body: "Thousands of adverse scenarios against the actual portfolio. The loss, its probability, and its causes, in plain sight.",
-        spec: "5,000 scenarios · CVaR · tail attribution",
+        question: "What can go wrong?",
+        body: "Measure how far your portfolio could fall and which positions explain the loss.",
+        spec: "adverse scenarios · loss · causes",
         href: "/stress",
         cta: "Test my portfolio",
         gated: true,
         requiresAccount: true,
       },
     ],
-    workflowKicker: "The workflow",
+    workflowKicker: "The full decision",
     workflowSteps: [
-      ["01", "Value the company."],
-      ["02", "Rank the opportunity."],
-      ["03", "Stress the portfolio."],
+      ["00", "What bets do you own, and where might you have a signal?"],
+      ["01", "What is it worth?"],
+      ["02", "Does it deserve attention?"],
+      ["03", "What can go wrong?"],
     ],
-    workflowClosing: "Only then does capital move.",
+    workflowClosing: "Finally: what position size is appropriate?",
   },
 };
 
@@ -200,13 +225,6 @@ const METRIC_BANDS = {
 
 function normalizeLanguage(value) {
   return value === "en" ? "en" : "es";
-}
-
-function getInitialLanguage() {
-  if (typeof window === "undefined") return "es";
-  const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  if (stored === "en" || stored === "es") return stored;
-  return window.navigator.language?.toLowerCase().startsWith("en") ? "en" : "es";
 }
 
 function usePrefersReducedMotion() {
@@ -376,21 +394,15 @@ function TerminalSim({ copy, reducedMotion }) {
   );
 }
 
-export function PublicHomeExperience({ brand }) {
-  const [language, setLanguage] = useState("es");
-  const [resolved, setResolved] = useState(false);
+export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
+  const [language, setLanguage] = useState(() => normalizeLanguage(initialLanguage));
   const reducedMotion = usePrefersReducedMotion();
   const copy = COPY[language];
-  const displayBrand = "BL'S";
+  const displayBrand = brand || "BLS Prime";
 
   useEffect(() => {
-    setLanguage(getInitialLanguage());
-    setResolved(true);
-  }, []);
-
-  useEffect(() => {
-    if (resolved) writeStoredLanguage(language);
-  }, [language, resolved]);
+    writeStoredLanguage(language);
+  }, [language]);
 
   useReveal();
 
@@ -402,11 +414,13 @@ export function PublicHomeExperience({ brand }) {
         </Link>
         <div className={styles.topActions}>
           <LanguageToggle copy={copy} language={language} onChange={setLanguage} />
-          <Link className={styles.loginLink} href={`/login?lang=${language}`}>
+          <Link className={styles.loginLink} href={"/login?intent=signin&lang=" + language}>
             {copy.login}
           </Link>
         </div>
       </header>
+
+      <BreakpointHero language={language} />
 
       <section className={styles.hero} aria-labelledby="home-title">
         <div className={styles.heroCopy}>
@@ -417,7 +431,7 @@ export function PublicHomeExperience({ brand }) {
           </h1>
           <p className={styles.subheadline}>{copy.subheadline}</p>
           <div className={styles.ctaRow}>
-            <Link className={styles.ctaPrimary} href={`/login?lang=${language}`}>
+            <Link className={styles.ctaPrimary} href={"/login?intent=signup&lang=" + language}>
               {copy.ctaPrimary}
             </Link>
             <a className={styles.ctaSecondary} href="#modules">
@@ -426,6 +440,7 @@ export function PublicHomeExperience({ brand }) {
           </div>
         </div>
         <div className={styles.terminalWrap}>
+          <p className={styles.visuallyHidden}>{copy.sampleDisclosure}</p>
           <TerminalSim copy={copy} reducedMotion={reducedMotion} />
         </div>
       </section>
@@ -436,6 +451,30 @@ export function PublicHomeExperience({ brand }) {
           <h2 className={styles.sectionTitle}>{copy.modulesTitle}</h2>
           <p className={styles.sectionSub}>{copy.modulesSub}</p>
         </div>
+
+        <Link
+          className={`${styles.channelStrip} ${styles.reveal}`}
+          href={`/channels?lang=${language}`}
+        >
+          <span className={styles.channelStripTop}>
+            <span className={styles.channelIndex}>{copy.channel.index}</span>
+            <span className={styles.channelLabel}>{copy.channel.label}</span>
+          </span>
+          <span className={styles.channelStripMain}>
+            <span>
+              <strong className={styles.channelTitle}>{copy.channel.title}</strong>
+              <span className={styles.channelQuestion}>{copy.channel.question}</span>
+            </span>
+            <span className={styles.channelBody}>{copy.channel.body}</span>
+          </span>
+          <span className={styles.channelStripFoot}>
+            <span className={styles.channelNote}>{copy.channel.note}</span>
+            <em className={styles.moduleCta}>
+              {copy.channel.cta}
+              <span className={styles.ctaArrow}>→</span>
+            </em>
+          </span>
+        </Link>
 
         <nav className={styles.moduleDeck} aria-label="BLS Prime modules">
           {copy.modules.map((module, i) => {
@@ -483,7 +522,7 @@ export function PublicHomeExperience({ brand }) {
         </ol>
         <p className={`${styles.closing} ${styles.reveal}`}>{copy.workflowClosing}</p>
         <div className={`${styles.closingCtaRow} ${styles.reveal}`}>
-          <Link className={styles.ctaPrimary} href={`/login?lang=${language}`}>
+          <Link className={styles.ctaPrimary} href={"/login?intent=signup&lang=" + language}>
             {copy.ctaPrimary}
           </Link>
         </div>
@@ -491,7 +530,7 @@ export function PublicHomeExperience({ brand }) {
 
       <footer className={styles.footer}>
         <span>{copy.footer}</span>
-        <Link href="/terms">{copy.terms}</Link>
+        <Link href={"/terms?lang=" + language}>{copy.terms}</Link>
       </footer>
     </main>
   );

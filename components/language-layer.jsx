@@ -1,11 +1,25 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { LANGUAGE_COOKIE_KEY, shouldPersistQueryLocale } from "@/lib/i18n/locale";
 
-export const LANGUAGE_STORAGE_KEY = "blsprime_language_preference";
+export const LANGUAGE_STORAGE_KEY = LANGUAGE_COOKIE_KEY;
 
 const SUPPORTED_LANGUAGES = new Set(["en", "es"]);
 const LANGUAGE_EVENT = "blsprime:language";
+const COMPONENT_LOCALIZED_PATHS = new Set([
+  "/",
+  "/login",
+  "/forgot-password",
+  "/reset-password",
+  "/terms",
+  "/aurora",
+  "/valuation-os-lab",
+  "/factorlab",
+  "/stress",
+  "/channels",
+]);
 
 const TEXT_TRANSLATIONS = {
   "Back to home": "Volver al inicio",
@@ -107,7 +121,7 @@ const TEXT_TRANSLATIONS = {
   "Explain": "Explicar",
   "Company brief": "Informe de compañía",
   "Company work in a concise research brief": "Trabajo de compañía en un informe conciso",
-  "Open the current memo, the valuation debate, and the sources without leaving the workspace.": "Abre el informe actual, el debate de valoración y las fuentes sin salir del espacio de trabajo.",
+  "Open the current memo, the valuation review, and the sources without leaving the workspace.": "Abre el informe actual, la revisión de valoración y las fuentes sin salir del espacio de trabajo.",
   "Holdings": "Posiciones",
   "Update": "Actualizar",
   "Positions and edits": "Posiciones y ediciones",
@@ -190,7 +204,7 @@ const TEXT_TRANSLATIONS = {
   "Artifacts": "Artefactos",
   "Memo": "Memo",
   "Value": "Valor",
-  "Debate": "Debate",
+  "Review": "Revisión",
   "Sources": "Fuentes",
   "Changes": "Cambios",
   "Portfolio path will appear here": "La trayectoria del portafolio aparecerá aquí",
@@ -308,15 +322,36 @@ export function normalizeLanguage(value) {
   return SUPPORTED_LANGUAGES.has(value) ? value : "en";
 }
 
+function readLanguageCookie() {
+  if (typeof document === "undefined") return null;
+  const prefix = LANGUAGE_STORAGE_KEY + "=";
+  const entry = document.cookie
+    .split(";")
+    .map((item) => item.trim())
+    .find((item) => item.startsWith(prefix));
+  return entry ? decodeURIComponent(entry.slice(prefix.length)) : null;
+}
+
+function writeLanguageCookie(language) {
+  if (typeof document === "undefined") return;
+  document.cookie = LANGUAGE_STORAGE_KEY + "=" + encodeURIComponent(language) + "; Path=/; Max-Age=31536000; SameSite=Lax";
+}
+
 export function readStoredLanguage() {
   if (typeof window === "undefined") return "en";
   try {
     const urlLanguage = new URLSearchParams(window.location.search).get("lang");
-    if (SUPPORTED_LANGUAGES.has(urlLanguage)) {
+    if (SUPPORTED_LANGUAGES.has(urlLanguage) && shouldPersistQueryLocale({
+      pathname: window.location.pathname,
+      queryLanguage: urlLanguage,
+    })) {
       window.localStorage.setItem(LANGUAGE_STORAGE_KEY, urlLanguage);
+      writeLanguageCookie(urlLanguage);
       return urlLanguage;
     }
   } catch {}
+  const cookieLanguage = readLanguageCookie();
+  if (SUPPORTED_LANGUAGES.has(cookieLanguage)) return cookieLanguage;
   try {
     const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (SUPPORTED_LANGUAGES.has(stored)) return stored;
@@ -330,12 +365,13 @@ export function writeStoredLanguage(language) {
   try {
     window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
   } catch {}
+  writeLanguageCookie(nextLanguage);
   document.documentElement.lang = nextLanguage;
   window.dispatchEvent(new CustomEvent(LANGUAGE_EVENT, { detail: { language: nextLanguage } }));
 }
 
-export function useLanguagePreference() {
-  const [language, setLanguageState] = useState("en");
+export function useLanguagePreference(initialLanguage = "en") {
+  const [language, setLanguageState] = useState(() => normalizeLanguage(initialLanguage));
 
   useEffect(() => {
     setLanguageState(readStoredLanguage());
@@ -417,25 +453,22 @@ function translateDocument(language, originalTextByNode) {
   });
 }
 
-export function LanguageLayer() {
-  const { language, setLanguage } = useLanguagePreference();
-  const [path, setPath] = useState("/");
+export function LanguageLayer({ initialLanguage = "en" }) {
+  const { language, setLanguage } = useLanguagePreference(initialLanguage);
+  const path = usePathname() || "/";
   const originalTextByNodeRef = useRef(new WeakMap());
 
   useEffect(() => {
-    setPath(window.location.pathname || "/");
-  }, []);
-
-  useEffect(() => {
-    if (path === "/") {
-      document.documentElement.lang = language;
+    const routeLanguage = path === "/aurora" || path === "/valuation-os-lab" ? "es" : language;
+    if (COMPONENT_LOCALIZED_PATHS.has(path)) {
+      document.documentElement.lang = routeLanguage;
       return;
     }
 
     let frame = 0;
     const run = () => {
       window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => translateDocument(language, originalTextByNodeRef.current));
+      frame = window.requestAnimationFrame(() => translateDocument(routeLanguage, originalTextByNodeRef.current));
     };
 
     run();
@@ -452,9 +485,9 @@ export function LanguageLayer() {
       window.cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [language]);
+  }, [language, path]);
 
-  if (path === "/") return null;
+  if (path === "/" || path === "/channels" || path === "/aurora") return null;
 
   return (
     <div className="global-language-dock" data-no-translate aria-label={language === "es" ? "Elegir idioma" : "Choose language"}>

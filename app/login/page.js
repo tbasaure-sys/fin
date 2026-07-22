@@ -4,11 +4,16 @@ import styles from "@/app/login-page.module.css";
 
 export const dynamic = "force-dynamic";
 
+export const metadata = {
+  title: "Access your workspace",
+  robots: { index: false, follow: false },
+};
+
 const DEFAULT_NEXT = "/app#holdings";
 
 const COPY = {
   en: {
-    back: "Back to BL'S",
+    back: "Back to BLS Prime",
     eyebrow: "Portfolio workspace",
     headline: <>Run Stress on the portfolio <em>you actually own.</em></>,
     lead: "Create a private workspace, enter your holdings, then run the stress engine with an auditable footprint.",
@@ -46,7 +51,7 @@ const COPY = {
     },
   },
   es: {
-    back: "Volver a BL'S",
+    back: "Volver a BLS Prime",
     eyebrow: "Workspace de cartera",
     headline: <>Corre Stress sobre la cartera <em>que realmente tienes.</em></>,
     lead: "Crea un espacio privado, ingresa tus posiciones y corre el motor con una huella auditable.",

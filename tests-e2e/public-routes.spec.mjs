@@ -1,24 +1,26 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Rutas públicas", () => {
-  test("landing carga y muestra los tres módulos", async ({ page }) => {
+  test("landing carga el mapa de canales y los tres módulos", async ({ page }) => {
     const errors = [];
     page.on("pageerror", (err) => errors.push(String(err)));
     await page.goto("/");
     await expect(page).toHaveTitle(/BLS Prime/);
-    await expect(page.getByRole("link", { name: /Entrar a la terminal|Enter the terminal/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Crear espacio de trabajo|Create workspace/i }).first()).toBeVisible();
+    await expect(page.getByRole("link", { name: /Analizar mi cartera|Analyze my portfolio/i })).toBeVisible();
     await expect(page.locator("text=AURORA").first()).toBeVisible();
     await expect(page.locator("text=FactorLab").first()).toBeVisible();
     await expect(page.locator("text=Stress").first()).toBeVisible();
     expect(errors, `Errores JS en consola: ${errors.join("; ")}`).toHaveLength(0);
   });
 
-  test("/aurora redirige a valuation-os-lab y renderiza el veredicto", async ({ page }) => {
+  test("/aurora usa la valoración canónica y no publica el laboratorio heurístico", async ({ page }) => {
     await page.goto("/aurora");
-    await expect(page).toHaveURL(/valuation-os-lab/);
-    await expect(page.locator("text=AURORA").first()).toBeVisible();
-    // Copy corregido: sin errores de tildes en el veredicto por defecto.
-    await expect(page.locator("text=Hay algo acá, pero falta evidencia clave.")).toBeVisible();
+    await expect(page).toHaveURL(/\/aurora$/);
+    await expect(page.getByRole("heading", { name: /Un rango defendible/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Analizar" })).toBeVisible();
+    await expect(page.getByLabel("Ticker")).toHaveValue("MU");
+    await expect(page.locator("text=Hay algo acá, pero falta evidencia clave.")).toHaveCount(0);
   });
 
   test("/factorlab carga y expone el toggle de idioma", async ({ page }) => {
@@ -26,6 +28,28 @@ test.describe("Rutas públicas", () => {
     await expect(page.getByRole("button", { name: "ES", exact: true })).toBeVisible();
     await page.getByRole("button", { name: "ES", exact: true }).click();
     await expect.poll(() => page.evaluate(() => localStorage.getItem("blsprime_language_preference"))).toBe("es");
+  });
+
+  test("/channels es público y presenta portfolio intelligence sin pedir una cuenta", async ({ page }) => {
+    await page.goto("/channels?lang=es");
+    await expect(page).toHaveURL(/\/channels\?lang=es$/);
+    await expect(
+      page.getByRole("heading", { name: /Primero entiende qué apuestas tienes/i }),
+    ).toBeVisible();
+    await expect(page.getByText(/apuestas efectivas, clusters y correlaciones propias/i)).toBeVisible();
+    await expect(page).not.toHaveURL(/\/login/);
+  });
+
+  test("/channels no convierte una observación aislada en una cola de investigación", async ({ page }) => {
+    await page.goto("/channels?lang=es");
+    await page.getByRole("button", { name: "Probar descubrimiento" }).click();
+    await page.getByRole("button", { name: /Flujos de salud/i }).click();
+    await page.getByRole("button", { name: /Una herramienta está entrando/i }).click();
+    await page.getByRole("button", { name: /Uso público/i }).click();
+    await page.getByRole("button", { name: /Fue una observación aislada/i }).click();
+
+    await expect(page.getByText(/Una observación aislada no crea un canal/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Nombres para investigar esta semana/i })).toHaveCount(0);
   });
 
   test("persistencia de idioma: ES sobrevive un reload", async ({ page }) => {

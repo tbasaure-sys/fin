@@ -279,6 +279,7 @@ class DashboardService:
             paths=self.paths,
             fmp_client=FMPClient.from_env(self.paths.cache_root),
             sec_client=SECEdgarClient.from_env(self.paths.cache_root, user_agent=sec_user_agent),
+            enable_yfinance=True,
             enable_llm=_equity_research_llm_enabled_from_env(),
         )
 

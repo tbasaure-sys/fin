@@ -63,6 +63,10 @@ def test_analyze_portfolio_returns_expected_shape(monkeypatch: pytest.MonkeyPatc
     assert payload["diagnostics"]["proxied_holdings"] == []
     assert len(payload["series"]) >= 100
     assert len(payload["contributors"]) == 3
+    assert payload["correlation_matrix"]["tickers"] == ["AAPL", "MSFT", "XOM"]
+    assert np.asarray(payload["correlation_matrix"]["values"]).shape == (3, 3)
+    assert len(payload["clusters"]) >= 1
+    assert sorted(ticker for cluster in payload["clusters"] for ticker in cluster["tickers"]) == ["AAPL", "MSFT", "XOM"]
 
 
 def test_analyze_portfolio_uses_sector_proxy_for_unsupported_tickers(monkeypatch: pytest.MonkeyPatch) -> None:

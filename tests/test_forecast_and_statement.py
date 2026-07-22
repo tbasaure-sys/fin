@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
 from meta_alpha_allocator.config import PathConfig, ResearchSettings
+from meta_alpha_allocator.research import forecast_baselines
 from meta_alpha_allocator.research.forecast_baselines import run_forecast_baselines
 from meta_alpha_allocator.research.statement_intel import run_statement_intelligence
 
@@ -60,6 +62,37 @@ def test_run_forecast_baselines_produces_latest_and_metrics(tmp_path: Path) -> N
     assert "SPY" in artifacts.summary["latest"]
     assert any(row["ticker"] == "SPY" for row in artifacts.summary["metrics"])
     assert (settings.forecast_output_dir / "forecast_summary.json").exists()
+
+
+def test_run_forecast_baselines_recreates_output_dir_before_writing(tmp_path: Path, monkeypatch) -> None:
+    output_dir = tmp_path / "forecast"
+    settings = ResearchSettings(
+        forecast_tickers=("SPY",),
+        forecast_horizons=(5,),
+        forecast_min_training_samples=100,
+        forecast_output_dir=output_dir,
+    )
+    dates = pd.date_range("2025-01-01", periods=3, freq="B")
+    feature_frame = pd.DataFrame(
+        {
+            "date": dates,
+            "ticker": ["SPY"] * len(dates),
+            **{column: [0.0] * len(dates) for column in forecast_baselines.FEATURE_COLUMNS},
+            "target_5d": [0.01, 0.02, np.nan],
+        }
+    )
+
+    def build_after_concurrent_cleanup(*_args, **_kwargs) -> pd.DataFrame:
+        shutil.rmtree(output_dir)
+        return feature_frame
+
+    monkeypatch.setattr(forecast_baselines, "_build_feature_frame", build_after_concurrent_cleanup)
+
+    run_forecast_baselines(_paths(tmp_path), settings, pd.DataFrame(), pd.DataFrame())
+
+    assert (output_dir / "forecast_backtest.csv").exists()
+    assert (output_dir / "latest_forecasts.csv").exists()
+    assert (output_dir / "forecast_summary.json").exists()
 
 
 def test_run_statement_intelligence_scores_names(tmp_path: Path) -> None:

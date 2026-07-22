@@ -3,6 +3,35 @@ import assert from "node:assert/strict";
 
 import { normalizeWorkspaceDashboard } from "../lib/server/normalizers.js";
 
+test("an empty workspace explains that no other user's portfolio is being shown", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "empty-user",
+    snapshot: {
+      generated_at: "2026-07-20T12:00:00.000Z",
+      overview: {},
+      portfolio: {
+        holdings: [],
+        holdings_source: "workspace_portfolio_empty",
+        holdings_source_label: "Sin cartera confirmada",
+        holdings_source_available: false,
+      },
+      screener: { rows: [] },
+      status: { warnings: [], panels: [] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  assert.equal(dashboard.modules.portfolio.holdingsSource.connected, false);
+  assert.match(dashboard.modules.portfolio.holdingsSource.detail, /no hay una cartera confirmada/i);
+  assert.ok(dashboard.data_control.notes.some((note) => /no se muestran posiciones ni métricas de otro usuario/i.test(note)));
+});
+
 test("normalizeWorkspaceDashboard returns terminal-ready modules for empty snapshots", () => {
   const dashboard = normalizeWorkspaceDashboard({
     workspaceId: "alpha-retail",
@@ -231,6 +260,59 @@ test("normalizeWorkspaceDashboard preserves portfolio manager fields for the wor
   assert.equal(holding.totalReturnInclDividendsLabel, "+177.3%");
   assert.equal(dashboard.modules.portfolio.transactions[0].action, "Buy");
   assert.equal(dashboard.modules.portfolio.analytics.totalReturnInclDividends, 0.319);
+});
+
+test("normalizeWorkspaceDashboard derives honest P&L and return from holding cost basis", () => {
+  const dashboard = normalizeWorkspaceDashboard({
+    workspaceId: "cost-basis-user",
+    snapshot: {
+      generated_at: "2026-07-20T12:00:00.000Z",
+      overview: {},
+      portfolio: {
+        holdings_source: "ui_editable_overlay",
+        analytics: {
+          "Holdings Count": 2,
+          "Current Value": 2300,
+          "Cost Basis": 2000,
+          "Unrealized Return": 0.15,
+        },
+        holdings: [
+          {
+            ticker: "AAPL",
+            quantity: 10,
+            avg_cost_usd: 100,
+            market_value_usd: 1500,
+            weight: 1500 / 2300,
+          },
+          {
+            ticker: "MSFT",
+            quantity: 5,
+            avg_cost_usd: 200,
+            market_value_usd: 800,
+            weight: 800 / 2300,
+          },
+        ],
+      },
+      screener: { rows: [] },
+      status: { warnings: [], panels: [] },
+      risk: { spectral: {} },
+      international: {},
+      sectors: {},
+      forecast: {},
+    },
+    watchlist: [],
+    alerts: [],
+    savedViews: [],
+  });
+
+  const portfolio = dashboard.modules.portfolio;
+  assert.equal(portfolio.holdings[0].costBasisUsd, 1000);
+  assert.equal(portfolio.holdings[0].unrealizedPnlUsd, 500);
+  assert.equal(portfolio.holdings[1].unrealizedPnlUsd, -200);
+  assert.equal(portfolio.analytics.activeCostBasisUsd, 2000);
+  assert.equal(portfolio.analytics.unrealizedPnlUsd, 300);
+  assert.equal(portfolio.analytics.totalPnlInclRealizedDividendsUsd, 300);
+  assert.equal(portfolio.analytics.totalReturnInclDividends, 0.15);
 });
 
 test("normalizeWorkspaceDashboard builds live next best moves from screener and portfolio data", () => {

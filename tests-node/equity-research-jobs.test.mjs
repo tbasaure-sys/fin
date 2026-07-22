@@ -8,10 +8,438 @@ import {
   updateEquityResearchJob,
 } from "../lib/server/data/equity-research-jobs.js";
 import {
+  buildDownstreamValuationContext,
+  buildEquityResearchDelta,
   getWorkspaceEquityResearch,
   getWorkspaceEquityResearchJob,
+  sanitizeResearchPayload,
   startWorkspaceEquityResearch,
 } from "../lib/server/equity-research.js";
+
+const RECENT_MARKET_DATE = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const RECENT_FINANCIAL_DATE = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const RECENT_RETRIEVED_AT = new Date().toISOString();
+const RECENT_QUARTER_DATES = [
+  RECENT_FINANCIAL_DATE,
+  ...[135, 225, 315].map((days) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)),
+];
+const RECENT_SEC_ACCESSION = "0000723125-26-000036";
+
+function completeCoverage() {
+  return {
+    status: "complete",
+    score: 100,
+    expected_metrics: 19,
+    covered_expected_metrics: 19,
+    missing_expected_metrics: [],
+    sourced_points_missing_ok_source: [],
+    calculated_points_missing_formula: [],
+  };
+}
+
+function attachDecisionReadyEvidence(payload) {
+  const valuation = payload.valuation;
+  const currency = valuation.currency || payload.company_profile?.currency || "USD";
+  const price = valuation.current_price;
+  const central = valuation.range?.central;
+  const revenue = payload.financials?.ttm?.revenue ?? payload.financials?.ratios?.latest_revenue ?? 100;
+  const shares = payload.financials?.ttm?.diluted_shares ?? 10;
+  const independentPrice = price;
+  const coverage = completeCoverage();
+  const calculated = (metric, normalizedValue) => ({
+    metric,
+    normalized_value: normalizedValue,
+    claim_tag: "calculated_metric",
+    formula: `reconciled calculation for ${metric}`,
+  });
+
+  valuation.financial_data_as_of = RECENT_FINANCIAL_DATE;
+  valuation.market_data_as_of = RECENT_MARKET_DATE;
+  if (valuation.price_validation?.status === "validated") {
+    valuation.price_validation = {
+      ...valuation.price_validation,
+      usable: true,
+      provider_corroborated: true,
+      independent_price_observation: true,
+      sources: ["FMP stable quote", "Official market close"],
+      independent_observation: {
+        source_id: "market:independent-close",
+        source_family: "official_exchange_feed",
+        price: independentPrice,
+        as_of: RECENT_MARKET_DATE,
+        currency,
+      },
+    };
+  }
+  payload.financials = {
+    ...(payload.financials || {}),
+    ttm: { date: RECENT_FINANCIAL_DATE, revenue, diluted_shares: shares },
+  };
+  payload.sources = {
+    ...(payload.sources || {}),
+    coverage,
+    records: [
+      { source_id: "fmp:profile", provider: "fmp", endpoint_or_filing: `profile/${payload.ticker}`, status: "ok", retrieved_at: RECENT_RETRIEVED_AT, row_count: 1 },
+      { source_id: "fmp:quote", provider: "fmp", endpoint_or_filing: `quote/${payload.ticker}`, status: "ok", retrieved_at: RECENT_RETRIEVED_AT, row_count: 1 },
+      { source_id: "fmp:prices", provider: "fmp", endpoint_or_filing: `historical-price-eod/full?symbol=${payload.ticker}`, status: "ok", retrieved_at: RECENT_RETRIEVED_AT, row_count: 10 },
+      { source_id: "fmp:income:quarterly", provider: "fmp", endpoint_or_filing: `income-statement/${payload.ticker}?period=quarter&limit=8`, status: "ok", retrieved_at: RECENT_RETRIEVED_AT, row_count: 8 },
+      {
+        source_id: "sec:companyfacts:income",
+        provider: "sec-edgar",
+        endpoint_or_filing: `api/xbrl/companyfacts/CIK{resolved_from_${payload.ticker}}.json`,
+        status: "ok",
+        retrieved_at: RECENT_RETRIEVED_AT,
+        row_count: 5,
+        targets_covered: ["revenue", "weightedAverageShsOutDil"],
+      },
+      {
+        source_id: "sec:submissions",
+        provider: "sec-edgar",
+        endpoint_or_filing: `submissions/CIK{resolved_from_${payload.ticker}}.json`,
+        status: "ok",
+        retrieved_at: RECENT_RETRIEVED_AT,
+        row_count: 5,
+      },
+      {
+        source_id: "market:independent-close",
+        source_family: "official_exchange_feed",
+        status: "ok",
+        retrieved_at: RECENT_RETRIEVED_AT,
+        observed_price: independentPrice,
+        as_of: RECENT_MARKET_DATE,
+        currency,
+      },
+    ],
+    data_points: [
+      { metric: "company_profile", normalized_value: payload.company_profile?.name || payload.ticker, claim_tag: "sourced_fact", source_id: "fmp:profile" },
+      calculated("latest_revenue", revenue),
+      calculated("latest_diluted_shares", shares),
+      calculated("latest_free_cash_flow", payload.financials?.ratios?.latest_fcf ?? 15),
+      calculated("revenue_cagr_5y", payload.financials?.ratios?.revenue_cagr_5y ?? 0.08),
+      calculated("gross_margin", 0.32),
+      calculated("operating_margin", 0.18),
+      calculated("fcf_margin", payload.financials?.ratios?.fcf_margin ?? 0.15),
+      calculated("roic", payload.financials?.ratios?.roic ?? 0.14),
+      calculated("net_debt", payload.financials?.ratios?.net_debt ?? 10),
+      { metric: "base_fcf_margin", normalized_value: 0.16, claim_tag: "assumption", formula: "normalized operating margin" },
+      { metric: "wacc", normalized_value: 0.09, claim_tag: "assumption", formula: "price-independent operating risk rate" },
+      { metric: "terminal_growth", normalized_value: 0.02, claim_tag: "assumption", formula: "bounded below discount rate" },
+      { metric: "current_price", normalized_value: price, claim_tag: "sourced_fact", source_id: "fmp:quote" },
+      calculated("valuation_range_low", valuation.range?.low),
+      calculated("valuation_range_central", central),
+      calculated("valuation_range_high", valuation.range?.high),
+      calculated("reverse_dcf_status", "solved"),
+      calculated("ev_to_sales", valuation.multiples?.ev_to_sales ?? 4.2),
+      calculated("price_to_fcf", valuation.multiples?.price_to_fcf ?? 18.5),
+      { metric: "latest_sec_filing", normalized_value: RECENT_SEC_ACCESSION, claim_tag: "sourced_fact", source_id: "sec:submissions" },
+      {
+        metric: "financials.ttm.revenue",
+        normalized_value: revenue,
+        claim_tag: "calculated_metric",
+        formula: "sum of four reconciled quarters",
+        source_ids: ["fmp:income:quarterly", "sec:companyfacts:income"],
+        quarter_dates: RECENT_QUARTER_DATES,
+      },
+      {
+        metric: "financials.ttm.diluted_shares",
+        normalized_value: shares,
+        claim_tag: "calculated_metric",
+        formula: "average diluted shares reconciled to SEC",
+        source_ids: ["fmp:income:quarterly", "sec:companyfacts:income"],
+        quarter_dates: RECENT_QUARTER_DATES,
+      },
+    ],
+  };
+  payload.audit = { ...(payload.audit || {}), status: "pass", findings: [], coverage: { ...coverage } };
+  return payload;
+}
+
+test("unbacked payload sanitizer is allowlisted, idempotent, and cannot leak precise valuation aliases", () => {
+  const sentinel = 9876543;
+  const unsafeText = `Our midpoint is $${sentinel} fair value`;
+  const secret = "Authorization: Bearer PRIVATE_BACKEND_SECRET";
+  const payload = {
+    ok: true,
+    ticker: "MU",
+    mode: "quick",
+    generated_at: "2026-07-14T12:00:00.000Z",
+    company_profile: { name: "Micron Technology", currency: "USD", industry: "Semiconductors" },
+    financials: { annual: [], ratios: {}, quality_flags: [] },
+    valuation: institutionalValuation({
+      status: "research_grade",
+      archetype: secret,
+      primary_method: secret,
+      cash_flow_basis: secret,
+      current_price: sentinel,
+      fair_value_central: sentinel,
+      scenario_summary: { base_value: sentinel },
+      range: { low: 88, central: 112, high: 139 },
+      selected_value: sentinel,
+      price_validation: { status: "provider_reconciled", usable: false, sources: ["FMP"] },
+      reliability: { usable: true, status: "medium", score: 0.65, reasons: [unsafeText], limitations: [unsafeText] },
+      scenarios: [{ name: "base", assumptions: { midpoint: sentinel }, intrinsic_value_per_share: sentinel }],
+      methods: [{ key: secret, role: secret, value_per_share: sentinel }],
+    }),
+    report_markdown: `# MU\n\n${unsafeText}\n\n| Base | $${sentinel} |`,
+    memo: { executive_judgment: unsafeText },
+    executive_summary: unsafeText,
+    final_analysis: unsafeText,
+    sources: {
+      coverage: { score: 100 },
+      records: [{ source_id: secret, provider: secret, error: secret, raw: { fair_value: sentinel } }],
+      data_points: [{ metric: secret, raw_value: secret, normalized_value: sentinel, formula: secret, source_id: secret }],
+    },
+    audit: { status: "needs_attention", findings: [{ severity: "low", code: "valuation_not_decision_ready", message: unsafeText }] },
+    assumptions: { fair_value: sentinel },
+    assumptions_yml: `fair_value: ${sentinel}\n`,
+    agents: { agents: [{ summary: unsafeText }], final_orchestrator: { analysis: { executive_judgment: unsafeText } } },
+    downloads: [
+      { filename: "MU_audit.json", media_type: "application/json", encoding: "base64", content_base64: Buffer.from(unsafeText).toString("base64") },
+      { filename: "MU_assumptions.yml", media_type: "application/yaml", encoding: "base64", content_base64: Buffer.from(unsafeText).toString("base64") },
+      { filename: "MU_sources.json", media_type: "application/json", encoding: "base64", content_base64: Buffer.from(unsafeText).toString("base64") },
+    ],
+  };
+
+  const sanitized = sanitizeResearchPayload(payload);
+
+  assert.deepEqual(sanitized.valuation.range, { low: null, central: null, high: null });
+  assert.equal(sanitized.valuation.current_price, null);
+  assert.equal(JSON.stringify(sanitized).includes(String(sentinel)), false);
+  assert.equal(JSON.stringify(sanitized).includes(secret), false);
+  assert.deepEqual(sanitized.valuation.methods, []);
+  assert.deepEqual(sanitized.sources.records, []);
+  assert.deepEqual(sanitized.sources.data_points, []);
+  for (const artifact of sanitized.downloads) {
+    const decoded = Buffer.from(artifact.content_base64, "base64").toString("utf8");
+    assert.equal(decoded.includes(String(sentinel)), false, artifact.filename);
+  }
+  assert.deepEqual(sanitizeResearchPayload(sanitized), sanitized);
+  assert.equal("memo" in sanitized, false);
+  assert.equal("executive_summary" in sanitized, false);
+  assert.equal("final_analysis" in sanitized, false);
+});
+
+test("fatal audit findings suppress even a research-grade range", () => {
+  const payload = {
+    ticker: "MU",
+    company_profile: { name: "Micron", currency: "USD" },
+    valuation: institutionalValuation({
+      status: "research_grade",
+      range: { low: 88, central: 112, high: 139 },
+      price_validation: { status: "provider_reconciled", usable: false },
+      reliability: { usable: true, status: "medium", score: 0.65, reasons: [], limitations: [] },
+    }),
+    audit: { status: "needs_attention", findings: [{ severity: "high", code: "unit_mismatch", message: "bad units" }] },
+  };
+
+  const sanitized = sanitizeResearchPayload(payload);
+
+  assert.deepEqual(sanitized.valuation.range, { low: null, central: null, high: null });
+});
+
+test("blocked valuation keeps a concrete safe reason without leaking an unvalidated price", () => {
+  const safeReason = "El nivel de ingresos de los últimos doce meses queda fuera del ciclo histórico verificable.";
+  const payload = {
+    ticker: "MU",
+    company_profile: { name: "Micron", currency: "USD" },
+    valuation: institutionalValuation({
+      available: false,
+      status: "not_decision_ready",
+      reason: safeReason,
+      range: { low: null, central: null, high: null },
+      price_validation: { status: "provider_reconciled", usable: false },
+      reliability: { usable: false, status: "blocked", score: 0, reasons: [], limitations: [] },
+    }),
+  };
+
+  const sanitized = sanitizeResearchPayload(payload);
+  assert.equal(sanitized.valuation.reason, safeReason);
+
+  const unsafe = sanitizeResearchPayload({
+    ...payload,
+    valuation: { ...payload.valuation, reason: "El fair value central es $31.83." },
+  });
+  assert.doesNotMatch(unsafe.valuation.reason, /31\.83|fair value/i);
+});
+
+function institutionalValuation(overrides = {}) {
+  return {
+    available: true,
+    model_version: "institutional_valuation_v3",
+    status: "decision_ready",
+    archetype: "capacity_cycle",
+    primary_method: "forward_fcff_dcf",
+    current_price: 104.5,
+    currency: "USD",
+    market_data_as_of: RECENT_MARKET_DATE,
+    financial_data_as_of: RECENT_FINANCIAL_DATE,
+    price_validation: {
+      status: "validated",
+      usable: true,
+      provider_corroborated: true,
+      independent_price_observation: true,
+      sources: ["FMP stable quote", "Official market close"],
+      independent_observation: {
+        source_id: "market:independent-close",
+        source_family: "official_exchange_feed",
+        price: 104.5,
+        as_of: RECENT_MARKET_DATE,
+        currency: "USD",
+      },
+    },
+    range: { low: 88, central: 112, high: 139 },
+    selected_value: 112,
+    scenarios: [{ name: "base", intrinsic_value_per_share: 112 }],
+    reverse_dcf: { available: true, implied_revenue_cagr: 0.05, weight: 0 },
+    multiples: { ev_to_sales: 7, price_to_fcf: 24 },
+    reliability: {
+      usable: true,
+      status: "high",
+      score: 0.82,
+      reasons: ["Price and share count reconcile."],
+      limitations: ["Cyclical margins remain uncertain."],
+    },
+    ...overrides,
+  };
+}
+
+function researchPayloadWithValuation(valuation, overrides = {}) {
+  return attachDecisionReadyEvidence({
+    ticker: "MU",
+    company_profile: { name: "Micron Technology, Inc.", currency: "USD" },
+    financials: {
+      annual: [{ date: "2025-08-28", revenue: 37_000, free_cash_flow: 1_700 }],
+      ratios: { latest_revenue: 37_000, latest_fcf: 1_700, fcf_margin: 0.046 },
+    },
+    audit: { status: "pass", findings: [] },
+    sources: {},
+    valuation,
+    ...overrides,
+  });
+}
+
+test("downstream valuation context exposes precise figures only for fully validated decision-ready v2 payloads", () => {
+  const ready = buildDownstreamValuationContext(researchPayloadWithValuation(institutionalValuation()));
+
+  assert.equal(ready.backed, true);
+  assert.equal(ready.model_version, "institutional_valuation_v3");
+  assert.equal(ready.status, "decision_ready");
+  assert.deepEqual(ready.range, { low: 88, central: 112, high: 139 });
+  assert.equal(ready.current_price, 104.5);
+  assert.equal(ready.primary_method, "forward_fcff_dcf");
+  assert.equal(ready.reliability.status, "high");
+  assert.equal(ready.market_data_as_of, RECENT_MARKET_DATE);
+  assert.equal(ready.currency, "USD");
+  assert.equal(ready.price_validation.status, "validated");
+
+  const researchGrade = buildDownstreamValuationContext(researchPayloadWithValuation(institutionalValuation({
+    status: "research_grade",
+    reliability: {
+      usable: true,
+      status: "medium",
+      score: 0.62,
+      reasons: ["Method dispersion is elevated."],
+      limitations: ["Use only as a research range."],
+    },
+  })));
+
+  assert.equal(researchGrade.backed, false);
+  assert.equal(researchGrade.status, "research_grade");
+  assert.equal(researchGrade.range, null);
+  assert.equal(researchGrade.current_price, null);
+  assert.equal(researchGrade.primary_method, "forward_fcff_dcf");
+  assert.equal(researchGrade.reliability.status, "medium");
+  assert.equal(researchGrade.market_data_as_of, RECENT_MARKET_DATE);
+  assert.equal(researchGrade.currency, "USD");
+  assert.equal(researchGrade.figures_withheld, true);
+
+  const legacy = buildDownstreamValuationContext(researchPayloadWithValuation({
+    available: true,
+    current_price: 983.12,
+    scenarios: [{ name: "base", intrinsic_value_per_share: 31.83 }],
+  }));
+
+  assert.equal(legacy.backed, false);
+  assert.equal(legacy.model_version, null);
+  assert.equal(legacy.status, "not_decision_ready");
+  assert.equal(legacy.range, null);
+  assert.equal(legacy.current_price, null);
+  assert.equal(legacy.primary_method, null);
+  assert.equal(legacy.figures_withheld, true);
+
+  const missingPrice = buildDownstreamValuationContext(researchPayloadWithValuation(institutionalValuation({
+    current_price: null,
+  })));
+  assert.equal(missingPrice.backed, false);
+  assert.equal(missingPrice.range, null);
+
+  const nonCanonicalPriceStatus = buildDownstreamValuationContext(researchPayloadWithValuation(institutionalValuation({
+    price_validation: {
+      status: "verified",
+      usable: true,
+      sources: ["unrecognized canonical status"],
+    },
+  })));
+  assert.equal(nonCanonicalPriceStatus.backed, false);
+  assert.equal(nonCanonicalPriceStatus.range, null);
+});
+
+test("equity research deltas compare the v2 range only when both runs are backed in the same currency", () => {
+  const previousPayload = researchPayloadWithValuation(institutionalValuation({
+    range: { low: 80, central: 100, high: 125 },
+    selected_value: 100,
+    reverse_dcf: { available: true, implied_revenue_cagr: 0.04, weight: 0 },
+  }));
+  const currentPayload = researchPayloadWithValuation(institutionalValuation({
+    range: { low: 88, central: 112, high: 139 },
+    selected_value: 112,
+    reverse_dcf: { available: true, implied_revenue_cagr: 0.05, weight: 0 },
+  }));
+  currentPayload.financials.ratios.latest_fcf = null;
+  const previousRun = {
+    id: "previous-ready-run",
+    generatedAt: "2026-07-13T12:00:00.000Z",
+    payload: previousPayload,
+  };
+
+  const readyDelta = buildEquityResearchDelta(currentPayload, previousRun);
+  const readyKeys = readyDelta.changes.map((change) => change.key);
+
+  assert.equal(readyDelta.valuation.comparable, true);
+  assert.deepEqual(readyDelta.valuation.current.range, { low: 88, central: 112, high: 139 });
+  assert.deepEqual(readyDelta.valuation.previous.range, { low: 80, central: 100, high: 125 });
+  assert.ok(readyKeys.includes("valuation_low"));
+  assert.ok(readyKeys.includes("valuation_central"));
+  assert.ok(readyKeys.includes("valuation_high"));
+  assert.ok(readyKeys.includes("implied_growth"));
+  assert.ok(!readyKeys.includes("base_value"));
+  assert.ok(!readyKeys.includes("latest_fcf"));
+
+  const researchGradePayload = researchPayloadWithValuation(institutionalValuation({
+    status: "research_grade",
+    reliability: {
+      usable: true,
+      status: "medium",
+      score: 0.62,
+      reasons: ["Method dispersion is elevated."],
+      limitations: [],
+    },
+  }));
+  const guardedDelta = buildEquityResearchDelta(researchGradePayload, previousRun);
+  const guardedKeys = guardedDelta.changes.map((change) => change.key);
+
+  assert.equal(guardedDelta.valuation.comparable, false);
+  assert.equal(guardedDelta.valuation.current.range, null);
+  assert.ok(!guardedKeys.some((key) => key.startsWith("valuation_")));
+  assert.ok(!guardedKeys.includes("implied_growth"));
+
+  const crossCurrencyPayload = researchPayloadWithValuation(institutionalValuation({ currency: "EUR" }));
+  const crossCurrencyDelta = buildEquityResearchDelta(crossCurrencyPayload, previousRun);
+  const crossCurrencyKeys = crossCurrencyDelta.changes.map((change) => change.key);
+  assert.equal(crossCurrencyDelta.valuation.comparable, false);
+  assert.ok(!crossCurrencyKeys.some((key) => key.startsWith("valuation_")));
+  assert.ok(!crossCurrencyKeys.includes("implied_growth"));
+});
 
 test("equity research jobs persist a durable local id and backend run mapping", async () => {
   const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
@@ -162,8 +590,9 @@ test("equity research direct path returns a visible degraded memo when backend i
     assert.equal(bundle.ok, true);
     assert.equal(bundle.ticker, "UNH");
     assert.equal(bundle.audit.status, "needs_attention");
-    assert.match(bundle.report_markdown, /did not return source-backed data/i);
-    assert.match(bundle.sources.records[0].error, /simulated backend outage/i);
+    assert.match(bundle.report_markdown, /No se publican cifras de valoración/i);
+    assert.deepEqual(bundle.sources.records, []);
+    assert.doesNotMatch(JSON.stringify(bundle), /simulated backend outage/i);
   } finally {
     globalThis.fetch = previousFetch;
     if (previousBackend === undefined) {
@@ -242,7 +671,7 @@ test("equity research adds one Vercel final orchestrator call when backend skips
     ticker: "AAPL",
     mode: "quick",
     generated_at: "2026-04-19T12:00:00.000Z",
-    company_profile: { name: "Apple Inc.", sector: "Technology" },
+    company_profile: { name: "Apple Inc.", sector: "Technology", currency: "USD" },
     financials: {
       annual: [{ date: "2025-09-30", revenue: 100, free_cash_flow: 30, total_debt: 20, cash: 40 }],
       ratios: {
@@ -256,21 +685,42 @@ test("equity research adds one Vercel final orchestrator call when backend skips
       },
       quality_flags: [],
     },
-    valuation: {
-      available: true,
+    valuation: institutionalValuation({
       current_price: 120,
+      range: { low: 125, central: 140, high: 158 },
+      selected_value: 140,
       scenarios: [{ name: "base", intrinsic_value_per_share: 140 }],
       reverse_dcf: { available: true, implied_revenue_cagr: 0.05 },
       multiples: { ev_to_sales: 7, price_to_fcf: 24 },
-    },
+    }),
     filings: { recent: [{ form: "10-K", filing_date: "2026-01-30" }] },
     report_markdown: "# AAPL research OS memo\n\n## Agent research desk\n",
     sources: {
-      coverage: { score: 100, status: "pass" },
+      coverage: {
+        score: 100,
+        status: "complete",
+        expected_metrics: 19,
+        covered_expected_metrics: 19,
+        missing_expected_metrics: [],
+        sourced_points_missing_ok_source: [],
+        calculated_points_missing_formula: [],
+      },
       records: [],
       data_points: [],
     },
-    audit: { status: "pass", coverage: { score: 100 }, findings: [] },
+    audit: {
+      status: "pass",
+      coverage: {
+        score: 100,
+        status: "complete",
+        expected_metrics: 19,
+        covered_expected_metrics: 19,
+        missing_expected_metrics: [],
+        sourced_points_missing_ok_source: [],
+        calculated_points_missing_formula: [],
+      },
+      findings: [],
+    },
     agents: {
       version: "equity_research_agent_layer_v1",
       mode: "local_first_multi_agent_desk",
@@ -287,6 +737,7 @@ test("equity research adds one Vercel final orchestrator call when backend skips
     },
     downloads: [{ filename: "AAPL_report.md", media_type: "text/markdown", encoding: "base64", content_base64: "IyBBQVBM" }],
   };
+  attachDecisionReadyEvidence(backendBundle);
 
   globalThis.fetch = async (url, options = {}) => {
     calls.push({ url: String(url), body: options.body ? JSON.parse(String(options.body)) : null });
@@ -328,6 +779,14 @@ test("equity research adds one Vercel final orchestrator call when backend skips
     assert.doesNotMatch(bundle.report_markdown, /Final LLM orchestrator|```json/);
     assert.equal(calls.length, 2);
     assert.equal(calls[1].body.model, "gpt-4o-mini");
+    const orchestratorPrompt = calls[1].body.messages[1].content;
+    assert.match(orchestratorPrompt, /institutional_valuation_v3/);
+    assert.match(orchestratorPrompt, /"backed":true/);
+    assert.match(orchestratorPrompt, /"range":\{"low":125,"central":140,"high":158\}/);
+    assert.match(orchestratorPrompt, /"primary_method":"forward_fcff_dcf"/);
+    assert.match(orchestratorPrompt, new RegExp(`"market_data_as_of":"${RECENT_MARKET_DATE}"`));
+    assert.match(orchestratorPrompt, /"currency":"USD"/);
+    assert.doesNotMatch(orchestratorPrompt, /base_intrinsic_value_per_share/);
   } finally {
     globalThis.fetch = previousFetch;
     if (previousBackend === undefined) delete process.env.BLS_PRIME_STORAGE_BACKEND;
@@ -342,5 +801,120 @@ test("equity research adds one Vercel final orchestrator call when backend skips
     else process.env.EQUITY_RESEARCH_LLM_ENABLED = previousLlmEnabled;
     if (previousLlmModel === undefined) delete process.env.EQUITY_RESEARCH_LLM_MODEL;
     else process.env.EQUITY_RESEARCH_LLM_MODEL = previousLlmModel;
+  }
+});
+
+test("research-grade valuation withholds the final orchestrator and strips any prior precise synthesis", async () => {
+  const previousBackend = process.env.BLS_PRIME_STORAGE_BACKEND;
+  const previousBackendUrl = process.env.BLS_PRIME_BACKEND_URL;
+  const previousOpenAiKey = process.env.OPENAI_API_KEY;
+  const previousLlmEnabled = process.env.EQUITY_RESEARCH_LLM_ENABLED;
+  const previousFetch = globalThis.fetch;
+  process.env.BLS_PRIME_STORAGE_BACKEND = "memory";
+  process.env.BLS_PRIME_BACKEND_URL = "https://research-backend.example";
+  process.env.OPENAI_API_KEY = "test-openai-key";
+  process.env.EQUITY_RESEARCH_LLM_ENABLED = "true";
+
+  const reportWithUnsafeSynthesis = [
+    "# MU",
+    "",
+    "## Final editor synthesis",
+    "Executive judgment: Fair value is precisely $112 per share.",
+    "",
+  ].join("\n");
+  const researchGradeBundle = {
+    ok: true,
+    ticker: "MU",
+    mode: "quick",
+    generated_at: "2026-07-14T12:00:00.000Z",
+    company_profile: { name: "Micron Technology, Inc.", currency: "USD" },
+    financials: { annual: [], ratios: {}, quality_flags: [] },
+    valuation: institutionalValuation({
+      status: "research_grade",
+      reliability: {
+        usable: true,
+        status: "medium",
+        score: 0.62,
+        reasons: ["Method dispersion is elevated."],
+        limitations: ["Use only as a research range."],
+      },
+    }),
+    report_markdown: reportWithUnsafeSynthesis,
+    sources: {
+      coverage: { score: 100 },
+      records: [],
+      data_points: [{ metric: "valuation.range.central", raw_value: 112, normalized_value: 112 }],
+    },
+    audit: { status: "pass", findings: [] },
+    agents: {
+      agents: [{ id: "valuation_agent", status: "ready", summary: "Base DCF value is precisely $112." }],
+      final_orchestrator: {
+        enabled: false,
+        status: "disabled",
+        call_budget: { max_calls: 1, actual_calls: 0 },
+        analysis: null,
+      },
+    },
+    downloads: [{
+      filename: "MU_report.md",
+      media_type: "text/markdown",
+      encoding: "base64",
+      content_base64: Buffer.from(reportWithUnsafeSynthesis, "utf8").toString("base64"),
+    }, {
+      filename: "MU_model.xlsx",
+      media_type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      encoding: "base64",
+      content_base64: Buffer.from("precise value 112", "utf8").toString("base64"),
+    }, {
+      filename: "MU_sources.json",
+      media_type: "application/json",
+      encoding: "base64",
+      content_base64: Buffer.from(JSON.stringify({ data_points: [{ metric: "valuation.range.central", normalized_value: 112 }] }), "utf8").toString("base64"),
+    }],
+  };
+
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(String(url));
+    if (String(url).startsWith("https://research-backend.example/api/equity-research")) {
+      return new Response(JSON.stringify(researchGradeBundle), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    throw new Error(`the external orchestrator must not be called for research-grade valuation: ${url}`);
+  };
+
+  try {
+    const bundle = await getWorkspaceEquityResearch("research-grade-orchestrator-ws", "mu", { mode: "quick" });
+
+    assert.equal(calls.length, 1);
+    assert.equal(bundle.agents.final_orchestrator.status, "withheld");
+    assert.equal(bundle.agents.final_orchestrator.reason, "valuation_not_decision_ready");
+    assert.equal(bundle.agents.final_orchestrator.call_budget.actual_calls, 0);
+    assert.equal(bundle.agents.final_orchestrator.analysis.executive_judgment, "");
+    assert.equal(bundle.valuation.range.central, null);
+    assert.equal(bundle.valuation.selected_value, null);
+    assert.deepEqual(bundle.valuation.scenarios, []);
+    assert.deepEqual(bundle.sources.data_points, []);
+    assert.equal(bundle.agents.agents.length, 0);
+    assert.equal(bundle.downloads.some((artifact) => artifact.filename.endsWith(".xlsx")), false);
+    assert.doesNotMatch(bundle.report_markdown, /Final editor synthesis|\$112|Fair value/i);
+    const reportDownload = bundle.downloads.find((artifact) => artifact.filename === "MU_report.md");
+    const downloadedReport = Buffer.from(reportDownload.content_base64, "base64").toString("utf8");
+    assert.doesNotMatch(downloadedReport, /Final editor synthesis|\$112|Fair value/i);
+    const sourcesDownload = bundle.downloads.find((artifact) => artifact.filename === "MU_sources.json");
+    const downloadedSources = Buffer.from(sourcesDownload.content_base64, "base64").toString("utf8");
+    assert.doesNotMatch(downloadedSources, /112/);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previousBackend === undefined) delete process.env.BLS_PRIME_STORAGE_BACKEND;
+    else process.env.BLS_PRIME_STORAGE_BACKEND = previousBackend;
+    if (previousBackendUrl === undefined) delete process.env.BLS_PRIME_BACKEND_URL;
+    else process.env.BLS_PRIME_BACKEND_URL = previousBackendUrl;
+    if (previousOpenAiKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = previousOpenAiKey;
+    if (previousLlmEnabled === undefined) delete process.env.EQUITY_RESEARCH_LLM_ENABLED;
+    else process.env.EQUITY_RESEARCH_LLM_ENABLED = previousLlmEnabled;
   }
 });

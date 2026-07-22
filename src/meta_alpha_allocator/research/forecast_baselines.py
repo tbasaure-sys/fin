@@ -195,6 +195,7 @@ def run_forecast_baselines(
         "metrics": metric_rows,
         "warnings": sorted(set(warnings)),
     }
+    ensure_directory(settings.forecast_output_dir)
     predictions.to_csv(settings.forecast_output_dir / "forecast_backtest.csv", index=False)
     latest_rows.to_csv(settings.forecast_output_dir / "latest_forecasts.csv", index=False)
     (settings.forecast_output_dir / "forecast_summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")

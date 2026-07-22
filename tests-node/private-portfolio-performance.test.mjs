@@ -2,10 +2,66 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import {
+  applyLocalPortfolioOverlay,
   buildHistoryPerformanceMetrics,
   buildHistorySeries,
+  previewHoldingsInstruction,
   signedCashLedgerExternalFlowUsd,
 } from "../lib/server/private-portfolio.js";
+
+test("an empty workspace never inherits holdings or analytics from the shared snapshot", async () => {
+  const previousFallback = process.env.BLS_PRIME_ALLOW_HOLDINGS_FILE_FALLBACK;
+  process.env.BLS_PRIME_ALLOW_HOLDINGS_FILE_FALLBACK = "false";
+
+  try {
+    const snapshot = {
+      overview: { market_regime: "Neutral" },
+      portfolio: {
+        holdings: [{ ticker: "SEZL", weight: 0.42, market_value_usd: 4200 }],
+        top_holdings: [{ ticker: "SEZL", weight: 0.42 }],
+        transactions: [{ ticker: "SEZL", action: "Buy" }],
+        analytics: { "Holdings Count": 17, "Portfolio Beta": 1.4 },
+        sector_weights: [{ sector: "Technology", weight: 0.42 }],
+        current_mix_vs_spy: [{ date: "2026-01-01", portfolio_growth: 1 }],
+      },
+      screener: {
+        rows: [{ ticker: "SEZL", is_current_holding: true }],
+      },
+    };
+
+    const result = await applyLocalPortfolioOverlay(snapshot, `empty-workspace-${Date.now()}`);
+
+    assert.deepEqual(result.portfolio.holdings, []);
+    assert.deepEqual(result.portfolio.top_holdings, []);
+    assert.deepEqual(result.portfolio.transactions, []);
+    assert.deepEqual(result.portfolio.analytics, {});
+    assert.equal(result.portfolio.holdings_source, "workspace_portfolio_empty");
+    assert.equal(result.portfolio.holdings_source_available, false);
+    assert.equal(result.screener.rows[0].is_current_holding, false);
+    assert.equal(result.overview.market_regime, "Neutral");
+  } finally {
+    if (previousFallback === undefined) {
+      delete process.env.BLS_PRIME_ALLOW_HOLDINGS_FILE_FALLBACK;
+    } else {
+      process.env.BLS_PRIME_ALLOW_HOLDINGS_FILE_FALLBACK = previousFallback;
+    }
+  }
+});
+
+test("plain-language trades ask for a date before any portfolio change", async () => {
+  const preview = await previewHoldingsInstruction({}, { instruction: "compré USD 200 de NVDA" });
+
+  assert.equal(preview.status, "needs_date");
+  assert.equal(preview.ticker, "NVDA");
+  assert.match(preview.message, /Cuándo hiciste esta operación/);
+});
+
+test("plain-language trades reject multiple tickers instead of guessing", async () => {
+  await assert.rejects(
+    previewHoldingsInstruction({}, { instruction: "vendí 2 acciones de ZVRA y ADUL" }),
+    /una compra o venta por vez/i,
+  );
+});
 
 test("portfolio history computes TWR after external flows instead of raw value growth", () => {
   const rows = [
