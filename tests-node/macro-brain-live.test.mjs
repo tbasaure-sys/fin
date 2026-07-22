@@ -103,3 +103,9 @@ test("loadMacroBrainSnapshot reads the latest JSON file when configured", async 
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("loadMacroBrainSnapshot uses the deployable public snapshot before external workstation paths", async () => {
+  const snapshot = await loadMacroBrainSnapshot({ throwOnError: true });
+  assert.match(snapshot.sourcePath.replace(/\\/g, "/"), /public\/data\/macro_brain_latest\.json$/);
+  assert.equal(snapshot.live, true);
+});

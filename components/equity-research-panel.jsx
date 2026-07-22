@@ -85,6 +85,158 @@ function valuationStateLabel(presentation) {
   return "Valoración en revisión";
 }
 
+const AURORA_METHOD_LABELS = {
+  risk_adjusted_pipeline_npv: "rNPV por activo e hito",
+  milestone_option_value: "valor opcional por hitos",
+  owner_earnings_dcf: "DCF de owner earnings",
+  unit_economics_transition: "transición de unit economics",
+  residual_income: "ingresos residuales",
+  net_asset_value: "valor neto de activos",
+  through_cycle_cash_flow: "flujo normalizado por ciclo",
+  normalized_fcff_dcf: "DCF de FCFF normalizado",
+  multi_stage_dcf: "DCF multietapa",
+};
+
+function auroraMethodLabel(value) {
+  return AURORA_METHOD_LABELS[value] || String(value || "Método por definir").replace(/_/g, " ");
+}
+
+function auroraSignedLabel(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "Sin lectura";
+  return `${number > 0 ? "+" : ""}${Math.round(number)}`;
+}
+
+function AuroraDecisionSummary({ research }) {
+  const aurora = research?.aurora;
+  if (!aurora || aurora.version !== "aurora_decision_system_v1") return null;
+  const valuation = aurora.valuation || {};
+  const contextual = aurora.macroBridge?.status === "context_applied"
+    ? aurora.macroBridge.contextual
+    : valuation;
+  const range = contextual?.range;
+  const implied = valuation.marketImplied || {};
+  const questions = safeList(valuation.valueOfInformation).slice(0, 3);
+  const adjustments = safeList(aurora.macroBridge?.adjustments);
+  const macro = aurora.macroContext;
+
+  return (
+    <section className={styles.researchStack} aria-label="Sistema de decisión AURORA">
+      <div className={styles.researchAttentionCallout}>
+        <span>AURORA · {aurora.fingerprint?.stage === "pre_revenue" ? "pre-revenue" : "empresa operativa"}</span>
+        <strong>{auroraMethodLabel(valuation.method || aurora.valuationPlan?.primaryMethod)}</strong>
+        <p>{valuation.summary}</p>
+      </div>
+
+      {valuation.status === "conditional_range" && range ? (
+        <>
+          <div className={styles.researchScenarioGrid} data-count="3">
+            {[
+              ["low", "Escenario adverso", "bad"],
+              ["central", "Caso central condicional", "warn"],
+              ["high", "Escenario favorable", "good"],
+            ].map(([key, label, tone]) => (
+              <article className={styles.researchScenario} data-tone={tone} key={key}>
+                <span>{label}</span>
+                <strong>{compactCurrency(range[key], valuation.currency)}</strong>
+                <small>{valuation.currency} por acción · no decision-ready</small>
+              </article>
+            ))}
+          </div>
+          {adjustments.length ? (
+            <div className={styles.researchAttentionCallout}>
+              <span>Puente MOSAIC → AURORA</span>
+              <strong>El contexto modifica el rango sólo mediante exposiciones demostrables</strong>
+              <p>{adjustments.map((item) => item.chain).join(" · ")}</p>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+
+      {valuation.status === "market_implied_hurdle" ? (
+        <div className={styles.researchCoverageSummary}>
+          <div>
+            <span>Valor de mercado</span>
+            <strong>{compactCurrency(implied.marketCap, valuation.currency)}</strong>
+            <small>Capitalización observada</small>
+          </div>
+          <div>
+            <span>Valor opcional implícito</span>
+            <strong>{compactCurrency(implied.enterpriseOptionValue, valuation.currency)}</strong>
+            <small>Capitalización − caja + deuda</small>
+          </div>
+          <div>
+            <span>Runway</span>
+            <strong>{implied.runwayYears !== null && implied.runwayYears !== undefined && Number.isFinite(Number(implied.runwayYears))
+              ? `${Number(implied.runwayYears).toFixed(1)} años`
+              : "Por validar"}</strong>
+            <small>Tiempo hasta requerir capital adicional</small>
+          </div>
+        </div>
+      ) : null}
+
+      {macro ? (
+        <div className={styles.researchCoverageSummary}>
+          <div>
+            <span>Oferta</span>
+            <strong>{auroraSignedLabel(macro.axes?.supply)}</strong>
+            <small>Restricción o holgura física</small>
+          </div>
+          <div>
+            <span>Demanda</span>
+            <strong>{auroraSignedLabel(macro.axes?.demand)}</strong>
+            <small>Impulso agregado de consumo y pedidos</small>
+          </div>
+          <div>
+            <span>Liquidez</span>
+            <strong>{auroraSignedLabel(macro.axes?.liquidity)}</strong>
+            <small>{macro.status === "current" ? "Contexto vigente" : "Contexto con rezago; no ajusta el valor"}</small>
+          </div>
+        </div>
+      ) : null}
+
+      {questions.length ? (
+        <div className={styles.researchDetailGrid}>
+          {questions.map((item) => (
+            <ResearchMetric
+              detail={item.whyItMatters}
+              key={`${item.rank}-${item.question}`}
+              label={`Prueba ${item.rank}`}
+              tone="warn"
+              value={item.question}
+            />
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function AuroraDebate({ research }) {
+  const claims = safeList(research?.aurora?.debate);
+  if (!claims.length) return null;
+  return (
+    <div className={styles.researchStack}>
+      <div className={styles.researchAttentionCallout}>
+        <span>Comité AURORA</span>
+        <strong>Los roles discuten supuestos; no pueden cambiar hechos ni declarar una cifra decision-ready</strong>
+        <p>Cada postura conserva mecanismo, procedencia y confianza.</p>
+      </div>
+      <div className={styles.researchDetailGrid}>
+        {claims.map((item) => (
+          <ResearchMetric
+            detail={`${item.mechanism} · Procedencia: ${item.provenance}`}
+            key={item.id}
+            label={item.role}
+            tone={item.stance === "challenge" ? "warn" : item.stance === "context_adjustment" ? "good" : "neutral"}
+            value={item.claim}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function formatCoverageScore(score) {
   const number = Number(score);
   if (!Number.isFinite(number)) return "-";
@@ -1293,6 +1445,18 @@ function renderValuation(research, valuationPresentation) {
   }
 
   if (!valuationPresentation?.showValuationFigures) {
+    if (research?.aurora?.version === "aurora_decision_system_v1") {
+      return (
+        <div className={styles.researchStack}>
+          <AuroraDecisionSummary research={research} />
+          <BlockingGapSummary research={research} />
+          <MarketRequirements
+            currency={research?.valuation?.currency || research?.company_profile?.currency}
+            value={research?.valuation?.market_requirements}
+          />
+        </div>
+      );
+    }
     return renderBlockedValuationHelp(research, valuationPresentation, "Valoración en revisión");
   }
 
@@ -1479,6 +1643,10 @@ function renderAgents(research, valuationPresentation) {
 
   if (!research) {
     return <p className={styles.emptyCopy}>La revisión aparece después del análisis, con cada verificación preservada para reproducibilidad.</p>;
+  }
+
+  if (!valuationPresentation?.backed && research?.aurora?.version === "aurora_decision_system_v1") {
+    return <AuroraDebate research={research} />;
   }
 
   if (!valuationPresentation?.backed && valuationPresentation?.showValuationFigures) {
@@ -1978,6 +2146,18 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
     () => buildEquityValuationPresentation(research, { executiveJudgment: executiveJudgmentCandidate }),
     [executiveJudgmentCandidate, research],
   );
+  const auroraValuation = research?.aurora?.valuation || null;
+  const auroraContextualValuation = research?.aurora?.macroBridge?.status === "context_applied"
+    ? research.aurora.macroBridge.contextual
+    : auroraValuation;
+  const auroraRange = auroraValuation?.status === "conditional_range"
+    ? auroraContextualValuation?.range
+    : null;
+  const auroraRangeLabel = auroraRange
+    ? `${compactCurrency(auroraRange.low, auroraValuation?.currency)} – ${compactCurrency(auroraRange.high, auroraValuation?.currency)}`
+    : auroraValuation?.status === "market_implied_hurdle"
+      ? "Hurdle implícito"
+      : null;
   const displayMarketDataAsOf = valuationPresentation.marketDataAsOf
     || research?.valuation?.market_data_as_of
     || research?.valuation?.market_requirements?.market_data_as_of;
@@ -1985,7 +2165,13 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
     /_(sources|audit)\.json$|_assumptions\.yml$/i.test(String(artifact?.filename || ""))
   ));
   const hasXlsx = safeDownloads.some((artifact) => String(artifact.filename || "").endsWith(".xlsx"));
-  const researchStateLabel = research ? valuationStateLabel(valuationPresentation) : "En espera";
+  const researchStateLabel = research
+    ? auroraRangeLabel && !valuationPresentation.showValuationFigures
+      ? auroraValuation?.status === "market_implied_hurdle"
+        ? "Hurdle de mercado listo para investigar"
+        : "Rango condicional con supuestos visibles"
+      : valuationStateLabel(valuationPresentation)
+    : "En espera";
   const openIssueLabel = primaryPendingFields.length
     ? summarizeGaps(primaryPendingFields, 3)
     : auditFindings[0]?.code
@@ -2112,14 +2298,16 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
           value={compactCurrency(ratios.latest_revenue, research?.company_profile?.currency)}
         />
         <ResearchMetric
-          detail={valuationPresentation.backed
-            ? `Estimación central ${compactCurrency(valuationPresentation.centralValue, valuationPresentation.currency)} · ${valuationPresentation.primaryMethod}`
-            : valuationPresentation.showValuationFigures
-              ? `Método ${valuationPresentation.primaryMethod} · estimación central retenida hasta cerrar los controles`
-              : valuationPresentation.reason}
+          detail={auroraRangeLabel && !valuationPresentation.showValuationFigures
+            ? `${auroraMethodLabel(auroraValuation?.method)} · supuestos visibles · no decision-ready`
+            : valuationPresentation.backed
+              ? `Estimación central ${compactCurrency(valuationPresentation.centralValue, valuationPresentation.currency)} · ${valuationPresentation.primaryMethod}`
+              : valuationPresentation.showValuationFigures
+                ? `Método ${valuationPresentation.primaryMethod} · estimación central retenida hasta cerrar los controles`
+                : valuationPresentation.reason}
           label="Rango estimado"
-          tone={valuationPresentation.backed ? "good" : valuationPresentation.showValuationFigures ? "warn" : "neutral"}
-          value={formatValuationRange(valuationPresentation)}
+          tone={valuationPresentation.backed ? "good" : auroraRangeLabel || valuationPresentation.showValuationFigures ? "warn" : "neutral"}
+          value={auroraRangeLabel || formatValuationRange(valuationPresentation)}
         />
         <ResearchMetric
           detail={research

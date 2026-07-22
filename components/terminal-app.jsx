@@ -4885,15 +4885,101 @@ function MacroSourcesPanel({ macro, mosaic }) {
   );
 }
 
+function mosaicAxisReading(value, positive, negative) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "Sin lectura";
+  if (number >= 20) return positive;
+  if (number <= -20) return negative;
+  return "Equilibrado";
+}
+
+function MosaicGlobalScreener({ snapshot }) {
+  const context = snapshot?.context || {};
+  const dataState = context.status || snapshot?.dataState || (context.asOf ? "lagged" : "unknown");
+  const dataStateLabel = dataState === "current" ? "Vigente" : dataState === "lagged" ? "Con rezago" : "No utilizable";
+  const stale = dataState === "stale";
+  const markets = stale
+    ? []
+    : safeList(snapshot?.markets)
+      .slice()
+      .sort((left, right) => {
+        const leftMagnitude = Math.max(Math.abs(Number(left?.axes?.supply) || 0), Math.abs(Number(left?.axes?.demand) || 0));
+        const rightMagnitude = Math.max(Math.abs(Number(right?.axes?.supply) || 0), Math.abs(Number(right?.axes?.demand) || 0));
+        return rightMagnitude - leftMagnitude;
+      });
+  const axes = context.axes || {};
+
+  return (
+    <section className={styles.panel}>
+      <div className={styles.mosaicLead}>
+        <div>
+          <p className={styles.kicker}>Screener global</p>
+          <h2>Oferta, demanda y liquidez</h2>
+          <p>Cada mercado conserva sus motores físicos. La liquidez es un eje separado y sólo entra a AURORA mediante una exposición causal.</p>
+        </div>
+        <div className={styles.mosaicDial} aria-label={`Estado de datos ${dataStateLabel}`}>
+          <strong>{markets.length}</strong>
+          <span>mercados activos</span>
+        </div>
+      </div>
+
+      <div className={styles.mosaicGuide} aria-label="Ejes MOSAIC">
+        <div className={styles.mosaicGuideItem}>
+          <strong>{macroSignedLabel(axes.supply)}</strong>
+          <span>Oferta</span>
+          <small>{mosaicAxisReading(axes.supply, "Restricción física", "Holgura de capacidad")}</small>
+        </div>
+        <div className={styles.mosaicGuideItem}>
+          <strong>{macroSignedLabel(axes.demand)}</strong>
+          <span>Demanda</span>
+          <small>{mosaicAxisReading(axes.demand, "Demanda acelerando", "Demanda debilitándose")}</small>
+        </div>
+        <div className={styles.mosaicGuideItem}>
+          <strong>{macroSignedLabel(axes.liquidity)}</strong>
+          <span>Liquidez</span>
+          <small>{mosaicAxisReading(axes.liquidity, "Impulso expansivo", "Impulso contractivo")}</small>
+        </div>
+        <div className={styles.mosaicGuideItem}>
+          <strong>{dataStateLabel}</strong>
+          <span>Frescura</span>
+          <small>{context.asOf ? `Corte ${String(context.asOf).slice(0, 10)}` : "Sin fecha verificable"}</small>
+        </div>
+      </div>
+
+      {stale ? (
+        <div className={styles.mosaicPlainNote}>
+          <strong>Snapshot vencido</strong>
+          <span>Los mercados quedan fuera del screener hasta refrescar las fuentes. MOSAIC no presenta datos guardados como actuales.</span>
+        </div>
+      ) : (
+        <div className={styles.mosaicRows}>
+          {markets.map((item) => (
+            <div className={styles.mosaicRow} data-tone={mosaicTone(item.score)} key={item.id}>
+              <div>
+                <strong>{macroPlainText(item.name)}</strong>
+                <span>{macroPlainText(item.why)} · calidad {Math.round(Number(item.quality) || 0)}/100 · {Number(item.sources) || 0} series</span>
+              </div>
+              <div>
+                <strong>O {macroSignedLabel(item.axes?.supply)} · D {macroSignedLabel(item.axes?.demand)}</strong>
+                <span>{Number(item.delta) ? `Cambio ${macroSignedLabel(item.delta)}` : "Sin inflexión nueva"}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function MosaicCommandCenter() {
   const macro = useMacroBrainLiveSnapshot();
   const mosaic = useMosaicLiveSnapshot();
-  const pressure = Number(macro.snapshot?.stability?.pressure);
   const headline = macroPlainText(macro.snapshot?.shortRead || mosaic.snapshot?.headline || "Lectura macro en preparación.");
   const topSignal = safeList(macro.snapshot?.impulseChanges)[0];
   const meaning = topSignal ? macroSignalMeaning(topSignal) : macroStressMeaning(macro.snapshot?.stability);
   const alert = macroAlertSummary(macro.snapshot, mosaic.snapshot);
   const watch = macroWatchSummary(macro.snapshot, mosaic.snapshot);
+  const axes = mosaic.snapshot?.context?.axes || {};
 
   return (
     <div className={styles.mosaicCommandCenter}>
@@ -4901,13 +4987,13 @@ function MosaicCommandCenter() {
         <div className={styles.mosaicCommandHero}>
           <div>
             <p className={styles.kicker}>MOSAIC</p>
-            <h2>Contexto externo</h2>
+            <h2>Mapa macro global verificable</h2>
             <p>{headline}</p>
           </div>
           <div className={styles.mosaicCommandStats}>
-            <span><strong>{mosaic.snapshot?.index ?? "-"}</strong> presión global</span>
-            <span><strong>{mosaic.snapshot?.conflict ?? "-"}</strong> señales mixtas</span>
-            <span><strong>{macroPercentLabel(pressure)}</strong> estrés macro</span>
+            <span><strong>{macroSignedLabel(axes.supply)}</strong> oferta</span>
+            <span><strong>{macroSignedLabel(axes.demand)}</strong> demanda</span>
+            <span><strong>{macroSignedLabel(axes.liquidity)}</strong> liquidez</span>
           </div>
         </div>
         <div className={styles.mosaicExplainGrid}>
@@ -4929,10 +5015,8 @@ function MosaicCommandCenter() {
         ) : null}
       </section>
 
-      <MosaicObservatoryPanel />
-      <MacroBrainWorkspacePanel />
+      <MosaicGlobalScreener snapshot={mosaic.snapshot} />
       <div className={styles.mosaicCommandGrid}>
-        <MacroLiquidityPanel snapshot={macro.snapshot} />
         <MacroThesisPanel snapshot={macro.snapshot} />
         <MacroEventRiskPanel snapshot={macro.snapshot} />
         <MacroSourcesPanel macro={macro.snapshot} mosaic={mosaic.snapshot} />

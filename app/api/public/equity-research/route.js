@@ -1,6 +1,7 @@
 import { fetchBackendEquityResearch } from "../../../../lib/server/backend.js";
 import { consumePublicRateLimit } from "../../../../lib/server/data/public-rate-limit.js";
 import { sanitizePublicResearchPayload } from "../../../../lib/server/equity-research.js";
+import { attachAuroraDecisionSystem } from "../../../../lib/server/aurora-decision-system.js";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,9 @@ export async function POST(request) {
         { status: 503 },
       );
     }
-    const sanitized = sanitizePublicResearchPayload(payload, { expectedTicker: ticker });
+    const sanitized = await attachAuroraDecisionSystem(
+      sanitizePublicResearchPayload(payload, { expectedTicker: ticker }),
+    );
     return noStoreJson({
       ...sanitized,
       history: {
