@@ -1,8 +1,8 @@
 {
-  "generated_on": "2026-07-22T11:45:44.674692+00:00",
-  "run_date": "2026-07-21",
+  "generated_on": "2026-07-23T11:46:18.986933+00:00",
+  "run_date": "2026-07-22",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 132504,
+  "observations": 132510,
   "series_count": 23,
   "impulse_changes": [
     {
@@ -118,46 +118,18 @@
       "label": "MOVE index"
     },
     {
-      "series_id": "DFII10",
-      "date": "2026-07-20T00:00:00",
-      "value": 2.35,
-      "transformed": 0.040000000000000036,
-      "momentum": 0.43000000000000016,
-      "impulse": 0.28000000000000025,
-      "momentum_z": 1.1343708227560916,
-      "impulse_z": 0.9442870632672355,
-      "impulse_sign": 1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y real yield"
-    },
-    {
       "series_id": "BAMLH0A0HYM2",
-      "date": "2026-07-20T00:00:00",
+      "date": "2026-07-21T00:00:00",
       "value": 2.69,
-      "transformed": -0.040000000000000036,
-      "momentum": -0.1499999999999999,
-      "impulse": 0.3799999999999999,
-      "momentum_z": -0.053959260758128166,
-      "impulse_z": 0.8372988738330134,
+      "transformed": 0.0,
+      "momentum": -0.16999999999999993,
+      "impulse": 0.3500000000000001,
+      "momentum_z": -0.10791852151625518,
+      "impulse_z": 0.7675239676802624,
       "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "US HY OAS"
-    },
-    {
-      "series_id": "DGS10",
-      "date": "2026-07-20T00:00:00",
-      "value": 4.6,
-      "transformed": 0.04999999999999982,
-      "momentum": 0.2999999999999998,
-      "impulse": 0.22999999999999954,
-      "momentum_z": 0.64042556960404,
-      "impulse_z": 0.7038164446712281,
-      "impulse_sign": 1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y nominal yield"
     },
     {
       "series_id": "TLT",
@@ -172,6 +144,34 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Long Treasury ETF"
+    },
+    {
+      "series_id": "DFII10",
+      "date": "2026-07-21T00:00:00",
+      "value": 2.37,
+      "transformed": 0.020000000000000018,
+      "momentum": 0.4500000000000002,
+      "impulse": 0.1900000000000004,
+      "momentum_z": 1.1956881645266912,
+      "impulse_z": 0.6407662215027679,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y real yield"
+    },
+    {
+      "series_id": "MXN=X",
+      "date": "2026-06-10T00:00:00",
+      "value": 17.45401954650879,
+      "transformed": -0.000783438252390134,
+      "momentum": -0.0862141983224749,
+      "impulse": -0.08588403504456465,
+      "momentum_z": -0.24198868745585037,
+      "impulse_z": -0.5584212462865383,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "USDMXN"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": -2.9869999999999997,
-        "impulse_z": -0.11109438792093768
+        "impulse": -5.305000000000001,
+        "impulse_z": -0.13631763991180243
       }
     }
   },
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "What would make you flip today rather than merely reduce confidence?"
+  "question_of_day": "Which market internal is disagreeing with your favorite macro story?"
 }
