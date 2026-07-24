@@ -1,10 +1,38 @@
 {
-  "generated_on": "2026-07-23T11:46:18.986933+00:00",
-  "run_date": "2026-07-22",
+  "generated_on": "2026-07-24T11:45:34.783145+00:00",
+  "run_date": "2026-07-23",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 132510,
-  "series_count": 23,
+  "observations": 143362,
+  "series_count": 25,
   "impulse_changes": [
+    {
+      "series_id": "EEM",
+      "date": "2026-07-23T00:00:00",
+      "value": 64.5999984741211,
+      "transformed": -0.0060189918679762755,
+      "momentum": 0.0806259579841111,
+      "impulse": -0.7299273068187979,
+      "momentum_z": -0.39181491042634853,
+      "impulse_z": -3.3411356414480857,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Emerging markets ETF"
+    },
+    {
+      "series_id": "QQQ",
+      "date": "2026-07-23T00:00:00",
+      "value": 691.9600219726562,
+      "transformed": -0.019165916674813488,
+      "momentum": 0.16799216242390713,
+      "impulse": -0.7708188976829469,
+      "momentum_z": -0.25969223557698673,
+      "impulse_z": -2.727227089975405,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Nasdaq 100 ETF"
+    },
     {
       "series_id": "GC=F",
       "date": "2026-06-11T00:00:00",
@@ -34,6 +62,20 @@
       "label": "USDCOP"
     },
     {
+      "series_id": "WTREGEN",
+      "date": "2026-07-22T00:00:00",
+      "value": 829623.0,
+      "transformed": 829623.0,
+      "momentum": -176345.0,
+      "impulse": -182981.0,
+      "momentum_z": -1.4850497799859972,
+      "impulse_z": -1.2678821310653616,
+      "impulse_sign": -1,
+      "persistent_inflection": true,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Treasury General Account"
+    },
+    {
       "series_id": "LQD",
       "date": "2026-06-11T00:00:00",
       "value": 108.8949966430664,
@@ -46,6 +88,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Investment grade ETF"
+    },
+    {
+      "series_id": "WALCL",
+      "date": "2026-07-22T00:00:00",
+      "value": 6747378.0,
+      "transformed": 6747378.0,
+      "momentum": 39959.0,
+      "impulse": -39304.0,
+      "momentum_z": 0.864701108126098,
+      "impulse_z": -1.1569672327247826,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Fed balance sheet"
     },
     {
       "series_id": "CLP=X",
@@ -90,114 +146,58 @@
       "label": "High yield ETF"
     },
     {
-      "series_id": "WALCL",
-      "date": "2026-07-15T00:00:00",
-      "value": 6743028.0,
-      "transformed": 6743028.0,
-      "momentum": 37332.0,
-      "impulse": -32126.0,
-      "momentum_z": 0.8594653323631091,
-      "impulse_z": -1.0167387685530545,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Fed balance sheet"
-    },
-    {
-      "series_id": "^MOVE",
-      "date": "2026-06-10T00:00:00",
-      "value": 73.94999694824219,
-      "transformed": -3.0800018310546875,
-      "momentum": -17.22000122070314,
-      "impulse": -20.3300018310547,
-      "momentum_z": -0.5847461207948553,
-      "impulse_z": -0.9585281093221317,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "MOVE index"
-    },
-    {
-      "series_id": "BAMLH0A0HYM2",
-      "date": "2026-07-21T00:00:00",
-      "value": 2.69,
-      "transformed": 0.0,
-      "momentum": -0.16999999999999993,
-      "impulse": 0.3500000000000001,
-      "momentum_z": -0.10791852151625518,
-      "impulse_z": 0.7675239676802624,
-      "impulse_sign": 1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US HY OAS"
-    },
-    {
-      "series_id": "TLT",
-      "date": "2026-06-10T00:00:00",
-      "value": 84.87010192871094,
-      "transformed": -0.0029401828815194264,
-      "momentum": -0.031543495387751364,
-      "impulse": 0.11921906424300843,
-      "momentum_z": -0.04658234903569037,
-      "impulse_z": 0.6431737548147669,
-      "impulse_sign": 1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Long Treasury ETF"
-    },
-    {
       "series_id": "DFII10",
-      "date": "2026-07-21T00:00:00",
-      "value": 2.37,
+      "date": "2026-07-22T00:00:00",
+      "value": 2.39,
       "transformed": 0.020000000000000018,
-      "momentum": 0.4500000000000002,
-      "impulse": 0.1900000000000004,
-      "momentum_z": 1.1956881645266912,
-      "impulse_z": 0.6407662215027679,
+      "momentum": 0.5000000000000002,
+      "impulse": 0.29000000000000026,
+      "momentum_z": 1.3489815189531902,
+      "impulse_z": 0.9780116012410643,
       "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "US 10Y real yield"
     },
     {
-      "series_id": "MXN=X",
-      "date": "2026-06-10T00:00:00",
-      "value": 17.45401954650879,
-      "transformed": -0.000783438252390134,
-      "momentum": -0.0862141983224749,
-      "impulse": -0.08588403504456465,
-      "momentum_z": -0.24198868745585037,
-      "impulse_z": -0.5584212462865383,
-      "impulse_sign": -1,
+      "series_id": "DGS2",
+      "date": "2026-07-22T00:00:00",
+      "value": 4.31,
+      "transformed": 0.04999999999999982,
+      "momentum": 0.5299999999999998,
+      "impulse": 0.3299999999999996,
+      "momentum_z": 1.3024649148513519,
+      "impulse_z": 0.9728232107835477,
+      "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "USDMXN"
+      "label": "US 2Y yield"
     }
   ],
   "liquidity": {
     "status": "available",
-    "summary": "US net liquidity impulse is negative.",
+    "summary": "US net liquidity contraction is decelerating.",
     "components": {
       "us_net_liquidity": {
-        "latest": 5986809.849,
-        "momentum": 32467.9860000005,
-        "impulse": -61909.9299999997,
-        "impulse_direction": "negative"
+        "latest": 5917754.624,
+        "momentum": 216303.70600000024,
+        "impulse": 143682.30500000063,
+        "impulse_direction": "positive"
       },
       "WALCL": {
         "label": "Fed balance sheet",
-        "impulse": -32126.0,
-        "impulse_z": -1.0167387685530545
+        "impulse": -39304.0,
+        "impulse_z": -1.1569672327247826
       },
       "WTREGEN": {
         "label": "Treasury General Account",
-        "impulse": 29794.0,
-        "impulse_z": 0.22337710086291993
+        "impulse": -182981.0,
+        "impulse_z": -1.2678821310653616
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": -5.305000000000001,
-        "impulse_z": -0.13631763991180243
+        "impulse": -3.001,
+        "impulse_z": -0.10478857492322162
       }
     }
   },
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "Which market internal is disagreeing with your favorite macro story?"
+  "question_of_day": "Where are you confusing a level with an impulse?"
 }
