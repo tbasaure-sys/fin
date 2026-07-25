@@ -1,19 +1,19 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-07-24T11:50:00.021864+00:00",
+  "generated_at": "2026-07-25T11:48:17.816842+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\fred",
     "files": 44,
-    "newest_cached_at": "2026-07-24T11:46:13.928923+00:00",
+    "newest_cached_at": "2026-07-25T11:45:51.739875+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
-    "newest_cached_at": "2026-07-24T11:50:00.018004+00:00",
-    "oldest_cached_at": "2026-07-24T11:46:17.445574+00:00"
+    "newest_cached_at": "2026-07-25T11:48:17.813444+00:00",
+    "oldest_cached_at": "2026-07-24T11:47:47.805475+00:00"
   },
   "global_disequilibrium_index": 37,
   "conflict_index": 67,
@@ -26,7 +26,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "62 series used, 0 manual, 0 warming, 0 watch errors.",
-    "freshness": "Newest 2026-07-23; oldest used source age 114 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-07-24; oldest used source age 115 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -52,7 +52,7 @@
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
-        "latest_date": "2026-07-22"
+        "latest_date": "2026-07-24"
       },
       {
         "name": "Westmetall",
@@ -60,7 +60,7 @@
         "url": "https://www.westmetall.com/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-07-23"
+        "latest_date": "2026-07-24"
       },
       {
         "name": "MetalCharts",
@@ -117,39 +117,23 @@
     "watched_error_series": 0,
     "unused_error_series": [],
     "manual_series": 0,
-    "newest_date": "2026-07-23",
-    "oldest_age_days": 114
+    "newest_date": "2026-07-24",
+    "oldest_age_days": 115
   },
   "history_delta": {
-    "previous_gdi": 36,
+    "previous_gdi": 37,
     "current_gdi": 37,
-    "delta": 1,
-    "direction": "up"
+    "delta": 0,
+    "direction": "flat"
   },
   "market_movers": [
     {
       "market_id": "eu_energy_gas",
       "item": "natural gas",
-      "score": 16,
-      "delta": 11,
-      "direction": "up",
+      "score": 11,
+      "delta": -5,
+      "direction": "down",
       "reading": "Bottleneck emerging"
-    },
-    {
-      "market_id": "china_property",
-      "item": "property",
-      "score": -39,
-      "delta": -8,
-      "direction": "down",
-      "reading": "Loosening"
-    },
-    {
-      "market_id": "global_uranium",
-      "item": "uranium enrichment",
-      "score": 21,
-      "delta": -4,
-      "direction": "down",
-      "reading": "Mixed"
     }
   ],
   "markets": [
@@ -374,10 +358,10 @@
         "margin_compression": -17
       },
       "market_delta": {
-        "previous_score": -31,
+        "previous_score": -39,
         "current_score": -39,
-        "delta": -8,
-        "direction": "down",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Loosening"
       },
       "research_angle": "Iron ore, steel, banks, local government finance.",
@@ -565,11 +549,11 @@
         "margin_compression": -6
       },
       "market_delta": {
-        "previous_score": 25,
+        "previous_score": 21,
         "current_score": 21,
-        "delta": -4,
-        "direction": "down",
-        "previous_reading": "Tightening"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Mixed"
       },
       "research_angle": "Miners, enrichers, utilities fuel contracts.",
       "source_series": [
@@ -601,10 +585,10 @@
       "sector": "energy",
       "link": "input",
       "item": "natural gas",
-      "score": 16,
+      "score": 11,
       "reading": "Bottleneck emerging",
       "state": "bottleneck",
-      "conflict": "physical friction without price confirmation",
+      "conflict": "future shortage hidden",
       "data_quality": 94,
       "data_note": "Live public sources are current enough for screening.",
       "use_with_caution": false,
@@ -612,21 +596,21 @@
       "top_positive_driver": "inventory_drawdown",
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
-        "price_acceleration": 16,
-        "inventory_drawdown": 24,
+        "price_acceleration": 6,
+        "inventory_drawdown": 25,
         "delivery_stress": 20,
-        "capacity_tightness": 18,
+        "capacity_tightness": 19,
         "trade_stress": 15,
         "demand_slowdown": -61,
-        "inventory_buildup": -8,
+        "inventory_buildup": -5,
         "margin_compression": -8
       },
       "market_delta": {
-        "previous_score": 5,
-        "current_score": 16,
-        "delta": 11,
-        "direction": "up",
-        "previous_reading": "Mixed"
+        "previous_score": 16,
+        "current_score": 11,
+        "delta": -5,
+        "direction": "down",
+        "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
       "source_series": [
