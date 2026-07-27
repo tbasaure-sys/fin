@@ -1,21 +1,21 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-07-26T11:48:02.355810+00:00",
+  "generated_at": "2026-07-27T11:48:01.550381+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\fred",
     "files": 44,
-    "newest_cached_at": "2026-07-26T11:45:35.615463+00:00",
+    "newest_cached_at": "2026-07-27T11:45:34.206629+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
-    "newest_cached_at": "2026-07-26T11:48:02.346482+00:00",
-    "oldest_cached_at": "2026-07-24T11:47:47.805475+00:00"
+    "newest_cached_at": "2026-07-27T11:48:01.548641+00:00",
+    "oldest_cached_at": "2026-07-27T11:45:36.968549+00:00"
   },
-  "global_disequilibrium_index": 37,
+  "global_disequilibrium_index": 38,
   "conflict_index": 67,
   "plain_summary": {
     "headline": "Top imbalance: grid transformers (bottleneck emerging).",
@@ -26,7 +26,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "62 series used, 0 manual, 0 warming, 0 watch errors.",
-    "freshness": "Newest 2026-07-24; oldest used source age 116 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-07-25; oldest used source age 117 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -52,7 +52,7 @@
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
-        "latest_date": "2026-07-24"
+        "latest_date": "2026-07-25"
       },
       {
         "name": "Westmetall",
@@ -117,21 +117,21 @@
     "watched_error_series": 0,
     "unused_error_series": [],
     "manual_series": 0,
-    "newest_date": "2026-07-24",
-    "oldest_age_days": 116
+    "newest_date": "2026-07-25",
+    "oldest_age_days": 117
   },
   "history_delta": {
     "previous_gdi": 37,
-    "current_gdi": 37,
-    "delta": 0,
-    "direction": "flat"
+    "current_gdi": 38,
+    "delta": 1,
+    "direction": "up"
   },
   "market_movers": [
     {
       "market_id": "eu_energy_gas",
       "item": "natural gas",
-      "score": 12,
-      "delta": 1,
+      "score": 20,
+      "delta": 8,
       "direction": "up",
       "reading": "Bottleneck emerging"
     }
@@ -585,10 +585,10 @@
       "sector": "energy",
       "link": "input",
       "item": "natural gas",
-      "score": 12,
+      "score": 20,
       "reading": "Bottleneck emerging",
       "state": "bottleneck",
-      "conflict": "future shortage hidden",
+      "conflict": "physical friction without price confirmation",
       "data_quality": 94,
       "data_note": "Live public sources are current enough for screening.",
       "use_with_caution": false,
@@ -596,7 +596,7 @@
       "top_positive_driver": "inventory_drawdown",
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
-        "price_acceleration": 8,
+        "price_acceleration": 16,
         "inventory_drawdown": 25,
         "delivery_stress": 20,
         "capacity_tightness": 19,
@@ -606,9 +606,9 @@
         "margin_compression": -8
       },
       "market_delta": {
-        "previous_score": 11,
-        "current_score": 12,
-        "delta": 1,
+        "previous_score": 12,
+        "current_score": 20,
+        "delta": 8,
         "direction": "up",
         "previous_reading": "Bottleneck emerging"
       },
