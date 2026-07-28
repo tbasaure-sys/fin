@@ -96,8 +96,18 @@ test("SEO metadata is generated per locale, not hardcoded in English", () => {
   const home = source("app/page.js");
   const layout = source("app/layout.js");
   const terms = source("app/terms/page.js");
+  const factorlab = source("app/factorlab/page.js");
+  const stress = source("app/stress/page.js");
+  const login = source("app/login/page.js");
 
-  for (const [file, contents] of [["app/page.js", home], ["app/layout.js", layout], ["app/terms/page.js", terms]]) {
+  for (const [file, contents] of [
+    ["app/page.js", home],
+    ["app/layout.js", layout],
+    ["app/terms/page.js", terms],
+    ["app/factorlab/page.js", factorlab],
+    ["app/stress/page.js", stress],
+    ["app/login/page.js", login],
+  ]) {
     assert.match(contents, /export function generateMetadata/, `${file} must build metadata per request`);
     assert.match(contents, /LANGUAGE_REQUEST_HEADER/, `${file} must read the request locale`);
   }
@@ -124,7 +134,8 @@ test("a privacy policy exists and is reachable from the surfaces that collect da
 
 test("signup sells the workspace, not a single engine", () => {
   const login = source("app/login/page.js");
-  assert.match(login, /Guarda investigaciones, conecta decisiones con tu cartera/);
-  assert.match(login, /Save research, connect decisions to your portfolio/);
+  assert.match(login, /Guarda investigaciones, conserva su evidencia visible y mide su impacto en tu cartera/);
+  assert.match(login, /Save research, keep its evidence visible, and measure its impact on your portfolio/);
+  assert.doesNotMatch(login, /Monitoreo y falsificadores/);
   assert.match(login, /legalStored/);
 });

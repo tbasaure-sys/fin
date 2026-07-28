@@ -6,16 +6,16 @@ import test from "node:test";
 const root = path.resolve(import.meta.dirname, "..");
 const source = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("landing and Breakpoint use one five-step decision narrative", () => {
+test("landing and Breakpoint use one four-step decision narrative", () => {
   const home = source("components/public-home-experience.jsx");
   const hero = source("components/breakpoint/breakpoint-hero.jsx");
   const result = source("components/breakpoint/breakpoint-result.jsx");
-  assert.match(home, /Cinco decisiones conectadas/);
+  assert.match(home, /Cuatro decisiones conectadas/);
   assert.match(home, /title: "Descubrir"/);
   assert.match(home, /title: "Entender el precio"/);
   assert.match(home, /title: "Construir la tesis"/);
   assert.match(home, /title: "Medir el riesgo"/);
-  assert.match(home, /title: "Monitorear"/);
+  assert.doesNotMatch(home, /title: "Monitorear"/);
   assert.match(hero, /Lo que el precio necesita/i);
   assert.match(result, /retorno exigido a 5 a[nñ]os/i);
   assert.doesNotMatch(hero, /MARKET-CLEARING SURFACE/);

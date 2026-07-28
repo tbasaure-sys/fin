@@ -270,7 +270,7 @@
 
 .demoGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -411,10 +411,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .demoGrid section:last-child {
-    grid-column: 1 / -1;
-    min-height: 0;
-  }
 }
 
 @media (max-width: 680px) {

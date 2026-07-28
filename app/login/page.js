@@ -1,14 +1,33 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 
 import styles from "@/app/login-page.module.css";
 import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
+import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Access your workspace",
-  robots: { index: false, follow: false },
+const METADATA = {
+  es: {
+    title: "Acceso al workspace",
+    description: "Accede a tu espacio de investigación y riesgo de cartera en BLS Prime.",
+  },
+  en: {
+    title: "Workspace access",
+    description: "Access your research and portfolio risk workspace in BLS Prime.",
+  },
 };
+
+export function generateMetadata() {
+  const locale = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+  const copy = METADATA[locale];
+
+  return {
+    title: copy.title,
+    description: copy.description,
+    robots: { index: false, follow: false },
+  };
+}
 
 const DEFAULT_NEXT = "/app#holdings";
 
@@ -17,11 +36,11 @@ const COPY = {
     back: "Back to BLS Prime",
     eyebrow: "Investment decision workspace",
     headline: <>Keep your research, decisions, and portfolio <em>in one place.</em></>,
-    lead: "Save research, connect decisions to your portfolio, and monitor what could invalidate them.",
+    lead: "Save research, keep its evidence visible, and measure its impact on your portfolio.",
     benefits: [
       ["01", "Research that persists", "Saved companies, theses, and evidence stay available instead of disappearing when you close the tab."],
-      ["02", "Decisions linked to the portfolio", "See what a new position does to concentration and downside before you take it."],
-      ["03", "Monitoring and falsifiers", "Track the KPIs and public tests that would change your view, and when they change."],
+      ["02", "Traceable evidence", "Keep source dates, assumptions, and missing evidence visible when you reopen a company."],
+      ["03", "Portfolio risk", "See what a new position does to concentration and downside before you take it."],
     ],
     legalIntro: "By creating an account you accept our",
     legalAnd: "and",
@@ -60,11 +79,11 @@ const COPY = {
     back: "Volver a BLS Prime",
     eyebrow: "Espacio de decisión de inversión",
     headline: <>Tu investigación, tus decisiones y tu cartera <em>en un solo lugar.</em></>,
-    lead: "Guarda investigaciones, conecta decisiones con tu cartera y monitorea qué podría invalidarlas.",
+    lead: "Guarda investigaciones, conserva su evidencia visible y mide su impacto en tu cartera.",
     benefits: [
       ["01", "Investigación que persiste", "Empresas guardadas, tesis y evidencia siguen disponibles en vez de perderse al cerrar la pestaña."],
-      ["02", "Decisiones ligadas a la cartera", "Mira qué le hace una posición nueva a tu concentración y a tu pérdida potencial antes de tomarla."],
-      ["03", "Monitoreo y falsificadores", "Sigue los KPI y las pruebas públicas que cambiarían tu lectura, y cuándo cambian."],
+      ["02", "Evidencia trazable", "Conserva fechas de fuente, supuestos y evidencia faltante cuando vuelves a abrir una empresa."],
+      ["03", "Riesgo de cartera", "Mira qué le hace una posición nueva a tu concentración y a tu pérdida potencial antes de tomarla."],
     ],
     legalIntro: "Al crear una cuenta aceptas nuestros",
     legalAnd: "y la",

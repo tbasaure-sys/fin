@@ -11,7 +11,7 @@ import { StressAccountGate } from "@/components/stress-account-gate";
 
 const COPY = {
   es: {
-    workflowKicker: "Cinco decisiones conectadas",
+    workflowKicker: "Cuatro decisiones conectadas",
     workflowTitle: "De una señal a una decisión defendible.",
     workflowSub:
       "BLS Prime ordena la investigación en una secuencia. Cada paso produce una salida concreta para el siguiente.",
@@ -50,20 +50,12 @@ const COPY = {
         requiresAccount: true,
         href: "/stress",
       },
-      {
-        index: "05",
-        title: "Monitorear",
-        engine: "Workspace",
-        outcome: "KPIs, nueva evidencia y cambios de tesis reunidos en el mismo lugar.",
-        action: "Crear espacio de trabajo",
-        href: "/login?intent=signup",
-      },
     ],
     demo: {
       kicker: "Demo determinista",
-      title: "Una lectura conectada, no cinco herramientas sueltas.",
+      title: "Una lectura conectada, no cuatro herramientas sueltas.",
       body:
-        "Este caso de Texas Instruments muestra cómo una señal avanza hasta una decisión que se puede revisar y monitorear.",
+        "Este caso de Texas Instruments muestra cómo una señal avanza hasta una lectura de empresa y su impacto en cartera.",
       disclosure: "Ejemplo congelado · 30 de junio de 2026 · No son datos en vivo.",
       company: "Texas Instruments",
       ticker: "TXN",
@@ -73,7 +65,6 @@ const COPY = {
         ["Precio", "price", "El precio exige sostener crecimiento y rentabilidad; no basta con extrapolar el pasado."],
         ["Tesis", "range", "El rango depende de márgenes, reinversión y recuperación del ciclo industrial."],
         ["Riesgo", "downside", "Downside ilustrativo en un escenario adverso de 20 días; no es un pronóstico."],
-        ["Monitoreo", "tests", "Margen bruto, inventarios y crecimiento del negocio analógico."],
       ],
       provenance:
         "Cifras ilustrativas y estáticas para demostrar el producto. Una lectura real identifica la fecha de cada fuente, los supuestos usados y cualquier evidencia faltante.",
@@ -85,7 +76,7 @@ const COPY = {
     privacy: "Privacidad",
   },
   en: {
-    workflowKicker: "Five connected decisions",
+    workflowKicker: "Four connected decisions",
     workflowTitle: "From a signal to a defensible decision.",
     workflowSub:
       "BLS Prime organizes research into a sequence. Each step produces a concrete output for the next one.",
@@ -124,20 +115,12 @@ const COPY = {
         requiresAccount: true,
         href: "/stress",
       },
-      {
-        index: "05",
-        title: "Monitor",
-        engine: "Workspace",
-        outcome: "KPIs, new evidence, and thesis changes gathered in one place.",
-        action: "Create workspace",
-        href: "/login?intent=signup",
-      },
     ],
     demo: {
       kicker: "Deterministic demo",
-      title: "One connected reading, not five separate tools.",
+      title: "One connected reading, not four separate tools.",
       body:
-        "This Texas Instruments case shows how a signal moves toward a decision that can be reviewed and monitored.",
+        "This Texas Instruments case shows how a signal moves into a company reading and its portfolio impact.",
       disclosure: "Frozen example · June 30, 2026 · Not live data.",
       company: "Texas Instruments",
       ticker: "TXN",
@@ -147,7 +130,6 @@ const COPY = {
         ["Price", "price", "The price requires sustained growth and profitability; past performance alone is not enough."],
         ["Thesis", "range", "The range depends on margins, reinvestment, and an industrial-cycle recovery."],
         ["Risk", "downside", "Illustrative downside in a 20-day adverse scenario; this is not a forecast."],
-        ["Monitoring", "tests", "Gross margin, inventory, and analog-business growth."],
       ],
       provenance:
         "Static illustrative figures used to demonstrate the product. A real reading identifies each source date, every assumption, and any missing evidence.",

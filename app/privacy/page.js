@@ -39,8 +39,8 @@ const COPY = {
         "Positions you enter or import are stored against your workspace so the risk and portfolio views can be rebuilt between sessions. Workspace access checks keep one account from reading another account's portfolio. The current workspace lets you edit or replace stored positions; it does not yet provide self-service account deletion.",
       ],
       [
-        "3. Research and decision history",
-        "Analyses you run, saved companies, theses, and decision journal entries are stored so the product can show how a view changed over time. Public first readings run without an account are stored without an account identifier and are not linked to a user profile.",
+        "3. Saved research",
+        "Analyses linked to your workspace, saved companies, theses, and research context you enter may be stored so the product can reopen your work. Public first readings run without an account are stored without an account identifier and are not linked to a user profile.",
       ],
       [
         "4. External data and AI providers",
@@ -87,8 +87,8 @@ const COPY = {
         "Las posiciones que ingresas o importas se guardan asociadas a tu espacio de trabajo para reconstruir las vistas de riesgo y cartera entre sesiones. Los controles de acceso impiden que una cuenta lea la cartera de otra. El espacio actual permite editar o reemplazar posiciones guardadas; todavía no ofrece eliminación autoservicio de la cuenta.",
       ],
       [
-        "3. Investigación e historial de decisiones",
-        "Los análisis que ejecutas, las empresas guardadas, las tesis y las entradas del registro de decisiones se almacenan para que el producto pueda mostrar cómo cambió una lectura a lo largo del tiempo. Las primeras lecturas públicas ejecutadas sin cuenta se guardan sin un identificador de cuenta y no se vinculan a un perfil de usuario.",
+        "3. Investigación guardada",
+        "Los análisis vinculados a tu espacio, las empresas guardadas, las tesis y el contexto de investigación que ingresas pueden almacenarse para que el producto vuelva a abrir tu trabajo. Las primeras lecturas públicas ejecutadas sin cuenta se guardan sin un identificador de cuenta y no se vinculan a un perfil de usuario.",
       ],
       [
         "4. Proveedores externos de datos e IA",

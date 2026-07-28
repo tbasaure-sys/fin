@@ -3,7 +3,18 @@ import { test, expect } from "@playwright/test";
 // Chequeos WCAG básicos sin dependencias externas:
 // labels, foco visible por teclado, lang del documento, imágenes con alt.
 
-const PUBLIC_ROUTES = ["/", "/login?lang=es", "/valuation-os-lab", "/factorlab", "/channels", "/terms"];
+const PUBLIC_ROUTES = [
+  "/",
+  "/product?lang=es",
+  "/methodology?lang=es",
+  "/company/TXN?demo=1&lang=es",
+  "/factorlab?lang=es",
+  "/stress?lang=es",
+  "/channels?lang=es",
+  "/login?lang=es",
+  "/privacy?lang=es",
+  "/terms?lang=es",
+];
 
 for (const route of PUBLIC_ROUTES) {
   test(`a11y básica en ${route}`, async ({ page }) => {

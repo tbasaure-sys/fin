@@ -6,12 +6,32 @@ import { parseFactorLabFilters } from "@/lib/factorlab-workspace";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "FactorLab Discovery Engine",
-  description:
-    "Point-in-time discovery workspace for neglected asymmetric opportunities, red-flag gates, and structured research queues.",
-  alternates: { canonical: "/factorlab" },
+const METADATA = {
+  es: {
+    title: "Descubrimiento de empresas",
+    description:
+      "Descubre empresas con datos de mercado actuales, estados financieros presentados y controles de investigación visibles.",
+  },
+  en: {
+    title: "Company discovery",
+    description:
+      "Discover companies with current market data, filed financial statements, and visible research gates.",
+  },
 };
+
+export function generateMetadata() {
+  const locale = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+  const copy = METADATA[locale];
+
+  return {
+    title: copy.title,
+    description: copy.description,
+    alternates: {
+      canonical: "/factorlab",
+      languages: { es: "/factorlab?lang=es", en: "/factorlab?lang=en" },
+    },
+  };
+}
 
 export default function FactorLabPage({ searchParams }) {
   const initialLanguage = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");

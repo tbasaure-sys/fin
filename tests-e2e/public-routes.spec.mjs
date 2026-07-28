@@ -5,6 +5,7 @@ test("el HTML inicial de FactorLab y Stress respeta el locale solicitado", async
   const factorlabHtml = await factorlabResponse.text();
 
   expect(factorlabResponse.ok()).toBeTruthy();
+  expect(factorlabHtml).toContain("<title>Descubrimiento de empresas | BLS Prime</title>");
   expect(factorlabHtml).toContain("Descubre qué empresa merece tu próxima hora");
   expect(factorlabHtml).not.toContain("Discover which company deserves your next hour");
 
@@ -12,6 +13,7 @@ test("el HTML inicial de FactorLab y Stress respeta el locale solicitado", async
   const stressHtml = await stressResponse.text();
 
   expect(stressResponse.ok()).toBeTruthy();
+  expect(stressHtml).toContain("<title>Riesgo de cartera | BLS Prime</title>");
   expect(stressHtml).toContain("Riesgo de cartera");
   expect(stressHtml).not.toContain("Portfolio risk");
 });
@@ -26,6 +28,8 @@ test("privacidad declara las fronteras reales de eliminación, logs y proveedore
   expect(html).toContain("no define cuánto tiempo conserva esos registros la plataforma de alojamiento");
   expect(html).not.toContain("Al eliminar tu cuenta se borran las posiciones");
   expect(html).not.toContain("privacy@blsprime.com");
+  expect(html).not.toContain("registro de decisiones");
+  expect(html).not.toContain("decision journal");
 });
 
 test.describe("Rutas públicas", () => {
@@ -36,6 +40,7 @@ test.describe("Rutas públicas", () => {
       "Antes de invertir, entiende qué necesita el precio.",
     );
     await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByText(/monitoreo|monitorear/i)).toHaveCount(0);
     await expect(page.getByLabel("Ticker estadounidense")).toHaveValue("");
     await expect(page.getByText("ASML", { exact: false })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Explorar una demo" })).toHaveAttribute("href", "#demo");
@@ -48,9 +53,10 @@ test.describe("Rutas públicas", () => {
       await expect(page.getByText(guarantee, { exact: true })).toBeVisible();
     }
 
-    for (const step of ["Descubrir", "Entender el precio", "Construir la tesis", "Medir el riesgo", "Monitorear"]) {
+    for (const step of ["Descubrir", "Entender el precio", "Construir la tesis", "Medir el riesgo"]) {
       await expect(page.getByRole("heading", { name: step, exact: true })).toBeVisible();
     }
+    await expect(page.getByRole("heading", { name: "Monitorear", exact: true })).toHaveCount(0);
 
     await expect(page.getByText("Ejemplo congelado", { exact: false })).toBeVisible();
     await expect(
@@ -82,8 +88,12 @@ test.describe("Rutas públicas", () => {
 
   test("/factorlab carga y expone el toggle de idioma", async ({ page }) => {
     await page.goto("/factorlab");
-    await expect(page.getByRole("button", { name: "ES", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "ES", exact: true }).click();
+    const spanishButton = page.getByRole("button", { name: "ES", exact: true });
+    if (!(await spanishButton.isVisible())) {
+      await page.getByRole("button", { name: /Abrir navegación|Open navigation/i }).click();
+    }
+    await expect(spanishButton).toBeVisible();
+    await spanishButton.click();
     await expect.poll(() => page.evaluate(() => localStorage.getItem("blsprime_language_preference"))).toBe("es");
   });
 
@@ -111,7 +121,11 @@ test.describe("Rutas públicas", () => {
 
   test("persistencia de idioma: ES sobrevive un reload", async ({ page }) => {
     await page.goto("/factorlab");
-    await page.getByRole("button", { name: "ES", exact: true }).click();
+    const spanishButton = page.getByRole("button", { name: "ES", exact: true });
+    if (!(await spanishButton.isVisible())) {
+      await page.getByRole("button", { name: /Abrir navegación|Open navigation/i }).click();
+    }
+    await spanishButton.click();
     await page.reload();
     const stored = await page.evaluate(() => localStorage.getItem("blsprime_language_preference"));
     expect(stored).toBe("es");
@@ -129,6 +143,9 @@ test.describe("Rutas públicas", () => {
 
   test("login: formulario accesible con labels y validación de email", async ({ page }) => {
     await page.goto("/login?lang=es");
+    await expect(page).toHaveTitle("Acceso al workspace | BLS Prime");
+    await expect(page.getByText("Riesgo de cartera", { exact: true })).toBeVisible();
+    await expect(page.getByText("Monitoreo y falsificadores", { exact: true })).toHaveCount(0);
     await expect(page.getByLabel(/Email/i)).toBeVisible();
     await expect(page.getByLabel(/Contraseña/i)).toBeVisible();
     await page.getByLabel(/Email/i).fill("no-es-un-email");

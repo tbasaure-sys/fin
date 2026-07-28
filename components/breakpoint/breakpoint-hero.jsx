@@ -12,7 +12,7 @@ const COPY = {
   es: {
     eyebrow: "BLS PRIME · ESPACIO DE DECISIÓN",
     title: "Antes de invertir, entiende qué necesita el precio.",
-    body: "Conecta descubrimiento, precio y valor, efecto en cartera y monitoreo. Cada lectura muestra su fecha, sus fuentes y sus supuestos para ayudarte a actuar o pasar.",
+    body: "Conecta descubrimiento, precio y valor con el efecto en cartera. Cada lectura muestra su fecha, sus fuentes y sus supuestos para ayudarte a actuar o pasar.",
     label: "Ticker estadounidense",
     placeholder: "Ej. TICKER",
     submit: "Analizar empresa",
@@ -54,7 +54,7 @@ const COPY = {
   en: {
     eyebrow: "BLS PRIME · INVESTMENT DECISION WORKSPACE",
     title: "Before you invest, understand what the price needs.",
-    body: "Connect discovery, price and value, portfolio impact, and monitoring. Every reading shows its date, sources, and assumptions so you can act or pass.",
+    body: "Connect discovery, price and value with portfolio impact. Every reading shows its date, sources, and assumptions so you can act or pass.",
     label: "US ticker",
     placeholder: "E.g. TICKER",
     submit: "Analyze company",
