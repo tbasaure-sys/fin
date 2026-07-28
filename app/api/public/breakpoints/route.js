@@ -7,6 +7,24 @@ export const dynamic = "force-dynamic";
 
 const WINDOW_MS = 60_000;
 const MAX_RUNS_PER_WINDOW = 8;
+const RUN_TIMEOUT_MS = Number(process.env.BLS_BREAKPOINT_TIMEOUT_MS || 40_000);
+
+class BreakpointTimeoutError extends Error {
+  constructor() {
+    super("breakpoint_run_timeout");
+    this.name = "BreakpointTimeoutError";
+  }
+}
+
+function withTimeout(promise, ms) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_resolve, reject) => {
+      timer = setTimeout(() => reject(new BreakpointTimeoutError()), ms);
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
 const requests = globalThis.__BLS_BREAKPOINT_RATE_LIMIT__ || new Map();
 globalThis.__BLS_BREAKPOINT_RATE_LIMIT__ = requests;
 
@@ -57,16 +75,24 @@ export async function POST(request) {
 
   let result;
   try {
-    result = await getLiveBreakpointService().run({ ticker, hurdleRate, locale });
+    result = await withTimeout(
+      getLiveBreakpointService().run({ ticker, hurdleRate, locale }),
+      RUN_TIMEOUT_MS,
+    );
   } catch (error) {
+    const timedOut = error instanceof BreakpointTimeoutError;
     return noStoreJson({
       ok: false,
-      code: "DATA_UNAVAILABLE",
-      message: locale === "en"
-        ? "We could not build this reading from current public data. Try another SEC-covered ticker."
-        : "No pudimos construir esta lectura con datos públicos actuales. Prueba otra empresa con cobertura SEC.",
+      code: timedOut ? "TIMEOUT" : "DATA_UNAVAILABLE",
+      message: timedOut
+        ? (locale === "en"
+          ? "The data providers did not answer in time. Please retry."
+          : "Los proveedores de datos no respondieron a tiempo. Vuelve a intentarlo.")
+        : (locale === "en"
+          ? "We could not build this reading from current public data. Try another SEC-covered ticker."
+          : "No pudimos construir esta lectura con datos públicos actuales. Prueba otra empresa con cobertura SEC."),
       detail: process.env.NODE_ENV === "production" ? undefined : error instanceof Error ? error.message : String(error),
-    }, { status: 503 });
+    }, { status: timedOut ? 504 : 503 });
   }
 
   try {
