@@ -36,13 +36,15 @@ test("module surfaces explain the job in common words", () => {
   assert.match(stress, /qu[eé] puede pasar si el mercado cae/i);
 });
 
-test("public copy calls samples examples and does not promise unavailable work", () => {
+test("public copy distinguishes the frozen homepage example from live FactorLab", () => {
   const home = source("components/public-home-experience.jsx");
   const factorlab = source("components/factorlab-workstation.jsx");
   assert.match(home, /Ejemplo congelado/);
   assert.match(home, /Frozen example/);
   assert.match(home, /No son datos en vivo/);
-  assert.match(factorlab, /Ver ejemplo|Pr[oó]ximamente|Solicitar acceso/);
+  assert.match(factorlab, /Resultados construidos al solicitar la p[aá]gina con mercado actual/);
+  assert.match(factorlab, /No mostramos datos de ejemplo en su lugar/);
+  assert.match(factorlab, /\/api\/public\/factorlab/);
 });
 
 test("Breakpoint keeps localized failure copy at both the API and UI boundaries", () => {
@@ -51,5 +53,5 @@ test("Breakpoint keeps localized failure copy at both the API and UI boundaries"
   const route = source("app/api/public/breakpoints/route.js");
   assert.doesNotMatch(hero, /error instanceof Error \? error\.message/);
   assert.doesNotMatch(result, /error instanceof Error \? error\.message/);
-  assert.match(route, /No pudimos construir esta lectura con datos públicos actuales/);
+  assert.match(route, /No pudimos construir esta lectura con datos p[uú]blicos actuales/);
 });

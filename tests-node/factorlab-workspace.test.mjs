@@ -30,7 +30,7 @@ test("shared FactorLab links preserve every user-visible filter with bounded val
   });
   assert.equal(
     buildFactorLabSharePath(filters, "es"),
-    "/factorlab?lang=es&asof=2026-06-20&universe=micro&topK=8&minAdvUsd=500000&maxMarketCapUsd=1500000000&maxResidualVol=0.55&diagnostics=1",
+    "/factorlab?lang=es&universe=micro&topK=8&minAdvUsd=500000&maxMarketCapUsd=1500000000&maxResidualVol=0.55&diagnostics=1",
   );
 });
 

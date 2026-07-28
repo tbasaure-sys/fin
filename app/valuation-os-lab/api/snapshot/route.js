@@ -457,6 +457,46 @@ function deriveDrivers(facts, quote, riskFree, metadata = {}) {
     "NumberOfSharesOutstanding",
     "EntityCommonStockSharesOutstanding",
   ], "shares");
+  const grossProfitSeries = annualSeries(facts, [
+    "GrossProfit",
+    "GrossProfitLoss",
+  ]);
+  const operatingIncomeSeries = annualSeries(facts, [
+    "OperatingIncomeLoss",
+    "ProfitLossFromOperatingActivities",
+    "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
+  ]);
+  const cfoSeries = annualSeries(facts, [
+    "NetCashProvidedByUsedInOperatingActivities",
+    "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations",
+    "CashFlowsFromUsedInOperatingActivities",
+    "CashFlowsFromUsedInOperatingActivitiesContinuingOperations",
+  ]);
+  const capexSeries = annualSeries(facts, [
+    "PaymentsToAcquirePropertyPlantAndEquipment",
+    "PaymentsToAcquireProductiveAssets",
+    "PurchaseOfPropertyPlantAndEquipmentClassifiedAsInvestingActivities",
+    "PurchaseOfPropertyPlantAndEquipmentIntangibleAssetsOtherThanGoodwillInvestmentPropertyAndOtherNoncurrentAssets",
+  ]);
+  const sharesSeries = annualSeries(facts, [
+    "WeightedAverageNumberOfDilutedSharesOutstanding",
+    "WeightedAverageNumberOfSharesOutstandingDiluted",
+    "AdjustedWeightedAverageShares",
+    "WeightedAverageNumberOfOrdinarySharesOutstanding",
+    "NumberOfSharesOutstanding",
+    "EntityCommonStockSharesOutstanding",
+  ], "shares");
+  const cash = latestAnnual(facts, [
+    "CashAndCashEquivalentsAtCarryingValue",
+    "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents",
+    "CashAndDueFromBanks",
+  ]);
+  const debt = latestAnnual(facts, [
+    "LongTermDebt",
+    "LongTermDebtCurrent",
+    "LongTermDebtNoncurrent",
+    "DebtCurrent",
+  ]);
 
   const revenueCagr =
     revenue && revenueStart && revenue.fy > revenueStart.fy && revenueStart.value > 0
@@ -602,6 +642,13 @@ function deriveDrivers(facts, quote, riskFree, metadata = {}) {
       fcf,
       capexToRevenue,
       revenueSeries: revenueSeries.slice(-4),
+      grossProfitSeries: grossProfitSeries.slice(-4),
+      operatingIncomeSeries: operatingIncomeSeries.slice(-4),
+      cfoSeries: cfoSeries.slice(-4),
+      capexSeries: capexSeries.slice(-4),
+      sharesSeries: sharesSeries.slice(-4),
+      cash,
+      debt,
     },
   };
 }

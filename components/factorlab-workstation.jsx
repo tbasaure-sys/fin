@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import styles from "@/app/factorlab/factorlab.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
 import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
-import { factorLabSampleUniverse, runFactorLab } from "@/lib/factorlab-engine";
 import {
   FACTORLAB_DEFAULT_FILTERS,
   buildFactorLabQueueItem,
@@ -18,13 +17,25 @@ import {
 
 const COPY = {
   es: {
+    livePublicNote: "Resultados construidos al solicitar la página con mercado actual y estados financieros presentados. Para guardar candidatos necesitas un workspace.",
+    livePrivateNote: "La cola está conectada a tu workspace y el universo se reconstruye desde proveedores actuales.",
+    live: "Live",
+    updating: "Actualizando datos",
+    marketDataAsOf: "Datos de mercado al",
+    providerCoverage: (succeeded, requested) => `${succeeded} de ${requested} empresas actualizadas`,
+    liveCadence: "Bajo demanda · caché máxima 15 min",
+    loadingTitle: "Construyendo el universo actual",
+    loadingBody: "Estamos consultando mercado y filings; la primera carga puede tardar unos segundos.",
+    errorTitle: "FactorLab no está disponible ahora",
+    errorBody: "No pudimos construir una lectura completa con los proveedores actuales. No mostramos datos de ejemplo en su lugar.",
+    retry: "Reintentar actualización",
     title: "Descubre qué empresa merece tu próxima hora.",
     intro: "Encuentra empresas que vale la pena revisar y asigna una Prioridad de revisión antes de abrir cada expediente. FactorLab ordena investigación; no recomienda compras.",
-    publicNote: "Ver ejemplo con un snapshot congelado. Para guardar candidatos necesitas un workspace.",
-    privateNote: "La cola está conectada a tu workspace. El universo de esta pantalla sigue siendo demostrativo.",
-    demo: "Demo",
-    dataDate: "Datos al 24 jun 2026",
-    cadence: "Snapshot fijo · sin actualización automática",
+    publicNote: "Resultados construidos desde datos públicos actuales.",
+    privateNote: "La cola está conectada a tu workspace.",
+    demo: "Live",
+    dataDate: "Datos de mercado actuales",
+    cadence: "Actualización bajo demanda",
     queueConnected: "Research queue activa",
     filters: "Filtros de búsqueda",
     filtersBody: "Cambia el mandato. La URL conserva cada filtro para que puedas compartir exactamente la misma búsqueda.",
@@ -78,17 +89,29 @@ const COPY = {
     downloadJson: "Descargar JSON",
     methodNote: "Los umbrales son fijos; los datos faltantes reducen cobertura y no se convierten automáticamente en una mala señal.",
     emptyTitle: "Ninguna empresa sobrevivió a estos filtros.",
-    emptyBody: "Amplía liquidez, capitalización o volatilidad, o vuelve al mandato demo.",
+    emptyBody: "Amplía liquidez, capitalización o volatilidad para volver a consultar el universo actual.",
     disclosure: "Herramienta de priorización de investigación. No es asesoría financiera ni una recomendación de compra o venta.",
   },
   en: {
+    livePublicNote: "Results are built on request from current market data and filed financial statements. A workspace is required to save candidates.",
+    livePrivateNote: "The queue is connected to your workspace and the universe is rebuilt from current providers.",
+    live: "Live",
+    updating: "Refreshing data",
+    marketDataAsOf: "Market data as of",
+    providerCoverage: (succeeded, requested) => `${succeeded} of ${requested} companies refreshed`,
+    liveCadence: "On demand · maximum cache 15 min",
+    loadingTitle: "Building the current universe",
+    loadingBody: "We are querying market data and filings; the first load may take a few seconds.",
+    errorTitle: "FactorLab is unavailable right now",
+    errorBody: "We could not build a complete reading from current providers. We do not substitute example data.",
+    retry: "Retry refresh",
     title: "Discover which company deserves your next hour.",
     intro: "FactorLab narrows a small universe into files worth opening. It ranks research; it does not recommend trades.",
-    publicNote: "Explore the method with a frozen snapshot. A workspace is required to save candidates.",
-    privateNote: "The queue is connected to your workspace. This screen's universe remains demonstrative.",
-    demo: "Demo",
-    dataDate: "Data as of 24 Jun 2026",
-    cadence: "Fixed snapshot · no automatic updates",
+    publicNote: "Results built from current public data.",
+    privateNote: "The queue is connected to your workspace.",
+    demo: "Live",
+    dataDate: "Current market data",
+    cadence: "Updated on demand",
     queueConnected: "Research queue active",
     filters: "Search filters",
     filtersBody: "Change the mandate. The URL preserves every filter so the exact search can be shared.",
@@ -142,7 +165,7 @@ const COPY = {
     downloadJson: "Download JSON",
     methodNote: "Thresholds are fixed; missing data reduces coverage and is not automatically treated as a bad signal.",
     emptyTitle: "No company survived these filters.",
-    emptyBody: "Widen liquidity, market-cap, or volatility limits, or return to the demo mandate.",
+    emptyBody: "Widen liquidity, market-cap, or volatility limits to query the current universe again.",
     disclosure: "Research prioritization software. Not financial advice or a recommendation to buy or sell.",
   },
 };
@@ -213,8 +236,19 @@ function typeLabel(row, language) {
 }
 
 function narrative(row, language) {
-  if (language === "es" && SPANISH_NARRATIVE[row.ticker]) return SPANISH_NARRATIVE[row.ticker];
-  return row;
+  return row.narrative?.[language] || row.narrative?.en || row;
+}
+
+function formatDataDate(value, language) {
+  if (!value) return "\u2014";
+  const date = new Date(`${value}T12:00:00Z`);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(language === "en" ? "en-US" : "es-CL", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date);
 }
 
 function sourceLabel(key, language) {
@@ -235,7 +269,6 @@ export function FactorLabWorkstation({
   const { language } = useLanguagePreference(initialLanguage);
   const copy = COPY[language] || COPY.es;
   const parsedInitial = useMemo(() => parseFactorLabFilters(initialFilters), [initialFilters]);
-  const [asof, setAsof] = useState(parsedInitial.asof);
   const [universe, setUniverse] = useState(parsedInitial.universe);
   const [topK, setTopK] = useState(parsedInitial.topK);
   const [minAdvUsd, setMinAdvUsd] = useState(parsedInitial.minAdvUsd);
@@ -245,19 +278,48 @@ export function FactorLabWorkstation({
   const [auditOpen, setAuditOpen] = useState(false);
   const [copyState, setCopyState] = useState("");
   const [queueState, setQueueState] = useState({});
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [liveState, setLiveState] = useState({ status: "loading", run: null, error: "" });
 
-  const filters = useMemo(() => ({ asof, universe, topK, minAdvUsd, maxMarketCapUsd, maxResidualVol, includeDiagnostics }), [
-    asof, universe, topK, minAdvUsd, maxMarketCapUsd, maxResidualVol, includeDiagnostics,
+  const filters = useMemo(() => ({ universe, topK, minAdvUsd, maxMarketCapUsd, maxResidualVol, includeDiagnostics }), [
+    universe, topK, minAdvUsd, maxMarketCapUsd, maxResidualVol, includeDiagnostics,
   ]);
   const basePath = publicMode ? "/factorlab" : "/app/discover";
   const sharePath = useMemo(() => buildFactorLabSharePath(filters, language, basePath), [filters, language, basePath]);
-  const run = useMemo(() => runFactorLab({ ...filters, includeFutureReturn: false }), [filters]);
-  const auditJson = useMemo(() => JSON.stringify({ spec: run.spec, summary: run.summary, audit: run.audit }, null, 2), [run]);
+  const apiPath = useMemo(() => buildFactorLabSharePath(filters, language, "/api/public/factorlab"), [filters, language]);
+  const run = liveState.run;
+  const auditJson = useMemo(() => run ? JSON.stringify({
+    generatedAt: run.generatedAt,
+    datasetAsOf: run.datasetAsOf,
+    providerStatus: run.providerStatus,
+    spec: run.spec,
+    summary: run.summary,
+    audit: run.audit,
+  }, null, 2) : "", [run]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => router.replace(sharePath, { scroll: false }), 180);
     return () => window.clearTimeout(timer);
   }, [router, sharePath]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLiveState((current) => ({ ...current, status: current.run ? "refreshing" : "loading", error: "" }));
+    fetch(apiPath, { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        const payload = await response.json();
+        if (!response.ok || !payload?.ok || payload.run?.mode !== "live") {
+          throw new Error(payload?.message || "live_data_unavailable");
+        }
+        return payload.run;
+      })
+      .then((nextRun) => setLiveState({ status: "ready", run: nextRun, error: "" }))
+      .catch((error) => {
+        if (error?.name === "AbortError") return;
+        setLiveState({ status: "error", run: null, error: error?.message || "live_data_unavailable" });
+      });
+    return () => controller.abort();
+  }, [apiPath, refreshKey]);
 
   async function copyValue(value, state) {
     try {
@@ -271,7 +333,6 @@ export function FactorLabWorkstation({
 
   function resetFilters() {
     const defaults = FACTORLAB_DEFAULT_FILTERS;
-    setAsof(defaults.asof);
     setUniverse(defaults.universe);
     setTopK(defaults.topK);
     setMinAdvUsd(defaults.minAdvUsd);
@@ -297,17 +358,21 @@ export function FactorLabWorkstation({
   }
 
   function downloadAudit() {
+    if (!run) return;
     const blob = new Blob([auditJson], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `factorlab-audit-${asof}.json`;
+    link.download = `factorlab-audit-${run.datasetAsOf || "live"}.json`;
     link.click();
     URL.revokeObjectURL(url);
   }
 
   const loginNext = buildFactorLabSharePath(filters, "es", "/app/discover");
   const loginHref = `/login?intent=signin&next=${encodeURIComponent(loginNext)}&lang=${language}`;
+  const providerStatus = run?.providerStatus || { requested: 0, succeeded: 0, failed: 0 };
+  const isUpdating = liveState.status === "loading" || liveState.status === "refreshing";
+  const considered = providerStatus.requested || run?.summary?.universeTotal || 0;
 
   return (
     <div className={styles.shell}>
@@ -327,28 +392,28 @@ export function FactorLabWorkstation({
             <p className={styles.kicker}>FactorLab / research discovery</p>
             <h1>{copy.title}</h1>
             <p className={styles.lede}>{copy.intro}</p>
-            <p className={styles.modeNote}>{publicMode ? copy.publicNote : copy.privateNote}</p>
+            <p className={styles.modeNote}>{publicMode ? copy.livePublicNote : copy.livePrivateNote}</p>
           </div>
           <div className={styles.freshness} aria-label={language === "es" ? "Estado de los datos" : "Data status"}>
-            <strong>{copy.demo}</strong>
-            <span>{copy.dataDate}</span>
-            <span>{copy.cadence}</span>
+            <strong>{copy.live}</strong>
+            <span>{isUpdating ? copy.updating : `${copy.marketDataAsOf} ${formatDataDate(run?.datasetAsOf, language)}`}</span>
+            <span>{run ? copy.providerCoverage(providerStatus.succeeded, providerStatus.requested) : copy.liveCadence}</span>
+            {run ? <span>{copy.liveCadence}</span> : null}
             {!publicMode ? <span data-positive="true">{copy.queueConnected}</span> : null}
           </div>
         </section>
 
         <section className={styles.statusStrip} aria-label={language === "es" ? "Resumen de búsqueda" : "Search summary"}>
-          <div><span>{copy.considered}</span><strong>{factorLabSampleUniverse.length}</strong></div>
-          <div><span>{copy.eligible}</span><strong>{run.summary.eligible}</strong></div>
-          <div><span>{copy.shown}</span><strong>{run.summary.returned}</strong></div>
-          <div><span>{copy.held}</span><strong>{run.summary.abstain}</strong></div>
+          <div><span>{copy.considered}</span><strong>{considered}</strong></div>
+          <div><span>{copy.eligible}</span><strong>{run?.summary?.eligible || 0}</strong></div>
+          <div><span>{copy.shown}</span><strong>{run?.summary?.returned || 0}</strong></div>
+          <div><span>{copy.held}</span><strong>{run?.summary?.abstain || 0}</strong></div>
         </section>
 
         <section className={styles.workspace}>
           <aside className={styles.filters}>
             <div className={styles.sectionHeading}><span>01</span><div><h2>{copy.filters}</h2><p>{copy.filtersBody}</p></div></div>
             <div className={styles.controlStack}>
-              <label><span>{copy.asof}</span><input max="2026-06-24" onChange={(event) => setAsof(event.target.value)} type="date" value={asof} /></label>
               <label><span>{copy.universe}</span><select onChange={(event) => setUniverse(event.target.value)} value={universe}>{UNIVERSE_OPTIONS.map((option) => <option key={option} value={option}>{copy.universeOptions[option]}</option>)}</select></label>
               <label><span>{copy.topK}</span><input max="12" min="1" onChange={(event) => setTopK(Math.max(1, Number(event.target.value) || 1))} type="number" value={topK} /></label>
               <label><span>{copy.minAdv}</span><input max="10000000" min="50000" onChange={(event) => setMinAdvUsd(Number(event.target.value))} step="50000" type="range" value={minAdvUsd} /><em>{formatMoney(minAdvUsd)}</em></label>
@@ -365,10 +430,14 @@ export function FactorLabWorkstation({
           <section className={styles.results} id="results">
             <div className={styles.resultsHeader}>
               <div className={styles.sectionHeading}><span>02</span><div><p>{copy.results}</p><h2>{copy.resultsTitle}</h2><small>{copy.resultsBody}</small></div></div>
-              <button className={styles.auditButton} onClick={() => setAuditOpen(true)} type="button">{copy.methodology}</button>
+              <button className={styles.auditButton} disabled={!run} onClick={() => setAuditOpen(true)} type="button">{copy.methodology}</button>
             </div>
 
-            {run.accepted && run.candidates.length ? (
+            {!run && liveState.status === "loading" ? (
+              <div className={styles.emptyState} role="status"><span>Live</span><h3>{copy.loadingTitle}</h3><p>{copy.loadingBody}</p></div>
+            ) : !run && liveState.status === "error" ? (
+              <div className={styles.emptyState} role="alert"><span>503</span><h3>{copy.errorTitle}</h3><p>{copy.errorBody}</p><button onClick={() => setRefreshKey((value) => value + 1)} type="button">{copy.retry}</button></div>
+            ) : run?.accepted && run.candidates.length ? (
               <div className={styles.candidateList}>
                 {run.candidates.map((row) => {
                   const reading = factorLabScoreReading(row.opportunityScore, language);
@@ -403,23 +472,23 @@ export function FactorLabWorkstation({
                   );
                 })}
               </div>
-            ) : (
+            ) : run ? (
               <div className={styles.emptyState} role="status"><span>0 resultados</span><h3>{copy.emptyTitle}</h3><p>{copy.emptyBody}</p><button onClick={resetFilters} type="button">{copy.reset}</button></div>
-            )}
+            ) : null}
           </section>
         </section>
       </main>
 
       <footer className={styles.footer}><Link href="/">BLS Prime</Link><p>{copy.disclosure}</p></footer>
 
-      {auditOpen ? (
+      {auditOpen && run ? (
         <div className={styles.drawerBackdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setAuditOpen(false); }}>
           <section aria-labelledby="factorlab-audit-title" aria-modal="true" className={styles.drawer} role="dialog">
             <header><div><p>FactorLab / audit trail</p><h2 id="factorlab-audit-title">{copy.methodology}</h2></div><button aria-label={copy.close} onClick={() => setAuditOpen(false)} type="button">×</button></header>
             <p className={styles.methodNote}>{copy.methodNote}</p>
             <dl className={styles.auditFacts}>
               <div><dt>{copy.modelVersion}</dt><dd>{run.spec.version}</dd></div>
-              <div><dt>{copy.dataDate}</dt><dd>{copy.cadence}</dd></div>
+              <div><dt>{copy.marketDataAsOf}</dt><dd>{formatDataDate(run.datasetAsOf, language)}{" \u00b7 "}{copy.providerCoverage(providerStatus.succeeded, providerStatus.requested)}</dd></div>
               <div><dt>{copy.lag}</dt><dd>{copy.lagValue}</dd></div>
             </dl>
             <section className={styles.sourceSection}><h3>{copy.sources}</h3>{Object.entries(run.spec.sources).map(([key, value]) => <div key={key}><strong>{sourceLabel(key, language)}</strong><span>{value.adapter}</span></div>)}</section>

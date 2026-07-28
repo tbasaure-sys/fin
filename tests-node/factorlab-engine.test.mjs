@@ -55,6 +55,50 @@ test("FactorLab separates global priority from rank inside each opportunity type
   assert.equal(kits.rankWithinType, 1);
 });
 
+test("FactorLab ranks the server-provided live universe without leaking sample companies", () => {
+  const liveRow = {
+    ticker: "LIVE",
+    name: "Live Systems",
+    sector: "Industrials",
+    industry: "Industrial systems",
+    region: "US",
+    platform: "Tradable now",
+    priceDate: "2026-07-28",
+    fundamentalsDate: "2026-07-20",
+    marketCapUsd: 420_000_000,
+    advUsd: 3_500_000,
+    price: 24,
+    residualVol: 0.38,
+    grossMargin: 0.48,
+    fcfMargin: 0.13,
+    roic: 0.17,
+    revenueGrowthTtm: 0.24,
+    revenueAcceleration: 0.08,
+    grossMarginExpansion: 0.03,
+    ebitMarginExpansion: 0.025,
+    fcfImprovementToSales: 0.04,
+    netCashToMarketCap: 0.12,
+    cashRunwayMonths: null,
+    isBurning: false,
+    dilutionTtm: 0.01,
+    fcfYield: 0.09,
+    evGrossProfit: 4.2,
+    evSales: 2.0,
+    analystCount: null,
+    institutionalOwnership: null,
+    newsCount90d: 3,
+    thesis: "Current filing-backed operating improvement.",
+    whyNow: "Revenue and margins improved in the latest filed period.",
+    killCriteria: "Cash conversion reverses in the next filed period.",
+  };
+
+  const result = runFactorLab({ rows: [liveRow], topK: 6, asof: "2026-07-28" });
+
+  assert.equal(result.accepted, true);
+  assert.deepEqual(result.candidates.map((row) => row.ticker), ["LIVE"]);
+  assert.equal(result.summary.universeTotal, 1);
+});
+
 test("FactorLab refuses a live discovery screen that uses future returns", () => {
   const run = runFactorLab({
     asof: "2026-06-24",

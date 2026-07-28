@@ -12,7 +12,7 @@ test("the public shell keeps Spanish context and identifies product engine route
   assert.deepEqual(navigation, [
     { id: "product", label: "Producto", href: "/product?lang=es", current: true },
     { id: "methodology", label: "Metodología", href: "/methodology?lang=es", current: false },
-    { id: "demo", label: "Demo", href: "/?lang=es#breakpoint", current: false },
+    { id: "breakpoint", label: "Analizar una empresa", href: "/?lang=es#breakpoint", current: false },
   ]);
 });
 
@@ -22,7 +22,7 @@ test("the public shell emits complete English navigation without losing locale",
   assert.deepEqual(navigation, [
     { id: "product", label: "Product", href: "/product?lang=en", current: false },
     { id: "methodology", label: "Methodology", href: "/methodology?lang=en", current: true },
-    { id: "demo", label: "Demo", href: "/?lang=en#breakpoint", current: false },
+    { id: "breakpoint", label: "Analyze a company", href: "/?lang=en#breakpoint", current: false },
   ]);
 });
 
