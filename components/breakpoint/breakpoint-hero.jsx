@@ -341,39 +341,6 @@ export function BreakpointHero({ language = "es" }) {
           </section>
         ) : null}
       </div>
-      <div className={styles.surface} aria-hidden="true">
-        <div className={styles.surfaceHeader}>
-          <span>{language === "en" ? "WHAT THE PRICE NEEDS" : "LO QUE EL PRECIO NECESITA"}</span>
-          <span>{language === "en" ? "5 YEARS · 10%" : "5 AÑOS · 10%"}</span>
-        </div>
-        <div className={styles.surfacePlot}>
-          <span className={styles.axisY}>{language === "en" ? "PROFITABILITY" : "RENTABILIDAD"}</span>
-          <span className={styles.axisX}>{language === "en" ? "GROWTH" : "CRECIMIENTO"}</span>
-          <svg viewBox="0 0 560 330" role="presentation">
-            <path
-              className={styles.grid}
-              d="M35 42H530M35 106H530M35 170H530M35 234H530M35 298H530M92 20V298M174 20V298M256 20V298M338 20V298M420 20V298M502 20V298"
-            />
-            <path
-              className={styles.feasible}
-              d="M58 246C125 236 157 218 206 183C252 151 291 132 338 126C392 118 437 78 505 43L505 298L58 298Z"
-            />
-            <path
-              className={styles.boundary}
-              d="M58 246C125 236 157 218 206 183C252 151 291 132 338 126C392 118 437 78 505 43"
-            />
-            <circle className={styles.anchor} cx="338" cy="126" r="6" />
-          </svg>
-          <div className={styles.surfaceNote}>
-            <span>{language === "en" ? "ILLUSTRATIVE SHAPE · NOT LIVE DATA" : "FORMA ILUSTRATIVA · NO SON DATOS EN VIVO"}</span>
-            <strong>
-              {language === "en"
-                ? "sustained growth and profitability"
-                : "crecimiento y rentabilidad sostenidos"}
-            </strong>
-          </div>
-        </div>
-      </div>
     </section>
   );
 }

@@ -10,6 +10,7 @@ test("landing and Breakpoint use one four-step decision narrative", () => {
   const home = source("components/public-home-experience.jsx");
   const hero = source("components/breakpoint/breakpoint-hero.jsx");
   const result = source("components/breakpoint/breakpoint-result.jsx");
+  const sitemap = source("app/sitemap.js");
   assert.match(home, /Cuatro decisiones conectadas/);
   assert.match(home, /title: "Descubrir"/);
   assert.match(home, /title: "Entender el precio"/);
@@ -17,6 +18,10 @@ test("landing and Breakpoint use one four-step decision narrative", () => {
   assert.match(home, /title: "Medir el riesgo"/);
   assert.doesNotMatch(home, /title: "Monitorear"/);
   assert.match(hero, /Lo que el precio necesita/i);
+  assert.match(hero, /const \[ticker, setTicker\] = useState\(""\)/);
+  assert.doesNotMatch(hero, /useState\("ASML"\)/);
+  assert.doesNotMatch(hero, /<svg|surfacePlot|FORMA ILUSTRATIVA|WHAT THE PRICE NEEDS/);
+  assert.doesNotMatch(sitemap, /breakpoint\/ASML/i);
   assert.match(result, /retorno exigido a 5 a[nñ]os/i);
   assert.doesNotMatch(hero, /MARKET-CLEARING SURFACE/);
   assert.doesNotMatch(result, /hurdle:\s*"/i);
