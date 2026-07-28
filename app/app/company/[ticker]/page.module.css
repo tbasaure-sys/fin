@@ -1,0 +1,31 @@
+.route {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 4%, rgba(215, 166, 76, 0.08), transparent 28rem),
+    linear-gradient(180deg, #071019, #060c13 72%);
+}
+.privateHeader {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem clamp(1.2rem, 3vw, 3.2rem);
+  border-bottom: 1px solid rgba(236, 226, 205, 0.12);
+  background: rgba(5, 11, 18, 0.88);
+}
+
+.privateHeader > a {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+}
+
+.privateHeader strong { color: #f3c875; font-family: var(--serif); font-size: 1.25rem; font-weight: 400; }
+.privateHeader span { color: #8996a5; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.privateHeader nav { display: flex; gap: 1rem; }
+.privateHeader nav a { color: #aab4bf; font-size: 0.76rem; font-weight: 750; }
+
+@media (max-width: 560px) {
+  .privateHeader span { display: none; }
+}

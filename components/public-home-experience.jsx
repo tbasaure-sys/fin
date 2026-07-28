@@ -77,7 +77,7 @@ const COPY = {
       ],
       provenance:
         "Cifras ilustrativas y estáticas para demostrar el producto. Una lectura real identifica la fecha de cada fuente, los supuestos usados y cualquier evidencia faltante.",
-      primary: "Analizar otra empresa",
+      primary: "Abrir la lectura completa",
       secondary: "Crear espacio de trabajo",
     },
     footer: "Software de análisis. No es asesoría financiera.",
@@ -151,7 +151,7 @@ const COPY = {
       ],
       provenance:
         "Static illustrative figures used to demonstrate the product. A real reading identifies each source date, every assumption, and any missing evidence.",
-      primary: "Analyze another company",
+      primary: "Open the full company read",
       secondary: "Create workspace",
     },
     footer: "Research software. Not financial advice.",
@@ -289,9 +289,9 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
         </article>
 
         <div className={`${styles.finalActions} ${styles.reveal}`}>
-          <a className={styles.primaryAction} href="#breakpoint">
+          <Link className={styles.primaryAction} href={`/company/TXN?demo=1&lang=${language}`}>
             {copy.demo.primary}
-          </a>
+          </Link>
           <Link className={styles.secondaryAction} href={`/login?intent=signup&lang=${language}`}>
             {copy.demo.secondary}
           </Link>

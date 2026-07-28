@@ -1,0 +1,6 @@
+.route {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(215, 166, 76, 0.09), transparent 26rem),
+    linear-gradient(180deg, #071019, #060c13 72%);
+}

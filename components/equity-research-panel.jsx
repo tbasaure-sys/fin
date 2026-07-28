@@ -2265,7 +2265,7 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
               aria-label="Ticker"
               className={styles.textInput}
               onChange={(event) => setTicker(cleanTicker(event.target.value))}
-              placeholder="ASML"
+              placeholder="Ej. TXN"
               value={ticker}
             />
             <button className={styles.primaryButton} disabled={pending || !ticker} onClick={() => runResearch()} type="button">
