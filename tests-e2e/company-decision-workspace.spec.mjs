@@ -63,7 +63,7 @@ test("an approximate valuation leads with a range, its drivers, and honest confi
         aurora: {
           explanation: {
             provider: "huggingface",
-            model: "Qwen/Qwen2.5-7B-Instruct-1M:fastest",
+            model: "Qwen/Qwen2.5-7B-Instruct:fastest",
             summary: "El valor depende de hitos, financiación y dilución.",
             why: [
               { title: "Hitos", explanation: "Cambian la probabilidad de éxito del activo." },

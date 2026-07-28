@@ -44,7 +44,7 @@ test("Hugging Face adds a bounded open-source explanation but cannot replace the
   };
   process.env.HUGGINGFACE_VALUATION_ENABLED = "true";
   process.env.HF_TOKEN = "hf_test_token";
-  process.env.HUGGINGFACE_VALUATION_MODEL = "Qwen/Qwen2.5-7B-Instruct-1M:fastest";
+  process.env.HUGGINGFACE_VALUATION_MODEL = "Qwen/Qwen2.5-7B-Instruct:fastest";
   process.env.HUGGINGFACE_BASE_URL = "https://router.huggingface.co/v1";
   let requestBody = null;
   globalThis.fetch = async (url, options) => {
@@ -72,10 +72,10 @@ test("Hugging Face adds a bounded open-source explanation but cannot replace the
   try {
     const result = await attachAuroraDecisionSystem(researchPayload());
 
-    assert.equal(requestBody.model, "Qwen/Qwen2.5-7B-Instruct-1M:fastest");
+    assert.equal(requestBody.model, "Qwen/Qwen2.5-7B-Instruct:fastest");
     assert.match(requestBody.messages[0].content, /no calcules|do not calculate/i);
     assert.equal(result.aurora.explanation.provider, "huggingface");
-    assert.equal(result.aurora.explanation.model, "Qwen/Qwen2.5-7B-Instruct-1M:fastest");
+    assert.equal(result.aurora.explanation.model, "Qwen/Qwen2.5-7B-Instruct:fastest");
     assert.equal(result.aurora.explanation.summary, "El valor depende de hitos, financiación y dilución.");
     assert.equal(result.aurora.explanation.why.length, 2);
     assert.equal(result.aurora.explanation.range, undefined);
