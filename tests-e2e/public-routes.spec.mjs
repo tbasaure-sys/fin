@@ -16,6 +16,18 @@ test("el HTML inicial de FactorLab y Stress respeta el locale solicitado", async
   expect(stressHtml).not.toContain("Portfolio risk");
 });
 
+test("privacidad declara las fronteras reales de eliminación, logs y proveedores de IA", async ({ request }) => {
+  const response = await request.get("/privacy?lang=es");
+  const html = await response.text();
+
+  expect(response.ok()).toBeTruthy();
+  expect(html).toContain("todavía no ofrece eliminación autoservicio de la cuenta");
+  expect(html).toContain("chat de cartera con un proveedor de IA configurado");
+  expect(html).toContain("no define cuánto tiempo conserva esos registros la plataforma de alojamiento");
+  expect(html).not.toContain("Al eliminar tu cuenta se borran las posiciones");
+  expect(html).not.toContain("privacy@blsprime.com");
+});
+
 test.describe("Rutas públicas", () => {
   test("landing carga el mapa de canales y los tres módulos", async ({ page }) => {
     const errors = [];

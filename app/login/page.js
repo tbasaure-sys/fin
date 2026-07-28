@@ -14,14 +14,19 @@ const DEFAULT_NEXT = "/app#holdings";
 const COPY = {
   en: {
     back: "Back to BLS Prime",
-    eyebrow: "Portfolio workspace",
-    headline: <>Run Stress on the portfolio <em>you actually own.</em></>,
-    lead: "Create a private workspace, enter your holdings, then run the stress engine with an auditable footprint.",
+    eyebrow: "Investment decision workspace",
+    headline: <>Keep your research, decisions, and portfolio <em>in one place.</em></>,
+    lead: "Save research, connect decisions to your portfolio, and monitor what could invalidate them.",
     benefits: [
-      ["01", "Holdings first", "Start with ticker, size, value, and weights instead of abstract model inputs."],
-      ["02", "Charts that matter", "Allocation, performance ranges, and stress diagnostics live in the same workspace."],
-      ["03", "AURORA stays open", "Valuation can still be used without an account, or launched from this workspace."],
+      ["01", "Research that persists", "Saved companies, theses, and evidence stay available instead of disappearing when you close the tab."],
+      ["02", "Decisions linked to the portfolio", "See what a new position does to concentration and downside before you take it."],
+      ["03", "Monitoring and falsifiers", "Track the KPIs and public tests that would change your view, and when they change."],
     ],
+    legalIntro: "By creating an account you accept our",
+    legalAnd: "and",
+    legalTerms: "Terms",
+    legalPrivacy: "Privacy Policy",
+    legalStored: "We store your name, email, a hashed password, and the holdings you enter. We do not sell your data.",
     signupEyebrow: "Create workspace",
     signinEyebrow: "Welcome back",
     signupTitle: "Create your account",
@@ -52,14 +57,19 @@ const COPY = {
   },
   es: {
     back: "Volver a BLS Prime",
-    eyebrow: "Workspace de cartera",
-    headline: <>Corre Stress sobre la cartera <em>que realmente tienes.</em></>,
-    lead: "Crea un espacio privado, ingresa tus posiciones y corre el motor con una huella auditable.",
+    eyebrow: "Espacio de decisión de inversión",
+    headline: <>Tu investigación, tus decisiones y tu cartera <em>en un solo lugar.</em></>,
+    lead: "Guarda investigaciones, conecta decisiones con tu cartera y monitorea qué podría invalidarlas.",
     benefits: [
-      ["01", "Posiciones primero", "Empieza con ticker, tamaño, valor y pesos en vez de inputs abstractos."],
-      ["02", "Gráficos que importan", "Asignación, rangos de rendimiento y diagnóstico de stress viven en el mismo espacio."],
-      ["03", "AURORA sigue abierto", "Puedes usar valoración sin cuenta o lanzarla desde el workspace."],
+      ["01", "Investigación que persiste", "Empresas guardadas, tesis y evidencia siguen disponibles en vez de perderse al cerrar la pestaña."],
+      ["02", "Decisiones ligadas a la cartera", "Mira qué le hace una posición nueva a tu concentración y a tu pérdida potencial antes de tomarla."],
+      ["03", "Monitoreo y falsificadores", "Sigue los KPI y las pruebas públicas que cambiarían tu lectura, y cuándo cambian."],
     ],
+    legalIntro: "Al crear una cuenta aceptas nuestros",
+    legalAnd: "y la",
+    legalTerms: "Términos",
+    legalPrivacy: "Política de Privacidad",
+    legalStored: "Guardamos tu nombre, tu correo, una contraseña cifrada y las posiciones que ingreses. No vendemos tus datos.",
     signupEyebrow: "Crear workspace",
     signinEyebrow: "Bienvenido de vuelta",
     signupTitle: "Crea tu cuenta",
@@ -198,6 +208,13 @@ export default function LoginPage({ searchParams = {} }) {
             <button className={styles.btnPrimary} type="submit">
               {isSignup ? copy.create : copy.signIn}
             </button>
+
+            <p className={styles.legalNote}>
+              {copy.legalIntro}{" "}
+              <Link href={`/terms?lang=${language}`}>{copy.legalTerms}</Link> {copy.legalAnd}{" "}
+              <Link href={`/privacy?lang=${language}`}>{copy.legalPrivacy}</Link>.
+              {isSignup ? <> {copy.legalStored}</> : null}
+            </p>
           </form>
 
           <div className={styles.metaRow}>

@@ -440,6 +440,19 @@
   text-decoration: underline;
 }
 
+.legalNote {
+  margin: 1rem 0 0;
+  color: var(--muted, rgba(255, 255, 255, 0.62));
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.legalNote a {
+  color: var(--teal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .btnPrimary,
 .btnSecondary {
   display: inline-flex;
