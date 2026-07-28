@@ -160,6 +160,8 @@ export function StressAccountGate({ children, className = "", language = "es" })
   return (
     <>
       <button
+        aria-expanded={open}
+        aria-haspopup="dialog"
         className={className}
         onClick={() => setOpen(true)}
         ref={triggerRef}

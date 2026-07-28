@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import styles from "@/app/home-page.module.css";
 import { writeStoredLanguage } from "@/components/language-layer";
@@ -20,9 +20,11 @@ const COPY = {
       "BLS Prime reúne valoración, búsqueda de oportunidades y riesgo de cartera en un solo proceso.",
     ctaPrimary: "Crear espacio de trabajo",
     ctaSecondary: "Ver los módulos",
-    sampleDisclosure: "Ejemplo con datos ilustrativos.",
+    sampleDisclosure: "Ejemplo con datos ilustrativos. Ninguna cifra de este panel es un dato de mercado en vivo.",
+    accountRequired: "Requiere cuenta",
     footer: "Software de análisis. No es asesoría financiera.",
     terms: "Términos",
+    privacy: "Privacidad",
     terminal: {
       title: "BLS PRIME · RESEARCH",
       meta: "Ejemplo con datos ilustrativos",
@@ -93,7 +95,7 @@ const COPY = {
         body: "Mide cuánto puede caer tu cartera y qué posiciones explican la pérdida.",
         spec: "escenarios adversos · pérdida · causas",
         href: "/stress",
-        cta: "Probar mi cartera",
+        cta: "Analizar mi cartera — requiere cuenta",
         gated: true,
         requiresAccount: true,
       },
@@ -118,9 +120,11 @@ const COPY = {
       "BLS Prime brings valuation, opportunity search, and portfolio risk into one process.",
     ctaPrimary: "Create workspace",
     ctaSecondary: "See the modules",
-    sampleDisclosure: "Illustrative example with sample data.",
+    sampleDisclosure: "Illustrative example with sample data. No figure in this panel is live market data.",
+    accountRequired: "Account required",
     footer: "Research software. Not financial advice.",
     terms: "Terms",
+    privacy: "Privacy",
     terminal: {
       title: "BLS PRIME · RESEARCH",
       meta: "Illustrative example with sample data",
@@ -191,7 +195,7 @@ const COPY = {
         body: "Measure how far your portfolio could fall and which positions explain the loss.",
         spec: "adverse scenarios · loss · causes",
         href: "/stress",
-        cta: "Test my portfolio",
+        cta: "Analyze my portfolio — account required",
         gated: true,
         requiresAccount: true,
       },
@@ -265,33 +269,20 @@ function formatMetric(key, value) {
   return `${value.toFixed(1)}%`;
 }
 
-function TerminalSim({ copy, reducedMotion }) {
-  const [metrics, setMetrics] = useState({
-    price: 187.2,
-    mos: 4.6,
-    cvar: -23.4,
-    ploss: 46.2,
-    dd: 31.4,
-    worst: -38.1,
-  });
-  const [activeRow, setActiveRow] = useState(0);
-  const tickRef = useRef(0);
+// Fixed illustrative figures. These must never drift or animate: an example
+// number that moves reads as live market data, which it is not.
+const SAMPLE_METRICS = Object.freeze({
+  price: 187.2,
+  mos: 4.6,
+  cvar: -23.4,
+  ploss: 46.2,
+  dd: 31.4,
+  worst: -38.1,
+});
 
-  useEffect(() => {
-    if (reducedMotion) return undefined;
-    const keys = Object.keys(METRIC_BANDS);
-    const id = setInterval(() => {
-      tickRef.current += 1;
-      const key = keys[tickRef.current % keys.length];
-      setMetrics((prev) => {
-        const [lo, hi] = METRIC_BANDS[key];
-        const drift = (hi - lo) * 0.12 * (Math.random() - 0.5) * 2;
-        const next = Math.min(hi, Math.max(lo, prev[key] + drift));
-        return { ...prev, [key]: next };
-      });
-    }, 4200);
-    return () => clearInterval(id);
-  }, [reducedMotion]);
+function TerminalSim({ copy, reducedMotion }) {
+  const metrics = SAMPLE_METRICS;
+  const [activeRow, setActiveRow] = useState(0);
 
   useEffect(() => {
     if (reducedMotion) return undefined;
@@ -426,9 +417,9 @@ export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
         <div className={styles.heroCopy}>
           <p className={styles.kicker}>{copy.kicker}</p>
           <p className={styles.categoryLine}>{copy.category}</p>
-          <h1 className={styles.headline} id="home-title">
+          <h2 className={styles.headline} id="home-title">
             {copy.headline}
-          </h1>
+          </h2>
           <p className={styles.subheadline}>{copy.subheadline}</p>
           <div className={styles.ctaRow}>
             <Link className={styles.ctaPrimary} href={"/login?intent=signup&lang=" + language}>
@@ -440,7 +431,7 @@ export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
           </div>
         </div>
         <div className={styles.terminalWrap}>
-          <p className={styles.visuallyHidden}>{copy.sampleDisclosure}</p>
+          <p className={styles.sampleDisclosure}>{copy.sampleDisclosure}</p>
           <TerminalSim copy={copy} reducedMotion={reducedMotion} />
         </div>
       </section>
@@ -483,6 +474,9 @@ export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
                 <span className={styles.moduleTop}>
                   <span className={styles.moduleIndex}>{module.index}</span>
                   <span className={styles.moduleLabel}>{module.label}</span>
+                  {module.requiresAccount ? (
+                    <span className={styles.accountBadge}>{copy.accountRequired}</span>
+                  ) : null}
                 </span>
                 <strong className={styles.moduleTitle}>{module.title}</strong>
                 <span className={styles.moduleQuestion}>{module.question}</span>
@@ -530,7 +524,10 @@ export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
 
       <footer className={styles.footer}>
         <span>{copy.footer}</span>
-        <Link href={"/terms?lang=" + language}>{copy.terms}</Link>
+        <nav className={styles.footerLinks} aria-label={copy.privacy + " / " + copy.terms}>
+          <Link href={"/privacy?lang=" + language}>{copy.privacy}</Link>
+          <Link href={"/terms?lang=" + language}>{copy.terms}</Link>
+        </nav>
       </footer>
     </main>
   );

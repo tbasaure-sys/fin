@@ -699,10 +699,24 @@
 
 .moduleLabel {
   color: var(--paper-faint);
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.accountBadge {
+  flex: 0 0 auto;
+  border: 1px solid var(--brass);
+  border-radius: 2px;
+  padding: 0.18rem 0.45rem;
+  color: var(--brass);
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .moduleTitle {
@@ -832,6 +846,22 @@
 .footer a:hover,
 .footer a:focus-visible {
   color: var(--paper);
+}
+
+.footerLinks {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+
+.sampleDisclosure {
+  margin: 0 0 0.7rem;
+  color: var(--brass);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.5;
 }
 
 /* ----------------------------------------------------------- reveal/motion */
