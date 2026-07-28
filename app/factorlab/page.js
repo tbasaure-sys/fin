@@ -1,4 +1,7 @@
 import { FactorLabWorkstation } from "@/components/factorlab-workstation";
+import { headers } from "next/headers";
+
+import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +13,11 @@ export const metadata = {
 };
 
 export default function FactorLabPage() {
+  const initialLanguage = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+
   return (
     <main className="factorlab-route">
-      <FactorLabWorkstation />
+      <FactorLabWorkstation initialLanguage={initialLanguage} />
     </main>
   );
 }

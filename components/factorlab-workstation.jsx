@@ -380,8 +380,8 @@ function displaySpec(run) {
   };
 }
 
-export function FactorLabWorkstation() {
-  const { language, setLanguage } = useLanguagePreference();
+export function FactorLabWorkstation({ initialLanguage = "es" }) {
+  const { language, setLanguage } = useLanguagePreference(initialLanguage);
   const copy = COPY[language] || COPY.en;
   const [activeStepId, setActiveStepId] = useState("score");
   const [asof, setAsof] = useState("2026-06-24");

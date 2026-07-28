@@ -18,7 +18,7 @@ const COPY = {
     body:
       "BLS Prime tests the positions you own against severe market scenarios and shows the loss, the weak spots, and the positions responsible.",
     primary: "See what it shows",
-    workspaceCta: "Run on my portfolio",
+    workspaceCta: "Run on my portfolio — account required",
     secondary: "Read methodology",
     disclaimer: "Research software. Not financial advice.",
     metricsLabel: "What you get",
@@ -97,7 +97,7 @@ const COPY = {
     body:
       "BLS Prime prueba las posiciones que tienes en escenarios de caídas fuertes y muestra la pérdida, los puntos frágiles y las posiciones responsables.",
     primary: "Ver qu\u00e9 muestra",
-    workspaceCta: "Probar mi cartera",
+    workspaceCta: "Analizar mi cartera — requiere cuenta",
     secondary: "Leer metodolog\u00eda",
     disclaimer: "Software de an\u00e1lisis. No es asesor\u00eda financiera.",
     metricsLabel: "Qu\u00e9 recibes",
@@ -168,8 +168,8 @@ const COPY = {
   },
 };
 
-export function StressEnginePublicPage() {
-  const { language } = useLanguagePreference();
+export function StressEnginePublicPage({ initialLanguage = "es" }) {
+  const { language } = useLanguagePreference(initialLanguage);
   const copy = COPY[language] || COPY.en;
 
   return (

@@ -7,10 +7,19 @@ import { getServerConfig } from "@/lib/server/config";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Terms of Service",
-  alternates: { canonical: "/terms" },
-};
+export function generateMetadata() {
+  const locale = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+  return {
+    title: locale === "en" ? "Terms of Service" : "Términos de Servicio",
+    description: locale === "en"
+      ? "Research software, not financial advice. How BLS Prime may be used."
+      : "Software de investigación, no asesoría financiera. Cómo debe usarse BLS Prime.",
+    alternates: {
+      canonical: "/terms",
+      languages: { es: "/terms?lang=es", en: "/terms?lang=en" },
+    },
+  };
+}
 
 const COPY = {
   en: {
@@ -63,7 +72,9 @@ export default function TermsPage() {
           <span className={styles.brandName}>{config.appName}</span>
         </Link>
         <div className={styles.navActions}>
-          <Link className={styles.btnGhost} href="/aurora">AURORA</Link>
+          <Link className={styles.btnGhost} href={`/privacy?lang=${locale}`}>
+            {locale === "en" ? "Privacy" : "Privacidad"}
+          </Link>
           <Link className={styles.btnGhost} href={`/?lang=${locale}`}>{copy.home}</Link>
         </div>
       </nav>

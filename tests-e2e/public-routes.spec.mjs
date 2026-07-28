@@ -1,5 +1,21 @@
 import { test, expect } from "@playwright/test";
 
+test("el HTML inicial de FactorLab y Stress respeta el locale solicitado", async ({ request }) => {
+  const factorlabResponse = await request.get("/factorlab?lang=es");
+  const factorlabHtml = await factorlabResponse.text();
+
+  expect(factorlabResponse.ok()).toBeTruthy();
+  expect(factorlabHtml).toContain("Encuentra empresas que vale la pena revisar");
+  expect(factorlabHtml).not.toContain("Find companies worth reviewing");
+
+  const stressResponse = await request.get("/stress?lang=es");
+  const stressHtml = await stressResponse.text();
+
+  expect(stressResponse.ok()).toBeTruthy();
+  expect(stressHtml).toContain("Riesgo de cartera");
+  expect(stressHtml).not.toContain("Portfolio risk");
+});
+
 test.describe("Rutas públicas", () => {
   test("landing carga el mapa de canales y los tres módulos", async ({ page }) => {
     const errors = [];

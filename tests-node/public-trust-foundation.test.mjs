@@ -23,10 +23,13 @@ test("locale contract respects explicit query, cookie, and route defaults", asyn
   assert.equal(normalizeLocale("en"), "en");
   assert.equal(normalizeLocale("es"), "es");
   assert.equal(normalizeLocale("fr", "es"), "es");
+  // Every public route defaults to Spanish. No route may default to a language
+  // different from the document lang, or the first paint arrives mixed.
   assert.equal(routeDefaultLocale("/aurora"), "es");
   assert.equal(routeDefaultLocale("/valuation-os-lab"), "es");
-  assert.equal(routeDefaultLocale("/factorlab"), "en");
-  assert.equal(routeDefaultLocale("/stress"), "en");
+  assert.equal(routeDefaultLocale("/factorlab"), "es");
+  assert.equal(routeDefaultLocale("/stress"), "es");
+  assert.equal(routeDefaultLocale("/"), "es");
   assert.equal(resolveRequestLocale({ pathname: "/", queryLanguage: "en", cookieLanguage: "es" }), "en");
   assert.equal(resolveRequestLocale({ pathname: "/", cookieLanguage: "en" }), "en");
   assert.equal(resolveRequestLocale({ pathname: "/aurora", cookieLanguage: "en" }), "es");

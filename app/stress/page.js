@@ -1,4 +1,7 @@
+import { headers } from "next/headers";
+
 import { StressEnginePublicPage } from "@/components/stress-engine-public-page";
+import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
 export const metadata = {
   title: "Portfolio Stress Engine",
@@ -8,5 +11,7 @@ export const metadata = {
 };
 
 export default function StressPage() {
-  return <StressEnginePublicPage />;
+  const initialLanguage = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+
+  return <StressEnginePublicPage initialLanguage={initialLanguage} />;
 }
