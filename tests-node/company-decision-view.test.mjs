@@ -143,7 +143,7 @@ test("research-grade evidence stays uncertain even when the price is outside the
   assert.match(view.verdict.explanation, /investigación/i);
 });
 
-test("a blocked valuation publishes no figures and returns an actionable closure plan", () => {
+test("a blocked institutional valuation falls back to an explicit low-confidence approximate range", () => {
   const research = decisionReadyResearch();
   research.valuation.status = "not_decision_ready";
   research.valuation.reliability = {
@@ -172,22 +172,16 @@ test("a blocked valuation publishes no figures and returns an actionable closure
 
   const view = buildCompanyDecisionView(research, { now: NOW });
 
-  assert.equal(view.analysis.state, "not_decision_ready");
-  assert.equal(view.analysis.label, "En revisión");
-  assert.equal(view.verdict.kind, "not_publishable");
-  assert.equal(view.verdict.label, "No publicable todavía");
-  assert.equal(view.market.price, null);
-  assert.equal(view.valuation.publishable, false);
-  assert.equal(view.valuation.range, null);
-  assert.equal(view.expectations.length, 0);
+  assert.equal(view.analysis.state, "indicative");
+  assert.equal(view.analysis.label, "Rango aproximado");
+  assert.equal(view.verdict.kind, "uncertain");
+  assert.equal(view.verdict.label, "Lectura incierta");
+  assert.equal(view.market.price, 160);
+  assert.equal(view.valuation.publishable, true);
+  assert.deepEqual(view.valuation.range, { low: 88, central: 160, high: 264 });
+  assert.equal(view.valuation.confidence.label, "Baja");
+  assert.equal(view.expectations.length, 3);
   assert.equal(view.evidence.missing[0].key, "net_debt");
-  assert.deepEqual(view.closurePlan[0], {
-    key: "net_debt",
-    control: "Deuda neta",
-    why: "Define el puente desde valor empresa hasta valor para el accionista.",
-    estimatedImpact: "Puede desplazar o invalidar el rango completo.",
-    sourceNeeded: "Balance más reciente y notas de deuda y caja.",
-    nextAction: "Conciliar caja, deuda y equivalentes con el último balance presentado.",
-    resolvable: true,
-  });
+  assert.deepEqual(view.closurePlan, []);
+  assert.doesNotMatch(JSON.stringify(view), /faltan datos|no se publica un rango/i);
 });

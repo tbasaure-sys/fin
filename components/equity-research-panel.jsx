@@ -221,9 +221,11 @@ function AuroraDecisionSummary({ research }) {
   );
 }
 
-function AuroraConditionalRangePreview({ valuation, range }) {
-  if (valuation?.status !== "conditional_range" || !range) return null;
-  const drivers = safeList(valuation.assumptions).slice(0, 5);
+function AuroraConditionalRangePreview({ explanation, valuation, range }) {
+  if (!range) return null;
+  const approximate = valuation?.status === "indicative_range";
+  const drivers = safeList(valuation.assumptions || valuation.drivers).slice(0, 5);
+  const why = safeList(explanation?.why).slice(0, 5);
   const driverValue = (item) => {
     const value = Number(item?.value);
     if (!Number.isFinite(value)) return "—";
@@ -242,14 +244,20 @@ function AuroraConditionalRangePreview({ valuation, range }) {
           <article className={styles.researchScenario} data-tone={tone} key={key}>
             <span>{label}</span>
             <strong>{compactCurrency(range[key], valuation.currency)}</strong>
-            <small>{valuation.currency} por acción · no decision-ready</small>
+            <small>{valuation.currency} por acción · {approximate ? `confianza ${String(valuation?.confidence?.label || "baja").toLowerCase()}` : "rango condicional"}</small>
           </article>
         ))}
       </div>
       <div className={styles.researchAttentionCallout}>
         <span>Por qué da este rango</span>
         <strong>{auroraMethodLabel(valuation.method)}</strong>
-        <p>{drivers.map((item) => `${item.label}: ${driverValue(item)}`).join(" · ")}</p>
+        <p>{explanation?.summary || valuation?.reason}</p>
+        <p>{why.length
+          ? why.map((item) => `${item.title}: ${item.explanation}`).join(" · ")
+          : drivers.map((item) => `${item.label}: ${item.why || driverValue(item)}`).join(" · ")}</p>
+        {explanation?.confidenceExplanation || valuation?.confidence?.reason
+          ? <small>{explanation?.confidenceExplanation || valuation.confidence.reason}</small>
+          : null}
       </div>
     </section>
   );
@@ -2189,13 +2197,17 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
     () => buildEquityValuationPresentation(research, { executiveJudgment: executiveJudgmentCandidate }),
     [executiveJudgmentCandidate, research],
   );
-  const auroraValuation = research?.aurora?.valuation || null;
+  const auroraValuation = !valuationPresentation.showValuationFigures
+    ? research?.aurora?.indicativeValuation || research?.aurora?.valuation || null
+    : research?.aurora?.valuation || null;
   const auroraContextualValuation = research?.aurora?.macroBridge?.status === "context_applied"
     ? research.aurora.macroBridge.contextual
     : auroraValuation;
-  const auroraRange = auroraValuation?.status === "conditional_range"
-    ? auroraContextualValuation?.range
-    : null;
+  const auroraRange = auroraValuation?.status === "indicative_range"
+    ? auroraValuation.range
+    : auroraValuation?.status === "conditional_range"
+      ? auroraContextualValuation?.range
+      : null;
   const auroraRangeLabel = auroraRange
     ? `${compactCurrency(auroraRange.low, auroraValuation?.currency)} – ${compactCurrency(auroraRange.high, auroraValuation?.currency)}`
     : auroraValuation?.status === "market_implied_hurdle"
@@ -2210,7 +2222,9 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
   const hasXlsx = safeDownloads.some((artifact) => String(artifact.filename || "").endsWith(".xlsx"));
   const researchStateLabel = research
     ? auroraRangeLabel && !valuationPresentation.showValuationFigures
-      ? auroraValuation?.status === "market_implied_hurdle"
+      ? auroraValuation?.status === "indicative_range"
+        ? "Rango aproximado con supuestos visibles"
+        : auroraValuation?.status === "market_implied_hurdle"
         ? "Hurdle de mercado listo para investigar"
         : "Rango condicional con supuestos visibles"
       : valuationStateLabel(valuationPresentation)
@@ -2342,7 +2356,7 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
         />
         <ResearchMetric
           detail={auroraRangeLabel && !valuationPresentation.showValuationFigures
-            ? `${auroraMethodLabel(auroraValuation?.method)} · supuestos visibles · no decision-ready`
+            ? `${auroraMethodLabel(auroraValuation?.method)} · supuestos visibles · ${auroraValuation?.status === "indicative_range" ? "rango aproximado" : "rango condicionado"}`
             : valuationPresentation.backed
               ? `Estimación central ${compactCurrency(valuationPresentation.centralValue, valuationPresentation.currency)} · ${valuationPresentation.primaryMethod}`
               : valuationPresentation.showValuationFigures
@@ -2364,7 +2378,7 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
         />
       </div>
 
-      {research ? <AuroraConditionalRangePreview range={auroraRange} valuation={auroraValuation} /> : null}
+      {research ? <AuroraConditionalRangePreview explanation={research?.aurora?.explanation} range={auroraRange} valuation={auroraValuation} /> : null}
 
       {research ? (
         <div className={styles.researchCoverageRail} data-tone={coverageTone(coverage)}>
@@ -2396,18 +2410,20 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
             <span>{valuationPresentation.backed
               ? "Rango respaldado"
               : auroraRange
-                ? "Rango condicional"
+                ? auroraValuation?.status === "indicative_range" ? "Rango aproximado" : "Rango condicional"
               : valuationPresentation.showValuationFigures
                 ? "Rango orientativo"
-                : "Valoración no publicada"}</span>
+                : "Rango en recálculo"}</span>
             <strong>{auroraRangeLabel || (valuationPresentation.showValuationFigures ? formatValuationRange(valuationPresentation) : "—")}</strong>
             <small>{valuationPresentation.backed
               ? `Estimación central ${compactCurrency(valuationPresentation.centralValue, valuationPresentation.currency)} · ${valuationPresentation.primaryMethod}`
               : auroraRange
-                ? `${auroraMethodLabel(auroraValuation?.method)} · supuestos visibles · el centro sigue condicionado`
+                ? auroraValuation?.status === "indicative_range"
+                  ? `${auroraMethodLabel(auroraValuation?.method)} · ${auroraValuation?.confidence?.label || "Baja"} confianza · cifra aproximada`
+                  : `${auroraMethodLabel(auroraValuation?.method)} · supuestos visibles · el centro sigue condicionado`
               : valuationPresentation.showValuationFigures
                 ? `Método ${valuationPresentation.primaryMethod} · estimación central retenida`
-                : "No se muestra una cifra hasta superar los controles."}</small>
+                : "El motor está recalculando el intervalo con los controles disponibles."}</small>
           </div>
           <div>
             <span>Pendientes</span>

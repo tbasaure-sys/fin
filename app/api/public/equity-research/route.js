@@ -1,7 +1,11 @@
 import { fetchBackendEquityResearch } from "../../../../lib/server/backend.js";
 import { consumePublicRateLimit } from "../../../../lib/server/data/public-rate-limit.js";
-import { sanitizePublicResearchPayload } from "../../../../lib/server/equity-research.js";
+import {
+  resolvePublicEquityResearchPayload,
+  sanitizePublicResearchPayload,
+} from "../../../../lib/server/equity-research.js";
 import { attachAuroraDecisionSystem } from "../../../../lib/server/aurora-decision-system.js";
+import { fetchFactorLabMarketSnapshot } from "../../../../lib/server/factorlab-service.js";
 
 export const dynamic = "force-dynamic";
 
@@ -59,15 +63,15 @@ export async function POST(request) {
   }
 
   try {
-    const payload = await fetchBackendEquityResearch(ticker, mode);
-    if (!payload || payload.ok === false) {
-      return noStoreJson(
-        { ok: false, code: "DATA_UNAVAILABLE", message: "No pudimos obtener datos suficientes para esta empresa." },
-        { status: 503 },
-      );
-    }
+    const resolved = await resolvePublicEquityResearchPayload(ticker, {
+      backendLoader: fetchBackendEquityResearch,
+      marketLoader: fetchFactorLabMarketSnapshot,
+    });
+    const payload = resolved.source === "canonical_backend"
+      ? sanitizePublicResearchPayload(resolved.payload, { expectedTicker: ticker })
+      : resolved.payload;
     const sanitized = await attachAuroraDecisionSystem(
-      sanitizePublicResearchPayload(payload, { expectedTicker: ticker }),
+      payload,
     );
     return noStoreJson({
       ...sanitized,
@@ -83,7 +87,7 @@ export async function POST(request) {
       {
         ok: false,
         code: "DATA_UNAVAILABLE",
-        message: "No pudimos completar la valoración con datos actuales. Prueba otra empresa o vuelve a intentarlo.",
+        message: "No pudimos recuperar una cotización vigente para esta acción. Vuelve a intentarlo.",
       },
       { status: 503 },
     );

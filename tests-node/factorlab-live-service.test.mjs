@@ -5,6 +5,7 @@ import {
   FactorLabUnavailableError,
   createFactorLabLiveService,
   factorLabRowFromSnapshot,
+  fetchFactorLabMarketSnapshot,
   parseFactorLabMarketChart,
 } from "../lib/server/factorlab-service.js";
 
@@ -113,6 +114,88 @@ test("market chart normalization derives traded value and realized volatility fr
   assert.equal(market.averageDailyValue, 4_800_000);
   assert.ok(market.residualVol > 0);
   assert.equal(market.source, "Yahoo Finance chart");
+});
+
+test("market snapshot falls back to a dated FMP equity quote when Yahoo rate-limits", async () => {
+  const previousKey = process.env.FMP_API_KEY;
+  process.env.FMP_API_KEY = "fmp_test_key";
+  const requested = [];
+  try {
+    const market = await fetchFactorLabMarketSnapshot("txn", {
+      fetchImpl: async (url) => {
+        requested.push(String(url));
+        if (String(url).includes("finance.yahoo.com")) return new Response("limited", { status: 429 });
+        if (String(url).includes("/stable/quote")) {
+          return Response.json([{
+            symbol: "TXN",
+            name: "Texas Instruments Incorporated",
+            price: 207.5,
+            marketCap: 189_000_000_000,
+            volume: 4_000_000,
+            exchange: "NASDAQ",
+            timestamp: 1785258000,
+          }]);
+        }
+        if (String(url).includes("/stable/profile")) {
+          return Response.json([{ symbol: "TXN", companyName: "Texas Instruments Incorporated", sector: "Technology", industry: "Semiconductors", isEtf: false, isFund: false, isAdr: false }]);
+        }
+        if (String(url).includes("/stable/income-statement")) {
+          return Response.json([{ symbol: "TXN", calendarYear: "2025", revenue: 17_000_000_000, netIncome: 4_800_000_000, weightedAverageShsOutDil: 910_000_000 }]);
+        }
+        if (String(url).includes("/stable/balance-sheet-statement")) {
+          return Response.json([{ symbol: "TXN", totalStockholdersEquity: 18_000_000_000, cashAndCashEquivalents: 4_000_000_000, totalDebt: 14_000_000_000 }]);
+        }
+        return Response.json([{ symbol: "TXN", freeCashFlow: 5_200_000_000 }]);
+      },
+    });
+
+    assert.equal(requested.length, 6);
+    assert.equal(market.ticker, "TXN");
+    assert.equal(market.price, 207.5);
+    assert.equal(market.instrumentType, "EQUITY");
+    assert.equal(market.source, "Financial Modeling Prep quote");
+    assert.equal(market.sector, "Technology");
+    assert.equal(market.fundamentals.freeCashFlow, 5_200_000_000);
+    assert.equal(market.fundamentals.dilutedShares, 910_000_000);
+    assert.ok(market.marketDate);
+  } finally {
+    if (previousKey === undefined) delete process.env.FMP_API_KEY;
+    else process.env.FMP_API_KEY = previousKey;
+  }
+});
+
+test("a Yahoo quote is enriched with FMP company classification and fundamentals", async () => {
+  const previousKey = process.env.FMP_API_KEY;
+  process.env.FMP_API_KEY = "fmp_test_key";
+  try {
+    const market = await fetchFactorLabMarketSnapshot("jpm", {
+      fetchImpl: async (url) => {
+        const target = String(url);
+        if (target.includes("finance.yahoo.com")) {
+          return Response.json({ chart: { result: [{
+            meta: { regularMarketPrice: 356, currency: "USD", exchangeName: "NYSE", instrumentType: "EQUITY" },
+            timestamp: [1785258000],
+            indicators: { quote: [{ close: [356], volume: [8_000_000] }] },
+          }] } });
+        }
+        if (target.includes("/stable/quote")) return Response.json([{ symbol: "JPM", price: 355, marketCap: 980_000_000_000, exchange: "NYSE", timestamp: 1785258000 }]);
+        if (target.includes("/stable/profile")) return Response.json([{ symbol: "JPM", companyName: "JPMorgan Chase & Co.", sector: "Financial Services", industry: "Banks - Diversified" }]);
+        if (target.includes("/stable/income-statement")) return Response.json([{ calendarYear: "2025", revenue: 180_000_000_000, netIncome: 58_000_000_000, weightedAverageShsOutDil: 2_750_000_000 }]);
+        if (target.includes("/stable/balance-sheet-statement")) return Response.json([{ totalStockholdersEquity: 360_000_000_000, cashAndCashEquivalents: 25_000_000_000, totalDebt: 410_000_000_000 }]);
+        return Response.json([{ freeCashFlow: 40_000_000_000 }]);
+      },
+    });
+
+    assert.equal(market.price, 356);
+    assert.equal(market.marketCap, 980_000_000_000);
+    assert.equal(market.source, "Yahoo Finance chart");
+    assert.equal(market.name, "JPMorgan Chase & Co.");
+    assert.equal(market.sector, "Financial Services");
+    assert.equal(market.fundamentals.totalEquity, 360_000_000_000);
+  } finally {
+    if (previousKey === undefined) delete process.env.FMP_API_KEY;
+    else process.env.FMP_API_KEY = previousKey;
+  }
 });
 
 test("live service ranks only companies backed by successful current snapshots", async () => {

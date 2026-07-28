@@ -75,10 +75,14 @@ function EmptyRows({ children = "No hay registros disponibles en esta lectura." 
 
 function ValuePanel({ view }) {
   const range = view.valuation.range;
+  const approximate = view.valuation.kind === "approximate";
+  const explanation = view.valuation.explanation || {};
+  const explanationWhy = Array.isArray(explanation.why) ? explanation.why : [];
+  const explanationRisks = Array.isArray(explanation.risks) ? explanation.risks : [];
   return (
-    <div className={styles.panelGrid}>
-      <section className={styles.rangePanel}>
-        <span className={styles.sectionLabel}>RANGO DEFENDIBLE</span>
+    <div className={styles.valueLayout}>
+      <section className={styles.rangePanel} data-kind={view.valuation.kind}>
+        <span className={styles.sectionLabel}>{approximate ? "RANGO APROXIMADO" : "RANGO DEFENDIBLE"}</span>
         {range ? (
           <>
             <div className={styles.rangeNumbers}>
@@ -86,22 +90,59 @@ function ValuePanel({ view }) {
               <span>Centro {formatMoney(range.central, view.market.currency)}</span>
               <strong>{formatMoney(range.high, view.market.currency)}</strong>
             </div>
-            <div className={styles.rangeTrack} aria-label="Rango defendible">
+            <div className={styles.rangeTrack} aria-label={approximate ? "Rango aproximado" : "Rango defendible"}>
               <span />
               {Number.isFinite(Number(view.market.price)) ? <i title={`Precio ${formatMoney(view.market.price, view.market.currency)}`} /> : null}
             </div>
-            <p>{view.valuation.method} · confianza {view.analysis.confidence === null ? "no disponible" : `${Math.round(view.analysis.confidence * 100)}%`}.</p>
+            <div className={styles.rangeMeta}>
+              <p>{view.valuation.method}</p>
+              <span data-confidence={String(view.valuation.confidence?.label || "").toLowerCase()}>
+                Confianza {view.valuation.confidence?.label || "no clasificada"}
+              </span>
+            </div>
           </>
         ) : (
           <div className={styles.withheld}>
-            <strong>No se publica un rango.</strong>
+            <strong>Rango en recálculo.</strong>
             <p>{view.valuation.reason}</p>
           </div>
         )}
       </section>
-      <section className={styles.expectationsPanel}>
-        <span className={styles.sectionLabel}>EXPECTATIVAS IMPLÍCITAS</span>
-        {view.expectations.length ? (
+      <section className={styles.valuationExplanation}>
+        <span className={styles.sectionLabel}>LECTURA DEL MODELO</span>
+        <h2>Por qué da este rango</h2>
+        {explanation.summary ? <p className={styles.explanationSummary}>{explanation.summary}</p> : null}
+        {explanationWhy.length ? (
+          <div className={styles.explanationGrid}>
+            {explanationWhy.map((item, index) => (
+              <article key={`${item.title}-${index}`}>
+                <strong>{item.title}</strong>
+                <p>{item.explanation}</p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+        {explanation.confidenceExplanation ? (
+          <div className={styles.confidenceNote}>
+            <span>Qué significa la confianza</span>
+            <p>{explanation.confidenceExplanation}</p>
+          </div>
+        ) : null}
+        {explanationRisks.length ? (
+          <div className={styles.valuationRisks}>
+            <span>Qué puede mover o romper el rango</span>
+            <ul>{explanationRisks.map((risk) => <li key={risk}>{risk}</li>)}</ul>
+          </div>
+        ) : null}
+        {explanation.provider === "huggingface" ? (
+          <small className={styles.modelDisclosure}>Explicación asistida por {explanation.model || "un modelo open source de Hugging Face"}. Las cifras provienen del motor determinístico.</small>
+        ) : (
+          <small className={styles.modelDisclosure}>Cifras y explicación generadas por reglas determinísticas auditables.</small>
+        )}
+      </section>
+      {view.expectations.length ? (
+        <section className={styles.expectationsPanel}>
+          <span className={styles.sectionLabel}>EXPECTATIVAS IMPLÍCITAS</span>
           <div className={styles.expectations}>
             {view.expectations.map((item) => (
               <article key={`${item.years}-${item.label}`}>
@@ -112,8 +153,8 @@ function ValuePanel({ view }) {
               </article>
             ))}
           </div>
-        ) : <EmptyRows>Las expectativas no se muestran hasta que la valoración sea publicable.</EmptyRows>}
-      </section>
+        </section>
+      ) : null}
     </div>
   );
 }
@@ -138,7 +179,7 @@ function ThesisPanel({ view }) {
 }
 
 function ScenariosPanel({ view }) {
-  if (!view.scenarios.length) return <EmptyRows>Los escenarios permanecen retenidos hasta que haya evidencia suficiente.</EmptyRows>;
+  if (!view.scenarios.length) return <EmptyRows>El motor está recalculando los escenarios para esta empresa.</EmptyRows>;
   return <div className={styles.scenarioGrid}>{view.scenarios.map((scenario) => <article key={scenario.key}><span>{scenario.label}</span><strong>{formatMoney(scenario.value, view.market.currency)}</strong><p>{scenario.explanation}</p></article>)}</div>;
 }
 
@@ -153,7 +194,7 @@ function EvidencePanel({ view }) {
       </section>
       <section className={styles.evidenceLists}>
         <div><span className={styles.sectionLabel}>DISPONIBLE</span>{evidence.available.length ? evidence.available.map((item) => <p key={item.key}><strong>{item.label}</strong>{item.source ? <small>{item.source}</small> : null}</p>) : <EmptyRows />}</div>
-        <div><span className={styles.sectionLabel}>FALTANTE</span>{evidence.missing.length ? evidence.missing.map((item) => <p key={item.key}><strong>{item.label}</strong></p>) : <p className={styles.complete}>Sin brechas requeridas.</p>}</div>
+        <div><span className={styles.sectionLabel}>BRECHAS Y CONTROLES</span>{evidence.missing.length ? evidence.missing.map((item) => <p key={item.key}><strong>{item.label}</strong></p>) : <p className={styles.complete}>Sin brechas requeridas.</p>}</div>
       </section>
     </div>
   );

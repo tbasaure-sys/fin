@@ -590,7 +590,7 @@ function buildLocalAdoptionPreview({ adjustedDrivers, feasibility, quality, mode
 
 function plainDecision(upside, feasibility, missingDrivers) {
   if (missingDrivers.length) return "Incompleta";
-  if (!isFiniteNumber(upside)) return "Faltan datos";
+  if (!isFiniteNumber(upside)) return "Comparación en recálculo";
   if (upside > 0.15 && feasibility > 0.55) return "Atractiva, verificar";
   if (upside < -0.1) return "Precio exigente";
   return "Caso ajustado";
@@ -600,7 +600,7 @@ function operationalVerdict({ missingDrivers, valuationRouter, upside, feasibili
   if (missingDrivers.length) {
     return {
       tier: "ABSTAIN",
-      reason: `Faltan datos clave: ${missingDrivers.slice(0, 3).join(", ")}.`,
+      reason: `Controles abiertos: ${missingDrivers.slice(0, 3).join(", ")}.`,
       nextStep: "Completar los inputs faltantes antes de comparar esta idea.",
     };
   }
@@ -917,7 +917,7 @@ function EngineConsole({
       title: "Fuentes y trazabilidad",
       copy:
         missingDrivers.length > 0
-          ? "Faltan datos actuales, por lo que la valoración debe leerse como borrador."
+          ? "La cobertura actual es parcial, por lo que la valoración debe leerse como aproximada."
           : "Los datos principales están presentes y se pueden rastrear a sus fuentes.",
       plain: "¿Podemos confiar en los números antes de leer la valoración?",
       technical: "Revisa la fecha, la fuente del precio, la tasa utilizada y los datos que faltan.",
@@ -1010,7 +1010,7 @@ function EngineConsole({
         isFiniteNumber(impliedCagr) && isFiniteNumber(adjustedDrivers.revenueCagr) && impliedCagr > adjustedDrivers.revenueCagr
           ? "El crecimiento implícito del mercado supera los supuestos de la tesis."
           : "El crecimiento de la tesis no está por debajo del que supone el precio.",
-        missingDrivers.length ? "El rango debe mantenerse amplio porque faltan datos en vivo." : null,
+        missingDrivers.length ? "El rango se mantiene amplio mientras la cobertura en vivo sea parcial." : null,
       ],
     },
     value: {
@@ -1197,7 +1197,7 @@ function EngineConsole({
                 <p>
                   {debate.pre_revenue.status === "ok"
                     ? `Valor ponderado: $${Number(debate.pre_revenue.probabilityWeightedValuePerShare || 0).toFixed(2)} por acción.`
-                    : debate.pre_revenue.impliedExpectations?.note || `Faltan datos: ${(debate.pre_revenue.missingInputs || []).join(", ")}.`}
+                    : debate.pre_revenue.impliedExpectations?.note || `Inputs abiertos: ${(debate.pre_revenue.missingInputs || []).join(", ")}.`}
                 </p>
               </div>
               <div>

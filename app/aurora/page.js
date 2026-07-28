@@ -28,14 +28,14 @@ export default function AuroraPage() {
         <section className={styles.intro} aria-labelledby="aurora-title">
           <div>
             <p className={styles.eyebrow}>AURORA · VALORACIÓN</p>
-            <h1 id="aurora-title">Un rango defendible, o una razón clara para no publicarlo.</h1>
+            <h1 id="aurora-title">Un rango aproximado para cada empresa, con los porqués a la vista.</h1>
           </div>
           <div className={styles.introCopy}>
             <p>
               Escribe una empresa. AURORA contrasta precio, acciones, estados recientes, estimaciones y el método adecuado para su tipo de negocio.
             </p>
             <p>
-              No fuerza un valor cuando faltan datos. En esos casos muestra qué impide usar la lectura para decidir.
+              Siempre entrega un intervalo orientativo cuando existe una cotización vigente. La amplitud y la confianza cambian según la evidencia disponible.
             </p>
           </div>
         </section>
