@@ -29,13 +29,42 @@ test("privacidad declara las fronteras reales de eliminación, logs y proveedore
 });
 
 test.describe("Rutas públicas", () => {
-  test("landing carga el mapa de canales y los tres módulos", async ({ page }) => {
+  test("la portada presenta una sola decisión, sin ASML precargado ni cifras que parezcan en vivo", async ({ page }) => {
+    await page.goto("/?lang=es");
+
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "Antes de invertir, entiende qué necesita el precio.",
+    );
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByLabel("Ticker estadounidense")).toHaveValue("");
+    await expect(page.getByText("ASML", { exact: false })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Explorar una demo" })).toHaveAttribute("href", "#demo");
+
+    for (const guarantee of [
+      "Primera lectura sin cuenta",
+      "Fecha, fuente y supuestos visibles",
+      "Si falta evidencia, te decimos exactamente cuál",
+    ]) {
+      await expect(page.getByText(guarantee, { exact: true })).toBeVisible();
+    }
+
+    for (const step of ["Descubrir", "Entender el precio", "Construir la tesis", "Medir el riesgo", "Monitorear"]) {
+      await expect(page.getByRole("heading", { name: step, exact: true })).toBeVisible();
+    }
+
+    await expect(page.getByText("Ejemplo congelado", { exact: false })).toBeVisible();
+    await expect(
+      page.getByText("Ejemplo congelado · 30 de junio de 2026 · No son datos en vivo.", { exact: true }),
+    ).toBeVisible();
+  });
+
+  test("landing carga el flujo de decisión y sus motores", async ({ page }) => {
     const errors = [];
     page.on("pageerror", (err) => errors.push(String(err)));
     await page.goto("/");
     await expect(page).toHaveTitle(/BLS Prime/);
     await expect(page.getByRole("link", { name: /Crear espacio de trabajo|Create workspace/i }).first()).toBeVisible();
-    await expect(page.getByRole("link", { name: /Analizar mi cartera|Analyze my portfolio/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Analizar mi cartera|Analyze my portfolio/i })).toBeVisible();
     await expect(page.locator("text=AURORA").first()).toBeVisible();
     await expect(page.locator("text=FactorLab").first()).toBeVisible();
     await expect(page.locator("text=Stress").first()).toBeVisible();

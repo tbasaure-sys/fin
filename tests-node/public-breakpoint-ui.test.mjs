@@ -6,15 +6,17 @@ import test from "node:test";
 const root = path.resolve(import.meta.dirname, "..");
 const source = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("public homepage promotes a no-account Breakpoint entry without removing the terminal", () => {
+test("public homepage promotes a no-account Breakpoint entry with an integrated dated demo", () => {
   const home = source("components/public-home-experience.jsx");
   const hero = source("components/breakpoint/breakpoint-hero.jsx");
   assert.match(home, /BreakpointHero/);
-  assert.match(home, /TerminalSim/);
+  assert.match(home, /id="demo"/);
+  assert.match(home, /SAMPLE_METRICS/);
+  assert.match(home, /No son datos en vivo/);
   assert.match(hero, /<form/);
   assert.match(hero, /api\/public\/breakpoints/);
   assert.match(hero, /aria-live/);
-  assert.match(hero, /Ver qu[eé] necesita el precio/);
+  assert.match(hero, /Analizar empresa/);
 });
 
 test("Breakpoint shows a temporary reading instead of a failure when storage is unavailable", () => {

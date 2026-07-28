@@ -76,8 +76,8 @@ test("public entry points distinguish sign in, workspace creation, and sample da
   const shellNavigation = source("lib/public-shell-navigation.js");
   assert.match(shellNavigation, /intent=signin/);
   assert.match(shellNavigation, /\/signup\?lang=/);
-  assert.match(home, /Illustrative example with sample data/);
-  assert.match(home, /Ejemplo con datos ilustrativos/);
+  assert.match(home, /Frozen example/);
+  assert.match(home, /Ejemplo congelado/);
   assert.doesNotMatch(home, /const displayBrand = "BL'S"/);
 });
 

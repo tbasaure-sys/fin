@@ -56,9 +56,9 @@ test("illustrative homepage figures never animate like live market data", () => 
   assert.match(home, /Object\.freeze/);
   // The old drift loop mutated example metrics on an interval.
   assert.doesNotMatch(home, /setMetrics/);
-  // The sample disclosure must be readable, not screen-reader only.
-  assert.match(home, /styles\.sampleDisclosure/);
-  assert.doesNotMatch(home, /visuallyHidden\}>\{copy\.sampleDisclosure/);
+  // The sample disclosure must be readable in the demo header.
+  assert.match(home, /\{copy\.demo\.disclosure\}/);
+  assert.doesNotMatch(home, /aria-hidden[^>]*>\{copy\.demo\.disclosure/);
 });
 
 test("no CTA promises a trial and delivers only a signup wall", () => {
@@ -67,9 +67,10 @@ test("no CTA promises a trial and delivers only a signup wall", () => {
 
   assert.doesNotMatch(home, /cta: "Probar mi cartera"/);
   assert.doesNotMatch(home, /cta: "Test my portfolio"/);
-  assert.match(home, /requiere cuenta/);
-  assert.match(home, /account required/);
-  assert.match(home, /accountBadge/);
+  assert.match(home, /requiere cuenta/i);
+  assert.match(home, /account required/i);
+  assert.match(home, /requiresAccount:\s*true/);
+  assert.match(home, /<StressAccountGate/);
   assert.match(stress, /requiere cuenta/);
   assert.match(stress, /account required/);
 });

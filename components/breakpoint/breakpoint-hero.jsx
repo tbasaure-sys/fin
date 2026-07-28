@@ -10,15 +10,21 @@ const TICKER_PATTERN = /^[A-Z][A-Z.\-]{0,11}$/;
 
 const COPY = {
   es: {
-    eyebrow: "BLS BREAKPOINT · PRIMERA LECTURA",
+    eyebrow: "BLS PRIME · ESPACIO DE DECISIÓN",
     title: "Antes de invertir, entiende qué necesita el precio.",
-    body: "Escribe una empresa y revisa qué crecimiento, rentabilidad y riesgos tendría que sostener para justificar su precio actual.",
+    body: "Conecta descubrimiento, precio y valor, efecto en cartera y monitoreo. Cada lectura muestra su fecha, sus fuentes y sus supuestos para ayudarte a actuar o pasar.",
     label: "Ticker estadounidense",
-    placeholder: "Ej. ASML",
-    submit: "Ver qué necesita el precio",
+    placeholder: "Ej. TICKER",
+    submit: "Analizar empresa",
     submitting: "Analizando…",
     retry: "Reintentar",
-    helper: "Sin cuenta. Datos públicos y supuestos visibles.",
+    helper: "Primera lectura sin cuenta.",
+    demo: "Explorar una demo",
+    guarantees: [
+      "Primera lectura sin cuenta",
+      "Fecha, fuente y supuestos visibles",
+      "Si falta evidencia, te decimos exactamente cuál",
+    ],
     stages: [
       "Validando el ticker…",
       "Buscando datos públicos (SEC / mercado)…",
@@ -28,7 +34,7 @@ const COPY = {
     ],
     errors: {
       EMPTY: "Escribe un ticker para continuar.",
-      FORMAT: "Formato no válido. Usa letras, punto o guion (por ejemplo ASML o BRK.B).",
+      FORMAT: "Formato no válido. Usa letras, punto o guion (por ejemplo BRK.B).",
       INVALID_INPUT: "Ese ticker no es válido para esta lectura. Prueba con otra empresa con cobertura SEC.",
       INVALID_REQUEST: "No pudimos leer la solicitud. Vuelve a intentarlo.",
       RATE_LIMITED: "Demasiadas lecturas seguidas. Espera un minuto y vuelve a intentarlo.",
@@ -46,15 +52,21 @@ const COPY = {
     asOfLabel: "Datos al",
   },
   en: {
-    eyebrow: "BLS BREAKPOINT · FIRST READING",
+    eyebrow: "BLS PRIME · INVESTMENT DECISION WORKSPACE",
     title: "Before you invest, understand what the price needs.",
-    body: "Enter a company and see the growth, profitability, and risks it would need to sustain at today’s price.",
+    body: "Connect discovery, price and value, portfolio impact, and monitoring. Every reading shows its date, sources, and assumptions so you can act or pass.",
     label: "US ticker",
-    placeholder: "E.g. ASML",
-    submit: "See what the price needs",
+    placeholder: "E.g. TICKER",
+    submit: "Analyze company",
     submitting: "Analyzing…",
     retry: "Try again",
-    helper: "No account. Public data and visible assumptions.",
+    helper: "First reading without an account.",
+    demo: "Explore a demo",
+    guarantees: [
+      "First reading without an account",
+      "Visible date, source, and assumptions",
+      "If evidence is missing, we tell you exactly what",
+    ],
     stages: [
       "Validating the ticker…",
       "Fetching public data (SEC / market)…",
@@ -64,7 +76,7 @@ const COPY = {
     ],
     errors: {
       EMPTY: "Enter a ticker to continue.",
-      FORMAT: "Invalid format. Use letters, a dot, or a hyphen (for example ASML or BRK.B).",
+      FORMAT: "Invalid format. Use letters, a dot, or a hyphen (for example BRK.B).",
       INVALID_INPUT: "That ticker is not valid for this reading. Try another SEC-covered company.",
       INVALID_REQUEST: "We could not read the request. Please try again.",
       RATE_LIMITED: "Too many readings in a row. Wait a minute and try again.",
@@ -119,7 +131,7 @@ function resolveAsOf(run, copy, language) {
 export function BreakpointHero({ language = "es" }) {
   const router = useRouter();
   const copy = COPY[language] || COPY.es;
-  const [ticker, setTicker] = useState("ASML");
+  const [ticker, setTicker] = useState("");
   // status: idle | loading | error | ready | navigating
   const [state, setState] = useState({ status: "idle", code: null, message: "" });
   const [stageIndex, setStageIndex] = useState(0);
@@ -295,6 +307,15 @@ export function BreakpointHero({ language = "es" }) {
             </button>
           ) : null}
         </form>
+        <a className={styles.demoLink} href="#demo">
+          {copy.demo}
+          <span aria-hidden="true">↓</span>
+        </a>
+        <ul className={styles.guarantees} aria-label={language === "en" ? "Reading guarantees" : "Garantías de la lectura"}>
+          {copy.guarantees.map((guarantee) => (
+            <li key={guarantee}>{guarantee}</li>
+          ))}
+        </ul>
         {temporaryRun ? (
           <section className={styles.temporaryRun} aria-live="polite">
             <p>

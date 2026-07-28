@@ -1,243 +1,182 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import styles from "@/app/home-page.module.css";
+import { BreakpointHero } from "@/components/breakpoint/breakpoint-hero";
 import { useLanguagePreference } from "@/components/language-layer";
 import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { StressAccountGate } from "@/components/stress-account-gate";
-import { BreakpointHero } from "@/components/breakpoint/breakpoint-hero";
 
 const COPY = {
   es: {
-    languageName: "Español",
-    languageAria: "Elegir idioma",
-    login: "Iniciar sesión",
-    kicker: "BLS Prime · Decisiones de inversión con información clara",
-    category: "Una forma ordenada de estudiar empresas, oportunidades y riesgo antes de invertir.",
-    headline: "La información importa más cuando tienes que decidir.",
-    subheadline:
-      "BLS Prime reúne valoración, búsqueda de oportunidades y riesgo de cartera en un solo proceso.",
-    ctaPrimary: "Crear espacio de trabajo",
-    ctaSecondary: "Ver los módulos",
-    sampleDisclosure: "Ejemplo con datos ilustrativos. Ninguna cifra de este panel es un dato de mercado en vivo.",
-    accountRequired: "Requiere cuenta",
+    workflowKicker: "Cinco decisiones conectadas",
+    workflowTitle: "De una señal a una decisión defendible.",
+    workflowSub:
+      "BLS Prime ordena la investigación en una secuencia. Cada paso produce una salida concreta para el siguiente.",
+    steps: [
+      {
+        index: "01",
+        title: "Descubrir",
+        engine: "FactorLab",
+        outcome: "Candidatos priorizados, con una razón verificable para dedicarles tiempo.",
+        action: "Buscar candidatos",
+        href: "/factorlab",
+      },
+      {
+        index: "02",
+        title: "Entender el precio",
+        engine: "Breakpoint",
+        outcome: "Expectativas implícitas de crecimiento y rentabilidad que el precio necesita.",
+        action: "Analizar una empresa",
+        href: "#breakpoint",
+      },
+      {
+        index: "03",
+        title: "Construir la tesis",
+        engine: "AURORA",
+        outcome: "Rango y estado de valoración, impulsores de valor y condiciones que invalidan la tesis.",
+        action: "Abrir AURORA",
+        href: "/aurora",
+      },
+      {
+        index: "04",
+        title: "Medir el riesgo",
+        engine: "Stress",
+        outcome: "Contribución al downside, concentración y posiciones que explican la pérdida.",
+        action: "Analizar mi cartera",
+        note: "Requiere cuenta",
+        requiresAccount: true,
+        href: "/stress",
+      },
+      {
+        index: "05",
+        title: "Monitorear",
+        engine: "Workspace",
+        outcome: "KPIs, nueva evidencia y cambios de tesis reunidos en el mismo lugar.",
+        action: "Crear espacio de trabajo",
+        href: "/login?intent=signup",
+      },
+    ],
+    demo: {
+      kicker: "Demo determinista",
+      title: "Una lectura conectada, no cinco herramientas sueltas.",
+      body:
+        "Este caso de Texas Instruments muestra cómo una señal avanza hasta una decisión que se puede revisar y monitorear.",
+      disclosure: "Ejemplo congelado · 30 de junio de 2026 · No son datos en vivo.",
+      company: "Texas Instruments",
+      ticker: "TXN",
+      status: "En rango · revisar supuestos",
+      cards: [
+        ["Descubrimiento", "priority", "Calidad y caja justifican una revisión más profunda."],
+        ["Precio", "price", "El precio exige sostener crecimiento y rentabilidad; no basta con extrapolar el pasado."],
+        ["Tesis", "range", "El rango depende de márgenes, reinversión y recuperación del ciclo industrial."],
+        ["Riesgo", "downside", "Downside ilustrativo en un escenario adverso de 20 días; no es un pronóstico."],
+        ["Monitoreo", "tests", "Margen bruto, inventarios y crecimiento del negocio analógico."],
+      ],
+      provenance:
+        "Cifras ilustrativas y estáticas para demostrar el producto. Una lectura real identifica la fecha de cada fuente, los supuestos usados y cualquier evidencia faltante.",
+      primary: "Analizar otra empresa",
+      secondary: "Crear espacio de trabajo",
+    },
     footer: "Software de análisis. No es asesoría financiera.",
     terms: "Términos",
     privacy: "Privacidad",
-    terminal: {
-      title: "BLS PRIME · RESEARCH",
-      meta: "Ejemplo con datos ilustrativos",
-      pane1Title: "Valoración",
-      pane1Tag: "AURORA",
-      ticker: "TXN",
-      kv1: [
-        ["Precio", "price"],
-        ["Valor intrínseco", "$168 – 214"],
-        ["Diferencia frente al valor", "mos"],
-        ["ROIC", "32.8%"],
-        ["Rendimiento de caja", "3.6%"],
-      ],
-      verdict: "En rango",
-      pane2Title: "Selección",
-      pane2Tag: "BÚSQUEDA",
-      rankHeader: ["Empresa", "Prioridad"],
-      pane3Title: "Estrés",
-      pane3Tag: "RIESGO",
-      stressBigLabel: "CVaR 5% · 20 días",
-      kv3: [
-        ["P(pérdida)", "ploss"],
-        ["P(caída ≤ −10%)", "dd"],
-        ["Peor escenario", "worst"],
-      ],
-      stressFoot: "Ejemplo · escenarios adversos, no pronósticos",
-      statusline: "Ejemplo con datos ilustrativos · reglas y supuestos visibles",
-    },
-    modulesKicker: "El proceso",
-    modulesTitle: "Antes de invertir, responde cinco preguntas.",
-    modulesSub: "BLS Prime no decide por ti. Ordena la información para que puedas decidir mejor.",
-    channel: {
-      index: "00",
-      label: "Inteligencia de cartera",
-      title: "Portfolio Intelligence",
-      question: "¿Cuántas apuestas distintas tienes realmente?",
-      body:
-        "Confirma tus posiciones, identifica clusters y correlaciones ocultas, y construye una cola semanal de empresas con KPI y pruebas concretas.",
-      note: "Cartera propia · apuestas efectivas · canales investigables",
-      cta: "Analizar mi cartera",
-    },
-    modules: [
+  },
+  en: {
+    workflowKicker: "Five connected decisions",
+    workflowTitle: "From a signal to a defensible decision.",
+    workflowSub:
+      "BLS Prime organizes research into a sequence. Each step produces a concrete output for the next one.",
+    steps: [
       {
         index: "01",
-        label: "Valoración",
-        title: "AURORA",
-        question: "¿Qué valor tiene?",
-        body: "Compara el precio con una estimación de valor y revisa qué supuestos la sostienen.",
-        spec: "Precio · caja · rentabilidad · supuestos",
-        href: "/aurora",
-        cta: "Abrir AURORA",
+        title: "Discover",
+        engine: "FactorLab",
+        outcome: "Prioritized candidates with a verifiable reason to spend more time on them.",
+        action: "Find candidates",
+        href: "/factorlab",
       },
       {
         index: "02",
-        label: "Búsqueda de oportunidades",
-        title: "FactorLab",
-        question: "¿Qué oportunidad merece atención?",
-        body: "Encuentra empresas que vale la pena revisar antes de dedicarles horas.",
-        spec: "filtros básicos · razones para revisar",
-        href: "/factorlab",
-        cta: "Abrir FactorLab",
+        title: "Understand the price",
+        engine: "Breakpoint",
+        outcome: "Implied growth and profitability expectations the price needs.",
+        action: "Analyze a company",
+        href: "#breakpoint",
       },
       {
         index: "03",
-        label: "Riesgo de cartera",
-        title: "Stress Engine",
-        question: "¿Qué puede salir mal?",
-        body: "Mide cuánto puede caer tu cartera y qué posiciones explican la pérdida.",
-        spec: "escenarios adversos · pérdida · causas",
-        href: "/stress",
-        cta: "Analizar mi cartera — requiere cuenta",
-        gated: true,
+        title: "Build the thesis",
+        engine: "AURORA",
+        outcome: "Valuation range and state, value drivers, and conditions that falsify the thesis.",
+        action: "Open AURORA",
+        href: "/aurora",
+      },
+      {
+        index: "04",
+        title: "Measure risk",
+        engine: "Stress",
+        outcome: "Downside contribution, concentration, and the positions that explain the loss.",
+        action: "Analyze my portfolio",
+        note: "Account required",
         requiresAccount: true,
+        href: "/stress",
+      },
+      {
+        index: "05",
+        title: "Monitor",
+        engine: "Workspace",
+        outcome: "KPIs, new evidence, and thesis changes gathered in one place.",
+        action: "Create workspace",
+        href: "/login?intent=signup",
       },
     ],
-    workflowKicker: "La decisión completa",
-    workflowSteps: [
-      ["00", "¿Qué apuestas tienes y dónde podrías tener una señal?"],
-      ["01", "¿Qué valor tiene?"],
-      ["02", "¿Merece atención?"],
-      ["03", "¿Qué puede salir mal?"],
-    ],
-    workflowClosing: "Y por último: ¿qué tamaño merece?",
-  },
-  en: {
-    languageName: "English",
-    languageAria: "Choose language",
-    login: "Sign in",
-    kicker: "BLS Prime · Clear information for investment decisions",
-    category: "A practical way to study companies, opportunities, and portfolio risk before investing.",
-    headline: "Information matters most when you have to decide.",
-    subheadline:
-      "BLS Prime brings valuation, opportunity search, and portfolio risk into one process.",
-    ctaPrimary: "Create workspace",
-    ctaSecondary: "See the modules",
-    sampleDisclosure: "Illustrative example with sample data. No figure in this panel is live market data.",
-    accountRequired: "Account required",
+    demo: {
+      kicker: "Deterministic demo",
+      title: "One connected reading, not five separate tools.",
+      body:
+        "This Texas Instruments case shows how a signal moves toward a decision that can be reviewed and monitored.",
+      disclosure: "Frozen example · June 30, 2026 · Not live data.",
+      company: "Texas Instruments",
+      ticker: "TXN",
+      status: "In range · review assumptions",
+      cards: [
+        ["Discovery", "priority", "Quality and cash generation justify a deeper review."],
+        ["Price", "price", "The price requires sustained growth and profitability; past performance alone is not enough."],
+        ["Thesis", "range", "The range depends on margins, reinvestment, and an industrial-cycle recovery."],
+        ["Risk", "downside", "Illustrative downside in a 20-day adverse scenario; this is not a forecast."],
+        ["Monitoring", "tests", "Gross margin, inventory, and analog-business growth."],
+      ],
+      provenance:
+        "Static illustrative figures used to demonstrate the product. A real reading identifies each source date, every assumption, and any missing evidence.",
+      primary: "Analyze another company",
+      secondary: "Create workspace",
+    },
     footer: "Research software. Not financial advice.",
     terms: "Terms",
     privacy: "Privacy",
-    terminal: {
-      title: "BLS PRIME · RESEARCH",
-      meta: "Illustrative example with sample data",
-      pane1Title: "Valuation",
-      pane1Tag: "AURORA",
-      ticker: "TXN",
-      kv1: [
-        ["Price", "price"],
-        ["Intrinsic value", "$168 – 214"],
-        ["Difference from estimated value", "mos"],
-        ["ROIC", "32.8%"],
-        ["Cash return", "3.6%"],
-      ],
-      verdict: "In range",
-      pane2Title: "Selection",
-      pane2Tag: "SEARCH",
-      rankHeader: ["Company", "Priority"],
-      pane3Title: "Stress",
-      pane3Tag: "RISK",
-      stressBigLabel: "CVaR 5% · 20 days",
-      kv3: [
-        ["P(loss)", "ploss"],
-        ["P(drawdown ≤ −10%)", "dd"],
-        ["Worst scenario", "worst"],
-      ],
-      stressFoot: "Example · adverse scenarios, not forecasts",
-      statusline: "Illustrative example · visible rules and assumptions",
-    },
-    modulesKicker: "The process",
-    modulesTitle: "Before investing, answer five questions.",
-    modulesSub: "BLS Prime does not decide for you. It organizes the information so you can decide better.",
-    channel: {
-      index: "00",
-      label: "Portfolio intelligence",
-      title: "Portfolio Intelligence",
-      question: "How many distinct bets do you actually own?",
-      body:
-        "Confirm your holdings, find hidden correlation clusters, and build a weekly company queue with concrete KPIs and public tests.",
-      note: "Your portfolio · effective bets · testable channels",
-      cta: "Analyze my portfolio",
-    },
-    modules: [
-      {
-        index: "01",
-        label: "Valuation",
-        title: "AURORA",
-        question: "What is it worth?",
-        body: "Compare price with an estimated value and review the assumptions behind it.",
-        spec: "Price · cash · returns · assumptions",
-        href: "/aurora",
-        cta: "Open AURORA",
-      },
-      {
-        index: "02",
-        label: "Opportunity search",
-        title: "FactorLab",
-        question: "Which opportunity deserves attention?",
-        body: "Find companies worth reviewing before you spend hours on them.",
-        spec: "basic filters · reasons to review",
-        href: "/factorlab",
-        cta: "Open FactorLab",
-      },
-      {
-        index: "03",
-        label: "Portfolio risk",
-        title: "Stress Engine",
-        question: "What can go wrong?",
-        body: "Measure how far your portfolio could fall and which positions explain the loss.",
-        spec: "adverse scenarios · loss · causes",
-        href: "/stress",
-        cta: "Analyze my portfolio — account required",
-        gated: true,
-        requiresAccount: true,
-      },
-    ],
-    workflowKicker: "The full decision",
-    workflowSteps: [
-      ["00", "What bets do you own, and where might you have a signal?"],
-      ["01", "What is it worth?"],
-      ["02", "Does it deserve attention?"],
-      ["03", "What can go wrong?"],
-    ],
-    workflowClosing: "Finally: what position size is appropriate?",
   },
 };
 
-const RANK_ROWS = [
-  { ticker: "ASML", score: 0.91 },
-  { ticker: "TXN", score: 0.88 },
-  { ticker: "CNI", score: 0.84 },
-  { ticker: "MCO", score: 0.81 },
-];
+// Fixed demo figures. They are intentionally immutable so the example can
+// never behave like a live market panel.
+const SAMPLE_METRICS = Object.freeze({
+  price: 187.2,
+  valueLow: 168,
+  valueHigh: 214,
+  priority: 0.88,
+  downside: -23.4,
+});
 
-const METRIC_BANDS = {
-  price: [186.4, 188.3],
-  mos: [3.9, 5.2],
-  cvar: [-24.6, -22.4],
-  ploss: [45.0, 47.5],
-  dd: [30.0, 33.0],
-  worst: [-39.5, -36.8],
-};
-
-function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(media.matches);
-    const onChange = (event) => setReduced(event.matches);
-    media.addEventListener?.("change", onChange);
-    return () => media.removeEventListener?.("change", onChange);
-  }, []);
-  return reduced;
+function formatDemoMetric(key, language) {
+  const locale = language === "en" ? "en-US" : "es-CL";
+  if (key === "priority") return `${language === "en" ? "Priority" : "Prioridad"} ${SAMPLE_METRICS.priority.toLocaleString(locale)}`;
+  if (key === "price") return SAMPLE_METRICS.price.toLocaleString(locale, { style: "currency", currency: "USD" });
+  if (key === "range") return `$${SAMPLE_METRICS.valueLow}–${SAMPLE_METRICS.valueHigh}`;
+  if (key === "downside") return `${SAMPLE_METRICS.downside.toLocaleString(locale)}%`;
+  return language === "en" ? "3 tests" : "3 pruebas";
 }
 
 function useReveal() {
@@ -246,146 +185,27 @@ function useReveal() {
     const nodes = Array.from(document.querySelectorAll(`.${styles.reveal}`));
     const observer = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add(styles.revealIn);
-            observer.unobserve(entry.target);
-          }
-        }
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add(styles.revealIn);
+          observer.unobserve(entry.target);
+        });
       },
-      { threshold: 0.18 },
+      { threshold: 0.14 },
     );
     nodes.forEach((node) => observer.observe(node));
     return () => observer.disconnect();
   }, []);
 }
 
-function formatMetric(key, value) {
-  if (key === "price") return `$${value.toFixed(2)}`;
-  if (key === "mos") return `+${value.toFixed(1)}%`;
-  return `${value.toFixed(1)}%`;
-}
-
-// Fixed illustrative figures. These must never drift or animate: an example
-// number that moves reads as live market data, which it is not.
-const SAMPLE_METRICS = Object.freeze({
-  price: 187.2,
-  mos: 4.6,
-  cvar: -23.4,
-  ploss: 46.2,
-  dd: 31.4,
-  worst: -38.1,
-});
-
-function TerminalSim({ copy, reducedMotion }) {
-  const metrics = SAMPLE_METRICS;
-  const [activeRow, setActiveRow] = useState(0);
-
-  useEffect(() => {
-    if (reducedMotion) return undefined;
-    const id = setInterval(() => {
-      setActiveRow((row) => (row + 1) % RANK_ROWS.length);
-    }, 3200);
-    return () => clearInterval(id);
-  }, [reducedMotion]);
-
-  const t = copy.terminal;
-
-  return (
-    <div className={styles.terminal} aria-hidden="true">
-      <div className={styles.termHeader}>
-        <span className={styles.termTitle}>{t.title}</span>
-        <span className={styles.termMeta}>{t.meta}</span>
-      </div>
-
-      <div className={styles.termGrid}>
-        <section className={styles.pane}>
-          <header className={styles.paneHeader}>
-            <span className={styles.paneTitle}>{t.pane1Title}</span>
-            <span className={styles.paneTag}>{t.pane1Tag}</span>
-          </header>
-          <p className={styles.paneTicker}>{t.ticker}</p>
-          <dl className={styles.kvList}>
-            {t.kv1.map(([label, value]) => (
-              <div className={styles.kv} key={label}>
-                <dt>{label}</dt>
-                <dd className={value in METRIC_BANDS ? styles.liveValue : undefined}>
-                  {value in METRIC_BANDS ? formatMetric(value, metrics[value]) : value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <span className={styles.verdictChip}>{t.verdict}</span>
-        </section>
-
-        <section className={styles.pane}>
-          <header className={styles.paneHeader}>
-            <span className={styles.paneTitle}>{t.pane2Title}</span>
-            <span className={styles.paneTag}>{t.pane2Tag}</span>
-          </header>
-          <div className={styles.rankTable}>
-            <div className={styles.rankHead}>
-              <span>{t.rankHeader[0]}</span>
-              <span>{t.rankHeader[1]}</span>
-            </div>
-            {RANK_ROWS.map((row, index) => (
-              <div className={styles.rankRow} data-active={index === activeRow} key={row.ticker}>
-                <span className={styles.rankTicker}>{row.ticker}</span>
-                <span className={styles.rankBarTrack}>
-                  <span className={styles.rankBarFill} style={{ width: `${row.score * 100}%` }} />
-                </span>
-                <span className={styles.rankScore}>{row.score.toFixed(2)}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.pane}>
-          <header className={styles.paneHeader}>
-            <span className={styles.paneTitle}>{t.pane3Title}</span>
-            <span className={styles.paneTag}>{t.pane3Tag}</span>
-          </header>
-          <p className={styles.stressBig}>
-            <span className={styles.liveValue}>{metrics.cvar.toFixed(1)}%</span>
-            <small>{t.stressBigLabel}</small>
-          </p>
-          <svg className={styles.spark} viewBox="0 0 220 56" fill="none" preserveAspectRatio="none">
-            <path
-              className={styles.sparkArea}
-              d="M0 10 C 42 12, 82 16, 112 22 C 152 30, 188 42, 220 52 L 220 56 L 0 56 Z"
-            />
-            <path
-              className={styles.sparkLine}
-              d="M0 10 C 42 12, 82 16, 112 22 C 152 30, 188 42, 220 52"
-            />
-            <line className={styles.sparkMarker} x1="176" y1="6" x2="176" y2="56" />
-          </svg>
-          <dl className={styles.kvList}>
-            {t.kv3.map(([label, key]) => (
-              <div className={styles.kv} key={label}>
-                <dt>{label}</dt>
-                <dd className={styles.liveValue}>
-                  {key === "worst" ? `${metrics.worst.toFixed(1)}%` : `${metrics[key].toFixed(1)}%`}
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <p className={styles.paneFoot}>{t.stressFoot}</p>
-        </section>
-      </div>
-
-      <div className={styles.statusline}>
-        <span>{t.statusline}</span>
-        <span className={styles.cursor} />
-      </div>
-    </div>
-  );
+function localizeHref(href, language) {
+  if (href.startsWith("#")) return href;
+  return `${href}${href.includes("?") ? "&" : "?"}lang=${language}`;
 }
 
 export function PublicHomeExperience({ initialLanguage = "es" }) {
   const { language } = useLanguagePreference(initialLanguage);
-  const reducedMotion = usePrefersReducedMotion();
-  const copy = COPY[language];
+  const copy = COPY[language] || COPY.es;
 
   useReveal();
 
@@ -397,120 +217,92 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
         <BreakpointHero language={language} />
       </div>
 
-      <section className={styles.hero} aria-labelledby="home-title">
-        <div className={styles.heroCopy}>
-          <p className={styles.kicker}>{copy.kicker}</p>
-          <p className={styles.categoryLine}>{copy.category}</p>
-          <h2 className={styles.headline} id="home-title">
-            {copy.headline}
-          </h2>
-          <p className={styles.subheadline}>{copy.subheadline}</p>
-          <div className={styles.ctaRow}>
-            <Link className={styles.ctaPrimary} href={"/login?intent=signup&lang=" + language}>
-              {copy.ctaPrimary}
-            </Link>
-            <a className={styles.ctaSecondary} href="#modules">
-              {copy.ctaSecondary}
-            </a>
-          </div>
-        </div>
-        <div className={styles.terminalWrap}>
-          <p className={styles.sampleDisclosure}>{copy.sampleDisclosure}</p>
-          <TerminalSim copy={copy} reducedMotion={reducedMotion} />
-        </div>
-      </section>
-
-      <section className={styles.modules} id="modules">
-        <div className={`${styles.sectionHead} ${styles.reveal}`}>
-          <p className={styles.sectionKicker}>{copy.modulesKicker}</p>
-          <h2 className={styles.sectionTitle}>{copy.modulesTitle}</h2>
-          <p className={styles.sectionSub}>{copy.modulesSub}</p>
-        </div>
-
-        <Link
-          className={`${styles.channelStrip} ${styles.reveal}`}
-          href={`/channels?lang=${language}`}
-        >
-          <span className={styles.channelStripTop}>
-            <span className={styles.channelIndex}>{copy.channel.index}</span>
-            <span className={styles.channelLabel}>{copy.channel.label}</span>
-          </span>
-          <span className={styles.channelStripMain}>
-            <span>
-              <strong className={styles.channelTitle}>{copy.channel.title}</strong>
-              <span className={styles.channelQuestion}>{copy.channel.question}</span>
-            </span>
-            <span className={styles.channelBody}>{copy.channel.body}</span>
-          </span>
-          <span className={styles.channelStripFoot}>
-            <span className={styles.channelNote}>{copy.channel.note}</span>
-            <em className={styles.moduleCta}>
-              {copy.channel.cta}
-              <span className={styles.ctaArrow}>→</span>
-            </em>
-          </span>
-        </Link>
-
-        <nav className={styles.moduleDeck} aria-label="BLS Prime modules">
-          {copy.modules.map((module, i) => {
-            const content = (
-              <>
-                <span className={styles.moduleTop}>
-                  <span className={styles.moduleIndex}>{module.index}</span>
-                  <span className={styles.moduleLabel}>{module.label}</span>
-                  {module.requiresAccount ? (
-                    <span className={styles.accountBadge}>{copy.accountRequired}</span>
-                  ) : null}
-                </span>
-                <strong className={styles.moduleTitle}>{module.title}</strong>
-                <span className={styles.moduleQuestion}>{module.question}</span>
-                <span className={styles.moduleBody}>{module.body}</span>
-                <span className={styles.moduleSpec}>{module.spec}</span>
-                <em className={styles.moduleCta}>
-                  {module.cta}
-                  <span className={styles.ctaArrow}>→</span>
-                </em>
-              </>
-            );
-            const revealClass = `${styles.moduleCard} ${styles.reveal} ${styles[`delay${i}`]}`;
-            return module.gated ? (
-              <StressAccountGate className={revealClass} key={module.title} language={language}>
-                {content}
-              </StressAccountGate>
-            ) : (
-              <Link className={revealClass} href={module.href} key={module.title}>
-                {content}
-              </Link>
-            );
-          })}
-        </nav>
-      </section>
-
-      <section className={styles.workflow}>
-        <div className={`${styles.sectionHead} ${styles.reveal}`}>
+      <section className={styles.workflow} aria-labelledby="workflow-title" id="workflow">
+        <div className={`${styles.sectionLead} ${styles.reveal}`}>
           <p className={styles.sectionKicker}>{copy.workflowKicker}</p>
+          <h2 id="workflow-title">{copy.workflowTitle}</h2>
+          <p>{copy.workflowSub}</p>
         </div>
-        <ol className={`${styles.steps} ${styles.reveal}`}>
-          {copy.workflowSteps.map(([index, text]) => (
-            <li className={styles.step} key={index}>
-              <span className={styles.stepIndex}>{index}</span>
-              <span className={styles.stepText}>{text}</span>
+
+        <ol className={styles.decisionRail}>
+          {copy.steps.map((step, index) => (
+            <li className={`${styles.decisionStep} ${styles.reveal}`} key={step.index}>
+              <span className={styles.stepIndex}>{step.index}</span>
+              <div className={styles.stepCopy}>
+                <span className={styles.engine}>{step.engine}</span>
+                <h3>{step.title}</h3>
+                <p>{step.outcome}</p>
+                {step.requiresAccount ? (
+                  <StressAccountGate className={styles.stepAction} language={language}>
+                    {step.action}
+                    {step.note ? <small>{step.note}</small> : null}
+                    <span aria-hidden="true">→</span>
+                  </StressAccountGate>
+                ) : (
+                  <Link className={styles.stepAction} href={localizeHref(step.href, language)}>
+                    {step.action}
+                    {step.note ? <small>{step.note}</small> : null}
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                )}
+              </div>
+              {index < copy.steps.length - 1 ? <span className={styles.connector} aria-hidden="true" /> : null}
             </li>
           ))}
         </ol>
-        <p className={`${styles.closing} ${styles.reveal}`}>{copy.workflowClosing}</p>
-        <div className={`${styles.closingCtaRow} ${styles.reveal}`}>
-          <Link className={styles.ctaPrimary} href={"/login?intent=signup&lang=" + language}>
-            {copy.ctaPrimary}
+      </section>
+
+      <section className={styles.demo} aria-labelledby="demo-title" id="demo">
+        <div className={`${styles.demoLead} ${styles.reveal}`}>
+          <div>
+            <p className={styles.sectionKicker}>{copy.demo.kicker}</p>
+            <h2 id="demo-title">{copy.demo.title}</h2>
+          </div>
+          <p>{copy.demo.body}</p>
+        </div>
+
+        <article className={`${styles.demoFrame} ${styles.reveal}`}>
+          <header className={styles.demoHeader}>
+            <div>
+              <span>{copy.demo.ticker}</span>
+              <strong>{copy.demo.company}</strong>
+            </div>
+            <p>{copy.demo.disclosure}</p>
+          </header>
+          <div className={styles.demoStatus}>
+            <span>{language === "en" ? "DECISION STATE" : "ESTADO DE DECISIÓN"}</span>
+            <strong>{copy.demo.status}</strong>
+          </div>
+          <div className={styles.demoGrid}>
+            {copy.demo.cards.map(([label, metric, detail]) => (
+              <section key={label}>
+                <span>{label}</span>
+                <strong>{formatDemoMetric(metric, language)}</strong>
+                <p>{detail}</p>
+              </section>
+            ))}
+          </div>
+          <footer className={styles.demoProvenance}>
+            <span>{language === "en" ? "PROVENANCE" : "PROVENIENCIA"}</span>
+            <p>{copy.demo.provenance}</p>
+          </footer>
+        </article>
+
+        <div className={`${styles.finalActions} ${styles.reveal}`}>
+          <a className={styles.primaryAction} href="#breakpoint">
+            {copy.demo.primary}
+          </a>
+          <Link className={styles.secondaryAction} href={`/login?intent=signup&lang=${language}`}>
+            {copy.demo.secondary}
           </Link>
         </div>
       </section>
 
       <footer className={styles.footer}>
         <span>{copy.footer}</span>
-        <nav className={styles.footerLinks} aria-label={copy.privacy + " / " + copy.terms}>
-          <Link href={"/privacy?lang=" + language}>{copy.privacy}</Link>
-          <Link href={"/terms?lang=" + language}>{copy.terms}</Link>
+        <nav aria-label={`${copy.privacy} / ${copy.terms}`}>
+          <Link href={`/privacy?lang=${language}`}>{copy.privacy}</Link>
+          <Link href={`/terms?lang=${language}`}>{copy.terms}</Link>
         </nav>
       </footer>
     </main>

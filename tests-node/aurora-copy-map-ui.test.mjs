@@ -44,7 +44,7 @@ test("public Stress Engine CTAs gate into the portfolio workspace instead of val
   const loginSource = readFileSync("app/login/page.js", "utf8");
   const terminalSource = readFileSync("components/terminal-app.jsx", "utf8");
 
-  assert.match(homeSource, /title:\s*"Stress Engine"[\s\S]*requiresAccount:\s*true/);
+  assert.match(homeSource, /engine:\s*"Stress"[\s\S]*requiresAccount:\s*true/);
   assert.match(homeSource, /<StressAccountGate/);
   assert.match(stressSource, /<StressAccountGate/);
   assert.match(stressSource, /<StressAccountGate className=\{styles\.actionButton\}/);

@@ -6,13 +6,16 @@ import test from "node:test";
 const root = path.resolve(import.meta.dirname, "..");
 const source = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("landing and Breakpoint use the five-question decision narrative", () => {
+test("landing and Breakpoint use one five-step decision narrative", () => {
   const home = source("components/public-home-experience.jsx");
   const hero = source("components/breakpoint/breakpoint-hero.jsx");
   const result = source("components/breakpoint/breakpoint-result.jsx");
-  assert.match(home, /Antes de invertir, responde cinco preguntas/);
-  assert.match(home, /\u00bfQu[eé] valor tiene\?/i);
-  assert.match(home, /B[uú]squeda de oportunidades/);
+  assert.match(home, /Cinco decisiones conectadas/);
+  assert.match(home, /title: "Descubrir"/);
+  assert.match(home, /title: "Entender el precio"/);
+  assert.match(home, /title: "Construir la tesis"/);
+  assert.match(home, /title: "Medir el riesgo"/);
+  assert.match(home, /title: "Monitorear"/);
   assert.match(hero, /Lo que el precio necesita/i);
   assert.match(result, /retorno exigido a 5 a[nñ]os/i);
   assert.doesNotMatch(hero, /MARKET-CLEARING SURFACE/);
@@ -36,8 +39,9 @@ test("module surfaces explain the job in common words", () => {
 test("public copy calls samples examples and does not promise unavailable work", () => {
   const home = source("components/public-home-experience.jsx");
   const factorlab = source("components/factorlab-workstation.jsx");
-  assert.match(home, /Ejemplo con datos ilustrativos/);
-  assert.match(home, /Illustrative example with sample data/);
+  assert.match(home, /Ejemplo congelado/);
+  assert.match(home, /Frozen example/);
+  assert.match(home, /No son datos en vivo/);
   assert.match(factorlab, /Ver ejemplo|Pr[oó]ximamente|Solicitar acceso/);
 });
 
