@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import styles from "./breakpoint.module.css";
+import { buildBreakpointCompanyLinks } from "@/lib/breakpoint/navigation";
 import { localizeBreakpointDriver, localizeBreakpointSourceCategory, localizeBreakpointStatus } from "@/lib/breakpoint/presentation";
 
 const COPY = {
-  es: { loading: "Cargando lectura…", unavailable: "Esta lectura no está disponible.", eyebrow: "BLS BREAKPOINT · LECTURA DE EMPRESA", priceRequires: "Lo que el precio necesita", bull: "Si la empresa cumple", bear: "Si la empresa falla", monitor: "Qué conviene vigilar", provenance: "Datos y procedencia", limitations: "Lo que esta lectura no puede decir", terminal: "Ver valoración completa", disclaimer: "Software de análisis. No constituye asesoría financiera.", dataDate: "Fecha de datos", requiredReturn: "Retorno exigido a 5 años", feasibility: "SUPUESTOS", growth: "CRECIMIENTO DE INGRESOS", margin: "MARGEN OPERATIVO", primary: "FACTOR PRINCIPAL", flip: "Dos caminos posibles" },
-  en: { loading: "Loading company reading…", unavailable: "This reading is unavailable.", eyebrow: "BLS BREAKPOINT · COMPANY READING", priceRequires: "What the price needs", bull: "If the company delivers", bear: "If the company falls short", monitor: "What to monitor", provenance: "Data and sources", limitations: "What this reading cannot tell you", terminal: "See full valuation", disclaimer: "Research software. Not financial advice.", dataDate: "Data date", requiredReturn: "5-year required return", feasibility: "ASSUMPTIONS", growth: "REVENUE GROWTH", margin: "OPERATING MARGIN", primary: "MAIN DRIVER", flip: "Two possible paths" },
+  es: { loading: "Cargando lectura…", unavailable: "Esta lectura no está disponible.", eyebrow: "BLS BREAKPOINT · LECTURA DE EMPRESA", priceRequires: "Lo que el precio necesita", bull: "Si la empresa cumple", bear: "Si la empresa falla", monitor: "Qué conviene vigilar", provenance: "Datos y procedencia", limitations: "Lo que esta lectura no puede decir", terminal: "Ver valoración completa en la ficha", queue: "Añadir a cola · requiere cuenta", disclaimer: "Software de análisis. No constituye asesoría financiera.", dataDate: "Fecha de datos", requiredReturn: "Retorno exigido a 5 años", feasibility: "SUPUESTOS", growth: "CRECIMIENTO DE INGRESOS", margin: "MARGEN OPERATIVO", primary: "FACTOR PRINCIPAL", flip: "Dos caminos posibles" },
+  en: { loading: "Loading company reading…", unavailable: "This reading is unavailable.", eyebrow: "BLS BREAKPOINT · COMPANY READING", priceRequires: "What the price needs", bull: "If the company delivers", bear: "If the company falls short", monitor: "What to monitor", provenance: "Data and sources", limitations: "What this reading cannot tell you", terminal: "See full valuation in company page", queue: "Add to queue · account required", disclaimer: "Research software. Not financial advice.", dataDate: "Data date", requiredReturn: "5-year required return", feasibility: "ASSUMPTIONS", growth: "REVENUE GROWTH", margin: "OPERATING MARGIN", primary: "MAIN DRIVER", flip: "Two possible paths" },
 };
 
 function percent(value) { return Number.isFinite(Number(value)) ? `${(Number(value) * 100).toFixed(1)}%` : "—"; }
@@ -33,6 +34,7 @@ export function BreakpointResult({ runId, language = "es" }) {
   if (state.status === "error") return <main className={styles.resultShell}><p className={styles.loading} aria-live="polite">{state.message}</p></main>;
   const run = state.run?.payload || state.run;
   const attention = run.status !== "ready";
+  const links = buildBreakpointCompanyLinks(run.ticker, language);
   return <main className={styles.resultShell}>
     <header className={styles.resultTop}><Link href={`/?lang=${language}`} className={styles.wordmark}>BLS Prime</Link><span>{run.ticker} · {run.model?.omegaVersion || "BREAKPOINT V1"}</span></header>
     <section className={styles.resultLead} aria-labelledby="breakpoint-result-title">
@@ -51,7 +53,7 @@ export function BreakpointResult({ runId, language = "es" }) {
       <section className={styles.monitor}><span>{copy.monitor}</span><strong>{localizeBreakpointDriver(run.monitor.primaryDriver, language)}</strong><p>{run.monitor.falsifier || "—"}</p></section>
     </>}
     <section className={styles.detailGrid}><div><h2>{copy.provenance}</h2><ul className={styles.sources}>{(run.provenance?.sources || []).map((source, index) => <li key={`${source.label}-${index}`}><span>{localizeBreakpointSourceCategory(source.category, language)}</span><strong>{source.label}</strong><small>{date(source.date)}</small></li>)}</ul></div><div><h2>{copy.limitations}</h2><ul className={styles.limitations}>{(run.limitations || []).map((item) => <li key={item}>{item}</li>)}</ul></div></section>
-    <footer className={styles.resultFooter}><p>{copy.disclaimer}</p><Link href="/aurora" className={styles.terminalLink}>{copy.terminal} <span>→</span></Link></footer>
+    <footer className={styles.resultFooter}><p>{copy.disclaimer}</p><div className={styles.resultActions}><Link href={links.company} className={styles.terminalLink}>{copy.terminal} <span>→</span></Link><Link href={links.queue} className={styles.queueLink}>{copy.queue}</Link></div></footer>
   </main>;
 }
 

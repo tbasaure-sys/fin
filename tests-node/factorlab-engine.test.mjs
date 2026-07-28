@@ -36,6 +36,25 @@ test("FactorLab authorizes research files with type-first scorecards", () => {
   assert.match(run.audit.join(" "), /factor-null/i);
 });
 
+test("FactorLab separates global priority from rank inside each opportunity type", () => {
+  const run = runFactorLab({
+    asof: "2026-06-24",
+    universe: "tradable",
+    topK: 6,
+    minAdvUsd: 250_000,
+    maxMarketCapUsd: 2_000_000_000,
+    maxResidualVol: 0.7,
+  });
+
+  assert.equal(run.candidates[0].ticker, "HROW");
+  assert.equal(run.candidates[0].globalRank, 1);
+  assert.equal(run.candidates[0].rankWithinType, 1);
+
+  const kits = run.candidates.find((row) => row.ticker === "KITS");
+  assert.equal(kits.globalRank, 5);
+  assert.equal(kits.rankWithinType, 1);
+});
+
 test("FactorLab refuses a live discovery screen that uses future returns", () => {
   const run = runFactorLab({
     asof: "2026-06-24",

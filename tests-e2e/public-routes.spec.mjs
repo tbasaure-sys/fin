@@ -5,8 +5,8 @@ test("el HTML inicial de FactorLab y Stress respeta el locale solicitado", async
   const factorlabHtml = await factorlabResponse.text();
 
   expect(factorlabResponse.ok()).toBeTruthy();
-  expect(factorlabHtml).toContain("Encuentra empresas que vale la pena revisar");
-  expect(factorlabHtml).not.toContain("Find companies worth reviewing");
+  expect(factorlabHtml).toContain("Descubre qué empresa merece tu próxima hora");
+  expect(factorlabHtml).not.toContain("Discover which company deserves your next hour");
 
   const stressResponse = await request.get("/stress?lang=es");
   const stressHtml = await stressResponse.text();

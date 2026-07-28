@@ -2,6 +2,7 @@ import { FactorLabWorkstation } from "@/components/factorlab-workstation";
 import { headers } from "next/headers";
 
 import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
+import { parseFactorLabFilters } from "@/lib/factorlab-workspace";
 
 export const dynamic = "force-dynamic";
 
@@ -12,12 +13,13 @@ export const metadata = {
   alternates: { canonical: "/factorlab" },
 };
 
-export default function FactorLabPage() {
+export default function FactorLabPage({ searchParams }) {
   const initialLanguage = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+  const initialFilters = parseFactorLabFilters(searchParams);
 
   return (
     <main className="factorlab-route">
-      <FactorLabWorkstation initialLanguage={initialLanguage} />
+      <FactorLabWorkstation initialFilters={initialFilters} initialLanguage={initialLanguage} />
     </main>
   );
 }
