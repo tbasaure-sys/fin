@@ -73,8 +73,9 @@ test("manual recovery requires confirmation and preserves language", async () =>
 
 test("public entry points distinguish sign in, workspace creation, and sample data", () => {
   const home = source("components/public-home-experience.jsx");
-  assert.match(home, /intent=signin/);
-  assert.match(home, /intent=signup/);
+  const shellNavigation = source("lib/public-shell-navigation.js");
+  assert.match(shellNavigation, /intent=signin/);
+  assert.match(shellNavigation, /\/signup\?lang=/);
   assert.match(home, /Illustrative example with sample data/);
   assert.match(home, /Ejemplo con datos ilustrativos/);
   assert.doesNotMatch(home, /const displayBrand = "BL'S"/);

@@ -20,7 +20,7 @@
   background:
     linear-gradient(90deg, rgba(6, 11, 19, 0.95) 0%, rgba(6, 11, 19, 0.83) 42%, rgba(6, 11, 19, 0.52) 100%),
     linear-gradient(175deg, #060b13 0%, #09131e 50%, #070c14 100%);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 /* Subtle grid overlay */
@@ -55,7 +55,7 @@
 .stage {
   position: relative;
   z-index: 1;
-  min-height: 100vh;
+  min-height: calc(100svh - 4.75rem);
   max-width: 1200px;
   margin: 0 auto;
   padding: clamp(1rem, 2.5vw, 2rem);

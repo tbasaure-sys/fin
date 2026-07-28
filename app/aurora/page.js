@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import EquityResearchPanel from "@/components/equity-research-panel";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import styles from "./aurora.module.css";
 
 export const metadata = {
@@ -21,16 +22,7 @@ const PUBLIC_SUGGESTIONS = {
 export default function AuroraPage() {
   return (
     <div className={styles.page}>
-      <header className={styles.topbar}>
-        <Link className={styles.brand} href="/" aria-label="BLS Prime, inicio">
-          <span aria-hidden="true">B</span>
-          <strong>BLS PRIME</strong>
-        </Link>
-        <nav aria-label="Navegación principal">
-          <Link href="/">Inicio</Link>
-          <Link href="/login?lang=es">Entrar</Link>
-        </nav>
-      </header>
+      <PublicSiteHeader availableLanguages={["es"]} initialLanguage="es" />
 
       <main className={styles.main}>
         <section className={styles.intro} aria-labelledby="aurora-title">

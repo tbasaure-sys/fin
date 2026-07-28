@@ -17,8 +17,17 @@
   --shadow: 0 36px 100px rgba(0, 0, 0, 0.42);
   --radius: 24px;
   --radius-sm: 16px;
-  --sans: "Sora", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --serif: "DM Serif Display", Georgia, serif;
+  --sans: "DM Sans", "IBM Plex Sans", "Segoe UI", sans-serif;
   --mono: "JetBrains Mono", "IBM Plex Mono", "SFMono-Regular", monospace;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --state-demo: #e1b45b;
+  --state-incomplete: #ffb454;
 }
 
 * {
@@ -48,6 +57,10 @@ body:has(.channels-route) {
 }
 
 body:has(.channels-route) .global-language-dock {
+  display: none;
+}
+
+body:has(.public-site-header) .global-language-dock {
   display: none;
 }
 

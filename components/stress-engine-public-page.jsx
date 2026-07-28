@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import styles from "@/app/stress/stress.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { StressAccountGate } from "@/components/stress-account-gate";
 import { PlainMetric } from "@/components/ui/plain-metric";
 
@@ -174,17 +175,7 @@ export function StressEnginePublicPage({ initialLanguage = "es" }) {
 
   return (
     <main className={styles.page} data-no-translate>
-      <header className={styles.topbar}>
-        <Link href="/" className={styles.logo} aria-label="Back to BLS Prime">
-          {copy.back}
-        </Link>
-        <nav aria-label={language === "es" ? "Enlaces de riesgo de cartera" : "Portfolio risk links"}>
-          <Link className={styles.actionButton} href="#what-you-get">
-            {copy.navPrimary}
-          </Link>
-          <Link href="#methodology">{copy.navSecondary}</Link>
-        </nav>
-      </header>
+      <PublicSiteHeader initialLanguage={initialLanguage} />
 
       <section className={styles.hero}>
         <p>{copy.label}</p>

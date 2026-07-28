@@ -1,7 +1,6 @@
 import { headers } from "next/headers";
 import { PublicHomeExperience } from "@/components/public-home-experience";
 import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
-import { getServerConfig } from "@/lib/server/config";
 
 export const dynamic = "force-dynamic";
 
@@ -42,9 +41,7 @@ export function generateMetadata() {
 }
 
 export default async function HomePage() {
-  const config = getServerConfig();
-  const publicBrand = /allocator workspace/i.test(config.appName) ? "BLS Prime" : config.appName;
   const initialLanguage = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
 
-  return <PublicHomeExperience brand={publicBrand} initialLanguage={initialLanguage} />;
+  return <PublicHomeExperience initialLanguage={initialLanguage} />;
 }

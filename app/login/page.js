@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import styles from "@/app/login-page.module.css";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 
 export const dynamic = "force-dynamic";
 
@@ -138,18 +139,9 @@ export default function LoginPage({ searchParams = {} }) {
 
   return (
     <main className={styles.page}>
+      <PublicSiteHeader initialLanguage={language} />
       <section className={styles.stage}>
-        <Link className={styles.backLink} href="/">
-          {copy.back}
-        </Link>
-
         <div className={styles.copy}>
-          <Link className={styles.logoMark} href="/">
-            <span className={styles.logoIcon} aria-hidden="true">
-              B
-            </span>
-            <span className={styles.logoText}>BLS Prime</span>
-          </Link>
           <p className={styles.kicker}>{copy.eyebrow}</p>
           <h1 className={styles.headline}>{copy.headline}</h1>
           <p className={styles.lead}>{copy.lead}</p>

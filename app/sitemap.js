@@ -6,6 +6,8 @@ const PUBLIC_ROUTES = [
   { path: "/aurora", changeFrequency: "weekly", priority: 0.9 },
   { path: "/factorlab", changeFrequency: "weekly", priority: 0.8 },
   { path: "/stress", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/product", changeFrequency: "monthly", priority: 0.75 },
+  { path: "/methodology", changeFrequency: "monthly", priority: 0.7 },
   { path: "/privacy", changeFrequency: "monthly", priority: 0.4 },
   { path: "/terms", changeFrequency: "monthly", priority: 0.3 },
 ];

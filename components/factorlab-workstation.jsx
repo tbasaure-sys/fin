@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import styles from "@/app/factorlab/factorlab.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { factorLabSampleUniverse, runFactorLab } from "@/lib/factorlab-engine";
 
 const COPY = {
@@ -381,7 +382,7 @@ function displaySpec(run) {
 }
 
 export function FactorLabWorkstation({ initialLanguage = "es" }) {
-  const { language, setLanguage } = useLanguagePreference(initialLanguage);
+  const { language } = useLanguagePreference(initialLanguage);
   const copy = COPY[language] || COPY.en;
   const [activeStepId, setActiveStepId] = useState("score");
   const [asof, setAsof] = useState("2026-06-24");
@@ -426,27 +427,7 @@ export function FactorLabWorkstation({ initialLanguage = "es" }) {
   return (
     <section className={styles.shell}>
       <div className={styles.backdrop} aria-hidden="true" />
-
-      <header className={styles.header}>
-        <Link className={styles.brand} href="/">
-          BLS Prime
-        </Link>
-        <nav className={styles.nav} aria-label={copy.navAria}>
-          <a href="#builder">{copy.nav.builder}</a>
-          <a href="#results">{copy.nav.results}</a>
-          <a href="#audit">{copy.nav.audit}</a>
-        </nav>
-        <div className={styles.headerActions}>
-          <div className={styles.languageToggle} aria-label={copy.language} role="group">
-            <span>{copy.language}</span>
-            <button data-active={language === "en"} onClick={() => setLanguage("en")} type="button">EN</button>
-            <button data-active={language === "es"} onClick={() => setLanguage("es")} type="button">ES</button>
-          </div>
-          <Link className={styles.workspaceLink} href="/aurora">
-            {copy.aurora}
-          </Link>
-        </div>
-      </header>
+      <PublicSiteHeader initialLanguage={initialLanguage} />
 
       <section className={styles.hero}>
         <div className={styles.heroCopy}>

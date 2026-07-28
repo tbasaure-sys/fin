@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { headers } from "next/headers";
 
 import styles from "@/app/public-home.module.css";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 import { getServerConfig } from "@/lib/server/config";
 
@@ -67,17 +67,7 @@ export default function TermsPage() {
 
   return (
     <main className={`${styles.page} ${styles.legalPage}`}>
-      <nav className={styles.nav}>
-        <Link className={styles.brand} href={`/?lang=${locale}`}>
-          <span className={styles.brandName}>{config.appName}</span>
-        </Link>
-        <div className={styles.navActions}>
-          <Link className={styles.btnGhost} href={`/privacy?lang=${locale}`}>
-            {locale === "en" ? "Privacy" : "Privacidad"}
-          </Link>
-          <Link className={styles.btnGhost} href={`/?lang=${locale}`}>{copy.home}</Link>
-        </div>
-      </nav>
+      <PublicSiteHeader initialLanguage={locale} />
 
       <section className={styles.legalHero}>
         <p className={styles.tag}>{copy.tag}</p>

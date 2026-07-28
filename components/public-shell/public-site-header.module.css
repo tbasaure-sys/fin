@@ -1,0 +1,278 @@
+.shell {
+  --shell-paper: #f3eee6;
+  --shell-muted: rgba(243, 238, 230, 0.62);
+  --shell-line: rgba(243, 238, 230, 0.13);
+  --shell-gold: #e1b45b;
+  position: relative;
+  z-index: 40;
+  width: 100%;
+  color: var(--shell-paper);
+  background: rgba(5, 9, 15, 0.88);
+  border-bottom: 1px solid var(--shell-line);
+  backdrop-filter: blur(18px);
+}
+
+.inner {
+  width: min(100% - clamp(2rem, 6vw, 6.5rem), 94rem);
+  min-height: 4.75rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 4rem);
+}
+
+.brand {
+  display: grid;
+  gap: 0.1rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.brandName {
+  font-family: "DM Serif Display", Georgia, serif;
+  font-size: 1.42rem;
+  line-height: 1;
+  letter-spacing: 0.015em;
+}
+
+.brandDescriptor {
+  color: var(--shell-muted);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.navigation,
+.navLinks,
+.actions,
+.language {
+  display: flex;
+  align-items: center;
+}
+
+.navigation {
+  min-width: 0;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.navLinks {
+  gap: clamp(0.75rem, 2vw, 1.6rem);
+}
+
+.navLinks a,
+.signIn,
+.signUp {
+  min-height: 2.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--shell-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.navLinks a {
+  position: relative;
+  padding: 0 0.15rem;
+}
+
+.navLinks a::after {
+  content: "";
+  position: absolute;
+  right: 0.15rem;
+  bottom: 0.2rem;
+  left: 0.15rem;
+  height: 1px;
+  background: var(--shell-gold);
+  opacity: 0;
+  transform: scaleX(0.35);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.navLinks a:hover,
+.navLinks a:focus-visible,
+.navLinks a[data-current="true"],
+.signIn:hover,
+.signIn:focus-visible {
+  color: var(--shell-paper);
+}
+
+.navLinks a[data-current="true"]::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.actions {
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.language {
+  min-height: 2.75rem;
+  padding: 0.18rem;
+  border: 1px solid var(--shell-line);
+}
+
+.language button {
+  min-width: 2.3rem;
+  min-height: 2.3rem;
+  border: 0;
+  color: var(--shell-muted);
+  background: transparent;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.language button[data-active="true"] {
+  color: #090d12;
+  background: var(--shell-paper);
+}
+
+.signIn,
+.signUp {
+  padding: 0 0.85rem;
+  border: 1px solid var(--shell-line);
+}
+
+.signUp {
+  color: #090d12;
+  border-color: var(--shell-gold);
+  background: var(--shell-gold);
+}
+
+.signUp:hover,
+.signUp:focus-visible {
+  border-color: #f2cb7e;
+  background: #f2cb7e;
+}
+
+.menuButton {
+  display: none;
+}
+
+.brand:focus-visible,
+.navLinks a:focus-visible,
+.signIn:focus-visible,
+.signUp:focus-visible,
+.language button:focus-visible,
+.menuButton:focus-visible {
+  outline: 2px solid var(--shell-gold);
+  outline-offset: 3px;
+}
+
+@media (max-width: 1040px) {
+  .inner {
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+  }
+
+  .menuButton {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: grid;
+    place-content: center;
+    gap: 0.38rem;
+    border: 1px solid var(--shell-line);
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .menuButton span {
+    width: 1.1rem;
+    height: 1px;
+    display: block;
+    background: currentColor;
+    transition: transform 160ms ease;
+  }
+
+  .menuButton[data-open="true"] span:first-child {
+    transform: translateY(0.22rem) rotate(45deg);
+  }
+
+  .menuButton[data-open="true"] span:last-child {
+    transform: translateY(-0.22rem) rotate(-45deg);
+  }
+
+  .navigation {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: none;
+    align-items: stretch;
+    padding: 1rem clamp(1rem, 4vw, 2rem) 1.2rem;
+    border-bottom: 1px solid var(--shell-line);
+    background: rgba(5, 9, 15, 0.98);
+  }
+
+  .navigation[data-open="true"] {
+    display: grid;
+    gap: 1rem;
+    animation: menuReveal 160ms ease both;
+  }
+
+  .navLinks,
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .navLinks a,
+  .signIn,
+  .signUp {
+    width: 100%;
+  }
+
+  .language {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .inner {
+    width: calc(100% - 1.5rem);
+    min-height: 4.4rem;
+  }
+
+  .brandDescriptor {
+    display: none;
+  }
+
+  .navLinks,
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .navLinks a,
+  .signIn,
+  .signUp,
+  .language {
+    min-height: 2.9rem;
+  }
+}
+
+@keyframes menuReveal {
+  from { opacity: 0; transform: translateY(-0.35rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation[data-open="true"],
+  .menuButton span,
+  .navLinks a::after {
+    animation: none;
+    transition: none;
+  }
+}

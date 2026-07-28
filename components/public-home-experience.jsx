@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import styles from "@/app/home-page.module.css";
-import { writeStoredLanguage } from "@/components/language-layer";
+import { useLanguagePreference } from "@/components/language-layer";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { StressAccountGate } from "@/components/stress-account-gate";
 import { BreakpointHero } from "@/components/breakpoint/breakpoint-hero";
 
@@ -227,10 +228,6 @@ const METRIC_BANDS = {
   worst: [-39.5, -36.8],
 };
 
-function normalizeLanguage(value) {
-  return value === "en" ? "en" : "es";
-}
-
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
   useEffect(() => {
@@ -385,33 +382,20 @@ function TerminalSim({ copy, reducedMotion }) {
   );
 }
 
-export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
-  const [language, setLanguage] = useState(() => normalizeLanguage(initialLanguage));
+export function PublicHomeExperience({ initialLanguage = "es" }) {
+  const { language } = useLanguagePreference(initialLanguage);
   const reducedMotion = usePrefersReducedMotion();
   const copy = COPY[language];
-  const displayBrand = brand || "BLS Prime";
-
-  useEffect(() => {
-    writeStoredLanguage(language);
-  }, [language]);
 
   useReveal();
 
   return (
     <main className={styles.page}>
-      <header className={styles.topbar}>
-        <Link className={styles.logo} href="/" aria-label={displayBrand}>
-          {displayBrand}
-        </Link>
-        <div className={styles.topActions}>
-          <LanguageToggle copy={copy} language={language} onChange={setLanguage} />
-          <Link className={styles.loginLink} href={"/login?intent=signin&lang=" + language}>
-            {copy.login}
-          </Link>
-        </div>
-      </header>
+      <PublicSiteHeader initialLanguage={initialLanguage} />
 
-      <BreakpointHero language={language} />
+      <div id="breakpoint">
+        <BreakpointHero language={language} />
+      </div>
 
       <section className={styles.hero} aria-labelledby="home-title">
         <div className={styles.heroCopy}>
@@ -530,27 +514,5 @@ export function PublicHomeExperience({ brand, initialLanguage = "es" }) {
         </nav>
       </footer>
     </main>
-  );
-}
-
-function LanguageToggle({ copy, language, onChange }) {
-  return (
-    <div className={styles.languageToggle} aria-label={copy.languageAria} role="group">
-      {[
-        { code: "es", label: "ES" },
-        { code: "en", label: "EN" },
-      ].map((option) => (
-        <button
-          aria-label={COPY[option.code].languageName}
-          aria-pressed={language === option.code}
-          data-active={language === option.code}
-          key={option.code}
-          onClick={() => onChange(normalizeLanguage(option.code))}
-          type="button"
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
   );
 }
