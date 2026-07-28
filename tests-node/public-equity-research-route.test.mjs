@@ -491,7 +491,7 @@ test("public AURORA uses the canonical backend and redacts unsupported precision
       primary_method: "through_cycle_fcff_dcf",
       current_price: 983.12,
       currency: "USD",
-      market_data_as_of: "2026-07-14",
+      market_data_as_of: RECENT_MARKET_DATE,
       range: { low: 81, central: 174, high: 274 },
       selected_value: 174,
       scenarios: [{ name: "base", method: "through_cycle_fcff_dcf", intrinsic_value_per_share: 174 }],
