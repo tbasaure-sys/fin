@@ -5408,6 +5408,16 @@
   font-size: 0.98rem;
 }
 
+/* Explicit missing-data state: a financial figure must never look dated when it is not. */
+.researchSignalGrid div[data-missing="true"] {
+  background: rgba(232, 182, 88, 0.07);
+  box-shadow: inset 2px 0 0 #e8b658;
+}
+
+.researchSignalGrid div[data-missing="true"] strong {
+  color: #e8b658;
+}
+
 .researchScenarioGrid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }

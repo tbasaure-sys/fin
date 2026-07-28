@@ -66,11 +66,20 @@ function formatValuationRange(presentation) {
   return `${compactCurrency(presentation.range.low, presentation.currency)} – ${compactCurrency(presentation.range.high, presentation.currency)}`;
 }
 
-function formatMarketDate(value) {
-  if (!value) return "Fecha pendiente";
+const MISSING_DATE_LABEL = "Sin fecha en la fuente";
+
+function isKnownMarketDate(value) {
+  if (!value) return false;
   const text = String(value).trim();
   const date = /^\d{4}-\d{2}-\d{2}$/.test(text) ? new Date(`${text}T12:00:00Z`) : new Date(text);
-  if (Number.isNaN(date.getTime())) return "Fecha pendiente";
+  return !Number.isNaN(date.getTime());
+}
+
+function formatMarketDate(value) {
+  if (!value) return MISSING_DATE_LABEL;
+  const text = String(value).trim();
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(text) ? new Date(`${text}T12:00:00Z`) : new Date(text);
+  if (Number.isNaN(date.getTime())) return MISSING_DATE_LABEL;
   return date.toLocaleDateString("es-CL", {
     day: "2-digit",
     month: "short",
@@ -208,6 +217,40 @@ function AuroraDecisionSummary({ research }) {
           ))}
         </div>
       ) : null}
+    </section>
+  );
+}
+
+function AuroraConditionalRangePreview({ valuation, range }) {
+  if (valuation?.status !== "conditional_range" || !range) return null;
+  const drivers = safeList(valuation.assumptions).slice(0, 5);
+  const driverValue = (item) => {
+    const value = Number(item?.value);
+    if (!Number.isFinite(value)) return "—";
+    if (["growth", "discount_rate", "terminal_growth"].includes(item.key)) return formatPct(value);
+    if (item.key === "diluted_shares") return new Intl.NumberFormat("es-CL", { maximumFractionDigits: 1 }).format(value);
+    return compactCurrency(value, valuation.currency);
+  };
+  return (
+    <section className={styles.researchStack} aria-label="Rango condicional AURORA">
+      <div className={styles.researchScenarioGrid} data-count="3">
+        {[
+          ["low", "Adverso", "bad"],
+          ["central", "Central condicional", "warn"],
+          ["high", "Favorable", "good"],
+        ].map(([key, label, tone]) => (
+          <article className={styles.researchScenario} data-tone={tone} key={key}>
+            <span>{label}</span>
+            <strong>{compactCurrency(range[key], valuation.currency)}</strong>
+            <small>{valuation.currency} por acción · no decision-ready</small>
+          </article>
+        ))}
+      </div>
+      <div className={styles.researchAttentionCallout}>
+        <span>Por qué da este rango</span>
+        <strong>{auroraMethodLabel(valuation.method)}</strong>
+        <p>{drivers.map((item) => `${item.label}: ${driverValue(item)}`).join(" · ")}</p>
+      </div>
     </section>
   );
 }
@@ -2321,6 +2364,8 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
         />
       </div>
 
+      {research ? <AuroraConditionalRangePreview range={auroraRange} valuation={auroraValuation} /> : null}
+
       {research ? (
         <div className={styles.researchCoverageRail} data-tone={coverageTone(coverage)}>
           <div>
@@ -2350,12 +2395,16 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
           <div>
             <span>{valuationPresentation.backed
               ? "Rango respaldado"
+              : auroraRange
+                ? "Rango condicional"
               : valuationPresentation.showValuationFigures
                 ? "Rango orientativo"
                 : "Valoración no publicada"}</span>
-            <strong>{valuationPresentation.showValuationFigures ? formatValuationRange(valuationPresentation) : "—"}</strong>
+            <strong>{auroraRangeLabel || (valuationPresentation.showValuationFigures ? formatValuationRange(valuationPresentation) : "—")}</strong>
             <small>{valuationPresentation.backed
               ? `Estimación central ${compactCurrency(valuationPresentation.centralValue, valuationPresentation.currency)} · ${valuationPresentation.primaryMethod}`
+              : auroraRange
+                ? `${auroraMethodLabel(auroraValuation?.method)} · supuestos visibles · el centro sigue condicionado`
               : valuationPresentation.showValuationFigures
                 ? `Método ${valuationPresentation.primaryMethod} · estimación central retenida`
                 : "No se muestra una cifra hasta superar los controles."}</small>
@@ -2377,11 +2426,11 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
           <span>Fuente de estados</span>
           <strong>{sourceSpineLabel}</strong>
         </div>
-        <div>
+        <div data-missing={research ? !isKnownMarketDate(research?.valuation?.financial_data_as_of) : undefined}>
           <span>Estados financieros al</span>
           <strong>{research ? formatMarketDate(research?.valuation?.financial_data_as_of) : "Esperando"}</strong>
         </div>
-        <div>
+        <div data-missing={research ? !isKnownMarketDate(displayMarketDataAsOf) : undefined}>
           <span>Precio de mercado al</span>
           <strong>{research ? formatMarketDate(displayMarketDataAsOf) : "Esperando"}</strong>
         </div>
