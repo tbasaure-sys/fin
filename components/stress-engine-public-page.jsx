@@ -6,6 +6,7 @@ import styles from "@/app/stress/stress.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
 import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { StressAccountGate } from "@/components/stress-account-gate";
+import { StressPortfolioDemo } from "@/components/stress-portfolio-demo";
 import { PlainMetric } from "@/components/ui/plain-metric";
 
 const COPY = {
@@ -18,7 +19,7 @@ const COPY = {
     subtitle: "Before you add to a position, see how much you could lose.",
     body:
       "BLS Prime tests the positions you own against severe market scenarios and shows the loss, the weak spots, and the positions responsible.",
-    primary: "See what it shows",
+    primary: "Try the example portfolio",
     workspaceCta: "Run on my portfolio — account required",
     secondary: "Read methodology",
     disclaimer: "Research software. Not financial advice.",
@@ -97,7 +98,7 @@ const COPY = {
     subtitle: "Antes de aumentar una posición, revisa cuánto puedes perder.",
     body:
       "BLS Prime prueba las posiciones que tienes en escenarios de caídas fuertes y muestra la pérdida, los puntos frágiles y las posiciones responsables.",
-    primary: "Ver qu\u00e9 muestra",
+    primary: "Probar la cartera de ejemplo",
     workspaceCta: "Analizar mi cartera — requiere cuenta",
     secondary: "Leer metodolog\u00eda",
     disclaimer: "Software de an\u00e1lisis. No es asesor\u00eda financiera.",
@@ -183,16 +184,18 @@ export function StressEnginePublicPage({ initialLanguage = "es" }) {
         <h2>{copy.subtitle}</h2>
         <span>{copy.body}</span>
         <div className={styles.heroActions}>
+          <Link className={styles.actionButton} href="#portfolio-demo">
+            {copy.primary}
+          </Link>
           <StressAccountGate className={styles.actionButton} language={language}>
             {copy.workspaceCta}
           </StressAccountGate>
-          <Link className={styles.actionButton} href="#what-you-get">
-            {copy.primary}
-          </Link>
           <Link href="#methodology">{copy.secondary}</Link>
         </div>
         <small>{copy.disclaimer}</small>
       </section>
+
+      <StressPortfolioDemo language={language} />
 
       <section className={styles.explainer} id="what-you-get">
         <div>

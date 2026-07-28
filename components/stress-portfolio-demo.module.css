@@ -1,0 +1,389 @@
+.demo {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding: clamp(3rem, 9vh, 6rem) 0;
+  border-top: 1px solid rgba(246, 239, 228, 0.1);
+  border-bottom: 1px solid rgba(246, 239, 228, 0.1);
+}
+
+.intro {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 58rem;
+}
+
+.intro p,
+.resultLabel {
+  margin: 0;
+  color: #f0b84e;
+  font-size: 0.74rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.intro h2 {
+  max-width: 16ch;
+  margin: 0;
+  color: #fff8ec;
+  font-size: clamp(2.3rem, 5vw, 4.7rem);
+  line-height: 1;
+  letter-spacing: -0.025em;
+}
+
+.intro > span {
+  max-width: 48rem;
+  color: rgba(246, 239, 228, 0.68);
+  font-size: clamp(0.98rem, 1.5vw, 1.15rem);
+  line-height: 1.6;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1.7fr);
+  border: 1px solid rgba(246, 239, 228, 0.13);
+  background: rgba(3, 4, 5, 0.84);
+  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.24);
+}
+
+.controls {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+  border-right: 1px solid rgba(246, 239, 228, 0.11);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.controlHeading {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: baseline;
+}
+
+.controlHeading h3,
+.detailBlock h4 {
+  margin: 0;
+  color: #fff8ec;
+}
+
+.controlHeading strong,
+.normalization,
+.status {
+  color: rgba(246, 239, 228, 0.52);
+  font-size: 0.73rem;
+}
+
+.holdings {
+  display: grid;
+  border-top: 1px solid rgba(246, 239, 228, 0.1);
+}
+
+.holdings label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.2rem auto;
+  gap: 0.45rem;
+  align-items: center;
+  min-height: 4rem;
+  border-bottom: 1px solid rgba(246, 239, 228, 0.09);
+}
+
+.holdings label > span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.holdings b {
+  color: #fff8ec;
+  font-size: 0.9rem;
+}
+
+.holdings small,
+.holdings em {
+  color: rgba(246, 239, 228, 0.5);
+  font-size: 0.7rem;
+  font-style: normal;
+}
+
+.holdings input,
+.candidateControls select {
+  width: 100%;
+  min-height: 2.45rem;
+  border: 1px solid rgba(246, 239, 228, 0.16);
+  border-radius: 0;
+  color: #fff8ec;
+  background: #0b0d0f;
+  font: inherit;
+}
+
+.holdings input {
+  padding: 0 0.55rem;
+  text-align: right;
+}
+
+.candidateControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(7rem, 0.7fr);
+  gap: 0.6rem;
+  padding-top: 0.45rem;
+}
+
+.candidateControls label {
+  display: grid;
+  gap: 0.4rem;
+  color: rgba(246, 239, 228, 0.65);
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.candidateControls select {
+  padding: 0 0.55rem;
+}
+
+.runButton,
+.accountButton,
+.status button {
+  min-height: 2.8rem;
+  border: 1px solid #f0b84e;
+  color: #070707;
+  cursor: pointer;
+  background: #f0b84e;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.runButton:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.status {
+  min-height: 1.2rem;
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
+  color: #f1c774;
+}
+
+.status button {
+  min-height: 1.8rem;
+  padding: 0 0.55rem;
+  font-size: 0.65rem;
+}
+
+.results {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+}
+
+.loading {
+  min-height: 34rem;
+  display: grid;
+  place-items: center;
+  color: rgba(246, 239, 228, 0.6);
+}
+
+.decision {
+  display: grid;
+  gap: 0.3rem;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+  border-bottom: 1px solid rgba(246, 239, 228, 0.1);
+  background: rgba(240, 184, 78, 0.065);
+}
+
+.decision > span {
+  color: #f0b84e;
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.decision strong {
+  color: #fff8ec;
+  font-size: clamp(1.15rem, 2vw, 1.65rem);
+}
+
+.decision small,
+.provenance span,
+.provenance small {
+  color: rgba(246, 239, 228, 0.55);
+  line-height: 1.45;
+}
+
+.resultGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.resultColumn {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 1.2rem;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+}
+
+.resultColumn + .resultColumn {
+  border-left: 1px solid rgba(246, 239, 228, 0.1);
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.metricList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: rgba(246, 239, 228, 0.1);
+  border: 1px solid rgba(246, 239, 228, 0.1);
+}
+
+.metricList div {
+  min-height: 5.6rem;
+  display: grid;
+  align-content: space-between;
+  gap: 0.5rem;
+  padding: 0.8rem;
+  background: #060708;
+}
+
+.metricList span {
+  color: rgba(246, 239, 228, 0.54);
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+.metricList strong {
+  color: #fff8ec;
+  font-size: clamp(1.15rem, 2.2vw, 1.65rem);
+}
+
+.detailBlock {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.detailBlock h4 {
+  font-size: 0.8rem;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) minmax(4rem, 1fr) 2.7rem;
+  gap: 0.5rem;
+  align-items: center;
+  color: rgba(246, 239, 228, 0.58);
+  font-size: 0.69rem;
+}
+
+.barRow i {
+  height: 0.28rem;
+  display: block;
+  overflow: hidden;
+  background: rgba(246, 239, 228, 0.1);
+}
+
+.barRow b {
+  height: 100%;
+  display: block;
+  background: #f0b84e;
+}
+
+.barRow em {
+  font-style: normal;
+  text-align: right;
+}
+
+.contributors {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(246, 239, 228, 0.1);
+}
+
+.contributors li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.58rem 0;
+  border-bottom: 1px solid rgba(246, 239, 228, 0.08);
+  font-size: 0.72rem;
+}
+
+.contributors a {
+  color: #f0b84e;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.contributors span {
+  color: rgba(246, 239, 228, 0.52);
+  text-align: right;
+}
+
+.provenance {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+  border-top: 1px solid rgba(246, 239, 228, 0.1);
+}
+
+.provenance > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.provenance strong {
+  color: #fff8ec;
+  font-size: 0.78rem;
+}
+
+.provenance span,
+.provenance small {
+  font-size: 0.68rem;
+}
+
+.accountButton {
+  flex: 0 0 auto;
+  max-width: 15rem;
+  padding: 0.65rem 0.8rem;
+}
+
+@media (max-width: 980px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    border-right: 0;
+    border-bottom: 1px solid rgba(246, 239, 228, 0.11);
+  }
+}
+
+@media (max-width: 650px) {
+  .resultGrid,
+  .candidateControls {
+    grid-template-columns: 1fr;
+  }
+
+  .resultColumn + .resultColumn {
+    border-top: 1px solid rgba(246, 239, 228, 0.1);
+    border-left: 0;
+  }
+
+  .provenance {
+    display: grid;
+  }
+
+  .accountButton {
+    width: 100%;
+    max-width: none;
+  }
+}
