@@ -1,19 +1,19 @@
 {
-  "generated_on": "2026-07-28T11:45:19.088505+00:00",
-  "run_date": "2026-07-27",
+  "generated_on": "2026-07-29T11:45:17.177785+00:00",
+  "run_date": "2026-07-28",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143374,
+  "observations": 143381,
   "series_count": 25,
   "impulse_changes": [
     {
       "series_id": "EEM",
-      "date": "2026-07-27T00:00:00",
-      "value": 63.619998931884766,
-      "transformed": 0.0045686900907622174,
-      "momentum": 0.07964090598812845,
-      "impulse": -0.6137531270879961,
-      "momentum_z": -0.39515915664069523,
-      "impulse_z": -2.8092088433900515,
+      "date": "2026-07-28T00:00:00",
+      "value": 62.36000061035156,
+      "transformed": -0.020003815554887616,
+      "momentum": -0.08247409269753092,
+      "impulse": -0.759258433684078,
+      "momentum_z": -0.9443995056692868,
+      "impulse_z": -3.446034296416199,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -21,13 +21,13 @@
     },
     {
       "series_id": "QQQ",
-      "date": "2026-07-27T00:00:00",
-      "value": 682.1199951171875,
-      "transformed": -0.0030885015793877812,
-      "momentum": 0.1267526425766583,
-      "impulse": -0.6864303126537195,
-      "momentum_z": -0.38865533826426,
-      "impulse_z": -2.4211907921908082,
+      "date": "2026-07-28T00:00:00",
+      "value": 675.489990234375,
+      "transformed": -0.009767249301846803,
+      "momentum": 0.05055144531017319,
+      "impulse": -0.811722902374644,
+      "momentum_z": -0.6397730508483751,
+      "impulse_z": -2.8755786056376453,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -62,18 +62,18 @@
       "label": "USDCOP"
     },
     {
-      "series_id": "BAMLH0A0HYM2",
-      "date": "2026-07-24T00:00:00",
-      "value": 2.79,
-      "transformed": 0.020000000000000018,
-      "momentum": -0.06000000000000005,
-      "impulse": 0.6200000000000001,
-      "momentum_z": 0.18515432613083013,
-      "impulse_z": 1.3489815189531893,
-      "impulse_sign": 1,
+      "series_id": "T10YIE",
+      "date": "2026-07-28T00:00:00",
+      "value": 2.2,
+      "transformed": -0.009999999999999787,
+      "momentum": -0.2599999999999998,
+      "impulse": -0.16999999999999993,
+      "momentum_z": -1.9222986645082927,
+      "impulse_z": -1.3489815189531942,
+      "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US HY OAS"
+      "label": "US 10Y breakeven"
     },
     {
       "series_id": "WTREGEN",
@@ -88,34 +88,6 @@
       "persistent_inflection": true,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Treasury General Account"
-    },
-    {
-      "series_id": "DFII10",
-      "date": "2026-07-24T00:00:00",
-      "value": 2.43,
-      "transformed": 0.0,
-      "momentum": 0.5100000000000002,
-      "impulse": 0.3600000000000003,
-      "momentum_z": 1.3796401898384894,
-      "impulse_z": 1.2140833670578723,
-      "impulse_sign": 1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y real yield"
-    },
-    {
-      "series_id": "T10YIE",
-      "date": "2026-07-27T00:00:00",
-      "value": 2.21,
-      "transformed": -0.04999999999999982,
-      "momentum": -0.25,
-      "impulse": -0.15000000000000036,
-      "momentum_z": -1.8885741265344638,
-      "impulse_z": -1.180358829084048,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y breakeven"
     },
     {
       "series_id": "LQD",
@@ -172,6 +144,34 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "USDBRL"
+    },
+    {
+      "series_id": "HYG",
+      "date": "2026-06-11T00:00:00",
+      "value": 79.79000091552734,
+      "transformed": 0.0035783165760703284,
+      "momentum": 0.07776285573235242,
+      "impulse": 0.06471011558061335,
+      "momentum_z": 0.13630878605070315,
+      "impulse_z": 1.0873102455267296,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "High yield ETF"
+    },
+    {
+      "series_id": "DFII10",
+      "date": "2026-07-27T00:00:00",
+      "value": 2.44,
+      "transformed": 0.009999999999999787,
+      "momentum": 0.48,
+      "impulse": 0.2999999999999998,
+      "momentum_z": 1.2876641771825894,
+      "impulse_z": 1.0117361392148918,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y real yield"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": 9.988999999999999,
-        "impulse_z": 0.03027834466905195
+        "impulse": -8.574,
+        "impulse_z": -0.17474854081566674
       }
     }
   },
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "Which market internal is disagreeing with your favorite macro story?"
+  "question_of_day": "Where are you confusing a level with an impulse?"
 }
