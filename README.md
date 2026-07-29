@@ -1,203 +1,123 @@
-# Meta Allocator
+# BLS Prime
 
-Meta Allocator is a research and decision-support system for dynamic market exposure.
+**Un espacio de decisión de inversión para pasar de una empresa interesante a una tesis defendible.**
 
-It combines:
+[Abrir BLS Prime](https://www.blsprime.com) · [Producto](https://www.blsprime.com/product?lang=es) · [Metodología](https://www.blsprime.com/methodology?lang=es)
 
-- a market state engine for fragility, tail risk, and cross-asset structure
-- a policy layer for beta sizing and hedge selection
-- sector and international opportunity maps
-- statement and cash-conversion intelligence for holdings and discovery
-- a local workstation UI for monitoring current conditions and research outputs
+BLS Prime conecta descubrimiento, precio, valoración y riesgo de cartera en un solo flujo. No intenta reemplazar el juicio del usuario ni producir una señal de compra o venta: organiza la evidencia necesaria para decidir si una oportunidad merece capital, más investigación o simplemente pasar.
 
-## What it does
+## Qué ofrece
 
-The project is designed to answer a practical portfolio question:
+### 1. FactorLab — descubrir empresas
 
-- how much market exposure is justified now
-- which hedge is most appropriate now
-- whether diversification is still functioning normally
-- which sectors, regions, and holdings look strongest or most fragile
+Prioriza acciones usando datos de mercado, estados financieros presentados y filtros de investigación visibles. Cada candidato conserva la razón por la que apareció y los controles que podría no superar.
 
-The current stack includes:
+### 2. Breakpoint — entender qué exige el precio
 
-- state and tail-risk modeling
-- spectral structure analysis and structure-conditioned Monte Carlo
-- heuristic and learned overlays for exposure control
-- financial-statement and earnings-to-cash diagnostics
-- a local dashboard and CLI workflows
+Parte del precio actual y muestra qué crecimiento, rentabilidad y ejecución tendría que sostener una empresa para justificarlo. La primera lectura pública no requiere una cuenta.
 
-## Repository scope
+### 3. AURORA — estimar valor razonable
 
-This repository contains the application code, tests, deployment configuration, and documentation needed to run the system.
+Construye un rango aproximado de valor por acción, identifica el método usado y explica por qué el intervalo tiene esa amplitud. La confianza cambia con la calidad y actualidad de la evidencia; una cobertura más débil produce un rango más prudente, no una precisión falsa.
 
-Generated artifacts, cached market data, local reports, and private environment files are intentionally excluded from version control.
+Las cifras se calculan de forma determinista. El modelo abierto alojado mediante Hugging Face sólo clasifica y explica resultados ya calculados: no modifica el precio, el rango ni los supuestos y no inventa datos. Si el proveedor no está disponible, la explicación determinista sigue funcionando.
 
-## Local development
+### 4. Stress Engine — medir el efecto en cartera
 
-```powershell
-python -m pip install -r requirements.txt
-$env:PYTHONPATH='src'
-python -m meta_alpha_allocator.cli dashboard serve
+Evalúa concentración, contribución al downside y escenarios adversos condicionados por régimen para mostrar qué posiciones explican el riesgo potencial de una cartera.
+
+## Principios del producto
+
+- **Fecha y fuente visibles.** Las cifras importantes conservan su procedencia y fecha de referencia.
+- **Supuestos discutibles.** Los rangos y escenarios muestran qué condiciones los producen.
+- **Separación entre cálculo y lenguaje.** Los motores numéricos no dependen de un LLM.
+- **Incertidumbre explícita.** La amplitud del rango y su confianza reflejan la evidencia disponible.
+- **Sin recomendaciones automáticas.** BLS Prime es software de investigación, no asesoría financiera ni ejecución de operaciones.
+
+## Flujo de una lectura
+
+```text
+FactorLab              Breakpoint                AURORA                  Stress Engine
+descubrir       ->     entender el precio  ->   valorar y explicar  ->  medir en cartera
+candidatos             expectativas implícitas   rango + impulsores      downside + concentración
 ```
 
-Available commands include:
+## Arquitectura
 
-- `research`
-- `train`
-- `production`
-- `policy`
-- `tail-risk`
-- `forecast-baseline`
-- `statement-intel`
-- `earnings-cash-kernel`
-- `spectral-backtest`
-- `dashboard serve`
+- **Aplicación:** Next.js 14 y React 18.
+- **Despliegue web:** Vercel.
+- **Persistencia:** Neon/Postgres para usuarios, sesiones, workspaces y lecturas durables.
+- **Datos financieros:** backend canónico, SEC EDGAR y Financial Modeling Prep, según cobertura.
+- **Valoración:** cálculos deterministas, controles de precio, método, evidencia y auditoría.
+- **Explicación de valoración:** Hugging Face Inference Providers con fallback local determinista.
+- **Idiomas:** español e inglés, con preferencia persistida en el navegador.
 
-## Deployment
+## Desarrollo local
 
-Recommended deployment split:
+Requisitos:
 
-- `Railway` for the Python backend
-- `Vercel` for the dashboard frontend
+- Node.js 24
+- npm
 
-This frontend now avoids seeded market ideas, alerts, and watchlists when live artifacts are missing.
-If the backend snapshot is sparse, the UI should show honest empty or unavailable states instead of demo content.
+```powershell
+npm install
+Copy-Item .env.example .env.local
+npm run dev
+```
 
-### Vercel preview
+La aplicación queda disponible en `http://localhost:3000`.
 
-The repository includes:
+### Variables principales
 
-- `railway.toml`
-- `Procfile`
-- `vercel.json`
+Nunca agregues secretos al repositorio. Usa `.env.local` en desarrollo y variables cifradas en Vercel.
 
-For a working preview deployment, set at least these environment variables in Vercel:
+| Variable | Uso |
+| --- | --- |
+| `FMP_API_KEY` | Cotizaciones, estados y enriquecimiento de mercado |
+| `SEC_USER_AGENT` | Acceso identificado a SEC EDGAR |
+| `BLS_PRIME_BACKEND_URL` | Backend canónico de investigación |
+| `DATABASE_URL` | Persistencia Neon/Postgres |
+| `BLS_PRIME_STORAGE_BACKEND` | `auto` o `neon` |
+| `BLS_PRIME_AUTH_SECRET` | Firma de sesiones privadas |
+| `BLS_PRIME_BREAKPOINT_FORK_SECRET` | Firma de variaciones de lecturas públicas |
+| `HUGGINGFACE_API_KEY` | Explicación abierta de los rangos de valoración |
+| `HUGGINGFACE_VALUATION_MODEL` | Modelo de explicación; por defecto `Qwen/Qwen2.5-7B-Instruct:fastest` |
 
-- `BLS_PRIME_BACKEND_URL`
-- `NEXT_PUBLIC_BLS_APP_NAME`
-- `NEXT_PUBLIC_BLS_WORKSPACE_ID`
-- `BLS_PRIME_ALPHA_MODE`
-- `BLS_PRIME_INVITE_CONTACT`
+La lista completa y sus valores seguros de ejemplo están en [`.env.example`](./.env.example).
 
-If you expect holdings quotes or private portfolio overlays to refresh inside the Next.js app, also set one of:
+### Base de datos
 
-- `FMP_API_KEY`
-- `FINANCIAL_MODELING_PREP_API_KEY`
+Con `DATABASE_URL` configurada:
 
-This is required in Vercel because the app has a server-side holdings quote path in `lib/server/private-portfolio.js` that calls FMP directly. Having the key only in Railway refreshes the Python backend, but it does not cover the Next.js overlay path.
-
-For SEC EDGAR-backed equity research, set one of these in Railway and, if the
-research request is proxied through Vercel, in Vercel too:
-
-- `SEC_USER_AGENT`
-- `SEC_EDGAR_USER_AGENT`
-- `EDGAR_USER_AGENT`
-
-Use a real contact user agent such as `MetaAlphaAllocator research@example.com`.
-If those are absent, the app can derive the EDGAR user agent from
-`BLS_PRIME_INVITE_CONTACT` when it is an email address. Without this, reports
-fall back to FMP-only statements and the audit will flag missing SEC metadata
-or missing XBRL cross-checks.
-
-Optional if you are using invite-link access:
-
-- `BLS_PRIME_SHARED_ACCESS_TOKEN`
-- `BLS_PRIME_SHARED_ACCESS_QUERY_KEY`
-
-On Vercel, this repository should be treated as a Next.js project, not as a Python runtime.
-Environment variables are documented in `.env.example`.
-
-### Neon initialization
-
-The repository now includes a Neon-ready storage foundation for user state.
-
-Set:
-
-- `DATABASE_URL`
-- `BLS_PRIME_STORAGE_BACKEND=auto` or `neon`
-
-Then apply the initial schema:
-
-```bash
+```powershell
 npm run db:neon:apply
 ```
 
-The first Neon-backed state path is watchlists plus command history, while holdings remain on the current overlay until the auth migration is complete.
+### Verificación
 
-### Public BLS Breakpoint
+```powershell
+npm run test:web
+npm run build
+npm run test:e2e
+```
 
-`/` now includes a no-account Breakpoint flow: enter a ticker and BLS records the
-market-clearing operating path, its smallest decision flips, sources and explicit
-limitations. In production, public result URLs are durable only with Neon enabled.
+## Rutas principales
 
-Set:
+| Ruta | Función |
+| --- | --- |
+| `/` | Primera lectura pública y flujo completo del producto |
+| `/factorlab` | Descubrimiento de empresas |
+| `/aurora` | Investigación y valoración por empresa |
+| `/stress` | Riesgo de cartera |
+| `/app` | Workspace privado |
+| `/methodology` | Principios de evidencia y cálculo |
+| `/privacy` | Contrato de privacidad |
+| `/terms` | Términos y alcance |
 
-- `DATABASE_URL`
-- `BLS_PRIME_STORAGE_BACKEND=neon`
-- `BLS_PRIME_BREAKPOINT_FORK_SECRET` (a long random server-side secret for signed parameter forks)
+## Estado
 
-Apply `db/migrations/0015_public_breakpoint_runs.sql` through `npm run db:neon:apply`.
-Without Neon in local development, runs use an explicitly non-durable in-memory store.
+BLS Prime está en desarrollo activo y disponible en producción. Los módulos experimentales permanecen separados de la lógica pública hasta superar sus pruebas y controles de evidencia.
 
-### Private workspace auth
+---
 
-The app now supports a public homepage plus a private `/app` workspace.
-
-Set these environment variables:
-
-- `BLS_PRIME_AUTH_SECRET`
-- `BLS_PRIME_SESSION_COOKIE_NAME`
-- `BLS_PRIME_SESSION_DAYS`
-
-The current auth flow uses email plus password and stores sessions in Neon.
-New users create their account from `/login`, while legacy users created under
-the older shared-access flow can use `Create account` once to define their
-password on the existing email.
-
-### Password reset
-
-The app now includes `/forgot-password` and `/reset-password`.
-
-Recommended environment variables:
-
-- `BLS_PRIME_PASSWORD_RESET_EXPIRY_MINUTES`
-- `BLS_PRIME_EMAIL_FROM`
-- `RESEND_API_KEY`
-
-For local development, you can also enable:
-
-- `BLS_PRIME_PASSWORD_RESET_DEV_FALLBACK=1`
-
-That fallback exposes the reset link back to the browser only in development or
-when you explicitly enable it, so you can test the full recovery flow before
-email delivery is configured.
-
-### FMP split by runtime
-
-If FMP "does nothing", check both runtimes separately:
-
-- `Railway` needs `FMP_API_KEY` or `FINANCIAL_MODELING_PREP_API_KEY` for backend snapshot and market-data refreshes.
-- `Vercel` needs the same key if you use private holdings, local portfolio overlays, or any server-rendered quote enrichment in the app.
-- `Vercel` also needs `BLS_PRIME_BACKEND_URL` pointing to the live Railway backend.
-- `Railway` needs `SEC_USER_AGENT` or an email-like `BLS_PRIME_INVITE_CONTACT` for SEC filings and XBRL company facts.
-- `Vercel` should also have the same SEC user-agent/contact when it proxies research jobs to Railway.
-
-If the frontend can load but holdings still look stale, the common failure mode is: key exists in Railway, but not in Vercel.
-
-### Equity research OS agents
-
-The equity research workstation keeps calculations deterministic. Python pulls and normalizes provider data, builds DCF/reverse DCF/multiples, emits the evidence ledger, and runs the audit. The agent layer then interprets only those finished outputs.
-
-The specialist agent desk runs every time from audited deterministic outputs and makes zero LLM calls. The only model-backed step is the final orchestrator/editor, which runs after the analysis is complete. It is `auto` by default in deployment: if an OpenAI-compatible key is present, exactly one final call is attempted; if no key is present, the deterministic agents still run and the final editor is skipped.
-
-- `EQUITY_RESEARCH_LLM_ENABLED=auto` or `true`; use `false` to disable the final call
-- `EQUITY_RESEARCH_LLM_API_KEY` or `OPENAI_API_KEY`
-- `EQUITY_RESEARCH_LLM_MODEL`
-- `EQUITY_RESEARCH_LLM_BASE_URL` for OpenAI-compatible gateways when using non-OpenAI models such as Mistral or Llama
-
-The final orchestrator has a hard budget of one call per research run. It receives a compact audited payload and is not allowed to calculate, invent data, or cite unavailable sources.
-
-## Status
-
-This is an active research codebase. Some modules are experimental and are intentionally kept separate from production decision logic until they demonstrate value in backtests and out-of-sample evaluation.
+Software de investigación. No es asesoría financiera.
