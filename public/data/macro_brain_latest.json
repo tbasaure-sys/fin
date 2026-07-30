@@ -1,19 +1,19 @@
 {
-  "generated_on": "2026-07-29T11:45:17.177785+00:00",
-  "run_date": "2026-07-28",
+  "generated_on": "2026-07-30T11:45:19.493471+00:00",
+  "run_date": "2026-07-29",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143381,
+  "observations": 143389,
   "series_count": 25,
   "impulse_changes": [
     {
       "series_id": "EEM",
-      "date": "2026-07-28T00:00:00",
-      "value": 62.36000061035156,
-      "transformed": -0.020003815554887616,
-      "momentum": -0.08247409269753092,
-      "impulse": -0.759258433684078,
-      "momentum_z": -0.9443995056692868,
-      "impulse_z": -3.446034296416199,
+      "date": "2026-07-29T00:00:00",
+      "value": 61.06999969482422,
+      "transformed": -0.02090331173922877,
+      "momentum": -0.17482881530315098,
+      "impulse": -0.9543131936511244,
+      "momentum_z": -1.2551687813634644,
+      "impulse_z": -4.303074521479993,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -21,13 +21,13 @@
     },
     {
       "series_id": "QQQ",
-      "date": "2026-07-28T00:00:00",
-      "value": 675.489990234375,
-      "transformed": -0.009767249301846803,
-      "momentum": 0.05055144531017319,
-      "impulse": -0.811722902374644,
-      "momentum_z": -0.6397730508483751,
-      "impulse_z": -2.8755786056376453,
+      "date": "2026-07-29T00:00:00",
+      "value": 661.72998046875,
+      "transformed": -0.02058075074336685,
+      "momentum": -0.0699869140421363,
+      "impulse": -0.995163680487078,
+      "momentum_z": -1.0385404599352563,
+      "impulse_z": -3.540851578679348,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -60,20 +60,6 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "USDCOP"
-    },
-    {
-      "series_id": "T10YIE",
-      "date": "2026-07-28T00:00:00",
-      "value": 2.2,
-      "transformed": -0.009999999999999787,
-      "momentum": -0.2599999999999998,
-      "impulse": -0.16999999999999993,
-      "momentum_z": -1.9222986645082927,
-      "impulse_z": -1.3489815189531942,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y breakeven"
     },
     {
       "series_id": "WTREGEN",
@@ -132,6 +118,20 @@
       "label": "USDCLP"
     },
     {
+      "series_id": "DFII10",
+      "date": "2026-07-28T00:00:00",
+      "value": 2.41,
+      "transformed": -0.029999999999999805,
+      "momentum": 0.4700000000000002,
+      "impulse": 0.33000000000000007,
+      "momentum_z": 1.2428818489231648,
+      "impulse_z": 1.0960474841494674,
+      "impulse_sign": 1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y real yield"
+    },
+    {
       "series_id": "BRL=X",
       "date": "2026-06-10T00:00:00",
       "value": 5.190100193023682,
@@ -160,18 +160,18 @@
       "label": "High yield ETF"
     },
     {
-      "series_id": "DFII10",
-      "date": "2026-07-27T00:00:00",
-      "value": 2.44,
-      "transformed": 0.009999999999999787,
-      "momentum": 0.48,
-      "impulse": 0.2999999999999998,
-      "momentum_z": 1.2876641771825894,
-      "impulse_z": 1.0117361392148918,
-      "impulse_sign": 1,
+      "series_id": "^MOVE",
+      "date": "2026-06-10T00:00:00",
+      "value": 73.94999694824219,
+      "transformed": -3.0800018310546875,
+      "momentum": -17.22000122070314,
+      "impulse": -20.3300018310547,
+      "momentum_z": -0.5847461207948553,
+      "impulse_z": -0.9585281093221317,
+      "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y real yield"
+      "label": "MOVE index"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": -8.574,
-        "impulse_z": -0.17474854081566674
+        "impulse": -24.603999999999996,
+        "impulse_z": -0.35560584358016123
       }
     }
   },
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "Where are you confusing a level with an impulse?"
+  "question_of_day": "If you had to put 25% of the portfolio in one thesis today, which one and why are you not doing it?"
 }

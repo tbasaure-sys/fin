@@ -1,21 +1,21 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-07-29T11:48:04.034159+00:00",
+  "generated_at": "2026-07-30T11:47:49.905254+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\fred",
     "files": 44,
-    "newest_cached_at": "2026-07-29T11:45:34.098599+00:00",
+    "newest_cached_at": "2026-07-30T11:45:38.561635+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
     "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
-    "newest_cached_at": "2026-07-29T11:48:04.021316+00:00",
-    "oldest_cached_at": "2026-07-29T11:45:36.821529+00:00"
+    "newest_cached_at": "2026-07-30T11:47:49.900715+00:00",
+    "oldest_cached_at": "2026-07-30T11:45:41.482110+00:00"
   },
-  "global_disequilibrium_index": 36,
+  "global_disequilibrium_index": 35,
   "conflict_index": 67,
   "plain_summary": {
     "headline": "Top imbalance: grid transformers (bottleneck emerging).",
@@ -26,7 +26,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "62 series used, 0 manual, 0 warming, 0 watch errors.",
-    "freshness": "Newest 2026-07-28; oldest used source age 119 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-07-30; oldest used source age 120 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -36,7 +36,7 @@
         "url": "https://fred.stlouisfed.org/",
         "used_series": 40,
         "warming_series": 0,
-        "latest_date": "2026-07-20"
+        "latest_date": "2026-07-27"
       },
       {
         "name": "China NBS",
@@ -52,7 +52,7 @@
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
-        "latest_date": "2026-07-28"
+        "latest_date": "2026-07-26"
       },
       {
         "name": "Westmetall",
@@ -60,7 +60,7 @@
         "url": "https://www.westmetall.com/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-07-28"
+        "latest_date": "2026-07-29"
       },
       {
         "name": "MetalCharts",
@@ -68,7 +68,7 @@
         "url": "https://metalcharts.org/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-07-27"
+        "latest_date": "2026-07-30"
       }
     ],
     "open_gaps": [
@@ -86,7 +86,7 @@
       },
       {
         "market": "refined copper",
-        "score": 62,
+        "score": 55,
         "missing_layer": "China end-use granularity and smelter margins",
         "next_connector": "Grid capex, power-equipment output, smelter TC/RC and customs detail"
       },
@@ -117,31 +117,31 @@
     "watched_error_series": 0,
     "unused_error_series": [],
     "manual_series": 0,
-    "newest_date": "2026-07-28",
-    "oldest_age_days": 119
+    "newest_date": "2026-07-30",
+    "oldest_age_days": 120
   },
   "history_delta": {
-    "previous_gdi": 35,
-    "current_gdi": 36,
-    "delta": 1,
-    "direction": "up"
+    "previous_gdi": 36,
+    "current_gdi": 35,
+    "delta": -1,
+    "direction": "down"
   },
   "market_movers": [
     {
-      "market_id": "global_uranium",
-      "item": "uranium enrichment",
-      "score": 21,
-      "delta": 6,
-      "direction": "up",
-      "reading": "Mixed"
-    },
-    {
       "market_id": "china_industrials_copper",
       "item": "refined copper",
-      "score": 62,
-      "delta": 2,
-      "direction": "up",
-      "reading": "Shortage probable"
+      "score": 55,
+      "delta": -7,
+      "direction": "down",
+      "reading": "Tightening"
+    },
+    {
+      "market_id": "eu_energy_gas",
+      "item": "natural gas",
+      "score": 6,
+      "delta": -2,
+      "direction": "down",
+      "reading": "Bottleneck emerging"
     }
   ],
   "markets": [
@@ -280,31 +280,31 @@
       "sector": "industrials",
       "link": "upstream",
       "item": "refined copper",
-      "score": 62,
-      "reading": "Shortage probable",
-      "state": "shortage",
+      "score": 55,
+      "reading": "Tightening",
+      "state": "tightening",
       "conflict": "aligned",
       "data_quality": 94,
       "data_note": "Live public sources are current enough for screening.",
       "use_with_caution": false,
-      "why": "inventories look tighter; offset by demand is slowing.",
-      "top_positive_driver": "inventory_drawdown",
+      "why": "trade stress is elevated; offset by demand is slowing.",
+      "top_positive_driver": "trade_stress",
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
         "price_acceleration": 21,
-        "inventory_drawdown": 24,
+        "inventory_drawdown": 21,
         "delivery_stress": 14,
         "capacity_tightness": 18,
         "trade_stress": 22,
         "demand_slowdown": -19,
-        "inventory_buildup": -9,
+        "inventory_buildup": -13,
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 60,
-        "current_score": 62,
-        "delta": 2,
-        "direction": "up",
+        "previous_score": 62,
+        "current_score": 55,
+        "delta": -7,
+        "direction": "down",
         "previous_reading": "Shortage probable"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
@@ -557,10 +557,10 @@
         "margin_compression": -6
       },
       "market_delta": {
-        "previous_score": 15,
+        "previous_score": 21,
         "current_score": 21,
-        "delta": 6,
-        "direction": "up",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Mixed"
       },
       "research_angle": "Miners, enrichers, utilities fuel contracts.",
@@ -593,7 +593,7 @@
       "sector": "energy",
       "link": "input",
       "item": "natural gas",
-      "score": 8,
+      "score": 6,
       "reading": "Bottleneck emerging",
       "state": "bottleneck",
       "conflict": "future shortage hidden",
@@ -604,20 +604,20 @@
       "top_positive_driver": "inventory_drawdown",
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
-        "price_acceleration": 4,
-        "inventory_drawdown": 25,
-        "delivery_stress": 20,
-        "capacity_tightness": 19,
-        "trade_stress": 15,
+        "price_acceleration": 6,
+        "inventory_drawdown": 24,
+        "delivery_stress": 19,
+        "capacity_tightness": 18,
+        "trade_stress": 14,
         "demand_slowdown": -61,
-        "inventory_buildup": -6,
-        "margin_compression": -8
+        "inventory_buildup": -7,
+        "margin_compression": -7
       },
       "market_delta": {
         "previous_score": 8,
-        "current_score": 8,
-        "delta": 0,
-        "direction": "flat",
+        "current_score": 6,
+        "delta": -2,
+        "direction": "down",
         "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
