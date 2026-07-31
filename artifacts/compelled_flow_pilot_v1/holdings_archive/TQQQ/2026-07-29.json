@@ -1,0 +1,10 @@
+{
+  "as_of": "2026-07-29",
+  "blocking_reason": "missing_primary_classification_of_cash_security_index_exposure",
+  "net_other_assets": 3681343510.19,
+  "observed_index_exposure": null,
+  "reported_derivative_exposure_notional": 74681514611.07,
+  "reported_security_market_value": 25686157059.809998,
+  "row_count": 129,
+  "ticker": "TQQQ"
+}
