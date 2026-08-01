@@ -4,13 +4,11 @@
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
-    "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\fred",
     "files": 44,
     "newest_cached_at": "2026-07-30T11:45:38.561635+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
-    "cache_dir": "C:\\Users\\T14 Ultra 7\\OneDrive\\Escritorio\\CT\\02_Finance\\Fin_model\\data\\mosaic_cache\\public",
     "files": 24,
     "newest_cached_at": "2026-07-30T11:47:49.900715+00:00",
     "oldest_cached_at": "2026-07-30T11:45:41.482110+00:00"

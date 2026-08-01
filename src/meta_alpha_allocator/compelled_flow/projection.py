@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from datetime import date
 from math import isfinite
 from typing import Any, Iterable, Mapping
+from urllib.parse import urlparse
 
 
 Citation = Mapping[str, Any]
@@ -31,25 +33,72 @@ def _suppress(record: dict[str, Any], reason: str) -> dict[str, Any]:
     return record
 
 
-def _is_cited_number(item: Any) -> bool:
+def _is_canonical_iso_date(value: Any) -> bool:
+    if not isinstance(value, str) or not value or value != value.strip():
+        return False
+    try:
+        return date.fromisoformat(value).isoformat() == value
+    except ValueError:
+        return False
+
+
+def _is_https_url(value: Any) -> bool:
+    if not isinstance(value, str) or not value or value != value.strip():
+        return False
+    parsed = urlparse(value)
+    return parsed.scheme == "https" and bool(parsed.hostname)
+
+
+def _is_documented_rule(rule: Mapping[str, Any], on_date: str) -> bool:
+    document = rule.get("source_document")
+    clauses = rule.get("source_clauses")
+    if not isinstance(document, Mapping) or not isinstance(clauses, list) or not clauses:
+        return False
+    retrieved_at = document.get("retrieved_at")
+    if (
+        not isinstance(document.get("title"), str)
+        or not document["title"].strip()
+        or not _is_https_url(document.get("url"))
+        or not _is_canonical_iso_date(retrieved_at)
+        or date.fromisoformat(retrieved_at) > date.fromisoformat(on_date)
+    ):
+        return False
+    return all(
+        isinstance(clause, Mapping)
+        and isinstance(clause.get("section"), str)
+        and bool(clause["section"].strip())
+        and isinstance(clause.get("extraction"), str)
+        and bool(clause["extraction"].strip())
+        for clause in clauses
+    )
+
+
+def _is_cited_number(item: Any, on_date: str) -> bool:
     if not isinstance(item, Mapping):
         return False
     value = item.get("value")
+    as_of = item.get("as_of")
+    lag_days = item.get("lag_days")
     return (
         isinstance(value, (int, float))
         and not isinstance(value, bool)
         and isfinite(float(value))
-        and bool(item.get("as_of"))
-        and isinstance(item.get("lag_days"), int)
-        and item.get("lag_days", -1) >= 0
-        and bool(item.get("source_url"))
-        and bool(item.get("source_clause"))
+        and _is_canonical_iso_date(as_of)
+        and date.fromisoformat(as_of) <= date.fromisoformat(on_date)
+        and isinstance(lag_days, int)
+        and not isinstance(lag_days, bool)
+        and lag_days >= 0
+        and _is_https_url(item.get("source_url"))
+        and isinstance(item.get("source_clause"), str)
+        and bool(item["source_clause"].strip())
     )
 
 
-def _cited_value(state: Mapping[str, Any], key: str) -> tuple[float | None, str | None]:
+def _cited_value(
+    state: Mapping[str, Any], key: str, on_date: str
+) -> tuple[float | None, str | None]:
     item = state.get(key)
-    if not _is_cited_number(item):
+    if not _is_cited_number(item, on_date):
         return None, f"uncited_numeric_input:{key}"
     return float(item["value"]), None
 
@@ -62,8 +111,12 @@ def project(rule: Mapping[str, Any], state: Mapping[str, Any], on_date: str) -> 
     """Project one documented compelled-flow rule, suppressing unverifiable output."""
 
     record = _base_record(rule, on_date)
+    if not _is_canonical_iso_date(on_date):
+        return _suppress(record, "invalid_projection_date")
     if rule.get("completeness") != "complete":
         return _suppress(record, "rule_incomplete")
+    if not _is_documented_rule(rule, on_date):
+        return _suppress(record, "rule_documentation_missing_or_invalid")
 
     if (
         rule.get("scope") == "index_derivatives"
@@ -86,7 +139,7 @@ def project(rule: Mapping[str, Any], state: Mapping[str, Any], on_date: str) -> 
     )
     values: dict[str, float] = {}
     for key in input_keys:
-        value, error = _cited_value(state, key)
+        value, error = _cited_value(state, key, on_date)
         if error:
             return _suppress(record, error)
         assert value is not None
@@ -97,7 +150,15 @@ def project(rule: Mapping[str, Any], state: Mapping[str, Any], on_date: str) -> 
     if worst_lag > int(rule.get("anticipation_lag_days", -1)):
         return _suppress(record, "input_lag_exceeds_anticipation_window")
 
-    beta = float(rule["beta"])
+    raw_beta = rule.get("beta")
+    if (
+        isinstance(raw_beta, bool)
+        or not isinstance(raw_beta, (int, float))
+        or not isfinite(float(raw_beta))
+        or float(raw_beta) in {0.0, 1.0}
+    ):
+        return _suppress(record, "invalid_leverage_beta")
+    beta = float(raw_beta)
     adjusted_assets = values["nav_assets_prev"] + values["creation_redemption_notional"]
     if adjusted_assets < 0:
         return _suppress(record, "negative_creation_adjusted_assets")
@@ -129,7 +190,7 @@ def _project_index_weight_delta(
     )
     values: dict[str, float] = {}
     for key in input_keys:
-        value, error = _cited_value(state, key)
+        value, error = _cited_value(state, key, record["date"])
         if error:
             return _suppress(record, error)
         assert value is not None
@@ -188,14 +249,39 @@ def net(
         "coverage_threshold": coverage_threshold,
     }
     rows = list(records)
+    if not _is_canonical_iso_date(on_date):
+        result["suppression_reason"] = "invalid_projection_date"
+        return result
+    if not rows:
+        result["suppression_reason"] = "no_emitted_rules"
+        return result
+    if (
+        isinstance(mandate_coverage, bool)
+        or not isinstance(mandate_coverage, (int, float))
+        or not isfinite(float(mandate_coverage))
+        or not 0.0 <= float(mandate_coverage) <= 1.0
+    ):
+        result["suppression_reason"] = "invalid_mandate_coverage"
+        return result
+    if (
+        isinstance(coverage_threshold, bool)
+        or not isinstance(coverage_threshold, (int, float))
+        or not isfinite(float(coverage_threshold))
+        or not 0.0 <= float(coverage_threshold) <= 1.0
+    ):
+        result["suppression_reason"] = "invalid_coverage_threshold"
+        return result
     for row in rows:
+        if not isinstance(row, Mapping):
+            result["suppression_reason"] = "malformed_rule_record"
+            return result
         if row.get("material", True) and not row.get("emitted"):
             result["suppression_reason"] = f"material_rule_suppressed:{row.get('rule_id')}"
             return result
     if mandate_coverage < coverage_threshold:
         result["suppression_reason"] = "mandate_coverage_below_threshold"
         return result
-    if not _is_cited_number(adv_20d):
+    if not _is_cited_number(adv_20d, on_date):
         result["suppression_reason"] = "uncited_numeric_input:adv_20d"
         return result
     adv = float(adv_20d["value"])
@@ -204,6 +290,22 @@ def net(
         return result
 
     included = [row for row in rows if row.get("emitted")]
+    if not included:
+        result["suppression_reason"] = "no_emitted_rules"
+        return result
+    for row in included:
+        flow = row.get("flow_notional")
+        lag = row.get("worst_input_lag_days")
+        if (
+            isinstance(flow, bool)
+            or not isinstance(flow, (int, float))
+            or not isfinite(float(flow))
+            or isinstance(lag, bool)
+            or not isinstance(lag, int)
+            or lag < 0
+        ):
+            result["suppression_reason"] = f"invalid_emitted_rule:{row.get('rule_id') or 'unknown'}"
+            return result
     net_flow = sum(float(row["flow_notional"]) for row in included)
     lags = [int(row["worst_input_lag_days"]) for row in included if row.get("worst_input_lag_days") is not None]
     lags.append(int(adv_20d["lag_days"]))

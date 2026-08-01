@@ -4,7 +4,10 @@ import argparse
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-from meta_alpha_allocator.compelled_flow.proshares import archive_holdings_snapshot
+from meta_alpha_allocator.compelled_flow.proshares import (
+    archive_holdings_snapshot,
+    update_snapshot_manifest,
+)
 
 
 parser = argparse.ArgumentParser(description="Archive one immutable ProShares daily holdings snapshot.")
@@ -24,6 +27,13 @@ request = Request(args.url, headers={"User-Agent": "BLSPrime-CompelledFlow/1.0"}
 with urlopen(request, timeout=60) as response:
     raw = response.read().decode("utf-8-sig")
 
-paths = archive_holdings_snapshot(raw, args.ticker, args.archive_root)
+paths = archive_holdings_snapshot(
+    raw,
+    args.ticker,
+    args.archive_root,
+    source_url=args.url,
+)
+manifest_path = update_snapshot_manifest(args.archive_root, paths["manifest_entry"])
 print(paths["raw_path"])
 print(paths["summary_path"])
+print(manifest_path)

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   assessPerformanceInputs,
+  buildCurrentWeightBackcast,
   buildCostBasisPerformance,
   reconstructPortfolioSeries,
   assessSeriesQuality,
@@ -51,6 +52,71 @@ test("buildCostBasisPerformance computes return, contributions and winners/loser
   assert.equal(report.losers[0].ticker, "LOSE");
   assert.ok(report.concentration.hhi > 0.5); // two positions, one dominant
   assert.ok(report.concentration.topWeight > 0.6);
+});
+
+test("buildCurrentWeightBackcast produces an investable history without snapshots or purchase metadata", () => {
+  const priceHistory = {
+    AAA: dailySeries("2025-01-01", [100, 110, 120]),
+    BBB: dailySeries("2025-01-01", [100, 90, 80]),
+    SPY: dailySeries("2025-01-01", [100, 105, 110]),
+  };
+
+  const result = buildCurrentWeightBackcast({
+    holdings: [
+      { ticker: "AAA", quantity: 2, market_value_usd: 240 },
+      { ticker: "BBB", quantity: 1, market_value_usd: 80 },
+    ],
+    priceHistory,
+    benchmarkHistory: priceHistory.SPY,
+  });
+
+  assert.equal(result.status, "ok");
+  assert.equal(result.method, "current_weight_backcast");
+  assert.deepEqual(result.includedTickers, ["AAA", "BBB"]);
+  assert.equal(result.series.length, 3);
+  assert.equal(result.series[0].portfolio_growth, 1);
+  assert.ok(Math.abs(result.series[2].portfolio_growth - (320 / 300)) < 1e-9);
+  assert.ok(Math.abs(result.series[2].spy_growth - 1.1) < 1e-9);
+  assert.equal(result.valueChangeUsd, 20);
+  assert.match(result.methodLabel, /hipot[eé]tico/i);
+});
+
+test("selectPersonalPerformanceHeadline prefers actual portfolio analytics over a divergent backcast", async () => {
+  const module = await import("../lib/server/holdings-performance.js");
+  assert.equal(typeof module.selectPersonalPerformanceHeadline, "function");
+
+  const headline = module.selectPersonalPerformanceHeadline({
+    actual: { totalPnlUsd: 300, totalReturn: 0.15, costBasisUsd: 2000 },
+    current: { totalPnlUsd: 250, totalReturn: 0.125, totalCostUsd: 2000 },
+    backcast: { valueChangeUsd: 9000, totalReturn: 9 },
+  });
+
+  assert.deepEqual(headline, {
+    available: true,
+    method: "actual_portfolio",
+    pnlUsd: 300,
+    returnValue: 0.15,
+    costBasisUsd: 2000,
+  });
+});
+
+test("selectPersonalPerformanceHeadline stays unavailable when only a backcast exists", async () => {
+  const module = await import("../lib/server/holdings-performance.js");
+  assert.equal(typeof module.selectPersonalPerformanceHeadline, "function");
+
+  const headline = module.selectPersonalPerformanceHeadline({
+    actual: null,
+    current: { totalPnlUsd: null, totalReturn: null, totalCostUsd: null },
+    backcast: { valueChangeUsd: 502, totalReturn: 0.502 },
+  });
+
+  assert.deepEqual(headline, {
+    available: false,
+    method: null,
+    pnlUsd: null,
+    returnValue: null,
+    costBasisUsd: null,
+  });
 });
 
 test("reconstructPortfolioSeries rebuilds trajectory from purchase dates and real closes with benchmark", () => {
@@ -149,6 +215,57 @@ test("buildPerformanceReport separates current, reconstructed and twr readings",
   assert.ok(report.reconstructed.benchmarkSpread > 0);
   assert.equal(report.twrAvailable, false);
   assert.ok(report.explanation.length >= 2);
+});
+
+test("buildPerformanceReport exposes a hypothetical backcast without promoting its value change to personal P&L", () => {
+  const priceHistory = {
+    AAA: dailySeries("2025-01-01", Array.from({ length: 252 }, (_, index) => 100 + index * 0.2)),
+    SPY: dailySeries("2025-01-01", Array.from({ length: 252 }, (_, index) => 100 + index * 0.1)),
+  };
+  const holdings = [{ ticker: "AAA", quantity: 10, market_value_usd: 1502 }];
+  const backcast = buildCurrentWeightBackcast({
+    holdings,
+    priceHistory,
+    benchmarkHistory: priceHistory.SPY,
+  });
+
+  const report = buildPerformanceReport({
+    holdings,
+    backcast,
+    snapshotHistoryRows: [],
+    twrMetrics: null,
+  });
+
+  assert.equal(report.backcast.method, "current_weight_backcast");
+  assert.ok(report.backcast.totalReturn > 0.5);
+  assert.equal(report.backcast.valueChangeUsd, 502);
+  assert.ok(Number.isFinite(report.backcast.sharpeRatio));
+  assert.ok(report.backcast.benchmarkSpread > 0);
+  assert.equal(report.personalHeadline.available, false);
+  assert.equal(report.personalHeadline.pnlUsd, null);
+  assert.equal(report.personalHeadline.returnValue, null);
+});
+
+test("buildPerformanceReport keeps current cost-basis P&L separate from a divergent backcast", () => {
+  const priceHistory = {
+    AAA: dailySeries("2025-01-01", Array.from({ length: 252 }, (_, index) => 100 + index)),
+    SPY: dailySeries("2025-01-01", Array.from({ length: 252 }, (_, index) => 100 + index * 0.1)),
+  };
+  const holdings = [{ ticker: "AAA", quantity: 10, avg_cost_usd: 80, market_value_usd: 1000 }];
+  const backcast = buildCurrentWeightBackcast({
+    holdings,
+    priceHistory,
+    benchmarkHistory: priceHistory.SPY,
+  });
+
+  const report = buildPerformanceReport({ holdings, backcast });
+
+  assert.equal(report.current.totalPnlUsd, 200);
+  assert.equal(report.current.totalReturn, 0.25);
+  assert.equal(report.personalHeadline.pnlUsd, 200);
+  assert.equal(report.personalHeadline.returnValue, 0.25);
+  assert.equal(report.personalHeadline.method, "current_cost_basis");
+  assert.notEqual(report.backcast.valueChangeUsd, report.personalHeadline.pnlUsd);
 });
 
 test("buildPerformanceReport gives empty-state actions when reconstruction is impossible", () => {

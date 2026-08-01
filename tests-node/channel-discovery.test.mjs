@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import * as channelContract from "../lib/channels/contract.js";
 import {
   CHANNEL_ANSWER_SCHEMA,
   CHANNEL_PROFILE_VERSION,
@@ -140,6 +141,67 @@ test("evaluation blocks a profile unless public-safe use is explicit", () => {
   assert.equal(result.status, "blocked_sensitive");
   assert.ok(result.safety.reasons.some((reason) => reason.code === "public_safety_not_confirmed"));
   assert.equal(result.hypotheses.length, 0);
+});
+
+test("channel persistence policy allows only explicitly public-safe outcomes", () => {
+  const allowed = evaluateChannelProfile(strongWorkflowAnswers);
+  const canPersist = channelContract.canPersistChannelProfile;
+
+  assert.equal(canPersist?.(allowed), true);
+  assert.equal(
+    canPersist?.({
+      ...allowed,
+      status: "blocked_sensitive",
+    }),
+    false,
+  );
+  assert.equal(
+    canPersist?.({
+      ...allowed,
+      safety: { blocked: true, reasons: [] },
+    }),
+    false,
+  );
+  assert.equal(canPersist?.(null), false);
+  assert.equal(canPersist?.({ status: "probe_ready" }), false);
+});
+
+test("channel persistence policy rejects every evaluated sensitive-source outcome", () => {
+  for (const sensitiveSource of ["internal_private", "patient", "client"]) {
+    const blocked = evaluateChannelProfile({
+      ...strongWorkflowAnswers,
+      public_sources: ["product_docs", sensitiveSource],
+    });
+
+    assert.equal(blocked.status, "blocked_sensitive");
+    assert.equal(channelContract.canPersistChannelProfile?.(blocked), false);
+  }
+});
+
+test("channel persistence policy fails closed when a result contradicts its embedded answers", () => {
+  const allowed = evaluateChannelProfile(strongWorkflowAnswers);
+
+  assert.equal(
+    channelContract.canPersistChannelProfile?.({
+      ...allowed,
+      answers: { ...allowed.answers, source_safety: "patient" },
+    }),
+    false,
+  );
+  assert.equal(
+    channelContract.canPersistChannelProfile?.({
+      ...allowed,
+      answers: { ...allowed.answers, public_sources: ["product_docs", "client"] },
+    }),
+    false,
+  );
+  assert.equal(
+    channelContract.canPersistChannelProfile?.({
+      ...allowed,
+      answers: { ...allowed.answers, public_sources: "client" },
+    }),
+    false,
+  );
 });
 
 test("weak public-safe observations remain insufficient rather than becoming an edge claim", () => {

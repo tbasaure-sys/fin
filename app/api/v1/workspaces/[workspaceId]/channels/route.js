@@ -1,8 +1,8 @@
 import {
   CHANNEL_QUESTIONS,
   evaluateChannelProfile,
-  sanitizeChannelAnswers,
 } from "@/lib/channels/scoring";
+import { canPersistChannelProfile } from "@/lib/channels/contract";
 import { requireApiWorkspaceSession } from "@/lib/server/auth/session";
 import {
   deleteWorkspaceChannelProfile,
@@ -58,7 +58,18 @@ export async function POST(request, { params }) {
     );
   }
 
-  const answers = sanitizeChannelAnswers(body.answers);
+  const result = evaluateChannelProfile(body.answers);
+  const answers = result.answers;
+  if (!canPersistChannelProfile(result)) {
+    return Response.json(
+      {
+        error: "Sensitive or unverified channel profiles cannot be stored.",
+        code: "channel_profile_not_persistable",
+      },
+      { status: 422, headers: RESPONSE_HEADERS },
+    );
+  }
+
   const complete = CHANNEL_QUESTIONS.every((question) => {
     const value = answers[question.id];
     return question.type === "multi" ? Array.isArray(value) && value.length > 0 : Boolean(value);
@@ -70,7 +81,6 @@ export async function POST(request, { params }) {
     );
   }
 
-  const result = evaluateChannelProfile(answers);
   const profile = await saveWorkspaceChannelProfile(params.workspaceId, {
     schemaVersion: result.version,
     answers: result.answers,

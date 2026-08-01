@@ -30,9 +30,10 @@ test("the public research resolver falls back to a live equity quote when the ca
   assert.equal(resolved.payload.company_profile.market_cap, 50_000_000);
 
   const view = buildCompanyDecisionView(resolved.payload, { now: Date.parse("2026-07-28T12:00:00Z") });
-  assert.equal(view.valuation.publishable, true);
-  assert.ok(view.valuation.range.low < 5);
-  assert.ok(view.valuation.range.high > 5);
+  assert.equal(view.valuation.publishable, false);
+  assert.equal(view.analysis.state, "market_implied");
+  assert.equal(view.market.price, 5);
+  assert.ok(view.expectations.length > 0);
   assert.doesNotMatch(JSON.stringify(view), /faltan datos/i);
 });
 
@@ -86,6 +87,8 @@ test("the market fallback carries provider fundamentals into a bank-specific val
 
   assert.equal(resolved.payload.company_profile.sector, "Financial Services");
   assert.equal(resolved.payload.financials.ratios.latest_total_equity, 360_000_000_000);
-  assert.match(view.valuation.method, /valor contable|ingresos residuales/i);
-  assert.notEqual(view.valuation.range.central, 356);
+  assert.equal(view.analysis.state, "market_implied");
+  assert.equal(view.valuation.method, "market_implied_expectations");
+  assert.ok(view.expectations.some((row) => /cotizaci/i.test(String(row.label || ""))));
+  assert.ok(view.closurePlan.some((row) => /valor contable|roe/i.test(`${row.control} ${row.nextAction}`)));
 });

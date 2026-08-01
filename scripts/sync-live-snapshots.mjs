@@ -1,5 +1,6 @@
-import { copyFile, mkdir, stat } from "node:fs/promises";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { sanitizePublicSnapshotPayload } from "../lib/server/public-snapshot-sanitizer.js";
 
 const repoRoot = process.cwd();
 const outputDir = path.join(repoRoot, "public", "data");
@@ -44,7 +45,9 @@ for (const file of files) {
   if (!sourceInfo.isFile()) {
     throw new Error(`${file.label} source is not a file: ${file.source}`);
   }
-  await copyFile(file.source, file.target);
+  const raw = JSON.parse(await readFile(file.source, "utf8"));
+  const sanitized = sanitizePublicSnapshotPayload(raw);
+  await writeFile(file.target, `${JSON.stringify(sanitized, null, 2)}\n`, "utf8");
   const targetInfo = await stat(file.target);
   console.log(`${file.label}: ${file.target} (${targetInfo.size} bytes)`);
 }

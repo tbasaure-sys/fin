@@ -113,7 +113,7 @@ const WORKSPACE_NAV = [
   },
   {
     id: "mosaic",
-    href: "#mosaic",
+    href: "/mosaic",
     label: "MOSAIC",
     priority: "Macro",
     detail: "External context",
@@ -137,7 +137,7 @@ const WORKSPACE_SHELL_COPY = {
     ask: "Ask workspace",
     glossary: "Glossary",
     guide: "Guide",
-    channels: "Portfolio intelligence",
+    channels: "Channel Finder",
     hideAdvanced: "Hide advanced",
     advanced: "Advanced",
     terms: "Terms",
@@ -2393,9 +2393,15 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
   const hasHoldings = holdings.length > 0;
   const chartSeries = hasHoldings ? filterPortfolioSeries(portfolio?.charts?.growthComparison, range) : [];
   const performanceReport = portfolio?.performanceReport || null;
+  const backcastPerformance = performanceReport?.backcast || null;
+  const personalHeadline = performanceReport?.personalHeadline || null;
+  const professionalPerformance = performanceReport?.reconstructed || null;
   const performanceIsReconstructed = String(analytics.performanceMethod || "") === "reconstructed_holdings_history";
+  const performanceIsBackcast = String(analytics.performanceMethod || "") === "current_weight_backcast";
   const performanceIsFlowAdjusted = String(analytics.performanceMethod || "").includes("external_flow");
-  const performanceMethodLabel = performanceIsReconstructed
+  const performanceMethodLabel = performanceIsBackcast
+    ? "Backcast de posiciones actuales"
+    : performanceIsReconstructed
     ? "Trayectoria reconstruida (posiciones + precios reales)"
     : performanceIsFlowAdjusted ? "TWR ajustado por flujos" : "TWR sin flujos registrados";
   const performanceCopy = PERFORMANCE_READING_COPY[language] || PERFORMANCE_READING_COPY.es;
@@ -2411,13 +2417,23 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
       ? holdings.reduce((sum, holding) => sum + (holdingCostBasis(holding) || 0), 0)
       : null;
   const activeCostBasisLabel = activeCostBasisValue !== null ? formatCurrency(activeCostBasisValue) : "-";
-  const totalPnlValue = firstFiniteNumber(analytics.totalPnlInclRealizedDividendsUsd, returnBreakdown?.totalPnlUsd);
+  const hasPersonalHeadlineContract = typeof personalHeadline?.available === "boolean";
+  const suppressLegacyBackcastHeadline = !hasPersonalHeadlineContract && performanceIsBackcast;
+  const totalPnlValue = hasPersonalHeadlineContract
+    ? personalHeadline.available ? firstFiniteNumber(personalHeadline.pnlUsd) : null
+    : suppressLegacyBackcastHeadline
+      ? null
+      : firstFiniteNumber(analytics.totalPnlInclRealizedDividendsUsd, returnBreakdown?.totalPnlUsd);
   const totalPnlLabel = totalPnlValue !== null ? formatCurrency(totalPnlValue) : "-";
-  const currentPerformanceValue = firstFiniteNumber(
-    analytics.totalReturnInclDividends,
-    analytics.unrealizedReturn,
-    activeCostBasisValue ? totalPnlValue / activeCostBasisValue : null,
-  );
+  const currentPerformanceValue = hasPersonalHeadlineContract
+    ? personalHeadline.available ? firstFiniteNumber(personalHeadline.returnValue) : null
+    : suppressLegacyBackcastHeadline
+      ? null
+      : firstFiniteNumber(
+        analytics.totalReturnInclDividends,
+        analytics.unrealizedReturn,
+        activeCostBasisValue ? totalPnlValue / activeCostBasisValue : null,
+      );
   const currentPerformanceLabel = currentPerformanceValue !== null
     ? formatSignedPct(currentPerformanceValue)
     : null;
@@ -2456,14 +2472,14 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
         <MetricTile detail="Suma de posiciones activas." label="Valor total" value={totalValueLabel} />
         <MetricTile detail="Capital invertido en posiciones activas." label="Costo base" value={activeCostBasisLabel} />
         <MetricTile
-          detail={currentPerformanceLabel ? `Sobre base ${activeCostBasisLabel}.` : "Falta costo base para calcular performance."}
-          label="P&L total"
+          detail={totalPnlValue !== null ? `Sobre el costo base cargado (${activeCostBasisLabel}).` : "Falta costo base para calcular tu P&L actual."}
+          label="P&L actual"
           tone={signedMoneyTone(currentPerformanceValue)}
           value={totalPnlLabel}
         />
         <MetricTile
-          detail="Incluye dividendos cuando están cargados."
-          label="Retorno total"
+          detail={currentPerformanceValue !== null ? "Incluye dividendos cuando están cargados." : "Falta costo base; el backcast no sustituye tu retorno."}
+          label="Retorno actual"
           tone={signedMoneyTone(currentPerformanceValue)}
           value={currentPerformanceLabel || "-"}
         />
@@ -2485,7 +2501,9 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           )}
           <p className={styles.supportText}>
             {analytics.hasPerformanceHistory
-              ? performanceIsReconstructed
+              ? performanceIsBackcast
+                ? `Precios diarios reales de las posiciones actuales, con sus pesos de hoy mantenidos constantes. No usa snapshots ni afirma que este sea tu retorno personal desde compra.`
+              : performanceIsReconstructed
                 ? `Serie reconstruida desde tus posiciones (fecha de compra + costo base) con precios históricos reales. No depende de fotos guardadas. El benchmark invierte los mismos aportes en las mismas fechas.`
                 : `Serie basada en ${analytics.historySessions} fotos guardadas. ${performanceIsFlowAdjusted ? `Ajusta ${analytics.externalFlowCount || 0} flujo${analytics.externalFlowCount === 1 ? "" : "s"} externo${analytics.externalFlowCount === 1 ? "" : "s"}.` : "No hay aportes o retiros registrados en el periodo."}${analytics.moneyWeightedReturnLabel ? ` MWR/XIRR: ${analytics.moneyWeightedReturnLabel}.` : ""}`
               : performanceSeriesWarning
@@ -2502,25 +2520,37 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
               <span>{performanceReport.explanation.join(" ")}</span>
             </div>
           ) : null}
-          {performanceReport?.reconstructed || performanceReport?.current?.winners?.length || performanceReport?.current?.losers?.length ? (
+          {backcastPerformance ? (
+            <div className={styles.performanceExplainer}>
+              <strong>Backcast hipotético del libro actual</strong>
+              <span>
+                {`Mantiene las posiciones de hoy constantes a través del historial: ${backcastPerformance.totalReturnLabel || "sin retorno calculable"} frente a ${performanceReport.benchmarkSymbol || "SPY"}. La variación nocional (${firstFiniteNumber(backcastPerformance.valueChangeUsd) !== null ? formatCurrency(backcastPerformance.valueChangeUsd) : "-"}) no es P&L ni retorno personal.`}
+              </span>
+            </div>
+          ) : null}
+          {professionalPerformance || performanceReport?.current?.winners?.length || performanceReport?.current?.losers?.length ? (
             <div className={styles.performanceBenchmarkStrip} aria-label="Métricas profesionales de performance">
-              {performanceReport?.reconstructed ? (
+              {professionalPerformance ? (
                 <>
                   <span>
                     <strong>Anualizado</strong>
-                    <em>{performanceReport.reconstructed.annualizedReturnLabel || "-"}</em>
+                    <em>{professionalPerformance.annualizedReturnLabel || "-"}</em>
                   </span>
                   <span>
                     <strong>Drawdown máx.</strong>
-                    <em>{performanceReport.reconstructed.maxDrawdownLabel || "-"}</em>
+                    <em>{professionalPerformance.maxDrawdownLabel || "-"}</em>
                   </span>
                   <span>
                     <strong>Volatilidad</strong>
-                    <em>{performanceReport.reconstructed.annualVolatilityLabel || "-"}</em>
+                    <em>{professionalPerformance.annualVolatilityLabel || "-"}</em>
+                  </span>
+                  <span>
+                    <strong>Sharpe</strong>
+                    <em>{professionalPerformance.sharpeRatioLabel || "-"}</em>
                   </span>
                   <span>
                     <strong>vs {performanceReport.benchmarkSymbol || "SPY"}</strong>
-                    <em data-tone={signedMoneyTone(performanceReport.reconstructed.benchmarkSpread)}>{performanceReport.reconstructed.benchmarkSpreadLabel || "-"}</em>
+                    <em data-tone={signedMoneyTone(professionalPerformance.benchmarkSpread)}>{professionalPerformance.benchmarkSpreadLabel || "-"}</em>
                   </span>
                 </>
               ) : null}
@@ -2540,15 +2570,17 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           ) : null}
           {analytics.hasPerformanceHistory ? (
             <div className={styles.performanceExplainer}>
-              <strong>{performanceCopy.title}</strong>
+              <strong>{performanceIsBackcast ? "Cómo leer este backcast" : performanceCopy.title}</strong>
               <span>
-                {performanceCopy.body({
-                  benchmark: analytics.benchmarkSymbol || "SPY",
-                  externalFlows: analytics.externalFlowCount,
-                  moneyWeighted: analytics.moneyWeightedReturnLabel,
-                  sessions: analytics.historySessions,
-                  totalReturn: analytics.totalReturnLabel,
-                })}
+                {performanceIsBackcast
+                  ? `Compara cómo habría evolucionado el libro que tienes hoy contra ${analytics.benchmarkSymbol || "SPY"}. Es una lectura de riesgo y comportamiento de la cartera actual; el retorno personal desde compra aparece por separado cuando cargas costo y fecha.`
+                  : performanceCopy.body({
+                    benchmark: analytics.benchmarkSymbol || "SPY",
+                    externalFlows: analytics.externalFlowCount,
+                    moneyWeighted: analytics.moneyWeightedReturnLabel,
+                    sessions: analytics.historySessions,
+                    totalReturn: analytics.totalReturnLabel,
+                  })}
               </span>
             </div>
           ) : performanceSeriesWarning ? (
@@ -3840,25 +3872,36 @@ function WorkspaceSidebar({
       </div>
 
       <nav className={styles.workspaceSidebarNav} aria-label={copy.sidebarAria}>
-        {navItems.map((item, index) => (
-          <button
-            className={styles.workspaceSidebarLink}
-            data-active={activeSection === item.id}
-            data-priority="primary"
-            key={item.id}
-            onClick={() => onSelectSection(item.id)}
-            type="button"
-          >
-            <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
-            <div>
-              <span>{item.label}</span>
-            </div>
-          </button>
-        ))}
+        {navItems.map((item, index) => {
+          const content = (
+            <>
+              <span className={styles.workspaceSidebarIndex}>{String(index + 1).padStart(2, "0")}</span>
+              <div><span>{item.label}</span></div>
+            </>
+          );
+          return item.href?.startsWith("/") ? (
+            <Link className={styles.workspaceSidebarLink} data-active={false} data-priority="primary" href={item.href} key={item.id}>
+              {content}
+            </Link>
+          ) : (
+            <button
+              className={styles.workspaceSidebarLink}
+              data-active={activeSection === item.id}
+              data-priority="primary"
+              key={item.id}
+              onClick={() => onSelectSection(item.id)}
+              type="button"
+            >
+              {content}
+            </button>
+          );
+        })}
       </nav>
       <div className={styles.workspaceSidebarActions}>
         <div className={styles.workspaceSidebarLinks}>
-          <Link className={styles.secondaryLink} href="/channels">Importar cartera</Link>
+          <Link className={styles.secondaryLink} href="/channels">{copy.channels}</Link>
+          <Link className={styles.secondaryLink} href="/terms">{copy.terms}</Link>
+          <Link className={styles.secondaryLink} href="/">{copy.home}</Link>
         </div>
       </div>
     </section>
@@ -4989,6 +5032,7 @@ function MosaicCommandCenter() {
             <p className={styles.kicker}>MOSAIC</p>
             <h2>Mapa macro global verificable</h2>
             <p>{headline}</p>
+            <Link className={styles.secondaryButton} href="/mosaic">Abrir workspace MOSAIC</Link>
           </div>
           <div className={styles.mosaicCommandStats}>
             <span><strong>{macroSignedLabel(axes.supply)}</strong> oferta</span>

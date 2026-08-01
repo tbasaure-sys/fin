@@ -139,11 +139,11 @@ test("research-grade evidence stays uncertain even when the price is outside the
   assert.equal(view.verdict.kind, "uncertain");
   assert.equal(view.verdict.label, "Lectura incierta");
   assert.deepEqual(view.valuation.range, { low: 168, central: null, high: 214 });
-  assert.equal(view.valuation.publishable, true);
+  assert.equal(view.valuation.publishable, false);
   assert.match(view.verdict.explanation, /investigación/i);
 });
 
-test("a blocked institutional valuation falls back to an explicit low-confidence approximate range", () => {
+test("a blocked institutional valuation preserves the closure plan instead of inventing an approximate range", () => {
   const research = decisionReadyResearch();
   research.valuation.status = "not_decision_ready";
   research.valuation.reliability = {
@@ -172,16 +172,30 @@ test("a blocked institutional valuation falls back to an explicit low-confidence
 
   const view = buildCompanyDecisionView(research, { now: NOW });
 
-  assert.equal(view.analysis.state, "indicative");
-  assert.equal(view.analysis.label, "Rango aproximado");
-  assert.equal(view.verdict.kind, "uncertain");
-  assert.equal(view.verdict.label, "Lectura incierta");
+  assert.equal(view.analysis.state, "market_implied");
+  assert.equal(view.analysis.label, "Precio de mercado");
+  assert.equal(view.verdict.kind, "market_implied");
+  assert.equal(view.verdict.label, "Precio de mercado");
   assert.equal(view.market.price, 160);
-  assert.equal(view.valuation.publishable, true);
-  assert.deepEqual(view.valuation.range, { low: 88, central: 160, high: 264 });
+  assert.equal(view.valuation.publishable, false);
+  assert.equal(view.valuation.range, null);
   assert.equal(view.valuation.confidence.label, "Baja");
-  assert.equal(view.expectations.length, 3);
+  assert.equal(view.expectations.length, 1);
+  assert.equal(view.expectations[0].label, "Cotización observada");
   assert.equal(view.evidence.missing[0].key, "net_debt");
-  assert.deepEqual(view.closurePlan, []);
-  assert.doesNotMatch(JSON.stringify(view), /faltan datos|no se publica un rango/i);
+  assert.ok(view.closurePlan.some((item) => item.key === "net_debt"));
+  assert.equal(view.closurePlan[0].key, "equity_bridge");
+  assert.doesNotMatch(JSON.stringify(view), /faltan datos/i);
+});
+
+test("closure plan keeps audit and coverage controls before archetype questions", () => {
+  const research = decisionReadyResearch();
+  research.valuation.status = "not_decision_ready";
+  research.valuation.reliability = { usable: false, status: "blocked", score: 0.2, reasons: ["Revisión requerida"] };
+  research.audit = { status: "review", findings: [{ severity: "high", code: "equity_bridge", message: "Conciliar puente." }] };
+  research.sources.coverage = completeCoverage({ status: "partial", expected_metrics: 6, covered_expected_metrics: 5, missing_expected_metrics: ["net_debt"] });
+
+  const view = buildCompanyDecisionView(research, { now: NOW });
+
+  assert.deepEqual(view.closurePlan.slice(0, 2).map((item) => item.key), ["equity_bridge", "net_debt"]);
 });

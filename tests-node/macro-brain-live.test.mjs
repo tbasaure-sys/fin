@@ -13,15 +13,15 @@ const rawMacroBrain = {
   observations: 12,
   series_count: 3,
   impulse_changes: [
-    { series_id: "GC=F", impulse_sign: -1, impulse_z: -1.9, label: "Gold futures" },
-    { series_id: "LQD", impulse_sign: 1, impulse_z: 0.8, label: "Investment grade ETF" },
+    { series_id: "GC=F", date: "2026-06-18", impulse_sign: -1, impulse_z: -1.9, label: "Gold futures" },
+    { series_id: "LQD", date: "2026-06-18", impulse_sign: 1, impulse_z: 0.8, label: "Investment grade ETF" },
   ],
   liquidity: {
     status: "available",
     summary: "Liquidity test summary.",
     components: {
       us_net_liquidity_ex_rrp: { impulse: -10, impulse_direction: "negative" },
-      WALCL: { label: "Fed balance sheet", impulse: -2 },
+      WALCL: { label: "Fed balance sheet", impulse: -2, as_of: "2026-06-18" },
     },
   },
   theses: [
@@ -73,9 +73,10 @@ test("normalizeMacroBrainPayload turns raw engine output into workspace copy", (
   const snapshot = normalizeMacroBrainPayload(rawMacroBrain, {
     path: "macro_brain_latest.json",
     status: "Leído ahora desde prueba.",
-  });
+  }, { now: "2026-06-19T12:00:00.000Z" });
 
   assert.equal(snapshot.live, true);
+  assert.equal(snapshot.dataState, "current");
   assert.equal(snapshot.runDate, "2026-06-18");
   assert.equal(snapshot.observations, 12);
   assert.equal(snapshot.seriesCount, 3);
@@ -86,6 +87,85 @@ test("normalizeMacroBrainPayload turns raw engine output into workspace copy", (
   assert.equal(snapshot.nextChecks[0].event, "IPC EE.UU.");
   assert.equal(snapshot.stability.status, "Tranquilo");
   assert.match(snapshot.shortRead, /tesis abiertas/);
+  assert.equal(snapshot.liquidity.asOf, "2026-06-18");
+  assert.deepEqual(snapshot.liquidity.sourceIds, ["WALCL"]);
+  assert.equal(snapshot.liquidity.freshness.status, "current");
+  assert.equal(snapshot.liquidity.usable, true);
+});
+
+test("fresh packaging cannot make stale or undated macro liquidity usable", () => {
+  const stale = normalizeMacroBrainPayload({
+    ...rawMacroBrain,
+    generated_on: "2026-07-31T23:59:00.000Z",
+    run_date: "2026-07-31",
+    impulse_changes: rawMacroBrain.impulse_changes.map((row) => ({ ...row, date: "2026-07-31" })),
+    liquidity: {
+      ...rawMacroBrain.liquidity,
+      components: {
+        ...rawMacroBrain.liquidity.components,
+        WALCL: { ...rawMacroBrain.liquidity.components.WALCL, as_of: "2026-05-01" },
+      },
+    },
+  }, {}, { now: "2026-08-01T12:00:00.000Z" });
+
+  assert.equal(stale.live, true);
+  assert.equal(stale.dataState, "current");
+  assert.equal(stale.liquidity.freshness.status, "stale");
+  assert.equal(stale.liquidity.usable, false);
+
+  const undated = normalizeMacroBrainPayload({
+    ...rawMacroBrain,
+    generated_on: "2026-07-31T23:59:00.000Z",
+    run_date: "2026-07-31",
+    impulse_changes: rawMacroBrain.impulse_changes.map((row) => ({ ...row, date: "2026-07-31" })),
+    liquidity: {
+      ...rawMacroBrain.liquidity,
+      components: {
+        ...rawMacroBrain.liquidity.components,
+        WALCL: { label: "Fed balance sheet", impulse: -2 },
+      },
+    },
+  }, {}, { now: "2026-08-01T12:00:00.000Z" });
+
+  assert.equal(undated.liquidity.freshness.status, "unknown");
+  assert.equal(undated.liquidity.usable, false);
+});
+
+test("future-dated macro series and liquidity evidence fail closed", () => {
+  const snapshot = normalizeMacroBrainPayload({
+    ...rawMacroBrain,
+    generated_on: "2026-08-01T11:59:00.000Z",
+    run_date: "2026-08-01",
+    impulse_changes: rawMacroBrain.impulse_changes.map((row) => ({ ...row, date: "2026-08-03" })),
+    liquidity: {
+      ...rawMacroBrain.liquidity,
+      components: {
+        ...rawMacroBrain.liquidity.components,
+        WALCL: { ...rawMacroBrain.liquidity.components.WALCL, as_of: "2026-08-03" },
+      },
+    },
+  }, {}, { now: "2026-08-01T12:00:00.000Z" });
+
+  assert.equal(snapshot.live, false);
+  assert.equal(snapshot.dataState, "future");
+  assert.equal(snapshot.liquidity.freshness.status, "future");
+  assert.equal(snapshot.liquidity.usable, false);
+});
+
+test("dated macro rows without a series identifier cannot make the snapshot live", () => {
+  const snapshot = normalizeMacroBrainPayload({
+    ...rawMacroBrain,
+    generated_on: "2026-08-01T11:59:00.000Z",
+    run_date: "2026-08-01",
+    impulse_changes: [
+      { ...rawMacroBrain.impulse_changes[0], date: "2026-08-01" },
+      { date: "2026-08-01", impulse_sign: 1, impulse_z: 0.7, label: "Unidentified series" },
+    ],
+  }, {}, { now: "2026-08-01T12:00:00.000Z" });
+
+  assert.equal(snapshot.live, false);
+  assert.equal(snapshot.dataState, "unknown");
+  assert.equal(snapshot.freshness.usable, false);
 });
 
 test("loadMacroBrainSnapshot reads the latest JSON file when configured", async () => {
@@ -94,7 +174,11 @@ test("loadMacroBrainSnapshot reads the latest JSON file when configured", async 
 
   try {
     await writeFile(filePath, JSON.stringify(rawMacroBrain), "utf8");
-    const snapshot = await loadMacroBrainSnapshot({ sourcePath: filePath, throwOnError: true });
+    const snapshot = await loadMacroBrainSnapshot({
+      sourcePath: filePath,
+      throwOnError: true,
+      now: "2026-06-19T12:00:00.000Z",
+    });
     assert.equal(snapshot.live, true);
     assert.equal(snapshot.sourcePath, filePath);
     assert.equal(snapshot.dataStatus, "Leído ahora desde la última corrida local.");
@@ -107,5 +191,6 @@ test("loadMacroBrainSnapshot reads the latest JSON file when configured", async 
 test("loadMacroBrainSnapshot uses the deployable public snapshot before external workstation paths", async () => {
   const snapshot = await loadMacroBrainSnapshot({ throwOnError: true });
   assert.match(snapshot.sourcePath.replace(/\\/g, "/"), /public\/data\/macro_brain_latest\.json$/);
-  assert.equal(snapshot.live, true);
+  assert.equal(snapshot.live, false);
+  assert.equal(snapshot.dataState, "stale");
 });

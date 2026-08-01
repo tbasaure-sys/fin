@@ -1,19 +1,29 @@
 import { expect, test } from "@playwright/test";
 
-test("public portfolio intelligence demo produces concrete research names", async ({ page }) => {
+test("public channel finder produces concrete, falsifiable research hypotheses", async ({ page }) => {
   await page.goto("/channels?lang=es");
 
-  await expect(page.getByRole("heading", { name: /Primero entiende qué apuestas tienes/i })).toBeVisible();
-  await expect(page.getByText("Sezzle", { exact: true })).toHaveCount(0);
-  await page.getByRole("button", { name: "Probar descubrimiento" }).click();
+  await expect(page.getByRole("heading", { name: /Dónde podrías ver algo antes o mejor que el mercado/i })).toBeVisible();
+  await page.getByRole("button", { name: "Descubrir mis canales" }).click();
 
-  await page.getByRole("button", { name: /Flujos de salud/i }).click();
-  await page.getByRole("button", { name: /Una herramienta está entrando/i }).click();
-  await page.getByRole("button", { name: /Uso público/i }).click();
-  await page.getByRole("button", { name: /Puedo medirlo semanalmente/i }).click();
+  for (const label of [
+    "Flujo profesional",
+    "Usuario u operador experto",
+    "Sí, solo información pública y permitida",
+    "Filings y reportes públicos",
+    "Semanal",
+    "Emisor, KPI y ventana temporal",
+    "Puedo repetir predicciones comparables",
+    "Interpretación especializada, con tiempo suficiente",
+  ]) {
+    await page.getByRole(/Filings y reportes públicos/.test(label) || label === "Flujo profesional" ? "checkbox" : "radio", { name: new RegExp(label, "i") }).check();
+    const finish = label === "Interpretación especializada, con tiempo suficiente";
+    await page.getByRole("button", { name: finish ? "Ver mi diagnóstico" : "Continuar" }).click();
+  }
 
-  await expect(page.getByRole("heading", { name: "Nombres para investigar esta semana" })).toBeVisible();
-  await expect(page.getByText("Intuitive Surgical", { exact: true })).toBeVisible();
-  await expect(page.getByText("KPI que debe moverse", { exact: true }).first()).toBeVisible();
-  await expect(page.getByText("Descártalo si", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Tu mapa de canales" })).toBeVisible();
+  await expect(page.getByText("Plausible · no validado", { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Canales plausibles para investigar" })).toBeVisible();
+  await expect(page.getByText("Primera refutación", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Prueba de 45 minutos", { exact: true }).first()).toBeVisible();
 });

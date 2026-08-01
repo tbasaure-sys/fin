@@ -37,6 +37,9 @@ node_modules/
 .next-dev-*.log
 .vercel/
 .playwright-cli/
+playwright-report/
+test-results/
+debug.log
 
 # local SDKs
 /flutter/

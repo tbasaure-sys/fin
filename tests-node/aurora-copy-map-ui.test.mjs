@@ -57,3 +57,52 @@ test("public Stress Engine CTAs gate into the portfolio workspace instead of val
   assert.match(terminalSource, /factorlab:\s*"aurora"/);
   assert.match(terminalSource, /positions:\s*"holdings"/);
 });
+
+test("workspace sidebar names the channels section as Channel Finder in English", () => {
+  const terminalSource = readFileSync("components/terminal-app.jsx", "utf8");
+
+  assert.match(terminalSource, /channels:\s*"Channel Finder"/);
+  assert.doesNotMatch(terminalSource, /channels:\s*"Portfolio intelligence"/);
+});
+
+test("every AURORA decision state renders the explanation provider and model disclosure", () => {
+  const source = readFileSync("components/equity-research-panel.jsx", "utf8");
+  const summaryStart = source.indexOf("function AuroraDecisionSummary");
+  const previewStart = source.indexOf("function AuroraConditionalRangePreview");
+  const summarySource = source.slice(summaryStart, previewStart);
+
+  assert.match(summarySource, /auroraExplanationProviderLabel\(aurora\.explanation\)/);
+  assert.match(source, /Proveedor de explicación/);
+  assert.match(source, /Hugging Face/);
+  assert.match(source, /sin modelo generativo/);
+  assert.match(source, /no disponible · sin modelo generativo/);
+});
+
+test("equity research renders market-implied and blocked AURORA states even when no range exists", () => {
+  const source = readFileSync("components/equity-research-panel.jsx", "utf8");
+  const stateStart = source.indexOf("const researchStateLabel");
+  const stateEnd = source.indexOf("const openIssueLabel", stateStart);
+  const metricLabel = source.indexOf('label={auroraValuation?.status === "market_implied"');
+  const metricStart = source.lastIndexOf("<ResearchMetric", metricLabel);
+  const metricEnd = source.indexOf("/>", metricLabel);
+  const stateSource = source.slice(stateStart, stateEnd);
+  const metricSource = source.slice(metricStart, metricEnd);
+
+  assert.match(stateSource, /auroraValuation\?\.status === "market_implied"/);
+  assert.match(stateSource, /auroraValuation\?\.status === "blocked"/);
+  assert.doesNotMatch(stateSource, /auroraRangeLabel && !valuationPresentation\.showValuationFigures/);
+  assert.match(metricSource, /auroraValuation\?\.status === "market_implied"/);
+  assert.match(metricSource, /auroraValuation\?\.status === "blocked"/);
+  assert.doesNotMatch(metricSource, /auroraRangeLabel && !valuationPresentation\.showValuationFigures/);
+});
+
+test("AURORA expectation formatting honors canonical percent, multiple, and currency units", () => {
+  const source = readFileSync("components/equity-research-panel.jsx", "utf8");
+  const formatterStart = source.indexOf("function auroraExpectationValue");
+  const formatterEnd = source.indexOf("function auroraWhyRows", formatterStart);
+  const formatterSource = source.slice(formatterStart, formatterEnd);
+
+  assert.match(formatterSource, /unit === "percent"[\s\S]*number \* 100/);
+  assert.match(formatterSource, /unit === "x"[\s\S]*`\$\{number\.toFixed\(2\)\}x`/);
+  assert.match(formatterSource, /unit === "currency"[\s\S]*compactCurrency\(number, currency\)/);
+});

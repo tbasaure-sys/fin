@@ -35,3 +35,18 @@ test("the portfolio always has an honest return visualization", () => {
   assert.doesNotMatch(terminalSource, /Number\.isFinite\(Number\(analytics\.totalPnlInclRealizedDividendsUsd\)\)/);
   assert.doesNotMatch(terminalSource, /Number\.isFinite\(Number\(analytics\.totalReturnInclDividends\)\)/);
 });
+
+test("a cached legacy backcast without a personal headline cannot render P&L or return", () => {
+  assert.match(
+    terminalSource,
+    /const suppressLegacyBackcastHeadline = !hasPersonalHeadlineContract && performanceIsBackcast;/,
+  );
+  assert.match(
+    terminalSource,
+    /: suppressLegacyBackcastHeadline\s*\? null\s*:\s*firstFiniteNumber\(analytics\.totalPnlInclRealizedDividendsUsd/,
+  );
+  assert.match(
+    terminalSource,
+    /: suppressLegacyBackcastHeadline\s*\? null\s*:\s*firstFiniteNumber\(\s*analytics\.totalReturnInclDividends/,
+  );
+});

@@ -376,6 +376,11 @@ test("normalizeWorkspaceDashboard builds live next best moves from screener and 
   assert.equal(dashboard.modules.actions.actions[1].ticker, "ASTS");
   assert.equal(dashboard.modules.actions.actions[2].ticker, "TLT");
   assert.match(dashboard.modules.actions.actions[0].whyNow, /riesgo de la cartera/i);
+  assert.match(dashboard.modules.actions.actions[0].watchFor, /indicador cuantitativo|señal del filtro/i);
+  assert.doesNotMatch(
+    `${dashboard.modules.actions.actions[0].whyNow} ${dashboard.modules.actions.actions[0].watchFor}`,
+    /fair value|valor razonable|precio objetivo/i,
+  );
   assert.ok(dashboard.modules.actions.actions[0].invalidation);
   assert.ok(dashboard.modules.command.decisionRights);
   assert.ok(dashboard.modules.command.stepDownTrials.length === 3);
@@ -544,6 +549,13 @@ test("normalizeWorkspaceDashboard exposes explicit edge board lanes", () => {
   assert.equal(dashboard.edge_board.stocks[0].label, "TSM");
   assert.ok(dashboard.edge_board.stocks[0].expression);
   assert.ok(dashboard.edge_board.stocks[0].support.length >= 2);
+  const stockEvidence = [
+    dashboard.edge_board.stocks[0].note,
+    ...dashboard.edge_board.stocks[0].support,
+  ].join(" ");
+  assert.doesNotMatch(stockEvidence, /confirmed by|value gap|valuation gap/i);
+  assert.match(stockEvidence, /quantitative filter|screening signal/i);
+  assert.match(stockEvidence, /not (?:a )?traced valuation/i);
   assert.ok(dashboard.edge_board.drilldowns.length >= 4);
 });
 

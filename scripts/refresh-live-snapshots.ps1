@@ -111,7 +111,7 @@ try {
   }
   Invoke-Checked -WorkingDirectory $FinModelRoot -FilePath $PythonExe -Arguments $macroArgs -TimeoutSeconds $MacroTimeoutSeconds
 
-  $mosaicArgs = @("code_scripts\build_mosaic_observatory.py", "--live-fred", "--prefer-cache")
+  $mosaicArgs = @("code_scripts\build_mosaic_observatory.py", "--live-fred")
   try {
     Invoke-Checked -WorkingDirectory $FinModelRoot -FilePath $PythonExe -Arguments $mosaicArgs -TimeoutSeconds $MosaicLiveTimeoutSeconds
   } catch {

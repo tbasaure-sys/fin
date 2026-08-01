@@ -1,4 +1,4 @@
-export const PORTFOLIO_RANGES = ["1D", "1W", "1M", "YTD", "ALL"];
+export const PORTFOLIO_RANGES = ["1M", "3M", "YTD", "1Y", "3Y"];
 const DEFAULT_LOCALE = process.env.NEXT_PUBLIC_BLS_FORMAT_LOCALE || "en-US";
 const DEFAULT_CURRENCY = process.env.NEXT_PUBLIC_BLS_FORMAT_CURRENCY || "USD";
 
@@ -139,13 +139,14 @@ export function filterPortfolioSeries(series, range) {
     return filtered.length >= 2 ? filtered : rows.slice(-fallbackCount);
   };
 
-  if (range === "1D") return filterByWindow(1, 8);
-  if (range === "1W") return filterByWindow(7, 20);
   if (range === "1M") return filterByWindow(31, 45);
+  if (range === "3M") return filterByWindow(93, 100);
   if (range === "YTD") {
     const currentYear = new Date().getFullYear();
     const filtered = rows.filter((row) => row.__parsedDate?.getFullYear() === currentYear);
     return filtered.length ? filtered : rows.slice(-60);
   }
+  if (range === "1Y") return filterByWindow(366, 260);
+  if (range === "3Y") return filterByWindow(1096, 780);
   return rows;
 }

@@ -1559,15 +1559,21 @@ def test_revenue_estimates_without_a_cash_driver_are_not_research_grade() -> Non
 
 def test_estimate_date_must_still_be_future_as_of_today_not_only_after_ttm_date() -> None:
     inputs = _base_inputs()
-    inputs["ttm_row"]["date"] = "2026-01-20"
+    recent_ttm_date = (date.today() - timedelta(days=30)).isoformat()
+    expired_estimate_date = (date.today() - timedelta(days=1)).isoformat()
+    inputs["ttm_row"]["date"] = recent_ttm_date
     inputs["analyst_estimates"] = [
-        {**deepcopy(inputs["analyst_estimates"][0]), "date": "2026-01-25", "period": "FY"},
+        {
+            **deepcopy(inputs["analyst_estimates"][0]),
+            "date": expired_estimate_date,
+            "period": "FY",
+        },
         *inputs["analyst_estimates"][1:],
     ]
 
     valuation = _build(inputs)
 
-    assert "2026-01-25" not in valuation["estimate_validation"]["accepted_dates"]
+    assert expired_estimate_date not in valuation["estimate_validation"]["accepted_dates"]
 
 
 def test_explicit_zero_growth_is_not_replaced_with_positive_default_growth() -> None:

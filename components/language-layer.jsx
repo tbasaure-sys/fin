@@ -487,6 +487,7 @@ export function LanguageLayer({ initialLanguage = "en" }) {
     };
   }, [language, path]);
 
+  // These pages render their own language control.
   if (path === "/" || path === "/channels" || path === "/aurora") return null;
 
   return (

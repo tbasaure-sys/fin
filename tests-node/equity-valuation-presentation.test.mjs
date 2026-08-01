@@ -537,7 +537,8 @@ test("the private AURORA panel routes every prominent valuation claim through th
   assert.match(source, /renderDelta\(research, valuationPresentation\)/);
   assert.match(source, /delta\.valuation\?\.comparable/);
   assert.match(source, /TRUSTED_VALUATION_DELTA_KEYS/);
-  assert.match(source, /Rango estimado/);
+  assert.match(source, /Lectura de valor/);
+  assert.doesNotMatch(source, /label="Rango estimado"/);
   assert.match(source, /Estimaci[oó]n central/);
   assert.match(source, /!publicMode\s*\?\s*\(\s*<div className=\{styles\.segmentedControl\}/);
   assert.match(source, /Vista p[uú]blica[^<]*an[aá]lisis r[aá]pido/i);

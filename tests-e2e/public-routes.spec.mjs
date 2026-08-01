@@ -80,7 +80,7 @@ test.describe("Rutas públicas", () => {
   test("/aurora usa la valoración canónica y no publica el laboratorio heurístico", async ({ page }) => {
     await page.goto("/aurora");
     await expect(page).toHaveURL(/\/aurora$/);
-    await expect(page.getByRole("heading", { name: /Un rango defendible/ })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Una lectura de valor para cada empresa/ })).toBeVisible();
     await expect(page.getByRole("button", { name: "Analizar" })).toBeVisible();
     await expect(page.getByLabel("Ticker")).toHaveValue("MU");
     await expect(page.locator("text=Hay algo acá, pero falta evidencia clave.")).toHaveCount(0);
@@ -97,26 +97,116 @@ test.describe("Rutas públicas", () => {
     await expect.poll(() => page.evaluate(() => localStorage.getItem("blsprime_language_preference"))).toBe("es");
   });
 
-  test("/channels es público y presenta portfolio intelligence sin pedir una cuenta", async ({ page }) => {
+  test("/channels es público y presenta el diagnóstico de canales sin pedir una cuenta", async ({ page }) => {
     await page.goto("/channels?lang=es");
     await expect(page).toHaveURL(/\/channels\?lang=es$/);
     await expect(
-      page.getByRole("heading", { name: /Primero entiende qué apuestas tienes/i }),
+      page.getByRole("heading", { name: /Dónde podrías ver algo antes o mejor que el mercado/i }),
     ).toBeVisible();
-    await expect(page.getByText(/apuestas efectivas, clusters y correlaciones propias/i)).toBeVisible();
+    await expect(page.getByText("Privado por defecto", { exact: true })).toBeVisible();
+    await expect(page.getByText("El resultado aparece sin crear una cuenta.", { exact: true })).toBeVisible();
     await expect(page).not.toHaveURL(/\/login/);
   });
 
   test("/channels no convierte una observación aislada en una cola de investigación", async ({ page }) => {
     await page.goto("/channels?lang=es");
-    await page.getByRole("button", { name: "Probar descubrimiento" }).click();
-    await page.getByRole("button", { name: /Flujos de salud/i }).click();
-    await page.getByRole("button", { name: /Una herramienta está entrando/i }).click();
-    await page.getByRole("button", { name: /Uso público/i }).click();
-    await page.getByRole("button", { name: /Fue una observación aislada/i }).click();
+    await page.getByRole("button", { name: "Descubrir mis canales" }).click();
+    for (let index = 0; index < 8; index += 1) {
+      await page.locator("fieldset input:not([disabled])").first().check();
+      await page.getByRole("button", { name: index === 7 ? "Ver mi diagnóstico" : "Continuar" }).click();
+    }
 
-    await expect(page.getByText(/Una observación aislada no crea un canal/i)).toBeVisible();
-    await expect(page.getByRole("heading", { name: /Nombres para investigar esta semana/i })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Tu mapa de canales" })).toBeVisible();
+    await expect(page.getByText("Aún no aparece un canal defendible", { exact: true })).toBeVisible();
+    await expect(page.getByText(/no conectan una observación pública, repetible y falsable/i)).toBeVisible();
+    await expect(page.getByText(/cola de investigación/i)).toHaveCount(0);
+  });
+
+  test("/channels no persiste un resultado sensible y elimina cualquier perfil local pendiente", async ({ page }) => {
+    let postCount = 0;
+    await page.route("**/api/v1/session", (route) =>
+      route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ workspace: { id: "privacy-test-workspace" } }),
+      }),
+    );
+    await page.route("**/api/v1/workspaces/privacy-test-workspace/channels", async (route) => {
+      if (route.request().method() === "POST") postCount += 1;
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(route.request().method() === "GET" ? { profile: null } : { profile: {} }),
+      });
+    });
+
+    await page.goto("/channels?lang=es&save=1");
+    await page.evaluate(() => {
+      localStorage.setItem("blsprime.channel_profile.v1", JSON.stringify({ stale: true }));
+      sessionStorage.setItem("blsprime.channel_profile.v1:pending-save", "1");
+    });
+
+    await page.getByRole("button", { name: "Descubrir mis canales" }).click();
+    await page.locator('fieldset input[value="professional_workflow"]').check();
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await page.locator('fieldset input[value="operator"]').check();
+    await page.getByRole("button", { name: "Continuar" }).click();
+    await page.locator('fieldset input[value="patient"]').check();
+    await page.getByRole("button", { name: "Continuar" }).click();
+
+    await expect(page.getByText("Perfil bloqueado por fuente sensible", { exact: true })).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(() => ({
+          local: localStorage.getItem("blsprime.channel_profile.v1"),
+          pending: sessionStorage.getItem("blsprime.channel_profile.v1:pending-save"),
+        })),
+      )
+      .toEqual({ local: null, pending: null });
+    expect(postCount).toBe(0);
+  });
+
+  test("/channels rechaza un perfil sensible heredado aunque la API lo devuelva", async ({ page }) => {
+    let getCount = 0;
+    await page.route("**/api/v1/session", (route) =>
+      route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ workspace: { id: "legacy-privacy-workspace" } }),
+      }),
+    );
+    await page.route("**/api/v1/workspaces/legacy-privacy-workspace/channels", async (route) => {
+      if (route.request().method() === "GET") getCount += 1;
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          profile: {
+            schemaVersion: "channel_profile_v1",
+            answers: {
+              version: "channel_profile_v1",
+              archetypes: ["professional_workflow"],
+              direct_experience: "operator",
+              source_safety: "public_safe",
+              public_sources: ["public_filings", "patient"],
+              repeatability: "weekly",
+              issuer_kpi_mapping: "issuer_kpi_timing",
+              testability: "repeated_predictions",
+              protection_time_fit: "specialized_fit",
+            },
+            result: {
+              version: "channel_profile_v1",
+              status: "probe_ready",
+              safety: { blocked: false, reasons: [] },
+            },
+          },
+        }),
+      });
+    });
+
+    await page.goto("/channels?lang=es");
+
+    await expect.poll(() => getCount).toBe(1);
+    await expect(
+      page.getByRole("heading", { name: /Dónde podrías ver algo antes o mejor que el mercado/i }),
+    ).toBeVisible();
+    await expect(page.getByText("Perfil bloqueado por fuente sensible", { exact: true })).toHaveCount(0);
   });
 
   test("persistencia de idioma: ES sobrevive un reload", async ({ page }) => {
@@ -126,6 +216,8 @@ test.describe("Rutas públicas", () => {
       await page.getByRole("button", { name: /Abrir navegación|Open navigation/i }).click();
     }
     await spanishButton.click();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem("blsprime_language_preference"))).toBe("es");
+    await expect(page).toHaveURL(/(?:\?|&)lang=es(?:&|$)/);
     await page.reload();
     const stored = await page.evaluate(() => localStorage.getItem("blsprime_language_preference"));
     expect(stored).toBe("es");

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLanguagePreference } from "@/components/language-layer";
 import {
   CHANNEL_STORAGE_KEY,
+  canPersistChannelProfile,
   createEmptyChannelAnswers,
   sanitizeChannelAnswers,
 } from "@/lib/channels/contract";
@@ -15,6 +16,7 @@ import { evaluateChannelProfile } from "@/lib/channels/scoring";
 import styles from "./channels.module.css";
 
 const PUBLIC_SOURCE_EXCLUSIVES = new Set(["none", "internal_private", "patient", "client"]);
+const CHANNEL_PENDING_SAVE_KEY = `${CHANNEL_STORAGE_KEY}:pending-save`;
 
 const COPY = {
   es: {
@@ -235,20 +237,37 @@ function readLocalProfile() {
     const answers = sanitizeChannelAnswers(candidate);
     const result = evaluateChannelProfile(answers);
     const complete = CHANNEL_QUESTIONS.every((question) => !question.required || hasAnswer(answers, question));
-    if (!complete && !result.safety?.blocked) return null;
+    if (!complete || !canPersistChannelProfile(result)) {
+      clearLocalChannelPersistence();
+      return null;
+    }
     return { answers, result };
   } catch {
+    clearLocalChannelPersistence();
     return null;
   }
 }
 
 function writeLocalProfile(answers, result) {
+  if (!canPersistChannelProfile(result)) {
+    clearLocalChannelPersistence();
+    return false;
+  }
   try {
     window.localStorage.setItem(CHANNEL_STORAGE_KEY, JSON.stringify({ answers, result }));
     return true;
   } catch {
     return false;
   }
+}
+
+function clearLocalChannelPersistence() {
+  try {
+    window.localStorage.removeItem(CHANNEL_STORAGE_KEY);
+  } catch {}
+  try {
+    window.sessionStorage.removeItem(CHANNEL_PENDING_SAVE_KEY);
+  } catch {}
 }
 
 function removeSaveFlagFromUrl() {
@@ -523,8 +542,12 @@ function ResultScreen({
           : copy.localOnly;
 
   function markPendingSave() {
+    if (!canPersistChannelProfile(result)) {
+      clearLocalChannelPersistence();
+      return;
+    }
     try {
-      window.sessionStorage.setItem(`${CHANNEL_STORAGE_KEY}:pending-save`, "1");
+      window.sessionStorage.setItem(CHANNEL_PENDING_SAVE_KEY, "1");
     } catch {}
   }
 
@@ -669,7 +692,10 @@ export function ChannelQuestionnaire() {
   const autoSaveAttempted = useRef(false);
 
   const saveToWorkspace = useCallback(async () => {
-    if (!session.workspace?.id || !result) return false;
+    if (!session.workspace?.id || !canPersistChannelProfile(result)) {
+      if (result) clearLocalChannelPersistence();
+      return false;
+    }
     setSaveStatus("saving");
     try {
       const response = await fetch(`/api/v1/workspaces/${encodeURIComponent(session.workspace.id)}/channels`, {
@@ -720,6 +746,13 @@ export function ChannelQuestionnaire() {
           if (!active || !profilePayload?.profile?.answers) return;
           const restoredAnswers = sanitizeChannelAnswers(profilePayload.profile.answers);
           const restoredResult = evaluateChannelProfile(restoredAnswers);
+          const complete = CHANNEL_QUESTIONS.every(
+            (question) => !question.required || hasAnswer(restoredAnswers, question),
+          );
+          if (!complete || !canPersistChannelProfile(restoredResult)) {
+            clearLocalChannelPersistence();
+            return;
+          }
           setAnswers(restoredAnswers);
           setResult(restoredResult);
           setProfileSource("workspace");
@@ -739,9 +772,15 @@ export function ChannelQuestionnaire() {
     if (autoSaveAttempted.current || session.checking || !session.workspace || !result) return;
     const shouldSave = new URLSearchParams(window.location.search).get("save") === "1";
     if (!shouldSave) return;
+    if (!canPersistChannelProfile(result)) {
+      autoSaveAttempted.current = true;
+      clearLocalChannelPersistence();
+      removeSaveFlagFromUrl();
+      return;
+    }
     let pendingSave = false;
     try {
-      pendingSave = window.sessionStorage.getItem(`${CHANNEL_STORAGE_KEY}:pending-save`) === "1";
+      pendingSave = window.sessionStorage.getItem(CHANNEL_PENDING_SAVE_KEY) === "1";
     } catch {}
     if (!pendingSave) {
       autoSaveAttempted.current = true;
@@ -751,7 +790,7 @@ export function ChannelQuestionnaire() {
     autoSaveAttempted.current = true;
     void saveToWorkspace().finally(() => {
       try {
-        window.sessionStorage.removeItem(`${CHANNEL_STORAGE_KEY}:pending-save`);
+        window.sessionStorage.removeItem(CHANNEL_PENDING_SAVE_KEY);
       } catch {}
       removeSaveFlagFromUrl();
     });
@@ -816,17 +855,12 @@ export function ChannelQuestionnaire() {
     setProfileSource(null);
     setQuestionIndex(0);
     setStage("question");
-    try {
-      window.localStorage.removeItem(CHANNEL_STORAGE_KEY);
-    } catch {}
+    clearLocalChannelPersistence();
     window.scrollTo({ behavior: "auto", top: 0 });
   }
 
   function deleteLocal() {
-    try {
-      window.localStorage.removeItem(CHANNEL_STORAGE_KEY);
-      window.sessionStorage.removeItem(`${CHANNEL_STORAGE_KEY}:pending-save`);
-    } catch {}
+    clearLocalChannelPersistence();
     setAnswers(createEmptyChannelAnswers());
     setResult(null);
     setSaveStatus("idle");
