@@ -111,11 +111,18 @@ test("parseDecisionPayload normalizes action-based responses", () => {
   const payload = parseDecisionPayload({
     action: { id: "trim-aapl", title: "Trim AAPL", summary: "Reduce concentration" },
     userResponse: "Deferred",
+    signalRunIds: ["11111111-1111-4111-8111-111111111111"],
+    subjectType: "asset",
+    subjectKey: "AAPL",
+    asOfDate: "2026-08-01",
   });
 
   assert.equal(payload.userResponse, "deferred");
   assert.equal(payload.action.id, "trim-aapl");
   assert.equal(payload.action.title, "Trim AAPL");
+  assert.deepEqual(payload.signalRunIds, ["11111111-1111-4111-8111-111111111111"]);
+  assert.equal(payload.subjectType, "asset");
+  assert.equal(payload.asOfDate, "2026-08-01");
 });
 
 test("parseEscrowStagePayload requires a valid action object", () => {

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import SignalIntelligencePanel from "@/components/signal-intelligence-panel";
+import { useLanguagePreference } from "@/components/language-layer";
 import { useEffect, useMemo, useState } from "react";
 
 import { buildCompanyDecisionView } from "@/lib/company-decision-view";
@@ -231,6 +233,7 @@ function ClosurePlan({ items }) {
 
 export default function CompanyDecisionWorkspace({ initialView = null, publicMode = true, ticker, workspaceId = "" }) {
   const router = useRouter();
+  const { language } = useLanguagePreference();
   const symbol = cleanTicker(ticker);
   const [view, setView] = useState(initialView);
   const [pending, setPending] = useState(!initialView);
@@ -379,6 +382,8 @@ export default function CompanyDecisionWorkspace({ initialView = null, publicMod
           )}
         </div>
       </section>
+
+      {!publicMode && workspaceId ? <SignalIntelligencePanel focusAsset={symbol} language={language} workspaceId={workspaceId} /> : null}
 
       <ClosurePlan items={view.closurePlan} />
 
