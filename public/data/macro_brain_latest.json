@@ -1,23 +1,37 @@
 {
-  "generated_on": "2026-08-05T14:44:40.540015+00:00",
-  "run_date": "2026-08-05",
+  "generated_on": "2026-08-06T17:00:44.315112+00:00",
+  "run_date": "2026-08-06",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143420,
+  "observations": 143429,
   "series_count": 25,
   "impulse_changes": [
     {
       "series_id": "EEM",
-      "date": "2026-08-05T00:00:00",
-      "value": 65.83999633789062,
-      "transformed": -0.002427241278957659,
-      "momentum": -0.10485274373134246,
-      "impulse": -0.4712016425752381,
-      "momentum_z": -1.0093624963182293,
-      "impulse_z": -2.1803777082232414,
+      "date": "2026-08-06T00:00:00",
+      "value": 65.19999694824219,
+      "transformed": -0.007943889616863764,
+      "momentum": -0.14098007051762096,
+      "impulse": -0.5197130569987074,
+      "momentum_z": -1.1262918490494365,
+      "impulse_z": -2.3935277961073353,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Emerging markets ETF"
+    },
+    {
+      "series_id": "QQQ",
+      "date": "2026-08-06T00:00:00",
+      "value": 716.1799926757812,
+      "transformed": -0.0015626243272972573,
+      "momentum": 0.020567376267763393,
+      "impulse": -0.5921440975465799,
+      "momentum_z": -0.7294976769865777,
+      "impulse_z": -2.079236263292104,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Nasdaq 100 ETF"
     },
     {
       "series_id": "GC=F",
@@ -32,20 +46,6 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Gold futures"
-    },
-    {
-      "series_id": "QQQ",
-      "date": "2026-08-05T00:00:00",
-      "value": 723.1599731445312,
-      "transformed": -0.0009536941944450206,
-      "momentum": 0.0709319529968262,
-      "impulse": -0.5362269500517804,
-      "momentum_z": -0.5675883393563335,
-      "impulse_z": -1.8764455327012433,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Nasdaq 100 ETF"
     },
     {
       "series_id": "COP=X",
@@ -90,6 +90,20 @@
       "label": "USDCLP"
     },
     {
+      "series_id": "T10YIE",
+      "date": "2026-08-05T00:00:00",
+      "value": 2.22,
+      "transformed": -0.009999999999999787,
+      "momentum": -0.22999999999999998,
+      "impulse": -0.14000000000000012,
+      "momentum_z": -1.6862268986914866,
+      "impulse_z": -1.0960474841494714,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y breakeven"
+    },
+    {
       "series_id": "BRL=X",
       "date": "2026-06-10T00:00:00",
       "value": 5.190100193023682,
@@ -116,20 +130,6 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "High yield ETF"
-    },
-    {
-      "series_id": "T10YIE",
-      "date": "2026-08-04T00:00:00",
-      "value": 2.23,
-      "transformed": -0.040000000000000036,
-      "momentum": -0.2200000000000002,
-      "impulse": -0.13000000000000034,
-      "momentum_z": -1.6187778227438285,
-      "impulse_z": -1.0117361392148985,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y breakeven"
     },
     {
       "series_id": "^MOVE",
@@ -160,18 +160,18 @@
       "label": "Treasury General Account"
     },
     {
-      "series_id": "BAMLH0A0HYM2",
-      "date": "2026-08-03T00:00:00",
-      "value": 2.78,
-      "transformed": -0.07000000000000028,
-      "momentum": 0.029999999999999805,
-      "impulse": 0.4099999999999997,
-      "momentum_z": 0.41507123660098144,
-      "impulse_z": 0.8543549620036847,
-      "impulse_sign": 1,
+      "series_id": "WALCL",
+      "date": "2026-07-29T00:00:00",
+      "value": 6738190,
+      "transformed": 6738190,
+      "momentum": 38240,
+      "impulse": -22061,
+      "momentum_z": 0.8523352538906457,
+      "impulse_z": -0.7277305377746159,
+      "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US HY OAS"
+      "label": "Fed balance sheet"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": -1.064,
-        "impulse_z": -0.09995119234652244
+        "impulse": -3.219,
+        "impulse_z": -0.12614943264995035
       }
     }
   },
@@ -310,11 +310,11 @@
       "title": "BCCh corta antes de Fed",
       "status": "live",
       "confidence": 0.56,
-      "amb_display": 0.16666666666666666,
-      "confirmations": 2,
+      "amb_display": 0.5,
+      "confirmations": 1,
       "neutrals": 1,
-      "contradictions": 0,
-      "license_state": "LICENSED",
+      "contradictions": 1,
+      "license_state": "CONDITIONAL",
       "details": [
         {
           "series_id": "CLP=X",
@@ -327,8 +327,8 @@
           "series_id": "DGS2",
           "expected_sign": 1,
           "label": "US front-end still restrictive",
-          "observed_sign": 1,
-          "state": "confirming"
+          "observed_sign": -1,
+          "state": "contradicting"
         },
         {
           "series_id": "DFII10",
@@ -349,16 +349,6 @@
   ],
   "defeater_calendar": [
     {
-      "release": "China trade / credit impulse",
-      "timing": "next release",
-      "affected_theses": [
-        "T1",
-        "T2",
-        "T3"
-      ],
-      "license_value": 3.317
-    },
-    {
       "release": "US CPI",
       "timing": "next release",
       "affected_theses": [
@@ -366,7 +356,27 @@
         "T2",
         "T3"
       ],
-      "license_value": 3.083
+      "license_value": 3.75
+    },
+    {
+      "release": "China trade / credit impulse",
+      "timing": "next release",
+      "affected_theses": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "license_value": 3.65
+    },
+    {
+      "release": "US payrolls",
+      "timing": "Friday",
+      "affected_theses": [
+        "T1",
+        "T2",
+        "T3"
+      ],
+      "license_value": 3.175
     },
     {
       "release": "CFTC positioning",
@@ -378,16 +388,6 @@
       "license_value": 2.925
     },
     {
-      "release": "US payrolls",
-      "timing": "Friday",
-      "affected_theses": [
-        "T1",
-        "T2",
-        "T3"
-      ],
-      "license_value": 2.508
-    },
-    {
       "release": "Chile CPI / BCCh",
       "timing": "next release",
       "affected_theses": [
@@ -395,7 +395,7 @@
         "T2",
         "T3"
       ],
-      "license_value": 1.908
+      "license_value": 2.575
     }
   ],
   "psm": {
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "What would make you flip today rather than merely reduce confidence?"
+  "question_of_day": "Which market internal is disagreeing with your favorite macro story?"
 }
