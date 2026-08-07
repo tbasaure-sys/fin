@@ -24,6 +24,7 @@ import { parseResponse, useWorkspaceLiveData } from "@/components/workspace/live
 import styles from "@/components/workspace/shell.module.css";
 import PortfolioChat from "@/components/portfolio-chat";
 import EquityResearchPanel from "@/components/equity-research-panel";
+import SignalIntelligencePanel from "@/components/signal-intelligence-panel";
 import { useLanguagePreference } from "@/components/language-layer";
 import { InfoTip } from "@/components/ui/info-tip";
 import { PlainMetric } from "@/components/ui/plain-metric";
@@ -5614,6 +5615,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
   const [tradePreview, setTradePreview] = useState(null);
   const [holdingDraftError, setHoldingDraftError] = useState("");
   const [tradeInstructionError, setTradeInstructionError] = useState("");
+  const [visibleSignalRunIds, setVisibleSignalRunIds] = useState([]);
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -6144,6 +6146,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           body: JSON.stringify({
             action,
             stateSummary,
+            signalRunIds: visibleSignalRunIds,
           }),
         });
         return parseResponse(response);
@@ -6163,6 +6166,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
             action,
             userResponse,
             stateSummary,
+            signalRunIds: visibleSignalRunIds,
           }),
         });
         return parseResponse(response);
@@ -6181,6 +6185,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           body: JSON.stringify({
             ...payload,
             stateSummary,
+            signalRunIds: visibleSignalRunIds,
           }),
         });
         return parseResponse(response);
@@ -6466,6 +6471,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           </div>}
 
           <div className={styles.sectionAnchor} id={activeSectionConfig.id}>
+            <SignalIntelligencePanel language={language} onRunsVisible={setVisibleSignalRunIds} workspaceId={workspaceId} />
             {activeWorkspacePanels}
           </div>
         </section>

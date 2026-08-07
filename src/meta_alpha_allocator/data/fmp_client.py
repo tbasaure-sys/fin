@@ -274,6 +274,59 @@ class FMPClient:
             frame = frame.loc[frame["date"] <= pd.to_datetime(end_date)]
         return frame.reset_index(drop=True)
 
+    def get_historical_eod_bars(
+        self,
+        symbol: str,
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> pd.DataFrame:
+        """Return raw EOD OHLCV fields for point-in-time technical calculations.
+
+        ``get_historical_prices`` intentionally collapses adjusted close into
+        ``close`` for fundamental consumers. Signal Intelligence needs the raw
+        OHLC fields and the provider's adjustment separately so its normalizer
+        can apply one explicit, auditable policy.
+        """
+
+        cache_name = f"{symbol}_{start_date or 'min'}_{end_date or 'max'}"
+        cache_path = self._cache_path("eod_bars", cache_name, ".json")
+        requested_end = pd.to_datetime(end_date).date() if end_date else None
+        today_utc = datetime.now(timezone.utc).date()
+        needs_recent_data = requested_end is None or requested_end >= today_utc - timedelta(days=1)
+        ttl_seconds = _positive_int(self.price_cache_ttl_seconds, 1800) if needs_recent_data else None
+        if self._cache_is_fresh(cache_path, ttl_seconds):
+            payload = json.loads(cache_path.read_text(encoding="utf-8"))
+        else:
+            payload = self._get_response_json(
+                FMP_STABLE_BASE_URL,
+                "historical-price-eod/full",
+                {"symbol": symbol, "from": start_date, "to": end_date},
+            )
+            cache_path.write_text(json.dumps(payload), encoding="utf-8")
+            sleep(self.pause_seconds)
+        rows = payload if isinstance(payload, list) else payload.get("historical", []) if isinstance(payload, dict) else []
+        frame = pd.DataFrame(rows)
+        if frame.empty:
+            return pd.DataFrame(columns=["date", "open", "high", "low", "close", "adjClose", "volume"])
+        if "close" not in frame.columns and "price" in frame.columns:
+            frame["close"] = frame["price"]
+        for column in ("open", "high", "low"):
+            if column not in frame.columns and "close" in frame.columns:
+                frame[column] = frame["close"]
+        if "adjClose" not in frame.columns:
+            frame["adjClose"] = frame.get("close")
+        if "volume" not in frame.columns:
+            frame["volume"] = pd.NA
+        keep = ["date", "open", "high", "low", "close", "adjClose", "volume"]
+        frame = frame.loc[:, [column for column in keep if column in frame.columns]]
+        frame["date"] = pd.to_datetime(frame["date"], errors="coerce")
+        frame = frame.dropna(subset=["date"]).sort_values("date")
+        if start_date:
+            frame = frame.loc[frame["date"] >= pd.to_datetime(start_date)]
+        if end_date:
+            frame = frame.loc[frame["date"] <= pd.to_datetime(end_date)]
+        return frame.reset_index(drop=True)
+
     def get_profile(self, symbol: str) -> dict[str, Any]:
         payload = self._get_stable_json(
             "profile",
