@@ -1,33 +1,19 @@
 {
-  "generated_on": "2026-08-06T17:00:44.315112+00:00",
-  "run_date": "2026-08-06",
+  "generated_on": "2026-08-07T16:34:43.215205+00:00",
+  "run_date": "2026-08-07",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143429,
+  "observations": 143438,
   "series_count": 25,
   "impulse_changes": [
     {
-      "series_id": "EEM",
-      "date": "2026-08-06T00:00:00",
-      "value": 65.19999694824219,
-      "transformed": -0.007943889616863764,
-      "momentum": -0.14098007051762096,
-      "impulse": -0.5197130569987074,
-      "momentum_z": -1.1262918490494365,
-      "impulse_z": -2.3935277961073353,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Emerging markets ETF"
-    },
-    {
       "series_id": "QQQ",
-      "date": "2026-08-06T00:00:00",
-      "value": 716.1799926757812,
-      "transformed": -0.0015626243272972573,
-      "momentum": 0.020567376267763393,
-      "impulse": -0.5921440975465799,
-      "momentum_z": -0.7294976769865777,
-      "impulse_z": -2.079236263292104,
+      "date": "2026-08-07T00:00:00",
+      "value": 720.2050170898438,
+      "transformed": 0.007742970918393155,
+      "momentum": 0.0770568224035415,
+      "impulse": -0.5605186506162454,
+      "momentum_z": -0.543636844027906,
+      "impulse_z": -1.962447252548487,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -46,6 +32,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Gold futures"
+    },
+    {
+      "series_id": "EEM",
+      "date": "2026-08-07T00:00:00",
+      "value": 65.36000061035156,
+      "transformed": 0.005215596643540543,
+      "momentum": -0.007315936722914529,
+      "impulse": -0.3855845357148304,
+      "momentum_z": -0.6774471071851097,
+      "impulse_z": -1.8025351180284674,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Emerging markets ETF"
     },
     {
       "series_id": "COP=X",
@@ -90,20 +90,6 @@
       "label": "USDCLP"
     },
     {
-      "series_id": "T10YIE",
-      "date": "2026-08-05T00:00:00",
-      "value": 2.22,
-      "transformed": -0.009999999999999787,
-      "momentum": -0.22999999999999998,
-      "impulse": -0.14000000000000012,
-      "momentum_z": -1.6862268986914866,
-      "impulse_z": -1.0960474841494714,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y breakeven"
-    },
-    {
       "series_id": "BRL=X",
       "date": "2026-06-10T00:00:00",
       "value": 5.190100193023682,
@@ -146,32 +132,46 @@
       "label": "MOVE index"
     },
     {
+      "series_id": "T10YIE",
+      "date": "2026-08-06T00:00:00",
+      "value": 2.26,
+      "transformed": 0.03999999999999959,
+      "momentum": -0.2100000000000004,
+      "impulse": -0.10000000000000053,
+      "momentum_z": -1.5513287467961705,
+      "impulse_z": -0.7588021044111757,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "US 10Y breakeven"
+    },
+    {
       "series_id": "WTREGEN",
-      "date": "2026-07-29T00:00:00",
-      "value": 910776,
-      "transformed": 910776,
-      "momentum": -71153,
-      "impulse": -142131,
-      "momentum_z": -0.6866637898761939,
-      "impulse_z": -0.9467233504898805,
+      "date": "2026-08-05T00:00:00",
+      "value": 907324,
+      "transformed": 907324,
+      "momentum": 29563,
+      "impulse": -102298,
+      "momentum_z": 0.07325021206790625,
+      "impulse_z": -0.6632763011767597,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Treasury General Account"
     },
     {
-      "series_id": "WALCL",
-      "date": "2026-07-29T00:00:00",
-      "value": 6738190,
-      "transformed": 6738190,
-      "momentum": 38240,
-      "impulse": -22061,
-      "momentum_z": 0.8523352538906457,
-      "impulse_z": -0.7277305377746159,
-      "impulse_sign": -1,
+      "series_id": "TLT",
+      "date": "2026-06-10T00:00:00",
+      "value": 84.87010192871094,
+      "transformed": -0.0029401828815194264,
+      "momentum": -0.031543495387751364,
+      "impulse": 0.11921906424300843,
+      "momentum_z": -0.04658234903569037,
+      "impulse_z": 0.6431737548147669,
+      "impulse_sign": 1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Fed balance sheet"
+      "label": "Long Treasury ETF"
     }
   ],
   "liquidity": {
@@ -179,25 +179,25 @@
     "summary": "US net liquidity contraction is decelerating.",
     "components": {
       "us_net_liquidity": {
-        "latest": 5827411.424,
-        "momentum": 109391.0309999995,
-        "impulse": 120094.60400000028,
+        "latest": 5841241.35,
+        "momentum": 9498.136999999173,
+        "impulse": 110670.21899999958,
         "impulse_direction": "positive"
       },
       "WALCL": {
         "label": "Fed balance sheet",
-        "impulse": -22061,
-        "impulse_z": -0.7277305377746159
+        "impulse": 8369,
+        "impulse_z": 0.004011394474095135
       },
       "WTREGEN": {
         "label": "Treasury General Account",
-        "impulse": -142131,
-        "impulse_z": -0.9467233504898805
+        "impulse": -102298,
+        "impulse_z": -0.6632763011767597
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": -3.219,
-        "impulse_z": -0.12614943264995035
+        "impulse": -2.5439999999999996,
+        "impulse_z": -0.11291709595598395
       }
     }
   },
@@ -475,5 +475,5 @@
       ]
     }
   },
-  "question_of_day": "Which market internal is disagreeing with your favorite macro story?"
+  "question_of_day": "Where are you confusing a level with an impulse?"
 }

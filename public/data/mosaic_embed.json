@@ -1,30 +1,30 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-08-06T17:06:54.332621+00:00",
+  "generated_at": "2026-08-07T16:39:44.277845+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
     "files": 44,
-    "newest_cached_at": "2026-08-06T17:03:34.245886+00:00",
+    "newest_cached_at": "2026-08-07T16:35:07.467992+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
     "files": 24,
-    "newest_cached_at": "2026-08-06T17:06:54.327601+00:00",
+    "newest_cached_at": "2026-08-07T16:39:44.272259+00:00",
     "oldest_cached_at": "2026-07-30T11:47:24.483323+00:00"
   },
-  "global_disequilibrium_index": 38,
+  "global_disequilibrium_index": 37,
   "conflict_index": 67,
   "plain_summary": {
     "headline": "Top imbalance: grid transformers (bottleneck emerging).",
-    "pressure": "Pressure to inspect first: grid transformers at score 73.",
+    "pressure": "Pressure to inspect first: grid transformers at score 68.",
     "break": "Weakest demand read: property at score -41.",
     "warning": "Stale source warning: China real home prices, China nominal home prices."
   },
   "source_summary": {
     "headline": "9/9 markets use live public data.",
-    "series": "62 series used, 0 manual, 0 warming, 2 watch errors.",
-    "freshness": "Newest 2026-08-05; oldest used source age 217 days. FRED cache 44; public cache 24.",
+    "series": "61 series used, 0 manual, 0 warming, 3 watch errors.",
+    "freshness": "Newest 2026-08-06; oldest used source age 218 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -42,13 +42,13 @@
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
-        "latest_date": "2026-08-04"
+        "latest_date": "2026-08-06"
       },
       {
         "name": "China NBS",
         "kind": "official release",
         "url": "http://www.stats.gov.cn/english/PressRelease/",
-        "used_series": 9,
+        "used_series": 8,
         "warming_series": 0,
         "latest_date": "2026-07-16"
       },
@@ -58,7 +58,7 @@
         "url": "https://www.westmetall.com/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-08-05"
+        "latest_date": "2026-08-06"
       },
       {
         "name": "MetalCharts",
@@ -66,13 +66,13 @@
         "url": "https://metalcharts.org/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-08-03"
+        "latest_date": "2026-08-05"
       }
     ],
     "open_gaps": [
       {
         "market": "grid transformers",
-        "score": 73,
+        "score": 68,
         "missing_layer": "Transformer-specific lead times and utility/procurement order books",
         "next_connector": "Company transcripts, utility procurement notices and transformer-specific backlog disclosures"
       },
@@ -106,51 +106,44 @@
   "source_health": {
     "rows_with_sources": 9,
     "market_rows": 9,
-    "used_series": 62,
-    "ok_series": 62,
+    "used_series": 61,
+    "ok_series": 61,
     "error_series": 0,
     "watched_series": 67,
-    "watched_ok_series": 65,
+    "watched_ok_series": 64,
     "watched_warming_series": 0,
-    "watched_error_series": 2,
+    "watched_error_series": 3,
     "unused_error_series": [
       "NBS_CHINA_NEW_HOME_PRICE_YOY_INDEX",
-      "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX"
+      "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX",
+      "NBS_CHINA_ELECTRICAL_MACHINERY_YOY"
     ],
     "manual_series": 0,
-    "newest_date": "2026-08-05",
-    "oldest_age_days": 217
+    "newest_date": "2026-08-06",
+    "oldest_age_days": 218
   },
   "history_delta": {
-    "previous_gdi": 34,
-    "current_gdi": 38,
-    "delta": 4,
-    "direction": "up"
+    "previous_gdi": 38,
+    "current_gdi": 37,
+    "delta": -1,
+    "direction": "down"
   },
   "market_movers": [
     {
       "market_id": "eu_energy_gas",
       "item": "natural gas",
-      "score": 28,
-      "delta": 26,
-      "direction": "up",
+      "score": 19,
+      "delta": -9,
+      "direction": "down",
       "reading": "Bottleneck emerging"
     },
     {
       "market_id": "global_power_transformers",
       "item": "grid transformers",
-      "score": 73,
-      "delta": 5,
-      "direction": "up",
+      "score": 68,
+      "delta": -5,
+      "direction": "down",
       "reading": "Bottleneck emerging"
-    },
-    {
-      "market_id": "china_industrials_copper",
-      "item": "refined copper",
-      "score": 60,
-      "delta": 5,
-      "direction": "up",
-      "reading": "Shortage probable"
     }
   ],
   "markets": [
@@ -161,11 +154,11 @@
       "sector": "power",
       "link": "equipment",
       "item": "grid transformers",
-      "score": 73,
+      "score": 68,
       "reading": "Bottleneck emerging",
       "state": "bottleneck",
       "conflict": "aligned",
-      "data_quality": 86,
+      "data_quality": 85,
       "data_note": "8 lagged source(s); check before acting.",
       "use_with_caution": false,
       "why": "prices are moving faster; offset by demand is slowing.",
@@ -177,15 +170,15 @@
         "delivery_stress": 19,
         "capacity_tightness": 16,
         "trade_stress": 10,
-        "demand_slowdown": -11,
+        "demand_slowdown": -16,
         "inventory_buildup": -2,
         "margin_compression": -5
       },
       "market_delta": {
-        "previous_score": 68,
-        "current_score": 73,
-        "delta": 5,
-        "direction": "up",
+        "previous_score": 73,
+        "current_score": 68,
+        "delta": -5,
+        "direction": "down",
         "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Electrical equipment, copper, utilities capex.",
@@ -198,12 +191,11 @@
         "UTGPNO",
         "ATGPVS",
         "PCOPPUSDM",
-        "NBS_CHINA_ELECTRICAL_MACHINERY_YOY",
         "NBS_CHINA_ELECTRICITY_GENERATION_YOY"
       ],
       "source_coverage": {
         "mode": "live_proxy",
-        "connected_series": 10,
+        "connected_series": 9,
         "warming_series": 0,
         "connected_layers": [
           "capacity",
@@ -301,20 +293,20 @@
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
         "price_acceleration": 21,
-        "inventory_drawdown": 23,
+        "inventory_drawdown": 25,
         "delivery_stress": 14,
-        "capacity_tightness": 18,
+        "capacity_tightness": 16,
         "trade_stress": 22,
-        "demand_slowdown": -19,
-        "inventory_buildup": -10,
+        "demand_slowdown": -22,
+        "inventory_buildup": -7,
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 55,
+        "previous_score": 60,
         "current_score": 60,
-        "delta": 5,
-        "direction": "up",
-        "previous_reading": "Tightening"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Shortage probable"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
       "source_series": [
@@ -325,12 +317,11 @@
         "WESTMETALL_LME_CU_STOCK",
         "METALCHARTS_SHFE_CU_STOCK",
         "NBS_CHINA_NONFERROUS_OUTPUT_YOY",
-        "NBS_CHINA_ELECTRICAL_MACHINERY_YOY",
         "NBS_CHINA_ELECTRICITY_GENERATION_YOY"
       ],
       "source_coverage": {
         "mode": "live_proxy",
-        "connected_series": 9,
+        "connected_series": 8,
         "warming_series": 0,
         "connected_layers": [
           "capacity",
@@ -478,72 +469,6 @@
       "manual_impacts": []
     },
     {
-      "market_id": "eu_energy_gas",
-      "market": "Europe -> energy -> input -> natural gas",
-      "region": "Europe",
-      "sector": "energy",
-      "link": "input",
-      "item": "natural gas",
-      "score": 28,
-      "reading": "Bottleneck emerging",
-      "state": "bottleneck",
-      "conflict": "physical friction without price confirmation",
-      "data_quality": 93,
-      "data_note": "1 lagged source(s); check before acting.",
-      "use_with_caution": false,
-      "why": "inventories look tighter; offset by demand is slowing.",
-      "top_positive_driver": "inventory_drawdown",
-      "top_negative_driver": "demand_slowdown",
-      "driver_contributions": {
-        "price_acceleration": 23,
-        "inventory_drawdown": 25,
-        "delivery_stress": 20,
-        "capacity_tightness": 19,
-        "trade_stress": 15,
-        "demand_slowdown": -61,
-        "inventory_buildup": -5,
-        "margin_compression": -8
-      },
-      "market_delta": {
-        "previous_score": 2,
-        "current_score": 28,
-        "delta": 26,
-        "direction": "up",
-        "previous_reading": "Bottleneck emerging"
-      },
-      "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
-      "source_series": [
-        "PNGASEUUSDM",
-        "DHHNGSP",
-        "CH_ENERGYDASH_EU_GAS_STORAGE_PCT",
-        "CH_ENERGYDASH_TTF_FRONTMONTH",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_TOTAL",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_LNG",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_NORWAY",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_ALGERIA",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_RUSSIA",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_AZERBAIJAN",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_UK"
-      ],
-      "source_coverage": {
-        "mode": "live_proxy",
-        "connected_series": 11,
-        "warming_series": 0,
-        "connected_layers": [
-          "logistics",
-          "prices",
-          "quantities"
-        ],
-        "warming_layers": [],
-        "proxy_note": "Live FRED gas prices plus Swiss Energy Dashboard EU storage, TTF and route-level import-flow data",
-        "missing_layer": "LNG terminal utilization and pipeline capacity constraints",
-        "next_connector": "ENTSOG Transparency Platform / LNG terminal utilization feeds",
-        "connector_priority": "medium",
-        "manual_gap_filled": false
-      },
-      "manual_impacts": []
-    },
-    {
       "market_id": "us_retail_goods",
       "market": "US -> consumer -> retail -> durable goods",
       "region": "US",
@@ -656,6 +581,72 @@
         "proxy_note": "Live FRED uranium price plus US nuclear generation and official NBS China nuclear output; physical fuel-cycle layers missing",
         "missing_layer": "Enrichment capacity, contracting and utility inventory",
         "next_connector": "IAEA/WNA public reports and company disclosures",
+        "connector_priority": "medium",
+        "manual_gap_filled": false
+      },
+      "manual_impacts": []
+    },
+    {
+      "market_id": "eu_energy_gas",
+      "market": "Europe -> energy -> input -> natural gas",
+      "region": "Europe",
+      "sector": "energy",
+      "link": "input",
+      "item": "natural gas",
+      "score": 19,
+      "reading": "Bottleneck emerging",
+      "state": "bottleneck",
+      "conflict": "future shortage hidden",
+      "data_quality": 93,
+      "data_note": "1 lagged source(s); check before acting.",
+      "use_with_caution": false,
+      "why": "inventories look tighter; offset by demand is slowing.",
+      "top_positive_driver": "inventory_drawdown",
+      "top_negative_driver": "demand_slowdown",
+      "driver_contributions": {
+        "price_acceleration": 12,
+        "inventory_drawdown": 26,
+        "delivery_stress": 20,
+        "capacity_tightness": 19,
+        "trade_stress": 15,
+        "demand_slowdown": -61,
+        "inventory_buildup": -4,
+        "margin_compression": -8
+      },
+      "market_delta": {
+        "previous_score": 28,
+        "current_score": 19,
+        "delta": -9,
+        "direction": "down",
+        "previous_reading": "Bottleneck emerging"
+      },
+      "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
+      "source_series": [
+        "PNGASEUUSDM",
+        "DHHNGSP",
+        "CH_ENERGYDASH_EU_GAS_STORAGE_PCT",
+        "CH_ENERGYDASH_TTF_FRONTMONTH",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_TOTAL",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_LNG",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_NORWAY",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_ALGERIA",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_RUSSIA",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_AZERBAIJAN",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_UK"
+      ],
+      "source_coverage": {
+        "mode": "live_proxy",
+        "connected_series": 11,
+        "warming_series": 0,
+        "connected_layers": [
+          "logistics",
+          "prices",
+          "quantities"
+        ],
+        "warming_layers": [],
+        "proxy_note": "Live FRED gas prices plus Swiss Energy Dashboard EU storage, TTF and route-level import-flow data",
+        "missing_layer": "LNG terminal utilization and pipeline capacity constraints",
+        "next_connector": "ENTSOG Transparency Platform / LNG terminal utilization feeds",
         "connector_priority": "medium",
         "manual_gap_filled": false
       },
