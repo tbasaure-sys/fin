@@ -1,19 +1,19 @@
 {
-  "generated_on": "2026-08-07T16:34:43.215205+00:00",
+  "generated_on": "2026-08-08T19:46:40.591151+00:00",
   "run_date": "2026-08-07",
   "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-  "observations": 143438,
+  "observations": 143443,
   "series_count": 25,
   "impulse_changes": [
     {
       "series_id": "QQQ",
       "date": "2026-08-07T00:00:00",
-      "value": 720.2050170898438,
-      "transformed": 0.007742970918393155,
-      "momentum": 0.0770568224035415,
-      "impulse": -0.5605186506162454,
-      "momentum_z": -0.543636844027906,
-      "impulse_z": -1.962447252548487,
+      "value": 723.030029296875,
+      "transformed": 0.011657809076050185,
+      "momentum": 0.09271617503416962,
+      "impulse": -0.5448592979856173,
+      "momentum_z": -0.4921159452341418,
+      "impulse_z": -1.905724524629174,
       "impulse_sign": -1,
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
@@ -34,20 +34,6 @@
       "label": "Gold futures"
     },
     {
-      "series_id": "EEM",
-      "date": "2026-08-07T00:00:00",
-      "value": 65.36000061035156,
-      "transformed": 0.005215596643540543,
-      "momentum": -0.007315936722914529,
-      "impulse": -0.3855845357148304,
-      "momentum_z": -0.6774471071851097,
-      "impulse_z": -1.8025351180284674,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "Emerging markets ETF"
-    },
-    {
       "series_id": "COP=X",
       "date": "2026-06-11T00:00:00",
       "value": 3487.330078125,
@@ -60,6 +46,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "USDCOP"
+    },
+    {
+      "series_id": "EEM",
+      "date": "2026-08-07T00:00:00",
+      "value": 65.63999938964844,
+      "transformed": 0.009490393676909292,
+      "momentum": 0.009783251410560467,
+      "impulse": -0.3684853475813554,
+      "momentum_z": -0.6223951364996225,
+      "impulse_z": -1.7274758374723707,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "Emerging markets ETF"
     },
     {
       "series_id": "LQD",
@@ -132,20 +132,6 @@
       "label": "MOVE index"
     },
     {
-      "series_id": "T10YIE",
-      "date": "2026-08-06T00:00:00",
-      "value": 2.26,
-      "transformed": 0.03999999999999959,
-      "momentum": -0.2100000000000004,
-      "impulse": -0.10000000000000053,
-      "momentum_z": -1.5513287467961705,
-      "impulse_z": -0.7588021044111757,
-      "impulse_sign": -1,
-      "persistent_inflection": false,
-      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
-      "label": "US 10Y breakeven"
-    },
-    {
       "series_id": "WTREGEN",
       "date": "2026-08-05T00:00:00",
       "value": 907324,
@@ -172,6 +158,20 @@
       "persistent_inflection": false,
       "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
       "label": "Long Treasury ETF"
+    },
+    {
+      "series_id": "MXN=X",
+      "date": "2026-06-10T00:00:00",
+      "value": 17.45401954650879,
+      "transformed": -0.000783438252390134,
+      "momentum": -0.0862141983224749,
+      "impulse": -0.08588403504456465,
+      "momentum_z": -0.24198868745585037,
+      "impulse_z": -0.5584212462865383,
+      "impulse_sign": -1,
+      "persistent_inflection": false,
+      "model_version": "MACRO_BRAIN_v2_PHASE1_2026_06_11",
+      "label": "USDMXN"
     }
   ],
   "liquidity": {
@@ -196,8 +196,8 @@
       },
       "RRPONTSYD": {
         "label": "Overnight reverse repo",
-        "impulse": -2.5439999999999996,
-        "impulse_z": -0.11291709595598395
+        "impulse": -5.2940000000000005,
+        "impulse_z": -0.144711701380543
       }
     }
   },
