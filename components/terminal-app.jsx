@@ -120,6 +120,15 @@ const WORKSPACE_NAV = [
     title: "MOSAIC",
     body: "Macro Brain, global pressure, liquidity, theses, event risks, and sources.",
   },
+  {
+    id: "carteras",
+    href: "/app/carteras",
+    label: "Carteras",
+    priority: "Privado",
+    detail: "IGMAR · MOM · YO",
+    title: "Carteras",
+    body: "Resumen de las tres carteras y riesgos compartidos.",
+  },
 ];
 
 const WORKSPACE_NAV_ADVANCED = [];
