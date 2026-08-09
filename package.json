@@ -17,6 +17,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "perf:browser": "node scripts/performance-benchmark.mjs",
     "db:neon:apply": "node scripts/neon-apply.mjs",
     "db:holdings:bootstrap": "node scripts/bootstrap-neon-holdings.mjs",
     "db:runtime:seed": "node scripts/runtime-store-seed.mjs",

@@ -22,7 +22,7 @@ test("localized routes still persist an explicit supported language", () => {
 });
 
 test("the client preference layer applies the same route persistence rule", () => {
-  const source = fs.readFileSync(path.join(root, "components/language-layer.jsx"), "utf8");
+  const source = fs.readFileSync(path.join(root, "components/language-preference.js"), "utf8");
   assert.match(source, /shouldPersistQueryLocale/);
   assert.match(source, /pathname:\s*window\.location\.pathname/);
 });

@@ -577,7 +577,7 @@ test("the AURORA result UI communicates uncertainty, real pending fields, and as
   assert.match(source, /role="status"/);
   assert.match(source, /aria-live="polite"/);
   assert.match(source, /role="alert"/);
-  assert.match(languageSource, /path === "\/aurora"[^\n]*return null/);
+  assert.match(languageSource, /LANGUAGE_DOCK_OMITTED_PATHS[^\n]*\["\/", "\/channels", "\/aurora"\]/);
   assert.match(source, /Comparaci[oó]n preliminar con el precio del proveedor/);
   assert.match(source, /Conf[ií]rmalo con una fuente independiente/);
   assert.match(source, /function humanizeSourceAuthority/);
