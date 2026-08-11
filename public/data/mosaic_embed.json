@@ -1,16 +1,16 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-08-10T11:47:59.684599+00:00",
+  "generated_at": "2026-08-11T14:45:12.704039+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
     "files": 44,
-    "newest_cached_at": "2026-08-10T11:45:38.884660+00:00",
+    "newest_cached_at": "2026-08-11T14:42:41.904396+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
     "files": 24,
-    "newest_cached_at": "2026-08-10T11:47:59.682880+00:00",
+    "newest_cached_at": "2026-08-11T14:45:12.691619+00:00",
     "oldest_cached_at": "2026-07-30T11:47:24.483323+00:00"
   },
   "global_disequilibrium_index": 38,
@@ -24,7 +24,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "62 series used, 0 manual, 0 warming, 2 watch errors.",
-    "freshness": "Newest 2026-08-07; oldest used source age 221 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-08-10; oldest used source age 222 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -42,7 +42,7 @@
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
-        "latest_date": "2026-08-05"
+        "latest_date": "2026-08-09"
       },
       {
         "name": "China NBS",
@@ -58,7 +58,7 @@
         "url": "https://www.westmetall.com/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-08-07"
+        "latest_date": "2026-08-10"
       },
       {
         "name": "MetalCharts",
@@ -66,7 +66,7 @@
         "url": "https://metalcharts.org/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-08-05"
+        "latest_date": "2026-08-10"
       }
     ],
     "open_gaps": [
@@ -78,7 +78,7 @@
       },
       {
         "market": "refined copper",
-        "score": 63,
+        "score": 64,
         "missing_layer": "China end-use granularity and smelter margins",
         "next_connector": "Grid capex, power-equipment output, smelter TC/RC and customs detail"
       },
@@ -118,8 +118,8 @@
       "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX"
     ],
     "manual_series": 0,
-    "newest_date": "2026-08-07",
-    "oldest_age_days": 221
+    "newest_date": "2026-08-10",
+    "oldest_age_days": 222
   },
   "history_delta": {
     "previous_gdi": 38,
@@ -131,10 +131,18 @@
     {
       "market_id": "eu_energy_gas",
       "item": "natural gas",
-      "score": 21,
-      "delta": 3,
-      "direction": "up",
+      "score": 19,
+      "delta": -2,
+      "direction": "down",
       "reading": "Bottleneck emerging"
+    },
+    {
+      "market_id": "china_industrials_copper",
+      "item": "refined copper",
+      "score": 64,
+      "delta": 1,
+      "direction": "up",
+      "reading": "Shortage probable"
     }
   ],
   "markets": [
@@ -211,7 +219,7 @@
       "sector": "industrials",
       "link": "upstream",
       "item": "refined copper",
-      "score": 63,
+      "score": 64,
       "reading": "Shortage probable",
       "state": "shortage",
       "conflict": "aligned",
@@ -223,7 +231,7 @@
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
         "price_acceleration": 21,
-        "inventory_drawdown": 24,
+        "inventory_drawdown": 25,
         "delivery_stress": 14,
         "capacity_tightness": 18,
         "trade_stress": 22,
@@ -233,9 +241,9 @@
       },
       "market_delta": {
         "previous_score": 63,
-        "current_score": 63,
-        "delta": 0,
-        "direction": "flat",
+        "current_score": 64,
+        "delta": 1,
+        "direction": "up",
         "previous_reading": "Shortage probable"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
@@ -462,72 +470,6 @@
       "manual_impacts": []
     },
     {
-      "market_id": "eu_energy_gas",
-      "market": "Europe -> energy -> input -> natural gas",
-      "region": "Europe",
-      "sector": "energy",
-      "link": "input",
-      "item": "natural gas",
-      "score": 21,
-      "reading": "Bottleneck emerging",
-      "state": "bottleneck",
-      "conflict": "physical friction without price confirmation",
-      "data_quality": 93,
-      "data_note": "1 lagged source(s); check before acting.",
-      "use_with_caution": false,
-      "why": "inventories look tighter; offset by demand is slowing.",
-      "top_positive_driver": "inventory_drawdown",
-      "top_negative_driver": "demand_slowdown",
-      "driver_contributions": {
-        "price_acceleration": 14,
-        "inventory_drawdown": 26,
-        "delivery_stress": 20,
-        "capacity_tightness": 19,
-        "trade_stress": 15,
-        "demand_slowdown": -61,
-        "inventory_buildup": -5,
-        "margin_compression": -7
-      },
-      "market_delta": {
-        "previous_score": 18,
-        "current_score": 21,
-        "delta": 3,
-        "direction": "up",
-        "previous_reading": "Bottleneck emerging"
-      },
-      "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
-      "source_series": [
-        "PNGASEUUSDM",
-        "DHHNGSP",
-        "CH_ENERGYDASH_EU_GAS_STORAGE_PCT",
-        "CH_ENERGYDASH_TTF_FRONTMONTH",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_TOTAL",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_LNG",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_NORWAY",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_ALGERIA",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_RUSSIA",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_AZERBAIJAN",
-        "CH_ENERGYDASH_EU_GAS_IMPORTS_UK"
-      ],
-      "source_coverage": {
-        "mode": "live_proxy",
-        "connected_series": 11,
-        "warming_series": 0,
-        "connected_layers": [
-          "logistics",
-          "prices",
-          "quantities"
-        ],
-        "warming_layers": [],
-        "proxy_note": "Live FRED gas prices plus Swiss Energy Dashboard EU storage, TTF and route-level import-flow data",
-        "missing_layer": "LNG terminal utilization and pipeline capacity constraints",
-        "next_connector": "ENTSOG Transparency Platform / LNG terminal utilization feeds",
-        "connector_priority": "medium",
-        "manual_gap_filled": false
-      },
-      "manual_impacts": []
-    },
-    {
       "market_id": "us_retail_goods",
       "market": "US -> consumer -> retail -> durable goods",
       "region": "US",
@@ -640,6 +582,72 @@
         "proxy_note": "Live FRED uranium price plus US nuclear generation and official NBS China nuclear output; physical fuel-cycle layers missing",
         "missing_layer": "Enrichment capacity, contracting and utility inventory",
         "next_connector": "IAEA/WNA public reports and company disclosures",
+        "connector_priority": "medium",
+        "manual_gap_filled": false
+      },
+      "manual_impacts": []
+    },
+    {
+      "market_id": "eu_energy_gas",
+      "market": "Europe -> energy -> input -> natural gas",
+      "region": "Europe",
+      "sector": "energy",
+      "link": "input",
+      "item": "natural gas",
+      "score": 19,
+      "reading": "Bottleneck emerging",
+      "state": "bottleneck",
+      "conflict": "future shortage hidden",
+      "data_quality": 93,
+      "data_note": "1 lagged source(s); check before acting.",
+      "use_with_caution": false,
+      "why": "inventories look tighter; offset by demand is slowing.",
+      "top_positive_driver": "inventory_drawdown",
+      "top_negative_driver": "demand_slowdown",
+      "driver_contributions": {
+        "price_acceleration": 12,
+        "inventory_drawdown": 26,
+        "delivery_stress": 20,
+        "capacity_tightness": 19,
+        "trade_stress": 15,
+        "demand_slowdown": -61,
+        "inventory_buildup": -4,
+        "margin_compression": -8
+      },
+      "market_delta": {
+        "previous_score": 21,
+        "current_score": 19,
+        "delta": -2,
+        "direction": "down",
+        "previous_reading": "Bottleneck emerging"
+      },
+      "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
+      "source_series": [
+        "PNGASEUUSDM",
+        "DHHNGSP",
+        "CH_ENERGYDASH_EU_GAS_STORAGE_PCT",
+        "CH_ENERGYDASH_TTF_FRONTMONTH",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_TOTAL",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_LNG",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_NORWAY",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_ALGERIA",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_RUSSIA",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_AZERBAIJAN",
+        "CH_ENERGYDASH_EU_GAS_IMPORTS_UK"
+      ],
+      "source_coverage": {
+        "mode": "live_proxy",
+        "connected_series": 11,
+        "warming_series": 0,
+        "connected_layers": [
+          "logistics",
+          "prices",
+          "quantities"
+        ],
+        "warming_layers": [],
+        "proxy_note": "Live FRED gas prices plus Swiss Energy Dashboard EU storage, TTF and route-level import-flow data",
+        "missing_layer": "LNG terminal utilization and pipeline capacity constraints",
+        "next_connector": "ENTSOG Transparency Platform / LNG terminal utilization feeds",
         "connector_priority": "medium",
         "manual_gap_filled": false
       },
