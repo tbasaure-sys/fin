@@ -1,30 +1,30 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-08-14T14:51:27.697090+00:00",
+  "generated_at": "2026-08-15T11:47:26.818835+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
     "files": 44,
-    "newest_cached_at": "2026-08-12T11:47:46.273098+00:00",
+    "newest_cached_at": "2026-08-15T11:45:23.877424+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
     "files": 24,
-    "newest_cached_at": "2026-08-12T11:50:24.385945+00:00",
+    "newest_cached_at": "2026-08-15T11:47:26.816830+00:00",
     "oldest_cached_at": "2026-07-30T11:47:24.483323+00:00"
   },
-  "global_disequilibrium_index": 38,
+  "global_disequilibrium_index": 35,
   "conflict_index": 78,
   "plain_summary": {
-    "headline": "Top imbalance: grid transformers (bottleneck emerging).",
-    "pressure": "Pressure to inspect first: grid transformers at score 69.",
-    "break": "Weakest demand read: property at score -53.",
+    "headline": "Top imbalance: grid transformers (shortage probable).",
+    "pressure": "Pressure to inspect first: grid transformers at score 79.",
+    "break": "Weakest demand read: property at score -41.",
     "warning": "Stale source warning: China real home prices, China nominal home prices."
   },
   "source_summary": {
     "headline": "9/9 markets use live public data.",
-    "series": "53 series used, 0 manual, 0 warming, 11 watch errors.",
-    "freshness": "Newest 2026-08-11; oldest used source age 225 days. FRED cache 44; public cache 24.",
+    "series": "62 series used, 0 manual, 0 warming, 2 watch errors.",
+    "freshness": "Newest 2026-08-14; oldest used source age 226 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -34,7 +34,7 @@
         "url": "https://fred.stlouisfed.org/",
         "used_series": 42,
         "warming_series": 0,
-        "latest_date": "2026-08-03"
+        "latest_date": "2026-08-11"
       },
       {
         "name": "Swiss Energy Dashboard",
@@ -42,7 +42,15 @@
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
-        "latest_date": "2026-08-11"
+        "latest_date": "2026-08-12"
+      },
+      {
+        "name": "China NBS",
+        "kind": "official release",
+        "url": "http://www.stats.gov.cn/english/PressRelease/",
+        "used_series": 9,
+        "warming_series": 0,
+        "latest_date": "2026-07-16"
       },
       {
         "name": "Westmetall",
@@ -50,7 +58,7 @@
         "url": "https://www.westmetall.com/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-08-11"
+        "latest_date": "2026-08-14"
       },
       {
         "name": "MetalCharts",
@@ -58,39 +66,39 @@
         "url": "https://metalcharts.org/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-08-10"
+        "latest_date": "2026-08-12"
       }
     ],
     "open_gaps": [
       {
         "market": "grid transformers",
-        "score": 69,
+        "score": 79,
         "missing_layer": "Transformer-specific lead times and utility/procurement order books",
         "next_connector": "Company transcripts, utility procurement notices and transformer-specific backlog disclosures"
       },
       {
         "market": "container shipping",
-        "score": 63,
+        "score": 77,
         "missing_layer": "Route-specific Asia-Europe freight-rate history",
         "next_connector": "Freightos FBX11/FBX13 public current values; local history collector warming"
       },
       {
         "market": "refined copper",
-        "score": 54,
+        "score": 47,
         "missing_layer": "China end-use granularity and smelter margins",
         "next_connector": "Grid capex, power-equipment output, smelter TC/RC and customs detail"
       },
       {
         "market": "property",
-        "score": -53,
+        "score": -41,
         "missing_layer": "City-level inventory and developer balance-sheet detail",
         "next_connector": "City inventory releases / developer financing mix / listed developer disclosures"
       },
       {
-        "market": "fertilizer and shipping",
-        "score": 36,
-        "missing_layer": "LatAm physical import volumes and local fertilizer availability",
-        "next_connector": "UN Comtrade bulk downloads / national customs releases"
+        "market": "natural gas",
+        "score": 23,
+        "missing_layer": "LNG terminal utilization and pipeline capacity constraints",
+        "next_connector": "ENTSOG Transparency Platform / LNG terminal utilization feeds"
       }
     ],
     "high_priority_gaps": []
@@ -98,68 +106,67 @@
   "source_health": {
     "rows_with_sources": 9,
     "market_rows": 9,
-    "used_series": 53,
-    "ok_series": 53,
+    "used_series": 62,
+    "ok_series": 62,
     "error_series": 0,
     "watched_series": 67,
-    "watched_ok_series": 56,
+    "watched_ok_series": 65,
     "watched_warming_series": 0,
-    "watched_error_series": 11,
+    "watched_error_series": 2,
     "unused_error_series": [
-      "NBS_CHINA_PROPERTY_SOLD_YOY",
-      "NBS_CHINA_PROPERTY_STARTS_YOY",
-      "NBS_CHINA_PROPERTY_FOR_SALE_YOY",
-      "NBS_CHINA_PROPERTY_COMPLETED_YOY",
-      "NBS_CHINA_PROPERTY_FUNDS_YOY",
       "NBS_CHINA_NEW_HOME_PRICE_YOY_INDEX",
-      "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX",
-      "NBS_CHINA_NONFERROUS_OUTPUT_YOY",
-      "NBS_CHINA_ELECTRICAL_MACHINERY_YOY",
-      "NBS_CHINA_ELECTRICITY_GENERATION_YOY",
-      "NBS_CHINA_NUCLEAR_POWER_YOY"
+      "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX"
     ],
     "manual_series": 0,
-    "newest_date": "2026-08-11",
-    "oldest_age_days": 225
+    "newest_date": "2026-08-14",
+    "oldest_age_days": 226
   },
   "history_delta": {
-    "previous_gdi": 39,
-    "current_gdi": 38,
-    "delta": -1,
+    "previous_gdi": 38,
+    "current_gdi": 35,
+    "delta": -3,
     "direction": "down"
   },
   "market_movers": [
     {
-      "market_id": "china_property",
-      "item": "property",
-      "score": -53,
-      "delta": -12,
+      "market_id": "latam_ag_fertilizer",
+      "item": "fertilizer and shipping",
+      "score": 13,
+      "delta": -23,
       "direction": "down",
-      "reading": "Demand break probable"
+      "reading": "Bottleneck emerging"
     },
     {
-      "market_id": "china_industrials_copper",
-      "item": "refined copper",
-      "score": 54,
-      "delta": -9,
-      "direction": "down",
-      "reading": "Tightening"
+      "market_id": "asia_europe_shipping",
+      "item": "container shipping",
+      "score": 77,
+      "delta": 14,
+      "direction": "up",
+      "reading": "Bottleneck emerging"
     },
     {
-      "market_id": "global_uranium",
-      "item": "uranium enrichment",
-      "score": 15,
-      "delta": -6,
+      "market_id": "us_retail_goods",
+      "item": "durable goods",
+      "score": 7,
+      "delta": -14,
       "direction": "down",
       "reading": "Mixed"
     },
     {
+      "market_id": "china_property",
+      "item": "property",
+      "score": -41,
+      "delta": 12,
+      "direction": "up",
+      "reading": "Loosening"
+    },
+    {
       "market_id": "global_power_transformers",
       "item": "grid transformers",
-      "score": 69,
-      "delta": -4,
-      "direction": "down",
-      "reading": "Bottleneck emerging"
+      "score": 79,
+      "delta": 10,
+      "direction": "up",
+      "reading": "Shortage probable"
     }
   ],
   "markets": [
@@ -170,31 +177,31 @@
       "sector": "power",
       "link": "equipment",
       "item": "grid transformers",
-      "score": 69,
-      "reading": "Bottleneck emerging",
-      "state": "bottleneck",
+      "score": 79,
+      "reading": "Shortage probable",
+      "state": "shortage",
       "conflict": "aligned",
-      "data_quality": 84,
-      "data_note": "8 lagged source(s); check before acting.",
+      "data_quality": 88,
+      "data_note": "6 lagged source(s); check before acting.",
       "use_with_caution": false,
       "why": "prices are moving faster; offset by demand is slowing.",
       "top_positive_driver": "price_acceleration",
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
-        "price_acceleration": 29,
-        "inventory_drawdown": 17,
+        "price_acceleration": 32,
+        "inventory_drawdown": 18,
         "delivery_stress": 19,
-        "capacity_tightness": 16,
+        "capacity_tightness": 17,
         "trade_stress": 10,
-        "demand_slowdown": -15,
-        "inventory_buildup": -2,
+        "demand_slowdown": -11,
+        "inventory_buildup": -1,
         "margin_compression": -5
       },
       "market_delta": {
-        "previous_score": 73,
-        "current_score": 69,
-        "delta": -4,
-        "direction": "down",
+        "previous_score": 69,
+        "current_score": 79,
+        "delta": 10,
+        "direction": "up",
         "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Electrical equipment, copper, utilities capex.",
@@ -206,11 +213,13 @@
         "A35SIS",
         "UTGPNO",
         "ATGPVS",
-        "PCOPPUSDM"
+        "PCOPPUSDM",
+        "NBS_CHINA_ELECTRICAL_MACHINERY_YOY",
+        "NBS_CHINA_ELECTRICITY_GENERATION_YOY"
       ],
       "source_coverage": {
         "mode": "live_proxy",
-        "connected_series": 8,
+        "connected_series": 10,
         "warming_series": 0,
         "connected_layers": [
           "capacity",
@@ -234,31 +243,31 @@
       "sector": "logistics",
       "link": "transport",
       "item": "container shipping",
-      "score": 63,
-      "reading": "Tightening",
-      "state": "tightening",
+      "score": 77,
+      "reading": "Bottleneck emerging",
+      "state": "bottleneck",
       "conflict": "aligned",
-      "data_quality": 86,
-      "data_note": "7 lagged source(s); check before acting.",
+      "data_quality": 91,
+      "data_note": "3 lagged source(s); check before acting.",
       "use_with_caution": false,
       "why": "prices are moving faster; offset by margins look pressured.",
       "top_positive_driver": "price_acceleration",
       "top_negative_driver": "margin_compression",
       "driver_contributions": {
-        "price_acceleration": 23,
+        "price_acceleration": 32,
         "inventory_drawdown": 9,
-        "delivery_stress": 17,
-        "capacity_tightness": 11,
-        "trade_stress": 13,
-        "demand_slowdown": -4,
-        "inventory_buildup": -1,
-        "margin_compression": -5
+        "delivery_stress": 21,
+        "capacity_tightness": 16,
+        "trade_stress": 14,
+        "demand_slowdown": -6,
+        "inventory_buildup": -2,
+        "margin_compression": -7
       },
       "market_delta": {
         "previous_score": 63,
-        "current_score": 63,
-        "delta": 0,
-        "direction": "flat",
+        "current_score": 77,
+        "delta": 14,
+        "direction": "up",
         "previous_reading": "Tightening"
       },
       "research_angle": "Retail import costs, European goods inflation, shipping equities.",
@@ -296,32 +305,32 @@
       "sector": "industrials",
       "link": "upstream",
       "item": "refined copper",
-      "score": 54,
+      "score": 47,
       "reading": "Tightening",
       "state": "tightening",
       "conflict": "mixed",
-      "data_quality": 87,
-      "data_note": "4 lagged source(s); check before acting.",
+      "data_quality": 90,
+      "data_note": "3 lagged source(s); check before acting.",
       "use_with_caution": false,
-      "why": "inventories look tighter; offset by demand is slowing.",
-      "top_positive_driver": "inventory_drawdown",
-      "top_negative_driver": "demand_slowdown",
+      "why": "prices are moving faster; offset by inventory is building.",
+      "top_positive_driver": "price_acceleration",
+      "top_negative_driver": "inventory_buildup",
       "driver_contributions": {
-        "price_acceleration": 21,
-        "inventory_drawdown": 24,
-        "delivery_stress": 13,
-        "capacity_tightness": 15,
+        "price_acceleration": 23,
+        "inventory_drawdown": 17,
+        "delivery_stress": 15,
+        "capacity_tightness": 18,
         "trade_stress": 22,
-        "demand_slowdown": -24,
-        "inventory_buildup": -8,
+        "demand_slowdown": -19,
+        "inventory_buildup": -20,
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 63,
-        "current_score": 54,
-        "delta": -9,
+        "previous_score": 54,
+        "current_score": 47,
+        "delta": -7,
         "direction": "down",
-        "previous_reading": "Shortage probable"
+        "previous_reading": "Tightening"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
       "source_series": [
@@ -330,11 +339,14 @@
         "INDPRO",
         "WPU102",
         "WESTMETALL_LME_CU_STOCK",
-        "METALCHARTS_SHFE_CU_STOCK"
+        "METALCHARTS_SHFE_CU_STOCK",
+        "NBS_CHINA_NONFERROUS_OUTPUT_YOY",
+        "NBS_CHINA_ELECTRICAL_MACHINERY_YOY",
+        "NBS_CHINA_ELECTRICITY_GENERATION_YOY"
       ],
       "source_coverage": {
         "mode": "live_proxy",
-        "connected_series": 6,
+        "connected_series": 9,
         "warming_series": 0,
         "connected_layers": [
           "capacity",
@@ -358,11 +370,11 @@
       "sector": "construction",
       "link": "final demand",
       "item": "property",
-      "score": -53,
-      "reading": "Demand break probable",
-      "state": "demand_break",
+      "score": -41,
+      "reading": "Loosening",
+      "state": "loosening",
       "conflict": "mixed",
-      "data_quality": 71,
+      "data_quality": 90,
       "data_note": "2 stale source(s); read as directional.",
       "use_with_caution": true,
       "why": "demand is slowing; partly offset by prices are moving faster.",
@@ -371,103 +383,45 @@
       "driver_contributions": {
         "price_acceleration": 14,
         "inventory_drawdown": 1,
-        "delivery_stress": 10,
-        "capacity_tightness": 3,
+        "delivery_stress": 13,
+        "capacity_tightness": 1,
         "trade_stress": 6,
-        "demand_slowdown": -36,
-        "inventory_buildup": -32,
-        "margin_compression": -19
+        "demand_slowdown": -38,
+        "inventory_buildup": -20,
+        "margin_compression": -18
       },
       "market_delta": {
-        "previous_score": -41,
-        "current_score": -53,
-        "delta": -12,
-        "direction": "down",
-        "previous_reading": "Loosening"
+        "previous_score": -53,
+        "current_score": -41,
+        "delta": 12,
+        "direction": "up",
+        "previous_reading": "Demand break probable"
       },
       "research_angle": "Iron ore, steel, banks, local government finance.",
       "source_series": [
         "QCNR628BIS",
         "QCNN628BIS",
-        "PIORECRUSDM"
+        "PIORECRUSDM",
+        "NBS_CHINA_PROPERTY_SOLD_YOY",
+        "NBS_CHINA_PROPERTY_STARTS_YOY",
+        "NBS_CHINA_PROPERTY_FOR_SALE_YOY",
+        "NBS_CHINA_PROPERTY_COMPLETED_YOY",
+        "NBS_CHINA_PROPERTY_FUNDS_YOY"
       ],
       "source_coverage": {
         "mode": "live_proxy",
-        "connected_series": 3,
+        "connected_series": 8,
         "warming_series": 0,
         "connected_layers": [
-          "prices"
+          "capacity",
+          "demand",
+          "prices",
+          "quantities"
         ],
         "warming_layers": [],
         "proxy_note": "Official NBS property prices, sales, starts, completions, funding and inventory plus iron-ore proxy",
         "missing_layer": "City-level inventory and developer balance-sheet detail",
         "next_connector": "City inventory releases / developer financing mix / listed developer disclosures",
-        "connector_priority": "medium",
-        "manual_gap_filled": false
-      },
-      "manual_impacts": []
-    },
-    {
-      "market_id": "latam_ag_fertilizer",
-      "market": "LatAm -> agriculture -> logistics -> fertilizer and shipping",
-      "region": "LatAm",
-      "sector": "agriculture",
-      "link": "logistics",
-      "item": "fertilizer and shipping",
-      "score": 36,
-      "reading": "Bottleneck emerging",
-      "state": "bottleneck",
-      "conflict": "mixed",
-      "data_quality": 84,
-      "data_note": "10 lagged source(s); check before acting.",
-      "use_with_caution": false,
-      "why": "prices are moving faster; offset by demand is slowing.",
-      "top_positive_driver": "price_acceleration",
-      "top_negative_driver": "demand_slowdown",
-      "driver_contributions": {
-        "price_acceleration": 33,
-        "inventory_drawdown": 19,
-        "delivery_stress": 19,
-        "capacity_tightness": 26,
-        "trade_stress": 14,
-        "demand_slowdown": -54,
-        "inventory_buildup": -3,
-        "margin_compression": -18
-      },
-      "market_delta": {
-        "previous_score": 36,
-        "current_score": 36,
-        "delta": 0,
-        "direction": "flat",
-        "previous_reading": "Bottleneck emerging"
-      },
-      "research_angle": "Food inflation, farm margins, EM import bills.",
-      "source_series": [
-        "PCU3253132531",
-        "WPU0652",
-        "PCU325311325311",
-        "PCU325312325312",
-        "PCU325312325312P",
-        "IR12510",
-        "IP31",
-        "FRGSHPUSM649NCIS",
-        "FRGEXPUSM649NCIS",
-        "PCU483111483111"
-      ],
-      "source_coverage": {
-        "mode": "live_proxy",
-        "connected_series": 10,
-        "warming_series": 0,
-        "connected_layers": [
-          "capacity",
-          "logistics",
-          "prices",
-          "quantities"
-        ],
-        "warming_layers": [],
-        "proxy_note": "Live FRED fertilizer nutrient, import-price and freight proxy; LatAm physical import layer missing",
-        "missing_layer": "LatAm physical import volumes and local fertilizer availability",
-        "next_connector": "UN Comtrade bulk downloads / national customs releases",
         "connector_priority": "medium",
         "manual_gap_filled": false
       },
@@ -480,7 +434,7 @@
       "sector": "energy",
       "link": "input",
       "item": "natural gas",
-      "score": 29,
+      "score": 23,
       "reading": "Bottleneck emerging",
       "state": "bottleneck",
       "conflict": "physical friction without price confirmation",
@@ -492,19 +446,19 @@
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
         "price_acceleration": 23,
-        "inventory_drawdown": 26,
+        "inventory_drawdown": 24,
         "delivery_stress": 20,
-        "capacity_tightness": 19,
+        "capacity_tightness": 18,
         "trade_stress": 15,
         "demand_slowdown": -61,
-        "inventory_buildup": -5,
+        "inventory_buildup": -8,
         "margin_compression": -8
       },
       "market_delta": {
         "previous_score": 29,
-        "current_score": 29,
-        "delta": 0,
-        "direction": "flat",
+        "current_score": 23,
+        "delta": -6,
+        "direction": "down",
         "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
@@ -540,37 +494,220 @@
       "manual_impacts": []
     },
     {
+      "market_id": "global_uranium",
+      "market": "Global -> energy -> upstream -> uranium enrichment",
+      "region": "Global",
+      "sector": "energy",
+      "link": "upstream",
+      "item": "uranium enrichment",
+      "score": 21,
+      "reading": "Mixed",
+      "state": "mixed",
+      "conflict": "mixed",
+      "data_quality": 81,
+      "data_note": "2 lagged source(s); check before acting.",
+      "use_with_caution": false,
+      "why": "capacity looks stretched; offset by demand is slowing.",
+      "top_positive_driver": "capacity_tightness",
+      "top_negative_driver": "demand_slowdown",
+      "driver_contributions": {
+        "price_acceleration": 4,
+        "inventory_drawdown": 19,
+        "delivery_stress": 12,
+        "capacity_tightness": 21,
+        "trade_stress": 7,
+        "demand_slowdown": -32,
+        "inventory_buildup": -4,
+        "margin_compression": -6
+      },
+      "market_delta": {
+        "previous_score": 15,
+        "current_score": 21,
+        "delta": 6,
+        "direction": "up",
+        "previous_reading": "Mixed"
+      },
+      "research_angle": "Miners, enrichers, utilities fuel contracts.",
+      "source_series": [
+        "PURANUSDM",
+        "IPN221113S",
+        "NBS_CHINA_NUCLEAR_POWER_YOY"
+      ],
+      "source_coverage": {
+        "mode": "live_proxy",
+        "connected_series": 3,
+        "warming_series": 0,
+        "connected_layers": [
+          "demand",
+          "prices"
+        ],
+        "warming_layers": [],
+        "proxy_note": "Live FRED uranium price plus US nuclear generation and official NBS China nuclear output; physical fuel-cycle layers missing",
+        "missing_layer": "Enrichment capacity, contracting and utility inventory",
+        "next_connector": "IAEA/WNA public reports and company disclosures",
+        "connector_priority": "medium",
+        "manual_gap_filled": false
+      },
+      "manual_impacts": []
+    },
+    {
+      "market_id": "latam_ag_fertilizer",
+      "market": "LatAm -> agriculture -> logistics -> fertilizer and shipping",
+      "region": "LatAm",
+      "sector": "agriculture",
+      "link": "logistics",
+      "item": "fertilizer and shipping",
+      "score": 13,
+      "reading": "Bottleneck emerging",
+      "state": "bottleneck",
+      "conflict": "mixed",
+      "data_quality": 90,
+      "data_note": "4 lagged source(s); check before acting.",
+      "use_with_caution": false,
+      "why": "capacity looks stretched; offset by demand is slowing.",
+      "top_positive_driver": "capacity_tightness",
+      "top_negative_driver": "demand_slowdown",
+      "driver_contributions": {
+        "price_acceleration": 24,
+        "inventory_drawdown": 16,
+        "delivery_stress": 18,
+        "capacity_tightness": 26,
+        "trade_stress": 14,
+        "demand_slowdown": -54,
+        "inventory_buildup": -15,
+        "margin_compression": -16
+      },
+      "market_delta": {
+        "previous_score": 36,
+        "current_score": 13,
+        "delta": -23,
+        "direction": "down",
+        "previous_reading": "Bottleneck emerging"
+      },
+      "research_angle": "Food inflation, farm margins, EM import bills.",
+      "source_series": [
+        "PCU3253132531",
+        "WPU0652",
+        "PCU325311325311",
+        "PCU325312325312",
+        "PCU325312325312P",
+        "IR12510",
+        "IP31",
+        "FRGSHPUSM649NCIS",
+        "FRGEXPUSM649NCIS",
+        "PCU483111483111"
+      ],
+      "source_coverage": {
+        "mode": "live_proxy",
+        "connected_series": 10,
+        "warming_series": 0,
+        "connected_layers": [
+          "capacity",
+          "logistics",
+          "prices",
+          "quantities"
+        ],
+        "warming_layers": [],
+        "proxy_note": "Live FRED fertilizer nutrient, import-price and freight proxy; LatAm physical import layer missing",
+        "missing_layer": "LatAm physical import volumes and local fertilizer availability",
+        "next_connector": "UN Comtrade bulk downloads / national customs releases",
+        "connector_priority": "medium",
+        "manual_gap_filled": false
+      },
+      "manual_impacts": []
+    },
+    {
+      "market_id": "us_consumer_used_autos",
+      "market": "US -> consumer -> retail -> used autos",
+      "region": "US",
+      "sector": "consumer",
+      "link": "retail",
+      "item": "used autos",
+      "score": -9,
+      "reading": "Mixed",
+      "state": "mixed",
+      "conflict": "mixed",
+      "data_quality": 86,
+      "data_note": "2 lagged source(s); check before acting.",
+      "use_with_caution": false,
+      "why": "demand is slowing; partly offset by inventories look tighter.",
+      "top_positive_driver": "inventory_drawdown",
+      "top_negative_driver": "demand_slowdown",
+      "driver_contributions": {
+        "price_acceleration": 19,
+        "inventory_drawdown": 24,
+        "delivery_stress": 6,
+        "capacity_tightness": 7,
+        "trade_stress": 4,
+        "demand_slowdown": -44,
+        "inventory_buildup": -13,
+        "margin_compression": -12
+      },
+      "market_delta": {
+        "previous_score": -6,
+        "current_score": -9,
+        "delta": -3,
+        "direction": "down",
+        "previous_reading": "Mixed"
+      },
+      "research_angle": "Auto lenders, dealers, CPI goods disinflation.",
+      "source_series": [
+        "CUSR0000SETA02",
+        "CUSR0000SETA01",
+        "TOTALSA",
+        "UMCSENT",
+        "RETAILIRSA"
+      ],
+      "source_coverage": {
+        "mode": "live_proxy",
+        "connected_series": 5,
+        "warming_series": 0,
+        "connected_layers": [
+          "demand",
+          "prices",
+          "quantities"
+        ],
+        "warming_layers": [],
+        "proxy_note": "Live FRED CPI/sales/sentiment proxy; dealer inventory layer missing",
+        "missing_layer": "",
+        "next_connector": "",
+        "connector_priority": "",
+        "manual_gap_filled": false
+      },
+      "manual_impacts": []
+    },
+    {
       "market_id": "us_retail_goods",
       "market": "US -> consumer -> retail -> durable goods",
       "region": "US",
       "sector": "consumer",
       "link": "retail",
       "item": "durable goods",
-      "score": 21,
+      "score": 7,
       "reading": "Mixed",
       "state": "mixed",
       "conflict": "mixed",
-      "data_quality": 81,
-      "data_note": "6 lagged source(s); check before acting.",
+      "data_quality": 84,
+      "data_note": "4 lagged source(s); check before acting.",
       "use_with_caution": false,
       "why": "inventories look tighter; offset by inventory is building.",
       "top_positive_driver": "inventory_drawdown",
       "top_negative_driver": "inventory_buildup",
       "driver_contributions": {
-        "price_acceleration": 17,
-        "inventory_drawdown": 18,
-        "delivery_stress": 4,
+        "price_acceleration": 9,
+        "inventory_drawdown": 17,
+        "delivery_stress": 2,
         "capacity_tightness": 8,
-        "trade_stress": 4,
+        "trade_stress": 2,
         "demand_slowdown": -1,
-        "inventory_buildup": -22,
+        "inventory_buildup": -23,
         "margin_compression": -7
       },
       "market_delta": {
         "previous_score": 21,
-        "current_score": 21,
-        "delta": 0,
-        "direction": "flat",
+        "current_score": 7,
+        "delta": -14,
+        "direction": "down",
         "previous_reading": "Mixed"
       },
       "research_angle": "Retail margins, freight demand, core goods CPI.",
@@ -599,122 +736,6 @@
         "manual_gap_filled": false
       },
       "manual_impacts": []
-    },
-    {
-      "market_id": "global_uranium",
-      "market": "Global -> energy -> upstream -> uranium enrichment",
-      "region": "Global",
-      "sector": "energy",
-      "link": "upstream",
-      "item": "uranium enrichment",
-      "score": 15,
-      "reading": "Mixed",
-      "state": "mixed",
-      "conflict": "mixed",
-      "data_quality": 78,
-      "data_note": "2 lagged source(s); check before acting.",
-      "use_with_caution": false,
-      "why": "capacity looks stretched; offset by demand is slowing.",
-      "top_positive_driver": "capacity_tightness",
-      "top_negative_driver": "demand_slowdown",
-      "driver_contributions": {
-        "price_acceleration": 4,
-        "inventory_drawdown": 19,
-        "delivery_stress": 11,
-        "capacity_tightness": 21,
-        "trade_stress": 7,
-        "demand_slowdown": -37,
-        "inventory_buildup": -4,
-        "margin_compression": -6
-      },
-      "market_delta": {
-        "previous_score": 21,
-        "current_score": 15,
-        "delta": -6,
-        "direction": "down",
-        "previous_reading": "Mixed"
-      },
-      "research_angle": "Miners, enrichers, utilities fuel contracts.",
-      "source_series": [
-        "PURANUSDM",
-        "IPN221113S"
-      ],
-      "source_coverage": {
-        "mode": "live_proxy",
-        "connected_series": 2,
-        "warming_series": 0,
-        "connected_layers": [
-          "demand",
-          "prices"
-        ],
-        "warming_layers": [],
-        "proxy_note": "Live FRED uranium price plus US nuclear generation and official NBS China nuclear output; physical fuel-cycle layers missing",
-        "missing_layer": "Enrichment capacity, contracting and utility inventory",
-        "next_connector": "IAEA/WNA public reports and company disclosures",
-        "connector_priority": "medium",
-        "manual_gap_filled": false
-      },
-      "manual_impacts": []
-    },
-    {
-      "market_id": "us_consumer_used_autos",
-      "market": "US -> consumer -> retail -> used autos",
-      "region": "US",
-      "sector": "consumer",
-      "link": "retail",
-      "item": "used autos",
-      "score": -6,
-      "reading": "Mixed",
-      "state": "mixed",
-      "conflict": "mixed",
-      "data_quality": 82,
-      "data_note": "4 lagged source(s); check before acting.",
-      "use_with_caution": false,
-      "why": "demand is slowing; partly offset by inventories look tighter.",
-      "top_positive_driver": "inventory_drawdown",
-      "top_negative_driver": "demand_slowdown",
-      "driver_contributions": {
-        "price_acceleration": 22,
-        "inventory_drawdown": 24,
-        "delivery_stress": 6,
-        "capacity_tightness": 7,
-        "trade_stress": 4,
-        "demand_slowdown": -44,
-        "inventory_buildup": -13,
-        "margin_compression": -12
-      },
-      "market_delta": {
-        "previous_score": -6,
-        "current_score": -6,
-        "delta": 0,
-        "direction": "flat",
-        "previous_reading": "Mixed"
-      },
-      "research_angle": "Auto lenders, dealers, CPI goods disinflation.",
-      "source_series": [
-        "CUSR0000SETA02",
-        "CUSR0000SETA01",
-        "TOTALSA",
-        "UMCSENT",
-        "RETAILIRSA"
-      ],
-      "source_coverage": {
-        "mode": "live_proxy",
-        "connected_series": 5,
-        "warming_series": 0,
-        "connected_layers": [
-          "demand",
-          "prices",
-          "quantities"
-        ],
-        "warming_layers": [],
-        "proxy_note": "Live FRED CPI/sales/sentiment proxy; dealer inventory layer missing",
-        "missing_layer": "",
-        "next_connector": "",
-        "connector_priority": "",
-        "manual_gap_filled": false
-      },
-      "manual_impacts": []
     }
   ],
   "next_actions": [
@@ -730,7 +751,7 @@
       "market_id": "china_property",
       "title": "Check demand risk in property",
       "reason": "demand is slowing; partly offset by prices are moving faster.",
-      "priority": "high"
+      "priority": "medium"
     },
     {
       "kind": "data_gap",
