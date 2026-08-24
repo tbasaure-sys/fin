@@ -1,19 +1,19 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-08-21T13:29:58.167652+00:00",
+  "generated_at": "2026-08-24T14:41:14.211816+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
     "files": 44,
-    "newest_cached_at": "2026-08-20T17:06:35.155554+00:00",
+    "newest_cached_at": "2026-08-22T14:07:19.804568+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
     "files": 24,
-    "newest_cached_at": "2026-08-20T17:10:12.260898+00:00",
-    "oldest_cached_at": "2026-08-20T17:06:38.550745+00:00"
+    "newest_cached_at": "2026-08-22T14:10:39.519555+00:00",
+    "oldest_cached_at": "2026-08-22T14:07:23.027183+00:00"
   },
-  "global_disequilibrium_index": 35,
+  "global_disequilibrium_index": 37,
   "conflict_index": 78,
   "plain_summary": {
     "headline": "Top imbalance: grid transformers (shortage probable).",
@@ -24,7 +24,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "53 series used, 0 manual, 0 warming, 11 watch errors.",
-    "freshness": "Newest 2026-08-20; oldest used source age 232 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-08-21; oldest used source age 235 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -42,7 +42,7 @@
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
-        "latest_date": "2026-08-19"
+        "latest_date": "2026-08-21"
       },
       {
         "name": "Westmetall",
@@ -50,7 +50,7 @@
         "url": "https://www.westmetall.com/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-08-19"
+        "latest_date": "2026-08-21"
       },
       {
         "name": "MetalCharts",
@@ -58,7 +58,7 @@
         "url": "https://metalcharts.org/",
         "used_series": 1,
         "warming_series": 0,
-        "latest_date": "2026-08-20"
+        "latest_date": "2026-08-21"
       }
     ],
     "open_gaps": [
@@ -88,7 +88,7 @@
       },
       {
         "market": "refined copper",
-        "score": 27,
+        "score": 42,
         "missing_layer": "China end-use granularity and smelter margins",
         "next_connector": "Grid capex, power-equipment output, smelter TC/RC and customs detail"
       }
@@ -119,14 +119,14 @@
       "NBS_CHINA_NUCLEAR_POWER_YOY"
     ],
     "manual_series": 0,
-    "newest_date": "2026-08-20",
-    "oldest_age_days": 232
+    "newest_date": "2026-08-21",
+    "oldest_age_days": 235
   },
   "history_delta": {
-    "previous_gdi": 35,
-    "current_gdi": 35,
-    "delta": 0,
-    "direction": "flat"
+    "previous_gdi": 38,
+    "current_gdi": 37,
+    "delta": -1,
+    "direction": "down"
   },
   "market_movers": [
     {
@@ -140,7 +140,7 @@
     {
       "market_id": "china_industrials_copper",
       "item": "refined copper",
-      "score": 27,
+      "score": 42,
       "delta": -9,
       "direction": "down",
       "reading": "Tightening"
@@ -408,29 +408,29 @@
       "sector": "industrials",
       "link": "upstream",
       "item": "refined copper",
-      "score": 27,
+      "score": 42,
       "reading": "Tightening",
       "state": "tightening",
       "conflict": "mixed",
       "data_quality": 94,
       "data_note": "Live public sources are current enough for screening.",
       "use_with_caution": false,
-      "why": "prices are moving faster; offset by inventory is building.",
+      "why": "prices are moving faster; offset by demand is slowing.",
       "top_positive_driver": "price_acceleration",
-      "top_negative_driver": "inventory_buildup",
+      "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
         "price_acceleration": 25,
-        "inventory_drawdown": 12,
+        "inventory_drawdown": 18,
         "delivery_stress": 15,
         "capacity_tightness": 14,
         "trade_stress": 22,
         "demand_slowdown": -24,
-        "inventory_buildup": -28,
+        "inventory_buildup": -19,
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 36,
-        "current_score": 27,
+        "previous_score": 51,
+        "current_score": 42,
         "delta": -9,
         "direction": "down",
         "previous_reading": "Tightening"
@@ -470,7 +470,7 @@
       "sector": "energy",
       "link": "input",
       "item": "natural gas",
-      "score": 24,
+      "score": 28,
       "reading": "Bottleneck emerging",
       "state": "bottleneck",
       "conflict": "future shortage hidden",
@@ -481,18 +481,18 @@
       "top_positive_driver": "inventory_drawdown",
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
-        "price_acceleration": 5,
-        "inventory_drawdown": 26,
+        "price_acceleration": 8,
+        "inventory_drawdown": 27,
         "delivery_stress": 21,
         "capacity_tightness": 20,
         "trade_stress": 15,
         "demand_slowdown": -51,
-        "inventory_buildup": -4,
-        "margin_compression": -8
+        "inventory_buildup": -3,
+        "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 24,
-        "current_score": 24,
+        "previous_score": 28,
+        "current_score": 28,
         "delta": 0,
         "direction": "flat",
         "previous_reading": "Bottleneck emerging"
