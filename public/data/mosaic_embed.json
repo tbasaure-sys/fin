@@ -1,6 +1,6 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-08-25T14:15:45.893305+00:00",
+  "generated_at": "2026-08-26T13:32:43.823098+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
@@ -14,17 +14,17 @@
     "oldest_cached_at": "2026-08-25T14:12:32.795885+00:00"
   },
   "global_disequilibrium_index": 39,
-  "conflict_index": 67,
+  "conflict_index": 78,
   "plain_summary": {
     "headline": "Top imbalance: grid transformers (shortage probable).",
-    "pressure": "Pressure to inspect first: grid transformers at score 77.",
-    "break": "Weakest demand read: property at score -39.",
-    "warning": "No source errors."
+    "pressure": "Pressure to inspect first: grid transformers at score 74.",
+    "break": "Weakest demand read: property at score -54.",
+    "warning": "Stale source warning: China real home prices, China nominal home prices."
   },
   "source_summary": {
     "headline": "9/9 markets use live public data.",
-    "series": "62 series used, 0 manual, 0 warming, 0 watch errors.",
-    "freshness": "Newest 2026-08-24; oldest used source age 116 days. FRED cache 44; public cache 24.",
+    "series": "53 series used, 0 manual, 0 warming, 11 watch errors.",
+    "freshness": "Newest 2026-08-24; oldest used source age 237 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -32,15 +32,7 @@
         "name": "FRED",
         "kind": "official database",
         "url": "https://fred.stlouisfed.org/",
-        "used_series": 40,
-        "warming_series": 0,
-        "latest_date": "2026-08-18"
-      },
-      {
-        "name": "China NBS",
-        "kind": "official release",
-        "url": "http://www.stats.gov.cn/english/PressRelease/",
-        "used_series": 11,
+        "used_series": 42,
         "warming_series": 0,
         "latest_date": "2026-08-18"
       },
@@ -72,7 +64,7 @@
     "open_gaps": [
       {
         "market": "grid transformers",
-        "score": 77,
+        "score": 74,
         "missing_layer": "Transformer-specific lead times and utility/procurement order books",
         "next_connector": "Company transcripts, utility procurement notices and transformer-specific backlog disclosures"
       },
@@ -83,22 +75,22 @@
         "next_connector": "Freightos FBX11/FBX13 public current values; local history collector warming"
       },
       {
+        "market": "property",
+        "score": -54,
+        "missing_layer": "City-level inventory and developer balance-sheet detail",
+        "next_connector": "City inventory releases / developer financing mix / listed developer disclosures"
+      },
+      {
         "market": "refined copper",
-        "score": 59,
+        "score": 50,
         "missing_layer": "China end-use granularity and smelter margins",
         "next_connector": "Grid capex, power-equipment output, smelter TC/RC and customs detail"
       },
       {
         "market": "uranium enrichment",
-        "score": 49,
+        "score": 44,
         "missing_layer": "Enrichment capacity, contracting and utility inventory",
         "next_connector": "IAEA/WNA public reports and company disclosures"
-      },
-      {
-        "market": "property",
-        "score": -39,
-        "missing_layer": "City-level inventory and developer balance-sheet detail",
-        "next_connector": "City inventory releases / developer financing mix / listed developer disclosures"
       }
     ],
     "high_priority_gaps": []
@@ -106,63 +98,67 @@
   "source_health": {
     "rows_with_sources": 9,
     "market_rows": 9,
-    "used_series": 62,
-    "ok_series": 62,
+    "used_series": 53,
+    "ok_series": 53,
     "error_series": 0,
     "watched_series": 67,
-    "watched_ok_series": 67,
+    "watched_ok_series": 56,
     "watched_warming_series": 0,
-    "watched_error_series": 0,
-    "unused_error_series": [],
+    "watched_error_series": 11,
+    "unused_error_series": [
+      "NBS_CHINA_PROPERTY_SOLD_YOY",
+      "NBS_CHINA_PROPERTY_STARTS_YOY",
+      "NBS_CHINA_PROPERTY_FOR_SALE_YOY",
+      "NBS_CHINA_PROPERTY_COMPLETED_YOY",
+      "NBS_CHINA_PROPERTY_FUNDS_YOY",
+      "NBS_CHINA_NEW_HOME_PRICE_YOY_INDEX",
+      "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX",
+      "NBS_CHINA_NONFERROUS_OUTPUT_YOY",
+      "NBS_CHINA_ELECTRICAL_MACHINERY_YOY",
+      "NBS_CHINA_ELECTRICITY_GENERATION_YOY",
+      "NBS_CHINA_NUCLEAR_POWER_YOY"
+    ],
     "manual_series": 0,
     "newest_date": "2026-08-24",
-    "oldest_age_days": 116
+    "oldest_age_days": 237
   },
   "history_delta": {
-    "previous_gdi": 37,
+    "previous_gdi": 39,
     "current_gdi": 39,
-    "delta": 2,
-    "direction": "up"
+    "delta": 0,
+    "direction": "flat"
   },
   "market_movers": [
     {
-      "market_id": "china_industrials_copper",
-      "item": "refined copper",
-      "score": 59,
-      "delta": 17,
-      "direction": "up",
-      "reading": "Shortage probable"
-    },
-    {
       "market_id": "china_property",
       "item": "property",
-      "score": -39,
-      "delta": 15,
-      "direction": "up",
-      "reading": "Loosening"
+      "score": -54,
+      "delta": -15,
+      "direction": "down",
+      "reading": "Demand break probable"
+    },
+    {
+      "market_id": "china_industrials_copper",
+      "item": "refined copper",
+      "score": 50,
+      "delta": -9,
+      "direction": "down",
+      "reading": "Tightening"
     },
     {
       "market_id": "global_uranium",
       "item": "uranium enrichment",
-      "score": 49,
-      "delta": 5,
-      "direction": "up",
+      "score": 44,
+      "delta": -5,
+      "direction": "down",
       "reading": "Tightening"
-    },
-    {
-      "market_id": "eu_energy_gas",
-      "item": "natural gas",
-      "score": 32,
-      "delta": 4,
-      "direction": "up",
-      "reading": "Bottleneck emerging"
     },
     {
       "market_id": "global_power_transformers",
       "item": "grid transformers",
-      "score": 77,
-      "delta": 3,
-      "direction": "up",
+      "score": 74,
+      "delta": -3,
+      "direction": "down",
       "reading": "Shortage probable"
     }
   ],
@@ -174,11 +170,11 @@
       "sector": "power",
       "link": "equipment",
       "item": "grid transformers",
-      "score": 77,
+      "score": 74,
       "reading": "Shortage probable",
       "state": "shortage",
       "conflict": "aligned",
-      "data_quality": 89,
+      "data_quality": 87,
       "data_note": "5 lagged source(s); check before acting.",
       "use_with_caution": false,
       "why": "prices are moving faster; offset by demand is slowing.",
@@ -190,15 +186,15 @@
         "delivery_stress": 19,
         "capacity_tightness": 17,
         "trade_stress": 9,
-        "demand_slowdown": -12,
+        "demand_slowdown": -15,
         "inventory_buildup": -1,
         "margin_compression": -5
       },
       "market_delta": {
-        "previous_score": 74,
-        "current_score": 77,
-        "delta": 3,
-        "direction": "up",
+        "previous_score": 77,
+        "current_score": 74,
+        "delta": -3,
+        "direction": "down",
         "previous_reading": "Shortage probable"
       },
       "research_angle": "Electrical equipment, copper, utilities capex.",
@@ -210,13 +206,11 @@
         "A35SIS",
         "UTGPNO",
         "ATGPVS",
-        "PCOPPUSDM",
-        "NBS_CHINA_ELECTRICAL_MACHINERY_YOY",
-        "NBS_CHINA_ELECTRICITY_GENERATION_YOY"
+        "PCOPPUSDM"
       ],
       "source_coverage": {
         "mode": "live_proxy",
-        "connected_series": 10,
+        "connected_series": 8,
         "warming_series": 0,
         "connected_layers": [
           "capacity",
@@ -296,16 +290,72 @@
       "manual_impacts": []
     },
     {
+      "market_id": "china_property",
+      "market": "China -> construction -> final demand -> property",
+      "region": "China",
+      "sector": "construction",
+      "link": "final demand",
+      "item": "property",
+      "score": -54,
+      "reading": "Demand break probable",
+      "state": "demand_break",
+      "conflict": "mixed",
+      "data_quality": 74,
+      "data_note": "2 stale source(s); read as directional.",
+      "use_with_caution": true,
+      "why": "demand is slowing; partly offset by prices are moving faster.",
+      "top_positive_driver": "price_acceleration",
+      "top_negative_driver": "demand_slowdown",
+      "driver_contributions": {
+        "price_acceleration": 14,
+        "inventory_drawdown": 1,
+        "delivery_stress": 10,
+        "capacity_tightness": 3,
+        "trade_stress": 5,
+        "demand_slowdown": -36,
+        "inventory_buildup": -32,
+        "margin_compression": -19
+      },
+      "market_delta": {
+        "previous_score": -39,
+        "current_score": -54,
+        "delta": -15,
+        "direction": "down",
+        "previous_reading": "Loosening"
+      },
+      "research_angle": "Iron ore, steel, banks, local government finance.",
+      "source_series": [
+        "QCNR628BIS",
+        "QCNN628BIS",
+        "PIORECRUSDM"
+      ],
+      "source_coverage": {
+        "mode": "live_proxy",
+        "connected_series": 3,
+        "warming_series": 0,
+        "connected_layers": [
+          "prices"
+        ],
+        "warming_layers": [],
+        "proxy_note": "Official NBS property prices, sales, starts, completions, funding and inventory plus iron-ore proxy",
+        "missing_layer": "City-level inventory and developer balance-sheet detail",
+        "next_connector": "City inventory releases / developer financing mix / listed developer disclosures",
+        "connector_priority": "medium",
+        "manual_gap_filled": false
+      },
+      "manual_impacts": []
+    },
+    {
       "market_id": "china_industrials_copper",
       "market": "China -> industrials -> upstream -> refined copper",
       "region": "China",
       "sector": "industrials",
       "link": "upstream",
       "item": "refined copper",
-      "score": 59,
-      "reading": "Shortage probable",
-      "state": "shortage",
-      "conflict": "aligned",
+      "score": 50,
+      "reading": "Tightening",
+      "state": "tightening",
+      "conflict": "mixed",
       "data_quality": 94,
       "data_note": "Live public sources are current enough for screening.",
       "use_with_caution": false,
@@ -315,19 +365,19 @@
       "driver_contributions": {
         "price_acceleration": 25,
         "inventory_drawdown": 21,
-        "delivery_stress": 16,
-        "capacity_tightness": 18,
+        "delivery_stress": 15,
+        "capacity_tightness": 14,
         "trade_stress": 22,
-        "demand_slowdown": -20,
+        "demand_slowdown": -24,
         "inventory_buildup": -14,
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 42,
-        "current_score": 59,
-        "delta": 17,
-        "direction": "up",
-        "previous_reading": "Tightening"
+        "previous_score": 59,
+        "current_score": 50,
+        "delta": -9,
+        "direction": "down",
+        "previous_reading": "Shortage probable"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
       "source_series": [
@@ -336,14 +386,11 @@
         "INDPRO",
         "WPU102",
         "WESTMETALL_LME_CU_STOCK",
-        "METALCHARTS_SHFE_CU_STOCK",
-        "NBS_CHINA_NONFERROUS_OUTPUT_YOY",
-        "NBS_CHINA_ELECTRICAL_MACHINERY_YOY",
-        "NBS_CHINA_ELECTRICITY_GENERATION_YOY"
+        "METALCHARTS_SHFE_CU_STOCK"
       ],
       "source_coverage": {
         "mode": "live_proxy",
-        "connected_series": 9,
+        "connected_series": 6,
         "warming_series": 0,
         "connected_layers": [
           "capacity",
@@ -367,11 +414,11 @@
       "sector": "energy",
       "link": "upstream",
       "item": "uranium enrichment",
-      "score": 49,
+      "score": 44,
       "reading": "Tightening",
       "state": "tightening",
       "conflict": "mixed",
-      "data_quality": 84,
+      "data_quality": 83,
       "data_note": "1 lagged source(s); check before acting.",
       "use_with_caution": false,
       "why": "capacity looks stretched; offset by demand is slowing.",
@@ -379,30 +426,29 @@
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
         "price_acceleration": 18,
-        "inventory_drawdown": 20,
+        "inventory_drawdown": 19,
         "delivery_stress": 16,
-        "capacity_tightness": 22,
+        "capacity_tightness": 21,
         "trade_stress": 10,
-        "demand_slowdown": -27,
+        "demand_slowdown": -30,
         "inventory_buildup": -4,
         "margin_compression": -6
       },
       "market_delta": {
-        "previous_score": 44,
-        "current_score": 49,
-        "delta": 5,
-        "direction": "up",
+        "previous_score": 49,
+        "current_score": 44,
+        "delta": -5,
+        "direction": "down",
         "previous_reading": "Tightening"
       },
       "research_angle": "Miners, enrichers, utilities fuel contracts.",
       "source_series": [
         "PURANUSDM",
-        "IPN221113S",
-        "NBS_CHINA_NUCLEAR_POWER_YOY"
+        "IPN221113S"
       ],
       "source_coverage": {
         "mode": "live_proxy",
-        "connected_series": 3,
+        "connected_series": 2,
         "warming_series": 0,
         "connected_layers": [
           "demand",
@@ -412,70 +458,6 @@
         "proxy_note": "Live FRED uranium price plus US nuclear generation and official NBS China nuclear output; physical fuel-cycle layers missing",
         "missing_layer": "Enrichment capacity, contracting and utility inventory",
         "next_connector": "IAEA/WNA public reports and company disclosures",
-        "connector_priority": "medium",
-        "manual_gap_filled": false
-      },
-      "manual_impacts": []
-    },
-    {
-      "market_id": "china_property",
-      "market": "China -> construction -> final demand -> property",
-      "region": "China",
-      "sector": "construction",
-      "link": "final demand",
-      "item": "property",
-      "score": -39,
-      "reading": "Loosening",
-      "state": "loosening",
-      "conflict": "mixed",
-      "data_quality": 97,
-      "data_note": "Live public sources are current enough for screening.",
-      "use_with_caution": false,
-      "why": "demand is slowing; partly offset by prices are moving faster.",
-      "top_positive_driver": "price_acceleration",
-      "top_negative_driver": "demand_slowdown",
-      "driver_contributions": {
-        "price_acceleration": 13,
-        "inventory_drawdown": 1,
-        "delivery_stress": 13,
-        "capacity_tightness": 1,
-        "trade_stress": 5,
-        "demand_slowdown": -39,
-        "inventory_buildup": -16,
-        "margin_compression": -17
-      },
-      "market_delta": {
-        "previous_score": -54,
-        "current_score": -39,
-        "delta": 15,
-        "direction": "up",
-        "previous_reading": "Demand break probable"
-      },
-      "research_angle": "Iron ore, steel, banks, local government finance.",
-      "source_series": [
-        "NBS_CHINA_NEW_HOME_PRICE_YOY_INDEX",
-        "NBS_CHINA_SECOND_HAND_HOME_PRICE_YOY_INDEX",
-        "PIORECRUSDM",
-        "NBS_CHINA_PROPERTY_SOLD_YOY",
-        "NBS_CHINA_PROPERTY_STARTS_YOY",
-        "NBS_CHINA_PROPERTY_FOR_SALE_YOY",
-        "NBS_CHINA_PROPERTY_COMPLETED_YOY",
-        "NBS_CHINA_PROPERTY_FUNDS_YOY"
-      ],
-      "source_coverage": {
-        "mode": "live_proxy",
-        "connected_series": 8,
-        "warming_series": 0,
-        "connected_layers": [
-          "capacity",
-          "demand",
-          "prices",
-          "quantities"
-        ],
-        "warming_layers": [],
-        "proxy_note": "Official NBS property prices, sales, starts, completions, funding and inventory plus iron-ore proxy",
-        "missing_layer": "City-level inventory and developer balance-sheet detail",
-        "next_connector": "City inventory releases / developer financing mix / listed developer disclosures",
         "connector_priority": "medium",
         "manual_gap_filled": false
       },
@@ -509,10 +491,10 @@
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 28,
+        "previous_score": 32,
         "current_score": 32,
-        "delta": 4,
-        "direction": "up",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
@@ -748,20 +730,20 @@
       "market_id": "china_property",
       "title": "Check demand risk in property",
       "reason": "demand is slowing; partly offset by prices are moving faster.",
-      "priority": "medium"
+      "priority": "high"
+    },
+    {
+      "kind": "data_gap",
+      "market_id": "china_property",
+      "title": "Refresh physical data for property",
+      "reason": "2 stale source(s); read as directional.",
+      "priority": "high"
     },
     {
       "kind": "connector",
       "market_id": "global_power_transformers",
       "title": "Refine data for grid transformers",
       "reason": "Power-transmission orders, broad electrical-equipment backlog/inventory ratios and China electrical demand are connected; the remaining gap is transformer-specific lead-time detail.",
-      "priority": "medium"
-    },
-    {
-      "kind": "connector",
-      "market_id": "asia_europe_shipping",
-      "title": "Refine data for container shipping",
-      "reason": "Current values are captured; score use waits until enough local observations exist.",
       "priority": "medium"
     }
   ]
