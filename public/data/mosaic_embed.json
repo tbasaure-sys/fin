@@ -1,6 +1,6 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-08-26T13:32:43.823098+00:00",
+  "generated_at": "2026-08-27T13:02:25.965649+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
@@ -24,7 +24,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "53 series used, 0 manual, 0 warming, 11 watch errors.",
-    "freshness": "Newest 2026-08-24; oldest used source age 237 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-08-24; oldest used source age 238 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -120,7 +120,7 @@
     ],
     "manual_series": 0,
     "newest_date": "2026-08-24",
-    "oldest_age_days": 237
+    "oldest_age_days": 238
   },
   "history_delta": {
     "previous_gdi": 39,
@@ -128,40 +128,7 @@
     "delta": 0,
     "direction": "flat"
   },
-  "market_movers": [
-    {
-      "market_id": "china_property",
-      "item": "property",
-      "score": -54,
-      "delta": -15,
-      "direction": "down",
-      "reading": "Demand break probable"
-    },
-    {
-      "market_id": "china_industrials_copper",
-      "item": "refined copper",
-      "score": 50,
-      "delta": -9,
-      "direction": "down",
-      "reading": "Tightening"
-    },
-    {
-      "market_id": "global_uranium",
-      "item": "uranium enrichment",
-      "score": 44,
-      "delta": -5,
-      "direction": "down",
-      "reading": "Tightening"
-    },
-    {
-      "market_id": "global_power_transformers",
-      "item": "grid transformers",
-      "score": 74,
-      "delta": -3,
-      "direction": "down",
-      "reading": "Shortage probable"
-    }
-  ],
+  "market_movers": [],
   "markets": [
     {
       "market_id": "global_power_transformers",
@@ -191,10 +158,10 @@
         "margin_compression": -5
       },
       "market_delta": {
-        "previous_score": 77,
+        "previous_score": 74,
         "current_score": 74,
-        "delta": -3,
-        "direction": "down",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Shortage probable"
       },
       "research_angle": "Electrical equipment, copper, utilities capex.",
@@ -317,11 +284,11 @@
         "margin_compression": -19
       },
       "market_delta": {
-        "previous_score": -39,
+        "previous_score": -54,
         "current_score": -54,
-        "delta": -15,
-        "direction": "down",
-        "previous_reading": "Loosening"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Demand break probable"
       },
       "research_angle": "Iron ore, steel, banks, local government finance.",
       "source_series": [
@@ -373,11 +340,11 @@
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 59,
+        "previous_score": 50,
         "current_score": 50,
-        "delta": -9,
-        "direction": "down",
-        "previous_reading": "Shortage probable"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Tightening"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
       "source_series": [
@@ -435,10 +402,10 @@
         "margin_compression": -6
       },
       "market_delta": {
-        "previous_score": 49,
+        "previous_score": 44,
         "current_score": 44,
-        "delta": -5,
-        "direction": "down",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Tightening"
       },
       "research_angle": "Miners, enrichers, utilities fuel contracts.",
