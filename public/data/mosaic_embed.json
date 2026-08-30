@@ -1,19 +1,19 @@
 {
   "schema_version": "mosaic.embed.v1",
-  "generated_at": "2026-08-29T11:49:28.231868+00:00",
+  "generated_at": "2026-08-30T11:50:35.221987+00:00",
   "source_mode": "live_fred",
   "offline": false,
   "fred_cache": {
     "files": 44,
-    "newest_cached_at": "2026-08-29T11:45:24.529630+00:00",
+    "newest_cached_at": "2026-08-30T11:45:28.644316+00:00",
     "oldest_cached_at": "2026-06-18T18:11:40.986167+00:00"
   },
   "public_cache": {
     "files": 24,
-    "newest_cached_at": "2026-08-29T11:49:28.230862+00:00",
-    "oldest_cached_at": "2026-08-29T11:45:27.325129+00:00"
+    "newest_cached_at": "2026-08-30T11:50:35.201351+00:00",
+    "oldest_cached_at": "2026-08-30T11:45:31.592929+00:00"
   },
-  "global_disequilibrium_index": 37,
+  "global_disequilibrium_index": 38,
   "conflict_index": 67,
   "plain_summary": {
     "headline": "Top imbalance: grid transformers (shortage probable).",
@@ -24,7 +24,7 @@
   "source_summary": {
     "headline": "9/9 markets use live public data.",
     "series": "62 series used, 0 manual, 0 warming, 0 watch errors.",
-    "freshness": "Newest 2026-08-28; oldest used source age 120 days. FRED cache 44; public cache 24.",
+    "freshness": "Newest 2026-08-28; oldest used source age 121 days. FRED cache 44; public cache 24.",
     "proxy_count": 7,
     "plain": "Readings come from public market and official data. 0 source(s) are being tracked but not scored yet.",
     "providers": [
@@ -50,7 +50,7 @@
         "url": "https://energiedashboard.ch/",
         "used_series": 9,
         "warming_series": 0,
-        "latest_date": "2026-08-26"
+        "latest_date": "2026-08-28"
       },
       {
         "name": "Westmetall",
@@ -116,54 +116,22 @@
     "unused_error_series": [],
     "manual_series": 0,
     "newest_date": "2026-08-28",
-    "oldest_age_days": 120
+    "oldest_age_days": 121
   },
   "history_delta": {
-    "previous_gdi": 39,
-    "current_gdi": 37,
-    "delta": -2,
-    "direction": "down"
+    "previous_gdi": 37,
+    "current_gdi": 38,
+    "delta": 1,
+    "direction": "up"
   },
   "market_movers": [
     {
-      "market_id": "china_industrials_copper",
-      "item": "refined copper",
-      "score": 65,
-      "delta": 15,
-      "direction": "up",
-      "reading": "Shortage probable"
-    },
-    {
-      "market_id": "china_property",
-      "item": "property",
-      "score": -39,
-      "delta": 15,
-      "direction": "up",
-      "reading": "Loosening"
-    },
-    {
       "market_id": "eu_energy_gas",
       "item": "natural gas",
-      "score": 17,
-      "delta": -15,
-      "direction": "down",
-      "reading": "Bottleneck emerging"
-    },
-    {
-      "market_id": "global_uranium",
-      "item": "uranium enrichment",
-      "score": 49,
+      "score": 22,
       "delta": 5,
       "direction": "up",
-      "reading": "Tightening"
-    },
-    {
-      "market_id": "us_consumer_used_autos",
-      "item": "used autos",
-      "score": -5,
-      "delta": 4,
-      "direction": "up",
-      "reading": "Mixed"
+      "reading": "Bottleneck emerging"
     }
   ],
   "markets": [
@@ -195,10 +163,10 @@
         "margin_compression": -5
       },
       "market_delta": {
-        "previous_score": 74,
+        "previous_score": 77,
         "current_score": 77,
-        "delta": 3,
-        "direction": "up",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Shortage probable"
       },
       "research_angle": "Electrical equipment, copper, utilities capex.",
@@ -323,11 +291,11 @@
         "margin_compression": -9
       },
       "market_delta": {
-        "previous_score": 50,
+        "previous_score": 65,
         "current_score": 65,
-        "delta": 15,
-        "direction": "up",
-        "previous_reading": "Tightening"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Shortage probable"
       },
       "research_angle": "Miners, smelters, grid equipment, Chile/Peru FX.",
       "source_series": [
@@ -388,10 +356,10 @@
         "margin_compression": -6
       },
       "market_delta": {
-        "previous_score": 44,
+        "previous_score": 49,
         "current_score": 49,
-        "delta": 5,
-        "direction": "up",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Tightening"
       },
       "research_angle": "Miners, enrichers, utilities fuel contracts.",
@@ -445,11 +413,11 @@
         "margin_compression": -17
       },
       "market_delta": {
-        "previous_score": -54,
+        "previous_score": -39,
         "current_score": -39,
-        "delta": 15,
-        "direction": "up",
-        "previous_reading": "Demand break probable"
+        "delta": 0,
+        "direction": "flat",
+        "previous_reading": "Loosening"
       },
       "research_angle": "Iron ore, steel, banks, local government finance.",
       "source_series": [
@@ -488,7 +456,7 @@
       "sector": "energy",
       "link": "input",
       "item": "natural gas",
-      "score": 17,
+      "score": 22,
       "reading": "Bottleneck emerging",
       "state": "bottleneck",
       "conflict": "future shortage hidden",
@@ -499,7 +467,7 @@
       "top_positive_driver": "inventory_drawdown",
       "top_negative_driver": "demand_slowdown",
       "driver_contributions": {
-        "price_acceleration": 0,
+        "price_acceleration": 5,
         "inventory_drawdown": 26,
         "delivery_stress": 20,
         "capacity_tightness": 19,
@@ -509,10 +477,10 @@
         "margin_compression": -8
       },
       "market_delta": {
-        "previous_score": 32,
-        "current_score": 17,
-        "delta": -15,
-        "direction": "down",
+        "previous_score": 17,
+        "current_score": 22,
+        "delta": 5,
+        "direction": "up",
         "previous_reading": "Bottleneck emerging"
       },
       "research_angle": "Utilities, gas-sensitive chemicals, fertilizer chain.",
@@ -702,10 +670,10 @@
         "margin_compression": -11
       },
       "market_delta": {
-        "previous_score": -9,
+        "previous_score": -5,
         "current_score": -5,
-        "delta": 4,
-        "direction": "up",
+        "delta": 0,
+        "direction": "flat",
         "previous_reading": "Mixed"
       },
       "research_angle": "Auto lenders, dealers, CPI goods disinflation.",
