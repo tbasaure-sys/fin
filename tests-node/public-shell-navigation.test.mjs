@@ -45,3 +45,8 @@ test("unsupported locale input falls back to Spanish instead of producing mixed 
   assert.equal(navigation[0].href, "/product?lang=es");
   assert.equal(buildPublicShellActions("pt").signIn.href, "/login?intent=signin&lang=es");
 });
+
+test("G820 is treated as a product engine route", () => {
+  const navigation = buildPublicNavigation({ locale: "es", pathname: "/g820" });
+  assert.equal(navigation[0].current, true);
+});

@@ -26,6 +26,8 @@
     "snapshots:refresh:dry": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/refresh-live-snapshots.ps1 -SkipGit",
     "snapshots:task:register": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/register-live-snapshot-task.ps1",
     "snapshots:sync": "node scripts/sync-live-snapshots.mjs",
+    "g820:sync": "node scripts/sync-g820-snapshot.mjs",
+    "g820:validate": "node scripts/validate-g820-bundle.mjs",
     "test:web": "node --conditions=react-server --test tests-node/*.test.mjs",
     "test:e2e": "playwright test --config tests-e2e/playwright.config.mjs"
   },

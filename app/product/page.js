@@ -14,8 +14,9 @@ const COPY = {
     lead: "Descubrimiento, expectativas, valoración y riesgo de cartera convergen en un mismo proceso de investigación.",
     rows: [
       ["01", "FactorLab", "Prioriza empresas que merecen una revisión y deja visible por qué aparecen ahora y qué puede invalidar la idea.", "/factorlab?lang=es", "Descubrir"],
-      ["02", "AURORA", "Contrasta precio, valor y evidencia. Publica un rango defendible o explica la brecha concreta que impide hacerlo.", "/aurora?lang=es", "Investigar"],
-      ["03", "Stress Engine", "Muestra concentración, escenarios adversos y las posiciones que más contribuyen a una pérdida potencial.", "/stress?lang=es", "Medir riesgo"],
+      ["02", "G820", "Busca dislocaciones que superen dos pruebas independientes: daño de precio mayor que daño del negocio y supervivencia con margen de seguridad.", "/g820?lang=es", "Abrir screener"],
+      ["03", "AURORA", "Contrasta precio, valor y evidencia. Publica un rango defendible o explica la brecha concreta que impide hacerlo.", "/aurora?lang=es", "Investigar"],
+      ["04", "Stress Engine", "Muestra concentración, escenarios adversos y las posiciones que más contribuyen a una pérdida potencial.", "/stress?lang=es", "Medir riesgo"],
     ],
     closing: "Empieza con una primera lectura pública y fechada.",
     cta: "Explorar demo",
@@ -26,8 +27,9 @@ const COPY = {
     lead: "Discovery, expectations, valuation, and portfolio risk converge in a single research process.",
     rows: [
       ["01", "FactorLab", "Prioritize companies worth reviewing and keep visible why they surfaced now and what could invalidate the idea.", "/factorlab?lang=en", "Discover"],
-      ["02", "AURORA", "Contrast price, value, and evidence. Publish a defensible range or explain the exact gap that prevents one.", "/aurora?lang=es", "Research in Spanish"],
-      ["03", "Stress Engine", "Show concentration, adverse scenarios, and the positions that contribute most to a potential loss.", "/stress?lang=en", "Measure risk"],
+      ["02", "G820", "Find dislocations that clear two independent tests: price damage beyond business damage and survival with a margin of safety.", "/g820?lang=en", "Open screener"],
+      ["03", "AURORA", "Contrast price, value, and evidence. Publish a defensible range or explain the exact gap that prevents one.", "/aurora?lang=es", "Research in Spanish"],
+      ["04", "Stress Engine", "Show concentration, adverse scenarios, and the positions that contribute most to a potential loss.", "/stress?lang=en", "Measure risk"],
     ],
     closing: "Start with a public, dated first reading.",
     cta: "Explore demo",
