@@ -20,6 +20,25 @@ test("internal refresh auth accepts bearer token from explicit env var", () => {
   assert.equal(requireInternalRefreshAccess(request), null);
 });
 
+test("internal refresh auth accepts Vercel cron secret when both tokens exist", () => {
+  process.env.BLS_PRIME_INTERNAL_REFRESH_TOKEN = "internal-secret";
+  process.env.CRON_SECRET = "cron-secret";
+
+  const cronRequest = new Request("https://example.com/api/cron/g820", {
+    headers: {
+      authorization: "Bearer cron-secret",
+    },
+  });
+  const internalRequest = new Request("https://example.com/api/internal/refresh", {
+    headers: {
+      authorization: "Bearer internal-secret",
+    },
+  });
+
+  assert.equal(isValidInternalRefreshToken(cronRequest), true);
+  assert.equal(isValidInternalRefreshToken(internalRequest), true);
+});
+
 test("internal refresh auth rejects missing or invalid token", async () => {
   process.env.BLS_PRIME_INTERNAL_REFRESH_TOKEN = "secret-token";
   process.env.CRON_SECRET = "";
