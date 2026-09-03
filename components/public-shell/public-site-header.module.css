@@ -169,7 +169,7 @@
   outline-offset: 3px;
 }
 
-@media (max-width: 1040px) {
+@media (max-width: 1320px) {
   .inner {
     grid-template-columns: auto auto;
     justify-content: space-between;
