@@ -11,6 +11,7 @@ test("the public shell keeps Spanish context and identifies product engine route
 
   assert.deepEqual(navigation, [
     { id: "product", label: "Producto", href: "/product?lang=es", current: true },
+    { id: "g820", label: "G820 Screener", href: "/g820?lang=es", current: false },
     { id: "methodology", label: "Metodología", href: "/methodology?lang=es", current: false },
     { id: "breakpoint", label: "Analizar una empresa", href: "/?lang=es#breakpoint", current: false },
   ]);
@@ -21,6 +22,7 @@ test("the public shell emits complete English navigation without losing locale",
 
   assert.deepEqual(navigation, [
     { id: "product", label: "Product", href: "/product?lang=en", current: false },
+    { id: "g820", label: "G820 Screener", href: "/g820?lang=en", current: false },
     { id: "methodology", label: "Methodology", href: "/methodology?lang=en", current: true },
     { id: "breakpoint", label: "Analyze a company", href: "/?lang=en#breakpoint", current: false },
   ]);
@@ -48,5 +50,7 @@ test("unsupported locale input falls back to Spanish instead of producing mixed 
 
 test("G820 is treated as a product engine route", () => {
   const navigation = buildPublicNavigation({ locale: "es", pathname: "/g820" });
-  assert.equal(navigation[0].current, true);
+  assert.equal(navigation.find((item) => item.id === "product").current, false);
+  assert.equal(navigation.find((item) => item.id === "g820").current, true);
+  assert.equal(navigation.find((item) => item.id === "g820").href, "/g820?lang=es");
 });

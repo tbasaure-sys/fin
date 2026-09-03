@@ -4,6 +4,7 @@ const PUBLIC_ROUTES = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/aurora", changeFrequency: "weekly", priority: 0.9 },
   { path: "/factorlab", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/g820", changeFrequency: "daily", priority: 0.9 },
   { path: "/stress", changeFrequency: "weekly", priority: 0.8 },
   { path: "/product", changeFrequency: "monthly", priority: 0.75 },
   { path: "/methodology", changeFrequency: "monthly", priority: 0.7 },

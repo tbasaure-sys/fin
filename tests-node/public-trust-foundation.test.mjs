@@ -78,6 +78,8 @@ test("public entry points distinguish sign in, workspace creation, and sample da
   assert.match(shellNavigation, /\/signup\?lang=/);
   assert.match(home, /Frozen example/);
   assert.match(home, /Ejemplo congelado/);
+  assert.match(home, /href: "\/g820"/);
+  assert.match(shellNavigation, /id: "g820"/);
   assert.doesNotMatch(home, /const displayBrand = "BL'S"/);
 });
 
@@ -104,6 +106,7 @@ test("canonical SEO surfaces exist and private routes are noindex", () => {
   assert.match(robots, /"\/recover"/);
   assert.match(sitemap, /"\/aurora"/);
   assert.match(sitemap, /"\/factorlab"/);
+  assert.match(sitemap, /"\/g820"/);
   assert.match(sitemap, /"\/stress"/);
   assert.match(auroraMetadata, /canonical:\s*"\/aurora"/);
   assert.match(privatePage, /index:\s*false/);

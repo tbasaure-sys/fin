@@ -11,13 +11,21 @@ import { StressAccountGate } from "@/components/stress-account-gate";
 
 const COPY = {
   es: {
-    workflowKicker: "Cuatro decisiones conectadas",
+    workflowKicker: "Cinco decisiones conectadas",
     workflowTitle: "De una señal a una decisión defendible.",
     workflowSub:
       "BLS Prime ordena la investigación en una secuencia. Cada paso produce una salida concreta para el siguiente.",
     steps: [
       {
         index: "01",
+        title: "Encontrar dislocaciones",
+        engine: "G820",
+        outcome: "Precio más dañado que el negocio y margen de seguridad suficiente incluso bajo una valoración conservadora.",
+        action: "Abrir G820",
+        href: "/g820",
+      },
+      {
+        index: "02",
         title: "Descubrir",
         engine: "FactorLab",
         outcome: "Candidatos priorizados, con una razón verificable para dedicarles tiempo.",
@@ -25,7 +33,7 @@ const COPY = {
         href: "/factorlab",
       },
       {
-        index: "02",
+        index: "03",
         title: "Entender el precio",
         engine: "Breakpoint",
         outcome: "Expectativas implícitas de crecimiento y rentabilidad que el precio necesita.",
@@ -33,7 +41,7 @@ const COPY = {
         href: "#breakpoint",
       },
       {
-        index: "03",
+        index: "04",
         title: "Construir la tesis",
         engine: "AURORA",
         outcome: "Rango y estado de valoración, impulsores de valor y condiciones que invalidan la tesis.",
@@ -41,7 +49,7 @@ const COPY = {
         href: "/aurora",
       },
       {
-        index: "04",
+        index: "05",
         title: "Medir el riesgo",
         engine: "Stress",
         outcome: "Contribución al downside, concentración y posiciones que explican la pérdida.",
@@ -53,7 +61,7 @@ const COPY = {
     ],
     demo: {
       kicker: "Demo determinista",
-      title: "Una lectura conectada, no cuatro herramientas sueltas.",
+      title: "Una lectura conectada, no herramientas sueltas.",
       body:
         "Este caso de Texas Instruments muestra cómo una señal avanza hasta una lectura de empresa y su impacto en cartera.",
       disclosure: "Ejemplo congelado · 30 de junio de 2026 · No son datos en vivo.",
@@ -76,13 +84,21 @@ const COPY = {
     privacy: "Privacidad",
   },
   en: {
-    workflowKicker: "Four connected decisions",
+    workflowKicker: "Five connected decisions",
     workflowTitle: "From a signal to a defensible decision.",
     workflowSub:
       "BLS Prime organizes research into a sequence. Each step produces a concrete output for the next one.",
     steps: [
       {
         index: "01",
+        title: "Find dislocations",
+        engine: "G820",
+        outcome: "Price damage beyond business damage, with enough margin of safety even under a conservative valuation.",
+        action: "Open G820",
+        href: "/g820",
+      },
+      {
+        index: "02",
         title: "Discover",
         engine: "FactorLab",
         outcome: "Prioritized candidates with a verifiable reason to spend more time on them.",
@@ -90,7 +106,7 @@ const COPY = {
         href: "/factorlab",
       },
       {
-        index: "02",
+        index: "03",
         title: "Understand the price",
         engine: "Breakpoint",
         outcome: "Implied growth and profitability expectations the price needs.",
@@ -98,7 +114,7 @@ const COPY = {
         href: "#breakpoint",
       },
       {
-        index: "03",
+        index: "04",
         title: "Build the thesis",
         engine: "AURORA",
         outcome: "Valuation range and state, value drivers, and conditions that falsify the thesis.",
@@ -106,7 +122,7 @@ const COPY = {
         href: "/aurora",
       },
       {
-        index: "04",
+        index: "05",
         title: "Measure risk",
         engine: "Stress",
         outcome: "Downside contribution, concentration, and the positions that explain the loss.",
@@ -118,7 +134,7 @@ const COPY = {
     ],
     demo: {
       kicker: "Deterministic demo",
-      title: "One connected reading, not four separate tools.",
+      title: "One connected reading, not separate tools.",
       body:
         "This Texas Instruments case shows how a signal moves into a company reading and its portfolio impact.",
       disclosure: "Frozen example · June 30, 2026 · Not live data.",
