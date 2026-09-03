@@ -79,6 +79,8 @@ test("public entry points distinguish sign in, workspace creation, and sample da
   assert.match(home, /Frozen example/);
   assert.match(home, /Ejemplo congelado/);
   assert.match(home, /href: "\/g820"/);
+  assert.match(home, /id="g820-launch"/);
+  assert.match(home, /Abrir G820 Screener/);
   assert.match(shellNavigation, /id: "g820"/);
   assert.doesNotMatch(home, /const displayBrand = "BL'S"/);
 });

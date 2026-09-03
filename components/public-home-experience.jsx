@@ -11,6 +11,12 @@ import { StressAccountGate } from "@/components/stress-account-gate";
 
 const COPY = {
   es: {
+    g820Launch: {
+      kicker: "G820 · actualización diaria",
+      title: "Dislocaciones con doble margen de seguridad.",
+      body: "Explora el universo, separa daño de precio de daño del negocio y abre sólo los expedientes que merecen diligencia.",
+      action: "Abrir G820 Screener",
+    },
     workflowKicker: "Cinco decisiones conectadas",
     workflowTitle: "De una señal a una decisión defendible.",
     workflowSub:
@@ -84,6 +90,12 @@ const COPY = {
     privacy: "Privacidad",
   },
   en: {
+    g820Launch: {
+      kicker: "G820 · daily refresh",
+      title: "Dislocations with a double margin of safety.",
+      body: "Explore the universe, separate price damage from business damage, and open only the files worth deeper diligence.",
+      action: "Open G820 Screener",
+    },
     workflowKicker: "Five connected decisions",
     workflowTitle: "From a signal to a defensible decision.",
     workflowSub:
@@ -210,6 +222,18 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
   return (
     <main className={styles.page}>
       <PublicSiteHeader initialLanguage={initialLanguage} />
+
+      <section className={styles.g820Launch} aria-labelledby="g820-launch-title" id="g820-launch">
+        <div>
+          <p>{copy.g820Launch.kicker}</p>
+          <h2 id="g820-launch-title">{copy.g820Launch.title}</h2>
+          <span>{copy.g820Launch.body}</span>
+        </div>
+        <Link href={`/g820?lang=${language}`}>
+          {copy.g820Launch.action}
+          <span aria-hidden="true">→</span>
+        </Link>
+      </section>
 
       <div id="breakpoint">
         <BreakpointHero language={language} />

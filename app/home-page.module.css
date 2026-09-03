@@ -41,6 +41,72 @@
   z-index: 1;
 }
 
+.g820Launch {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(1.5rem, 5vw, 5rem);
+  align-items: center;
+  width: min(100% - clamp(2rem, 6vw, 6.5rem), 94rem);
+  margin: 0 auto;
+  padding: 1.1rem 0 1.2rem;
+  border-bottom: 1px solid rgba(217, 164, 65, 0.28);
+}
+
+.g820Launch div {
+  display: grid;
+  grid-template-columns: auto minmax(16rem, 0.75fr) minmax(18rem, 1fr);
+  gap: clamp(1rem, 3vw, 2.75rem);
+  align-items: baseline;
+}
+
+.g820Launch p,
+.g820Launch h2,
+.g820Launch span {
+  margin: 0;
+}
+
+.g820Launch p {
+  color: var(--brass);
+  font: 600 0.62rem/1.4 var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.g820Launch h2 {
+  font: 400 clamp(1.1rem, 1.8vw, 1.5rem)/1.15 var(--serif);
+}
+
+.g820Launch div > span {
+  color: var(--dim);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.g820Launch > a {
+  display: inline-flex;
+  gap: 0.7rem;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border: 1px solid rgba(217, 164, 65, 0.5);
+  color: var(--paper);
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.g820Launch > a span {
+  color: var(--brass);
+  transition: transform 180ms ease;
+}
+
+.g820Launch > a:hover span,
+.g820Launch > a:focus-visible span {
+  transform: translateX(3px);
+}
+
 .workflow,
 .demo {
   max-width: 90rem;
@@ -386,6 +452,14 @@
 }
 
 @media (max-width: 1040px) {
+  .g820Launch div {
+    grid-template-columns: auto minmax(16rem, 1fr);
+  }
+
+  .g820Launch div > span {
+    grid-column: 1 / -1;
+  }
+
   .sectionLead,
   .demoLead {
     grid-template-columns: 1fr;
@@ -414,6 +488,26 @@
 }
 
 @media (max-width: 680px) {
+  .g820Launch {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    padding: 1rem 0 1.2rem;
+  }
+
+  .g820Launch div {
+    display: block;
+  }
+
+  .g820Launch h2,
+  .g820Launch div > span {
+    display: block;
+    margin-top: 0.55rem;
+  }
+
+  .g820Launch > a {
+    justify-content: space-between;
+  }
+
   .workflow,
   .demo {
     padding-top: 4rem;
@@ -489,6 +583,10 @@
   }
 
   .stepAction > span {
+    transition: none;
+  }
+
+  .g820Launch > a span {
     transition: none;
   }
 }
