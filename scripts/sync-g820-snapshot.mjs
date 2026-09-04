@@ -1,4 +1,4 @@
-import { cp, mkdir, readFile, rm } from "node:fs/promises";
+import { cp, mkdir, readFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -24,12 +24,10 @@ const sourceSnapshot = path.join(sourceRoot, "snapshots", snapshotId);
 const targetSnapshot = path.join(targetRoot, "snapshots", snapshotId);
 await mkdir(path.join(targetRoot, "snapshots"), { recursive: true });
 await cp(sourceSnapshot, targetSnapshot, { recursive: true, force: true });
+const engineSource = path.resolve(sourceRoot, '../../../scripts/g820/lib/g820-engine.mjs');
+const engineTarget = path.join(process.cwd(), 'lib/g820/generated');
+await mkdir(engineTarget, { recursive: true });
+await cp(engineSource, path.join(engineTarget, 'g820-engine.mjs'));
 await cp(path.join(sourceRoot, "current.json"), path.join(targetRoot, "current.json"), { force: true });
-
-const snapshotDirectories = await import("node:fs/promises").then(({ readdir }) => readdir(path.join(targetRoot, "snapshots"), { withFileTypes: true }));
-for (const entry of snapshotDirectories) {
-  if (entry.isDirectory() && entry.name !== snapshotId) {
-    await rm(path.join(targetRoot, "snapshots", entry.name), { recursive: true, force: true });
-  }
-}
+// Preserve immutable detail URLs for users holding the previous index.
 console.log(`G820 synced · ${sourceIndex.meta.universeSize} companies · ${snapshotId}`);

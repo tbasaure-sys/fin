@@ -27,14 +27,14 @@ const COPY = {
     daily: "Actualización diaria",
     dailyGood: (done, total) => `${done} de ${total} expedientes de la frontera con precio actualizado`,
     dailyMissing: "La capa diaria no está disponible; se muestra el snapshot reproducible.",
-    priceOnly: "El precio y el margen de seguridad se recalculan cada día de mercado. Las llaves C8/C20 sólo cambian tras recompilar el motor completo.",
+    priceOnly: "Cada día de mercado se reevalúan MOS, C20, soporte de los modelos y TIR con el mismo motor. El valor del negocio no cambia por el precio. C8 conserva su fecha; una historia vencida bloquea avanzar.",
     dual: "Doble llave",
     chapter8: "Cap. 8",
     chapter20: "Cap. 20",
     valued: "Valorables",
     exceptions: "Excepciones",
     zero: "Ninguna empresa supera hoy ambas llaves.",
-    zeroBody: "No es un error de la interfaz. La señal es deliberadamente escasa; la cola útil está en vigilar el precio y resolver desconocidos materiales.",
+    zeroBody: "Este resultado mezcla criterios no satisfechos y evidencia incompleta; no demuestra ausencia de oportunidades ni capacidad predictiva. Consulta qué falta y el umbral de MOS de cada expediente.",
     search: "Buscar ticker, empresa, sector u objeción…",
     all: "Todas",
     company: "Empresa / diagnóstico",
@@ -79,7 +79,7 @@ const COPY = {
     disclosure: "Compilador de evidencia para priorizar investigación. No es asesoría financiera ni recomendación de compra o venta.",
     categories: {
       RESEARCH_NOW: "Investigar ahora",
-      WATCH_FOR_PRICE: "Vigilar precio",
+      WATCH_FOR_PRICE: "Esperar condiciones",
       DATA_EXCEPTION: "Excepción de datos",
       FALLING_KNIFE: "Cuchillo cayendo",
       FUNDING_DEPENDENT: "Dependiente de financiación",
@@ -97,14 +97,14 @@ const COPY = {
     daily: "Daily refresh",
     dailyGood: (done, total) => `${done} of ${total} decision-frontier files refreshed`,
     dailyMissing: "The daily layer is unavailable; the reproducible snapshot is shown.",
-    priceOnly: "Price and margin of safety refresh each market day. C8/C20 keys change only after a full engine rebuild.",
+    priceOnly: "Each market day the same engine rechecks MOS, C20, model support and IRR. Price does not rewrite owner value. C8 retains its observation date; stale history blocks advancement.",
     dual: "Dual key",
     chapter8: "Ch. 8",
     chapter20: "Ch. 20",
     valued: "Valuable",
     exceptions: "Exceptions",
     zero: "No company passes both keys today.",
-    zeroBody: "This is not a UI error. The signal is deliberately scarce; the useful queue is watching price and resolving material unknowns.",
+    zeroBody: "This combines unmet criteria and incomplete evidence; it proves neither an absence of opportunities nor predictive power. Inspect each file's missing evidence and MOS threshold.",
     search: "Search ticker, company, sector, or objection…",
     all: "All",
     company: "Company / diagnosis",
@@ -149,7 +149,7 @@ const COPY = {
     disclosure: "Evidence compiler for research prioritization. Not financial advice or a recommendation to buy or sell.",
     categories: {
       RESEARCH_NOW: "Research now",
-      WATCH_FOR_PRICE: "Watch price",
+      WATCH_FOR_PRICE: "Wait for conditions",
       DATA_EXCEPTION: "Data exception",
       FALLING_KNIFE: "Falling knife",
       FUNDING_DEPENDENT: "Funding dependent",
@@ -185,11 +185,22 @@ function statusLabel(status) {
   return String(status || "unknown").replaceAll("_", " ").toUpperCase();
 }
 
+const TASK_LABELS = {
+  debt_maturities_and_24m_cash_uses: ['Conciliar vencimientos, obligaciones y usos de caja a 24 meses.', 'Reconcile maturities, obligations and 24-month cash uses.'],
+  reconcile_share_basis_and_owner_earnings: ['Conciliar capital diluido, derechos preferentes y caja atribuible al accionista.', 'Reconcile diluted capital, senior claims and cash attributable to common equity.'],
+  proxy_related_parties_and_senior_claims: ['Revisar proxy, partes relacionadas y derechos preferentes.', 'Review proxy, related parties and senior claims.'],
+  verify_price_business_divergence_with_fresh_history: ['Verificar con historia fresca que el precio cayó más que el negocio.', 'Verify with fresh history that price deteriorated more than the business.'],
+  resolve_structural_counterevidence: ['Resolver la evidencia de deterioro estructural antes de avanzar.', 'Resolve structural counterevidence before advancing.'],
+  wait_for_conservative_margin_of_safety: ['Esperar un margen de seguridad suficiente; un precio menor no resuelve los demás bloqueos.', 'Wait for sufficient margin of safety; lower price does not resolve other blockers.'],
+  reconcile_both_valuation_families: ['Contrastar por separado caja del propietario y poder de ganancias.', 'Cross-check owner cash flow and earning power separately.'],
+};
+
 function Detail({ summary, detail, loading, error, copy, language }) {
   if (loading) return <aside className={styles.detailState}>{copy.loading}</aside>;
   if (error) return <aside className={`${styles.detailState} ${styles.error}`}>{error}</aside>;
   if (!summary || !detail) return <aside className={styles.detailState}>{copy.select}</aside>;
   const daily = summary.dailyPrice;
+  if (daily?.assessment) detail = { ...detail, ...daily.assessment };
   const shownPrice = daily?.price ?? summary.price;
   const shownMos = daily?.actualMos ?? summary.actualMos;
   const shownSurplus = daily?.safetySurplus ?? summary.safetySurplus;
@@ -202,6 +213,15 @@ function Detail({ summary, detail, loading, error, copy, language }) {
         <b>{copy.categories[detail.category] || detail.category}</b>
       </header>
       <div className={styles.license}>{detail.claimLicense} · LIVE ONLY · NO ES BUY</div>
+      {detail.researchPlan ? <section className={styles.evidenceSection}>
+        <header><span>{language === 'en' ? 'What would change the decision?' : '¿Qué cambiaría la decisión?'}</span><small>{detail.researchPlan.lane}</small></header>
+        <div className={styles.redTeam}>
+          <p>{language === 'en' ? 'MOS price threshold (not a buy price): ' : 'Umbral de precio para MOS (no es precio de compra): '}<strong>{money(detail.researchPlan.mosTriggerPrice)}</strong></p>
+          <ul>{detail.researchPlan.tasks.map((task) => <li key={task}>{TASK_LABELS[task]?.[language === 'en' ? 1 : 0] || task}</li>)}</ul>
+          <p>{language === 'en' ? 'Business evidence period: ' : 'Período de evidencia del negocio: '}{dateLabel(detail.asOf.owner, language)} · {language === 'en' ? 'C8 history: ' : 'Historia C8: '}{dateLabel(detail.asOf.market, language)}</p>
+          {(detail.evidence.provenance?.ownerEvidence?.annual || []).slice(0, 2).map((annual, i) => annual.sbc?.source ? <p key={i}><a href={annual.sbc.source} target="_blank" rel="noreferrer">SEC · {annual.end} · SBC {money(annual.sbc.value)}</a> · {annual.sbc.filed ? dateLabel(annual.sbc.filed, language) : language === 'en' ? 'availability unverified' : 'disponibilidad no verificada'}</p> : null)}
+        </div>
+      </section> : null}
       {daily ? <div className={styles.dailyGate} data-open={daily.priceGate === "open"}><strong>{gateCopy}</strong><span>{copy.dailyPrice} {money(daily.price)} · {dateLabel(daily.asOf, language)}</span><small>{copy.priceOnly}</small></div> : null}
 
       <section className={styles.passport} aria-label={copy.passport}>
@@ -327,7 +347,8 @@ export function G820Workstation({ initialLanguage = "es" }) {
           <div><p>{copy.eyebrow} · {index.meta.engineVersion}</p><h1>{copy.title}</h1><span>{copy.lead}</span></div>
           <aside>
             <small>{copy.license}</small><strong>{index.meta.claimLicense}</strong>
-            <span>{copy.marketClock} · {dateLabel(daily?.marketAsOf || index.meta.marketAsOf, language)}</span>
+            <span>{copy.marketClock} · C8 {dateLabel(index.meta.marketAsOf, language)}</span>
+            <span>{copy.dailyPrice} · {dateLabel(daily?.marketAsOf, language)}</span>
             <span>{copy.ownerClock} · {dateLabel(index.meta.ownerAsOfMaximum, language)}</span>
           </aside>
         </section>
