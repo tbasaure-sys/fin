@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "@/app/g820/g820.module.css";
 import { useLanguagePreference } from "@/components/language-layer";
 import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
+import { selectResearchQueue } from '@/lib/g820/research-queue';
 
 const CATEGORY_ORDER = [
   "RESEARCH_NOW",
@@ -289,6 +290,7 @@ export function G820Workstation({ initialLanguage = "es" }) {
   const [state, setState] = useState({ status: "loading", index: null, error: "" });
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
+  const [queue, setQueue] = useState('discounts');
   const [selectedId, setSelectedId] = useState("");
   const [visible, setVisible] = useState(50);
   const [detailState, setDetailState] = useState({ id: "", detail: null, error: "" });
@@ -303,7 +305,9 @@ export function G820Workstation({ initialLanguage = "es" }) {
       })
       .then((index) => {
         setState({ status: "ready", index, error: "" });
-        setSelectedId(index.companies?.[0]?.id || "");
+        const discounts = selectResearchQueue(index.companies || [], 'discounts');
+        setQueue(discounts.length ? 'discounts' : 'all');
+        setSelectedId(discounts[0]?.id || index.companies?.[0]?.id || "");
       })
       .catch((error) => { if (error.name !== "AbortError") setState({ status: "error", index: null, error: error.message }); });
     return () => controller.abort();
@@ -329,8 +333,8 @@ export function G820Workstation({ initialLanguage = "es" }) {
 
   const filtered = useMemo(() => {
     const query = search.trim().toLocaleLowerCase(language === "en" ? "en" : "es");
-    return (index?.companies || []).filter((company) => category === "all" || company.category === category).filter((company) => !query || [company.ticker, company.name, company.sector, company.industry, company.firstRejection || ""].join(" ").toLocaleLowerCase().includes(query));
-  }, [index, search, category, language]);
+    return selectResearchQueue(index?.companies || [], queue).filter((company) => category === "all" || company.category === category).filter((company) => !query || [company.ticker, company.name, company.sector, company.industry, company.firstRejection || ""].join(" ").toLocaleLowerCase().includes(query));
+  }, [index, search, category, queue, language]);
 
   const currentDetail = detailState.id === selectedId ? detailState.detail : null;
   const detailError = detailState.id === selectedId ? detailState.error : "";
@@ -365,10 +369,14 @@ export function G820Workstation({ initialLanguage = "es" }) {
         {index.meta.coverage.dualKeyPass === 0 ? <section className={styles.zero}><b>0</b><div><strong>{copy.zero}</strong><p>{copy.zeroBody}</p></div></section> : null}
 
         <section className={styles.controls}>
-          <input aria-label={copy.search} onChange={(event) => { setSearch(event.target.value); setVisible(50); }} placeholder={copy.search} value={search} />
+          <input aria-label={copy.search} onChange={(event) => { setSearch(event.target.value); setQueue('all'); setCategory('all'); setVisible(50); }} placeholder={copy.search} value={search} />
           <div>
-            <button data-active={category === "all"} onClick={() => { setCategory("all"); setVisible(50); }} type="button">{copy.all} <b>{index.meta.universeSize}</b></button>
-            {CATEGORY_ORDER.filter((item) => index.meta.categoryCounts[item]).map((item) => <button data-active={category === item} key={item} onClick={() => { setCategory(item); setVisible(50); }} type="button">{copy.categories[item]} <b>{index.meta.categoryCounts[item]}</b></button>)}
+            <button type="button" data-active={queue === 'discounts'} onClick={() => { setQueue('discounts'); setCategory('all'); setSearch(''); }}>{language === 'en' ? 'Discounts to investigate' : 'Descuentos por investigar'} <b>{selectResearchQueue(index.companies, 'discounts').length}</b></button>
+            <span>{language === 'en' ? 'Price below estimated floor. Not approved bets; open the missing-evidence checklist.' : 'Precio bajo el piso estimado. No son apuestas aprobadas: abre la evidencia pendiente.'}</span>
+          </div>
+          <div>
+            <button data-active={category === "all" && queue === 'all'} onClick={() => { setCategory("all"); setQueue('all'); setVisible(50); }} type="button">{copy.all} <b>{index.meta.universeSize}</b></button>
+            {CATEGORY_ORDER.filter((item) => index.meta.categoryCounts[item]).map((item) => <button data-active={category === item} key={item} onClick={() => { setCategory(item); setQueue('all'); setVisible(50); }} type="button">{copy.categories[item]} <b>{index.meta.categoryCounts[item]}</b></button>)}
           </div>
         </section>
 
