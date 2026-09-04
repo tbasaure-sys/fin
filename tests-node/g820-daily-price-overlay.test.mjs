@@ -6,6 +6,7 @@ import {
   mergeG820DailyPriceOverlay,
   normalizeFmpQuote,
   selectG820DailyUniverse,
+  selectG820DailyPriceOverlay,
 } from "../lib/g820/daily-price-overlay.js";
 
 const index = {
@@ -41,7 +42,7 @@ test("the overlay recomputes price gates without silently rewriting engine keys"
   assert.equal(overlay.companies.aaa.baseChapter20, false);
   assert.deepEqual(overlay.semantics.doesNotRecompute, ["chapter8", "chapter20", "category", "priority", "ownerClock"]);
 
-  const merged = mergeG820DailyPriceOverlay(index, overlay);
+  const merged = mergeG820DailyPriceOverlay(index, overlay, '2026-09-02T12:00:00Z');
   assert.equal(merged.companies[0].chapter20, false);
   assert.equal(merged.companies[0].dailyPrice.price, 14);
   assert.equal(merged.meta.dailyPrice.status, "available");
@@ -80,10 +81,35 @@ test('runtime recheck recomputes price-sensitive decisions and public counters w
   const runtime = { snapshotId: 'snapshot-a', config, contexts: { aaa: { input, owner: { shares: 10, conservativeOwnerEarnings: 30, revenueGrowth: 0 } } } };
   const overlay = buildG820DailyPriceOverlay(index, [{ ticker: 'AAA', price: 14, asOf: '2026-09-01' }], '2026-09-02T00:00:00Z', runtime);
   assert.equal(overlay.companies.aaa.assessment.dualKey.chapter20, true);
-  const merged = mergeG820DailyPriceOverlay(index, overlay);
+  const merged = mergeG820DailyPriceOverlay(index, overlay, '2026-09-02T12:00:00Z');
   assert.equal(merged.companies[0].chapter20, true);
   assert.equal(merged.meta.coverage.chapter20Pass, 1);
   const expensive = buildG820DailyPriceOverlay(index, [{ ticker: 'AAA', price: 100, asOf: '2026-09-01' }], '2026-09-02T00:00:00Z', runtime);
   assert.equal(expensive.companies.aaa.assessment.dualKey.chapter20, false);
   assert.equal(expensive.companies.aaa.assessment.valuation.ivFloor, 20);
+});
+
+test('persisted quotes expire on read and a future overlay cannot win selection', () => {
+  const overlay = buildG820DailyPriceOverlay(index, [
+    { ticker: 'AAA', price: 14, asOf: '2026-09-01' },
+    { ticker: 'CCC', price: 8, asOf: '2026-09-01' },
+  ], '2026-09-02T00:00:00Z');
+  assert.equal(mergeG820DailyPriceOverlay(index, overlay, '2026-09-07T00:00:00Z').meta.dailyPrice.status, 'stale');
+  assert.equal(mergeG820DailyPriceOverlay(index, overlay, '2026-09-07T00:00:00Z').companies[0].dailyPrice, undefined);
+  const future = { ...overlay, generatedAt: '2027-01-01T00:00:00Z' };
+  assert.equal(selectG820DailyPriceOverlay(index, [future, overlay], '2026-09-02T12:00:00Z'), overlay);
+  assert.equal(selectG820DailyPriceOverlay(index, [overlay], '2026-09-07T00:00:00Z'), null);
+  const mixed = structuredClone(overlay);
+  mixed.companies.ccc.asOf = '2026-07-01';
+  assert.equal(selectG820DailyPriceOverlay(index, [mixed], '2026-09-02T12:00:00Z'), null);
+});
+
+test('a newer valid bundle beats an older runtime document without mixing snapshot identities', () => {
+  const base = buildG820DailyPriceOverlay(index, [
+    { ticker: 'AAA', price: 14, asOf: '2026-09-01' },
+    { ticker: 'CCC', price: 8, asOf: '2026-09-01' },
+  ], '2026-09-02T00:00:00Z');
+  const newer = { ...base, generatedAt: '2026-09-02T01:00:00Z' };
+  const wrong = { ...newer, baseSnapshotId: 'another-snapshot', generatedAt: '2026-09-02T02:00:00Z' };
+  assert.equal(selectG820DailyPriceOverlay(index, [base, newer, wrong], '2026-09-02T12:00:00Z'), newer);
 });

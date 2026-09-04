@@ -28,13 +28,16 @@ const COPY = {
     daily: "Actualización diaria",
     dailyGood: (done, total) => `${done} de ${total} expedientes de la frontera con precio actualizado`,
     dailyMissing: "La capa diaria no está disponible; se muestra el snapshot reproducible.",
-    priceOnly: "Cada día de mercado se reevalúan MOS, C20, soporte de los modelos y TIR con el mismo motor. El valor del negocio no cambia por el precio. C8 conserva su fecha; una historia vencida bloquea avanzar.",
+    dailyStale: "El último corte de precios venció; se muestra el snapshot histórico, no condiciones actuales.",
+    bundledDaily: "Respaldo publicado y fechado; no certifica una ejecución automática.",
+    runtimeDaily: "Corte guardado por el proceso automático.",
+    priceOnly: "Recálculo programado cada día de mercado: MOS, C20, soporte de los modelos y TIR de escenario con el mismo motor. El valor del negocio no cambia por el precio. C8 conserva su fecha; una historia vencida bloquea avanzar.",
     dual: "Doble llave",
     chapter8: "Cap. 8",
     chapter20: "Cap. 20",
     valued: "Valorables",
     exceptions: "Excepciones",
-    zero: "Ninguna empresa supera hoy ambas llaves.",
+    zero: "Ninguna empresa supera ambas llaves en este corte.",
     zeroBody: "Este resultado mezcla criterios no satisfechos y evidencia incompleta; no demuestra ausencia de oportunidades ni capacidad predictiva. Consulta qué falta y el umbral de MOS de cada expediente.",
     search: "Buscar ticker, empresa, sector u objeción…",
     all: "Todas",
@@ -54,8 +57,9 @@ const COPY = {
     actualMos: "MOS actual",
     requiredMos: "MOS requerido",
     surplus: "Superávit",
-    noRerating: "TIR sin re-rating",
-    robustness: "Robustez",
+    noRerating: "TIR de escenario sin re-rating",
+    robustness: "Pruebas de recorte superadas",
+    scenarioCaveat: "La TIR depende del escenario, no es un retorno previsto. Las ocho pruebas aplican recortes mecánicos al valor: superarlas no mide la probabilidad de éxito ni sustituye escenarios económicos completos.",
     priceGateOpen: "El precio abre el gate de MOS",
     priceGateClosed: "El precio aún no abre el gate de MOS",
     priceGateUnknown: "Gate de precio no resoluble",
@@ -63,14 +67,14 @@ const COPY = {
     chapter20Question: "¿Sobrevive si el modelo está equivocado?",
     priceDamage: "Daño de precio",
     businessDamage: "Daño del negocio",
-    priceBusinessGap: "Brecha precio/negocio",
+    priceBusinessGap: "Percentil de brecha precio/negocio",
     independent: "Familias de valoración",
     survival: "Supervivencia",
     reflexivity: "Reflexividad",
     clocks: "Dos relojes",
     clocksNote: "El precio no reescribe el valor.",
     lattice: "Lattice de valoración",
-    latticeNote: "Escenarios independientes por familia.",
+    latticeNote: "Escenarios de familias distintas; comparten datos y no son pruebas estadísticamente independientes.",
     firewall: "Firewall de supervivencia",
     firewallNote: "Los fallos no se compensan.",
     redTeam: "Red team",
@@ -98,13 +102,16 @@ const COPY = {
     daily: "Daily refresh",
     dailyGood: (done, total) => `${done} of ${total} decision-frontier files refreshed`,
     dailyMissing: "The daily layer is unavailable; the reproducible snapshot is shown.",
-    priceOnly: "Each market day the same engine rechecks MOS, C20, model support and IRR. Price does not rewrite owner value. C8 retains its observation date; stale history blocks advancement.",
+    dailyStale: "The last price cut has expired; the historical snapshot is shown, not current conditions.",
+    bundledDaily: "Published, dated fallback; not proof of an automatic run.",
+    runtimeDaily: "Cut saved by the scheduled refresh process.",
+    priceOnly: "Scheduled each market day: the same engine rechecks MOS, C20, model support and scenario IRR. Price does not rewrite owner value. C8 retains its observation date; stale history blocks advancement.",
     dual: "Dual key",
     chapter8: "Ch. 8",
     chapter20: "Ch. 20",
     valued: "Valuable",
     exceptions: "Exceptions",
-    zero: "No company passes both keys today.",
+    zero: "No company passes both keys in this cut.",
     zeroBody: "This combines unmet criteria and incomplete evidence; it proves neither an absence of opportunities nor predictive power. Inspect each file's missing evidence and MOS threshold.",
     search: "Search ticker, company, sector, or objection…",
     all: "All",
@@ -124,8 +131,9 @@ const COPY = {
     actualMos: "Actual MOS",
     requiredMos: "Required MOS",
     surplus: "Surplus",
-    noRerating: "No-rerating IRR",
-    robustness: "Robustness",
+    noRerating: "No-rerating scenario IRR",
+    robustness: "Haircut tests passed",
+    scenarioCaveat: "IRR depends on the scenario; it is not a return forecast. The eight tests mechanically haircut value: passing them is neither a success probability nor a substitute for full economic scenarios.",
     priceGateOpen: "Price clears the MOS gate",
     priceGateClosed: "Price does not clear the MOS gate yet",
     priceGateUnknown: "Price gate unresolved",
@@ -133,14 +141,14 @@ const COPY = {
     chapter20Question: "Does it survive if the model is wrong?",
     priceDamage: "Price damage",
     businessDamage: "Business damage",
-    priceBusinessGap: "Price/business gap",
+    priceBusinessGap: "Price/business gap percentile",
     independent: "Valuation families",
     survival: "Survival",
     reflexivity: "Reflexivity",
     clocks: "Two clocks",
     clocksNote: "Price does not rewrite value.",
     lattice: "Valuation lattice",
-    latticeNote: "Independent scenarios by family.",
+    latticeNote: "Different valuation families share inputs; they are not statistically independent tests.",
     firewall: "Survival firewall",
     firewallNote: "Failures do not offset each other.",
     redTeam: "Red team",
@@ -234,9 +242,11 @@ function Detail({ summary, detail, loading, error, copy, language }) {
           [copy.requiredMos, percent(detail.safety.requiredMos.upper, language)],
           [copy.surplus, percent(shownSurplus, language)],
           [copy.noRerating, percent(detail.noReratingIrr?.value, language)],
-          [copy.robustness, percent(detail.valuation.robustnessPassRate, language)],
+          [copy.robustness, Number.isFinite(detail.valuation.robustnessPassRate) ? `${Math.round(detail.valuation.robustnessPassRate * 8)} / 8` : 'N/E'],
         ].map(([label, value]) => <div key={label}><span>{label}</span><strong>{value}</strong></div>)}
       </section>
+
+      <p className={styles.dailyGate}>{copy.scenarioCaveat}</p>
 
       <section className={styles.dualPanel}>
         <article data-pass={detail.dualKey.chapter8}>
@@ -358,7 +368,9 @@ export function G820Workstation({ initialLanguage = "es" }) {
         </section>
 
         <section className={styles.dailyStrip} data-live={daily?.status === "available"}>
-          <div><small>{copy.daily}</small><strong>{daily?.status === "available" ? copy.dailyGood(daily.coverage.succeeded, daily.coverage.requested) : copy.dailyMissing}</strong></div>
+          <div><small>{copy.daily}</small><strong>{daily?.status === "available" ? copy.dailyGood(daily.coverage.succeeded, daily.coverage.requested) : daily?.status === 'stale' ? copy.dailyStale : copy.dailyMissing}</strong>
+            {daily?.status === 'available' ? <small>{daily.storageSource === 'bundled_cut' ? copy.bundledDaily : copy.runtimeDaily}</small> : null}
+          </div>
           <p>{copy.priceOnly}</p>
         </section>
 
