@@ -305,3 +305,52 @@ selectiva independiente; sólo un gesto explícito incorpora un borrador al cuad
   El borrador sin guardar vive en memoria del navegador, con advertencia al salir.
 - `performance: null` y `predictiveClaim: false` son invariantes. No se altera V5,
   G820 ni ningún holdout. Una versión guardada es trazabilidad, no prueba de alpha.
+
+## 11) Valoración condicional y exposición privada — `bls-thesis-fcff-v1`
+
+`/research` → `Mi tesis` → `Valoración y cartera` conecta una revisión guardada
+con inputs financieros, una política económica explícita y una captura de las
+posiciones de su propietario. No modifica el contrato ni los hashes de tesis v1.
+La semántica ejecutable reside en `lib/research/thesis-valuation.mjs`; los adaptadores,
+persistencia y autenticación están en `lib/server/thesis-{financials,capital-*}.js`.
+
+- Los hechos admitidos pertenecen a los accessions del expediente guardado y se
+  fechan por su aceptación. Se preservan concepto, unidad, período, URL y hashes.
+  La consulta Companyfacts y la metadata de identidad son capturas live; no
+  certifican una reconstrucción histórica PIT ni autorizan el holdout sellado.
+- FCFF = EBIT × (1 − impuesto supuesto) − reinversión neta. SBC permanece en EBIT.
+  Cinco años explícitos; margen converge linealmente. Crecimiento exige inversión
+  según ventas/capital incremental, incluso en el terminal. Contracción no libera
+  capital automáticamente. Mantenimiento adicional es neto de depreciación.
+- La referencia inicial usa crecimiento cero, margen anual observado, impuesto
+  25%, descuento 10%, crecimiento terminal cero y ventas/capital 2x. Mantenimiento
+  cero y caja utilizable 100% son hipótesis visibles, no ausencias verificadas.
+  Las obligaciones restantes empiezan desconocidas, nunca en cero.
+- Deuda identificada es una suma no solapada de componentes, no deuda total
+  certificada. Sólo se convierte EV a equity cuando el usuario documenta y revisa
+  caja utilizable, obligaciones no capturadas y no duplicación de ajustes. Datos
+  materiales ausentes, incompatibles o antiguos bloquean la conversión pertinente.
+  El residual equity negativo se conserva; el valor de la acción común se acota a cero.
+- Escenarios de tensión/expansión aplican perturbaciones declaradas a la referencia,
+  no calibradas a retornos. La sensibilidad pertenece a la misma familia DCF y no
+  representa confirmación independiente. El modelo no aplica a financieros, REITs
+  ni EBIT negativo. La valoración no cambia al cambiar exclusivamente el precio.
+- La comparación exige cotización USD fechada ≤4 días, clase única provisional y
+  contraste de acciones actuales contra el proxy diluido anual dentro de 25%.
+  No certifica cap table. La inversa busca crecimiento entre −20% y +30%; si no hay
+  solución única permanece nula. La asimetría sólo existe si los escenarios enmarcan
+  pérdida y ganancia; no es probabilidad ni cota de pérdida permanente.
+- La cartera se consulta con SELECT, unión de propietario y workspace de la sesión;
+  no reutiliza overlays que escriben historial ni fallbacks compartidos. Pesos usan
+  valores registrados, no NAV live. Falta de valores/fechas o antigüedad >14 días
+  bloquean pesos completos. El impacto es estrés USD de una posición larga, no
+  retorno de cartera, recomendación de tamaño, orden ni transacción real.
+- Inputs y cálculos se guardan inmutables en `bls_thesis_capital_v1`, ligados al hash
+  de tesis, con aislamiento por propietario y exportación autocontenida. Se muestran
+  los últimos 30 registros por revisión; los anteriores siguen almacenados. Reabrir
+  un cálculo conserva su resultado original; editar supuestos crea otra simulación.
+  Refrescar no sobreescribe la evidencia anterior. Nada se envía a un modelo de lenguaje.
+- Pruebas: `node --conditions=react-server --test tests-node/thesis-*.test.mjs`;
+  flujo visual `tests-e2e/thesis-capital.spec.mjs`. Licencia máxima: investigación
+  condicional reproducible; `performance: null`, `predictiveClaim: false`. V5, G820,
+  posiciones reales y rangos de holdout no cambian por usar esta interfaz.

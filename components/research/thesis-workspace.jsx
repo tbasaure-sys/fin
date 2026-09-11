@@ -3,12 +3,14 @@ import {useEffect,useRef,useState} from 'react';
 import {newThesis,evaluateThesis,compareEvidence,companyKey,NODE_IDS,assistedProposal} from '@/lib/research/thesis-engine.mjs';
 import {THESIS_COPY} from './thesis-copy';
 import styles from './thesis.module.css';
+import {CapitalWorkspace} from './capital-workspace';
 
 export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
  const c=THESIS_COPY[language]||THESIS_COPY.es;
  const [thesis,setThesis]=useState(()=>newThesis(dossier));
  const [pinned,setPinned]=useState(dossier),[records,setRecords]=useState([]),[branch,setBranch]=useState('base');
  const [current,setCurrent]=useState(null),[parent,setParent]=useState(null),[active,setActive]=useState(0),[view,setView]=useState('editor');
+ const [capitalDirty,setCapitalDirty]=useState(false);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[dirty,setDirty]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false);
  const [reason,setReason]=useState(''),[kind,setKind]=useState('interpretation'),[attempt,setAttempt]=useState(0),[chunk,setChunk]=useState(''),[relation,setRelation]=useState('context');
  const saveController=useRef(null);
@@ -31,12 +33,13 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
  function edit(key,value){setThesis(t=>({...t,[key]:value}));setDirty(true);setSaved(false)}
  function editNode(key,value){setThesis(t=>({...t,nodes:t.nodes.map((n,i)=>i===active?{...n,[key]:value}:n)}));setDirty(true);setSaved(false)}
  function choose(id){
-  if(dirty&&!window.confirm(c.discard))return;
+  if((dirty||capitalDirty)&&!window.confirm(c.discard))return;
   const record=heads.find(r=>r.branch===id);if(!record)return;
   setBranch(id);setCurrent(record);setParent(null);setThesis(record.thesis);setPinned(record.dossier);setDirty(false);setSaved(false);setError('');setReason('');setChunk('');
  }
- function fork(){if(dirty||!current)return;setBranch(`scenario-${crypto.randomUUID()}`);setParent(current);setCurrent(null);setThesis({...thesis,name:c.newScenario});setDirty(true);setSaved(false);setReason('');setError('')}
+ function fork(){if(dirty||!current)return;if(capitalDirty&&!window.confirm(c.discard))return;setBranch(`scenario-${crypto.randomUUID()}`);setParent(current);setCurrent(null);setThesis({...thesis,name:c.newScenario});setDirty(true);setSaved(false);setReason('');setError('')}
  async function save(){
+  if(capitalDirty&&!window.confirm(c.discard))return;
   if(saving)return;const controller=new AbortController();saveController.current=controller;
   const timer=setTimeout(()=>controller.abort(),30000);setSaving(true);setError('');setSaved(false);
   try{
@@ -60,7 +63,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
    <div className={styles.toolbar}>
     <label>{c.scenario}<select aria-label={c.scenario} value={branch} onChange={e=>choose(e.target.value)}>{!heads.some(h=>h.branch===branch)?<option value={branch}>{thesis.name}</option>:null}{heads.map(h=><option key={h.branch} value={h.branch}>{h.thesis.name} · v{h.revision}</option>)}</select></label>
     <button onClick={fork} disabled={!current||dirty}>{c.fork}</button>
-    <nav aria-label={language==='en'?'Thesis views':'Vistas de tesis'}><button aria-pressed={view==='editor'} onClick={()=>setView('editor')}>{c.editor}</button><button aria-pressed={view==='history'} onClick={()=>setView('history')}>{c.history}</button></nav>
+    <nav aria-label={language==='en'?'Thesis views':'Vistas de tesis'}><button aria-pressed={view==='editor'} onClick={()=>setView('editor')}>{c.editor}</button><button aria-pressed={view==='capital'} onClick={()=>setView('capital')}>{language==='en'?'Valuation and portfolio':'Valoración y cartera'}</button><button aria-pressed={view==='history'} onClick={()=>setView('history')}>{c.history}</button></nav>
    </div>
    <p className={styles.provenance}>{c.cutoff}: {pinned.asOf.slice(0,10)} · {c.noClaim}</p>
    {documents.kind!=='same_documents'?<div className={styles.error}><p>{c.newDocs}</p><button onClick={adopt}>{c.adopt}</button></div>:null}
@@ -71,7 +74,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
      {r.changes.changed.map(id=><div key={id}><strong>{label(id)}</strong><p>{language==='en'?'Before: ':'Antes: '}{prior?(NODE_IDS.includes(id)?describe(prior.thesis.nodes.find(n=>n.id===id)):prior.thesis[id])||'—':'—'}</p><p>{language==='en'?'After: ':'Después: '}{NODE_IDS.includes(id)?describe(r.thesis.nodes.find(n=>n.id===id)):r.thesis[id]}</p></div>)}
      <p>{c.dependency}: {r.changes.recheck.map(label).join(' → ')||'—'}</p><small>{r.hash}</small></details>})}
     {records.length===100?<p>{c.historyLimit}</p>:null}
-   </div>:<>
+   </div>:<div hidden={view!=='editor'}>
     <div className={styles.explanations}>
      <label>{c.explanation}<textarea aria-label={c.explanation} maxLength={2000} rows={4} value={thesis.explanation} onChange={e=>edit('explanation',e.target.value)} placeholder={language==='en'?'What would have to be true?':'¿Qué tendría que ser cierto?'} /></label>
      <label>{c.alternative}<textarea aria-label={c.alternative} maxLength={2000} rows={4} value={thesis.alternative} onChange={e=>edit('alternative',e.target.value)} placeholder={language==='en'?'The strongest explanation against your thesis.':'La explicación más fuerte en contra de tu tesis.'} /></label>
@@ -105,7 +108,9 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
      <button className={styles.primary} onClick={save} disabled={!dirty||!reason.trim()||!thesis.name.trim()}>{saving?c.saving:c.save}</button>
     </div>
     <p role="status" className={styles.saveStatus}>{saved?`${c.saved} · v${current?.revision}`:dirty?c.unsaved:''}</p>
-   </>}
+   </div>}
+   {view==='capital'&&dirty?<p>{language==='en'?'Save your thesis changes first to value this revision.':'Guarda los cambios de tu tesis antes de valorar esta revisión.'}</p>:null}
+   <div hidden={view!=='capital'||dirty}><CapitalWorkspace key={current?.hash||'unsaved'} revision={current} language={language} active={view==='capital'} onDirty={setCapitalDirty}/></div>
   </fieldset>
  </section>;
 }

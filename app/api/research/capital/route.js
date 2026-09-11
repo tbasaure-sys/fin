@@ -1,0 +1,14 @@
+import {requireApiAuthSession} from '@/lib/server/auth/session';
+import {thesisRepository} from '@/lib/server/thesis-repository';
+import {createCapitalStore,createMemoryCapitalStore} from '@/lib/server/thesis-capital-store';
+import {createCapitalService,createCapitalHttp} from '@/lib/server/thesis-capital-service';
+import {createFinancialLoader,readOwnedPortfolio} from '@/lib/server/thesis-financials';
+export const runtime='nodejs';
+export const dynamic='force-dynamic';
+export const maxDuration=60;
+const local=process.env.NODE_ENV!=='production'&&process.env.BLS_PRIME_STORAGE_BACKEND==='memory';
+const store=local?(globalThis.__blsCapitalRepository??=createMemoryCapitalStore()):createCapitalStore();
+const service=createCapitalService({store,thesisStore:thesisRepository,loadFinancial:createFinancialLoader(),readPortfolio:local?async()=>({status:'available',holdings:[]}):readOwnedPortfolio});
+const handler=createCapitalHttp({authenticate:requireApiAuthSession,service});
+export const GET=handler;
+export const POST=handler;

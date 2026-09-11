@@ -1,0 +1,44 @@
+import {test,expect} from './filing-test-fixtures.mjs';
+import {createRequire} from 'node:module';
+import {newThesis} from '../lib/research/thesis-engine.mjs';
+import {valueThesis,defaultAssumptions,portfolioImpact} from '../lib/research/thesis-valuation.mjs';
+const dossier=createRequire(import.meta.url)('../lib/research/published/MSFT.json');
+const now=()=>new Date().toISOString();
+test.beforeEach(()=>test.skip(!process.env.BLS_E2E_AUTHENTICATED,'Requires authenticated test context'));
+test('valuation keeps assumptions across tabs, persists calculations, and preserves a draft after server failure',async({page})=>{
+ const thesis=newThesis(dossier),revision={hash:'a'.repeat(64),dossier,thesis,revision:1,branch:'base',savedAt:now(),changes:{changed:[],recheck:[]}};
+ await page.route('**/api/public/research?ticker=MSFT',r=>r.fulfill({json:{dossier,ticket:'fixture'}}));
+ await page.route('**/api/research/theses?ticker=MSFT',r=>r.fulfill({json:{revisions:[revision]}}));
+ const f=(value,unit='USD')=>({value,unit,start:'2025-07-01',end:'2026-06-30',availableAt:dossier.sources[0].acceptedAt,accession:dossier.sources[0].accession,sourceHash:'f'.repeat(64),url:dossier.sources[0].url,concepts:['test']});
+ const financial={ticker:'MSFT',asOf:dossier.asOf,facts:{revenue:f(100e6),ebit:f(20e6),cash:f(20e6),debt:f(40e6),shares:f(10e6,'shares')},currency:'USD',identity:{singleClass:true,supportedBusiness:true},warnings:[]};
+ const quote={ticker:'MSFT',price:8,currency:'USD',asOf:now(),shares:10e6,instrumentType:'EQUITY'},portfolio={status:'available',holdings:[]};
+ const input={kind:'inputs',hash:'b'.repeat(64),thesisHash:revision.hash,financial,quote,portfolio,assumptions:defaultAssumptions(financial),savedAt:now()};
+ let rows=[],fail=false;
+ await page.route('**/api/research/capital**',async route=>{
+  if(route.request().method()==='GET')return route.fulfill({json:{records:rows}});
+  const body=route.request().postDataJSON();if(body.action==='load'){rows=[input,...rows];return route.fulfill({json:{record:input}})}
+  if(fail)return route.fulfill({status:503,json:{error:'CAPITAL_UNAVAILABLE'}});
+  const valuation=valueThesis(financial,body.assumptions,quote,now()),record={...input,kind:'valuation',hash:'c'.repeat(64),inputHash:input.hash,assumptions:body.assumptions,valuation,impact:portfolioImpact(portfolio,valuation,quote,now())};rows=[record,...rows];return route.fulfill({json:{record}});
+ });
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/research?ticker=MSFT&lang=es');
+ await page.getByRole('button',{name:'Valoración y cartera',exact:true}).click();
+ const panel=page.getByRole('region',{name:'Valoración y cartera'});
+ await panel.getByRole('button',{name:'Cargar cifras y conectar cartera'}).click();
+ await expect(panel.getByText('El valor operativo es calculable; el valor por acción sigue pendiente de conciliación.')).toBeVisible();
+ await panel.getByLabel('Obligaciones NO incluidas en deuda o flujos (USD millones)').fill('0');
+ await panel.getByLabel('Fundamento de estos supuestos').fill('QA hypothesis, not an observed absence of claims.');
+ await panel.getByLabel('He revisado la deuda identificada',{exact:false}).check();
+ await expect(panel.getByText('Brecha frente a referencia',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Trabajar la tesis',exact:true}).click();
+ await page.getByRole('button',{name:'Valoración y cartera',exact:true}).click();
+ await expect(panel.getByLabel('Fundamento de estos supuestos')).toHaveValue('QA hypothesis, not an observed absence of claims.');
+ await panel.getByRole('button',{name:'Guardar cálculo',exact:true}).click();
+ await expect(panel.getByRole('status').filter({hasText:'Cálculo guardado'})).toBeVisible();
+ await page.reload();await page.getByRole('button',{name:'Valoración y cartera',exact:true}).click();
+ await expect(panel.getByLabel('Fundamento de estos supuestos')).toHaveValue('QA hypothesis, not an observed absence of claims.');
+ fail=true;await panel.getByLabel('Fundamento de estos supuestos').fill('Keep this draft on failure');
+ await panel.getByRole('button',{name:'Guardar cálculo',exact:true}).click();
+ await expect(panel.getByRole('alert')).toBeVisible();await expect(panel.getByLabel('Fundamento de estos supuestos')).toHaveValue('Keep this draft on failure');
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);expect(errors).toEqual([]);
+});
