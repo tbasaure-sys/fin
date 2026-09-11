@@ -35,6 +35,7 @@ test('unresolved classes and materially different share counts block security co
  const f=financialFixture();f.identity.singleClass=false;
  assert.equal(valueThesis(f,assumptionFixture(),quote,at).base.perShare,null);
  assert.equal(valueThesis(financialFixture(),assumptionFixture(),{...quote,shares:20},at).comparison,null);
+ assert.equal(valueThesis(financialFixture(),assumptionFixture(),{...quote,shares:20},at).base.perShare,null);
  assert.equal(valueThesis(financialFixture(),assumptionFixture(),{...quote,currency:'EUR'},at).comparison,null);
  assert.equal(valueThesis(financialFixture(),assumptionFixture(),{...quote,asOf:'2026-08-01'},at).comparison,null);
 });

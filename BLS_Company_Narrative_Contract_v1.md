@@ -306,7 +306,7 @@ selectiva independiente; sólo un gesto explícito incorpora un borrador al cuad
 - `performance: null` y `predictiveClaim: false` son invariantes. No se altera V5,
   G820 ni ningún holdout. Una versión guardada es trazabilidad, no prueba de alpha.
 
-## 11) Valoración condicional y exposición privada — `bls-thesis-fcff-v1`
+## 11) Valoración condicional y exposición privada — `bls-thesis-fcff-v1.1`
 
 `/research` → `Mi tesis` → `Valoración y cartera` conecta una revisión guardada
 con inputs financieros, una política económica explícita y una captura de las
@@ -340,6 +340,10 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
   No certifica cap table. La inversa busca crecimiento entre −20% y +30%; si no hay
   solución única permanece nula. La asimetría sólo existe si los escenarios enmarcan
   pérdida y ganancia; no es probabilidad ni cota de pérdida permanente.
+- v1.1 invalida también el valor por acción cuando una cantidad actual contrastada
+  difiere materialmente del denominador anual; v1 sólo bloqueaba la comparación.
+  El valor operativo no cambia. Los cálculos v1 guardados conservan su versión y
+  resultado original; una nueva simulación usa v1.1.
 - La cartera se consulta con SELECT, unión de propietario y workspace de la sesión;
   no reutiliza overlays que escriben historial ni fallbacks compartidos. Pesos usan
   valores registrados, no NAV live. Falta de valores/fechas o antigüedad >14 días
