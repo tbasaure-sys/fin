@@ -450,7 +450,7 @@ function humanizeMetric(value) {
     current_share_count_relative_difference: "diferencia en el número de acciones",
     base_intrinsic_value_per_share: "valor base/acción",
     reverse_dcf_implied_revenue_cagr: "crecimiento DCF inverso",
-    latest_sec_filing: "último informe presentado ante la SEC",
+    latest_sec_filing: "último informe regulatorio presentado",
     wacc: "tasa de descuento",
     terminal_growth: "crecimiento de largo plazo",
     current_price: "precio actual",
@@ -544,10 +544,10 @@ function humanizeSourceAuthority(value) {
   const text = String(value || "").trim();
   if (!text) return "Sin evaluación de autoridad de fuente.";
   if (/fmp.*(?:sec|xbrl).*(?:cross.?check|contrast)|(?:sec|xbrl).*fmp/i.test(text)) {
-    return "Estados normalizados por Financial Modeling Prep y contrastados con datos XBRL de la SEC.";
+    return "Estados normalizados por Financial Modeling Prep y contrastados con los informes regulatorios originales.";
   }
   if (/sec.*(?:primary|company facts|xbrl)/i.test(text)) {
-    return "Estados contrastados con información presentada ante la SEC.";
+    return "Estados contrastados con los informes regulatorios originales.";
   }
   if (/fmp.*normalized statements/i.test(text)) {
     return "Estados normalizados por Financial Modeling Prep.";
@@ -558,9 +558,9 @@ function humanizeSourceAuthority(value) {
 function humanizeProvider(value) {
   const provider = String(value || "").trim();
   if (!provider) return "Fuente pendiente";
-  if (/fmp\s*\+\s*sec|mixed/i.test(provider)) return "FMP + SEC";
+  if (/fmp\s*\+\s*sec|mixed/i.test(provider)) return "Datos normalizados + informes originales";
   if (/^fmp$/i.test(provider) || /financial modeling prep/i.test(provider)) return "Financial Modeling Prep";
-  if (/^sec(?:[\s-]+edgar)?$/i.test(provider) || /sec company facts/i.test(provider)) return "SEC EDGAR";
+  if (/^sec(?:[\s-]+edgar)?$/i.test(provider) || /sec company facts/i.test(provider)) return "Informes regulatorios";
   if (/workspace/i.test(provider)) return "Espacio de trabajo";
   return "Proveedor financiero";
 }
@@ -611,7 +611,7 @@ function humanizeQualityFlag(flag) {
 
 function humanizeSourceType(source) {
   const text = `${source?.source_id || ""} ${source?.endpoint_or_filing || ""}`.toLowerCase();
-  if (/submission|filing|company.?facts|xbrl|sec/.test(text)) return "Informes presentados ante la SEC";
+  if (/submission|filing|company.?facts|xbrl|sec/.test(text)) return "Informes regulatorios presentados";
   if (/income/.test(text)) return "Estado de resultados";
   if (/balance/.test(text)) return "Balance general";
   if (/cash.?flow/.test(text)) return "Estado de flujo de caja";
@@ -2547,8 +2547,8 @@ export default function EquityResearchPanel({ dashboard, id = "aurora-research-d
               <dd>{statementProvider ? statementProvider.toUpperCase() : "-"}</dd>
             </div>
             <div>
-              <dt>Archivos SEC</dt>
-              <dd>{coverage.sec_metadata_available ? "Metadatos SEC" : "-"}</dd>
+              <dt>Archivos regulatorios</dt>
+              <dd>{coverage.sec_metadata_available ? "Metadatos de los informes" : "-"}</dd>
             </div>
             <div>
               <dt>Archivos</dt>

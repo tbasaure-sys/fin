@@ -91,7 +91,8 @@ test("a legacy conditional range without full source and date evidence is degrad
   assert.ok(view.closurePlan.length > 0);
 });
 
-test("the explanation layer preserves a canonical decision-ready range instead of recomputing it", () => {
+test("the explanation layer preserves a canonical decision-ready range instead of recomputing it", (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: NOW });
   const research = blockedResearch({
     valuation: {
       available: true,
@@ -118,6 +119,8 @@ test("the explanation layer preserves a canonical decision-ready range instead o
   assert.deepEqual(valuation.range, { low: 28, central: 34, high: 41 });
   assert.equal(valuation.basis, "institutional_model");
   assert.equal(valuation.method, "forward_fcff_dcf");
+  t.mock.timers.setTime(Date.parse("2026-09-07T12:00:00Z"));
+  assert.equal(buildIndicativeValuation(research).range, null, "expired market evidence must still be blocked");
 });
 
 test("a bank without observed book and residual-income inputs is not given a generic cash-flow valuation", () => {

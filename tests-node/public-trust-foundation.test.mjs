@@ -71,19 +71,7 @@ test("manual recovery requires confirmation and preserves language", async () =>
   assert.match(confirmedHtml, /location\.replace\("\/aurora\?recovered=1"\)/);
 });
 
-test("public entry points distinguish sign in, workspace creation, and sample data", () => {
-  const home = source("components/public-home-experience.jsx");
-  const shellNavigation = source("lib/public-shell-navigation.js");
-  assert.match(shellNavigation, /intent=signin/);
-  assert.match(shellNavigation, /\/signup\?lang=/);
-  assert.match(home, /Frozen example/);
-  assert.match(home, /Ejemplo congelado/);
-  assert.match(home, /href: "\/g820"/);
-  assert.match(home, /id="g820-launch"/);
-  assert.match(home, /Abrir G820 Screener/);
-  assert.match(shellNavigation, /id: "g820"/);
-  assert.doesNotMatch(home, /const displayBrand = "BL'S"/);
-});
+// Homepage behavior is exercised in tests-e2e/filing-research.spec.mjs.
 
 test("Stress gate accessibility contract traps and restores focus", () => {
   const gate = source("components/stress-account-gate.jsx");

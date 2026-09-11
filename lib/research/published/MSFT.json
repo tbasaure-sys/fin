@@ -1,0 +1,112 @@
+{
+  "version": "bls-filing-dossier-v1",
+  "ticker": "MSFT",
+  "name": "MICROSOFT CORP",
+  "cik": 789019,
+  "asOf": "2026-09-07T02:28:55.812Z",
+  "packetHash": "5d7bdbe36f7a14c2ff4055866ef58d6ec7dc6e3ba028019823670e39a05d8325",
+  "sources": [
+    {
+      "form": "10-K",
+      "accession": "0001193125-26-323660",
+      "document": "msft-20260630.htm",
+      "filedAt": "2026-07-29",
+      "acceptedAt": "2026-07-29T20:08:01.000Z",
+      "periodEnd": "2026-06-30",
+      "id": "D1",
+      "url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/msft-20260630.htm",
+      "sha256": "4bcf2da2871acc19e32c5a62f36f6d83d6aae03cdc4aaa9a86a9a21ee8223f02",
+      "retrievedAt": "2026-09-07T02:28:57.955Z",
+      "blocks": 2622
+    }
+  ],
+  "sections": [
+    {
+      "id": "business",
+      "extracts": [
+        {
+          "id": "D1:173",
+          "text": "Windows faces competition from various software products and from alternative platforms and devices. Microsoft Defender for Endpoint competes with endpoint security solution providers.\nOur Enterprise Mobility + Security offerings compete with products from a range of competitors including identity vendors, security solution vendors, and numerous other security point solution vendors.\nLinkedIn faces competition from online professional networks; recruiting, talent management, and human resource services companies; job boards; companies that provide learning and development products and services; online and offline outlets that generate revenue from advertisers and marketers; and online and offline outlets for companies with lead generation and customer intelligence and insights.\nDynamics competes with cloud-based and on-premises business solution providers.\nIntelligent Cloud\nOur Intelligent Cloud segment consists of our public, private, and hybrid server products and cloud services that power modern business and developers. This segment primarily comprises:\nServer products and cloud services, including Azure and other cloud services, comprising cloud and AI consumption-based services, GitHub cloud services, Health and Life Sciences cloud services (formerly Nuance Healthcare cloud services), virtual desktop offerings, and other cloud services; and Server products, comprising SQL Server, Windows Server, Visual Studio, System Center, related Client Access Licenses (“CALs”), and other on-premises offerings.\nEnterprise and partner services, including Enterprise Support Services, Industry Solutions, Microsoft Partner Network, and Learning Experience.\nPART I\nItem 1\nServer Products and Cloud Services",
+          "blockStart": 173,
+          "blockEnd": 183
+        },
+        {
+          "id": "D1:508",
+          "text": "OVERVIEW\nMicrosoft is a technology company committed to making digital technology and artificial intelligence (“AI”) available broadly and doing so responsibly, with a mission to empower every person and every organization on the planet to achieve more. We create platforms and applications, powered by AI, that deliver innovative solutions that meet the evolving needs of our customers.\nWe generate revenue by offering a wide range of cloud-based solutions, content, and other services to people and businesses; licensing and supporting an array of software products; delivering relevant online advertising to a global audience; and designing and selling devices. Our most significant expenses are related to compensating employees; supporting and investing in our cloud-based services, including datacenter operations; designing, manufacturing, marketing, and selling our other products and services; and income taxes.\nHighlights from fiscal year 2026 compared with fiscal year 2025 included:\nMicrosoft Cloud revenue increased 27% to $214.4 billion.\nCommercial remaining performance obligation increased 84% to $678 billion.\nMicrosoft 365 Commercial cloud revenue increased 17%.\nMicrosoft 365 Consumer cloud revenue increased 28%.\nLinkedIn revenue increased 11%.\nDynamics 365 revenue increased 18%.\nAzure and other cloud services revenue increased 41%.\nWindows OEM and Devices revenue decreased slightly.\nXBOX content and services revenue decreased 5%.\nSearch advertising (formerly Search and news advertising) revenue excluding traffic acquisition costs increased 12%.\nIndustry Trends and Opportunities\nOur industry is dynamic and highly competitive, with frequent changes in both technologies and business models. Each industry shift is an opportunity to conceive new products, new technologies, or new ideas that can further transform the industry and our business. At Microsoft, we push the boundaries of what is possible through a broad range of research and development activities that seek to identify and address the changing demands of customers and users, industry trends, and competitive forces.",
+          "blockStart": 508,
+          "blockEnd": 523
+        },
+        {
+          "id": "D1:578",
+          "text": "Adjusted net income and adjusted diluted earnings per share (“EPS”) are non-GAAP financial measures. These non-GAAP financial measures exclude net gains and losses from investments in OpenAI. Refer to the Non-GAAP Financial Measures section below for a reconciliation of our financial results reported in accordance with GAAP to non-GAAP financial results.\nFiscal Year 2026 Compared with Fiscal Year 2025\nRevenue increased $50.1 billion or 18% driven by growth in Microsoft Cloud. Intelligent Cloud revenue increased driven by Azure. Productivity and Business Processes revenue increased driven by Microsoft 365 Commercial cloud. More Personal Computing revenue decreased driven by XBOX (formerly Gaming), offset in part by growth in Search advertising.\nCost of revenue increased $18.5 billion or 21% driven by growth in Microsoft Cloud.\nGross margin increased $31.6 billion or 16% with growth across each of our segments.\nGross margin percentage decreased slightly driven by continued investments in AI infrastructure and growing AI product usage, offset in part by efficiency gains across the Microsoft Cloud.\nMicrosoft Cloud gross margin percentage decreased to 66% driven by continued investments in AI infrastructure and growing AI product usage, offset in part by efficiency gains in Azure and Microsoft 365 Commercial cloud.\nOperating expenses increased $4.9 billion or 7% driven by continued investments in research and development compute capacity, AI talent, and data to support product development that benefits the entire portfolio, impairment and other related expenses in our XBOX business, investments in commercial sales, and higher Copilot advertising expenses.\nOperating income increased $26.7 billion or 21% driven by growth in Productivity and Business Processes and Intelligent Cloud.\nRevenue and operating income both included a favorable foreign currency impact of 2%.\nPART II\nItem 7",
+          "blockStart": 578,
+          "blockEnd": 589
+        }
+      ],
+      "status": "extracts_available"
+    },
+    {
+      "id": "cash",
+      "extracts": [
+        {
+          "id": "D1:734",
+          "text": "The following table reconciles our financial results reported in accordance with GAAP to non-GAAP financial results:\n(In millions, except percentages and per share amounts) | | 2026 | | | 2025 | | | | 2024 | | | Percentage Change 2026 Versus 2025 | | | Percentage Change 2025 Versus 2024 |\nOther income (expense), net | | $ | 10,697 | | | $ | (4,901 | ) | | $ | (1,646 | ) | | 318% | | | (198)% |\nNet (gains) losses from investments in OpenAI | | | (6,530 | ) | | | 4,763 | | | | 1,482 | | | (237)% | | | 221% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nAdjusted other income (expense), net (non-GAAP) | | $ | 4,167 | | | $ | (138 | ) | | $ | (164 | ) | | 3,120% | | | 16% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nNet income | | $ | 133,749 | | | $ | 101,832 | | | $ | 88,136 | | | 31% | | | 16% |\nNet (gains) losses from investments in OpenAI, net of tax of $1,567, $(1,143), and $(356) | | | (4,963 | ) | | | 3,620 | | | | 1,126 | | | (237)% | | | 221% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nAdjusted net income (non-GAAP) | | $ | 128,786 | | | $ | 105,452 | | | $ | 89,262 | | | 22% | | | 18% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nDiluted earnings per share | | $ | 17.95 | | | $ | 13.64 | | | $ | 11.80 | | | 32% | | | 16% |\nNet (gains) losses from investments in OpenAI | | | (0.67 | ) | | | 0.49 | | | | 0.15 | | | (237)% | | | 227% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nAdjusted diluted earnings per share (non-GAAP) | | $ | 17.28 | | | $ | 14.13 | | | $ | 11.95 | | | 22% | | | 18% |\n| | | | | | | | | | | | | | | | | |\nLIQUIDITY AND CAPITAL RESOURCES\nWe expect existing cash, cash equivalents, short-term investments, cash flows from operations, and access to capital markets to continue to be sufficient to fund our operating activities and cash commitments for investing and financing activities, such as dividends, share repurchases, debt maturities, and material capital expenditures, for at least the next 12 months and thereafter for the foreseeable future.\nPART II\nItem 7\nCash, Cash Equivalents, and Investments",
+          "blockStart": 734,
+          "blockEnd": 760
+        },
+        {
+          "id": "D1:764",
+          "text": "A majority of our investments are priced by pricing vendors and are generally Level 1 or Level 2 investments as these vendors either provide a quoted market price in an active market or use observable inputs for their pricing without applying significant adjustments. Broker pricing is used mainly when a quoted price is not available, the investment is not priced by our pricing vendors, or when a broker price is more reflective of fair values in the market in which the investment trades. Our broker-priced investments are generally classified as Level 2 investments because the broker prices these investments based on similar assets without applying significant adjustments. In addition, all our broker-priced investments have a sufficient level of trading volume to demonstrate that the fair values used are appropriate for these investments. Our fair value processes include controls that are designed to ensure appropriate fair values are recorded. These controls include model validation, review of key model inputs, analysis of period-over-period fluctuations, and independent recalculation of prices where appropriate.\nCash Flows",
+          "blockStart": 764,
+          "blockEnd": 765
+        },
+        {
+          "id": "D1:766",
+          "text": "Cash from operations increased $46.8 billion to $182.9 billion for fiscal year 2026, primarily due to an increase in cash received from customers and a decrease in cash used to pay income taxes, offset in part by an increase in cash paid to suppliers. Cash used in financing increased $847 million to $52.5 billion for fiscal year 2026, primarily due to a $6.0 billion decrease in cash used for repayments of debt, offset in part by a $3.9 billion increase in common stock repurchases and a $2.4 billion increase in dividends paid. Cash used in investing increased $66.9 billion to $139.5 billion for fiscal year 2026, primarily due to a $51.4 billion increase in additions to property and equipment and a $22.2 billion increase in cash used in other investing primarily to facilitate the purchase of components, offset in part by a $4.2 billion decrease in cash used in the acquisition of companies, net of cash acquired and divestitures, and purchases of intangible and other assets and a $2.4 billion decrease in cash used in net investment purchases, sales, and maturities.\nDebt Proceeds\nWe issue debt to take advantage of favorable pricing and liquidity in the debt markets, reflecting our credit rating. The proceeds of these issuances were or will be used for general corporate purposes, which may include, among other things, funding for working capital, capital expenditures, repurchases of capital stock, acquisitions, and repayment of existing debt. Refer to Note 10 – Debt of the Notes to Financial Statements (Part II, Item 8 of this Form 10-K).\nPART II\nItem 7\nUnearned Revenue\nUnearned revenue comprises mainly unearned revenue related to volume licensing programs, which may include cloud services and Software Assurance (“SA”). Unearned revenue is generally invoiced annually at the beginning of each contract period for multi-year agreements and recognized ratably over the coverage period. Unearned revenue also includes payments for other offerings for which we have been paid in advance and earn the revenue when we transfer control of the product or service. Refer to Note 1 – Accounting Policies of the Notes to Financial Statements (Part II, Item 8 of this Form 10-K).",
+          "blockStart": 766,
+          "blockEnd": 772
+        }
+      ],
+      "status": "extracts_available"
+    },
+    {
+      "id": "thesis",
+      "extracts": [
+        {
+          "id": "D1:294",
+          "text": "Our competitors range in size from diversified global companies with significant research and development resources to small, specialized firms who may be more effective in deploying technical, marketing, and financial resources. Barriers to entry in many of our businesses are low and many of the areas in which we compete evolve rapidly with changing and disruptive technologies, shifting user needs, and frequent introductions of new products and services. If we do not continue to innovate and provide products, devices, and services that appeal to businesses and consumers, we may not remain competitive, which could adversely affect our business, financial condition, and results of operations.\nCompetition among platform-based ecosystems\nAn important element of our business model has been to create platform-based ecosystems on which many participants can build diverse solutions. A well-established ecosystem creates beneficial network effects among users, application developers, and the platform provider that can accelerate growth. Establishing significant scale in the marketplace is necessary to meet consumer demand and to achieve and maintain attractive margins. Firms offering competing platforms may make it more difficult to attract and retain customers.\nA competing vertically-integrated model, in which a single firm controls the hardware and software elements of a product and related services, has succeeded with some consumer products such as PCs, tablets, smartphones, gaming consoles, wearables, and other endpoint devices. Competitors pursuing this model also earn revenue from services integrated with the hardware and software platform, including applications and content sold through their integrated marketplaces. They may also be able to claim security and performance benefits from their vertically-integrated offer. We also offer some vertically-integrated hardware and software products and services. Expansion of our vertically-integrated capabilities, including developing proprietary hardware, infrastructure, and artificial intelligence (“AI”) models, could increase our cost structure, reduce margins, and expose us to operational risks.",
+          "blockStart": 294,
+          "blockEnd": 297
+        },
+        {
+          "id": "D1:312",
+          "text": "PART I\nItem 1A\nDemand for cloud-based and AI products and services is evolving and difficult to forecast. Overestimation of demand or misalignment of capacity investments may result in underutilization of infrastructure and may lead to impairment of assets on our balance sheet. Conversely, demand exceeding available capacity limits our ability to meet customer needs in a timely manner.\nThe cost structure for AI products and services is subject to significant uncertainty, including with respect to model training and inference costs, the availability and pricing of components, and energy costs. If these costs increase, remain elevated, or fail to decline, or if pricing for AI products and services declines as a result of competition, commoditization, or other market forces, our margins, financial condition, and results of operations could be adversely affected.",
+          "blockStart": 312,
+          "blockEnd": 315
+        },
+        {
+          "id": "D1:330",
+          "text": "Acquisitions, joint ventures, and strategic alliances could have an adverse effect on our business. We expect to continue making acquisitions and entering into joint ventures and strategic alliances as part of our long-term business strategy. For example, in October 2023 we completed our acquisition of Activision Blizzard, Inc. Additionally, we have a long-term strategic partnership with OpenAI. Acquisitions and other transactions and arrangements involve significant challenges and risks, including that they do not advance our business strategy, that we get an unsatisfactory return on our investment, that they raise new compliance-related obligations and challenges, that we have difficulty integrating and retaining new employees, business systems, and technology, that they distract management from our other businesses, or that announced transactions may not be completed. If an arrangement fails to adequately anticipate changing circumstances and interests of a party, it may result in early termination or renegotiation of the arrangement. We also have limited ability to control or influence third parties with whom we have arrangements, which may impact our ability to realize the anticipated benefits. The success of these transactions and arrangements depend in part on our ability to leverage them to enhance our existing products and services or develop compelling new ones, as well as the acquired companies’ ability to meet our policies and processes in areas such as data governance, privacy, digital safety, responsible AI, and cybersecurity. It may take longer than expected to realize the full economic benefits from these transactions and arrangements, such as increased revenue or enhanced efficiencies, or the benefits may ultimately be smaller than we expected, which could cause an impairment of goodwill or intangibles. We have recorded, and may in the future be required to record, a significant charge in our consolidated financial statements during the period in which any impairment of our goodwill or amortizable intangible assets is determined, negatively affecting our results of operations. In addition, these transactions and arrangements have been and may be subject to legal and regulatory challenge. These events could adversely affect our business, operations, financial condition, and results of operations.",
+          "blockStart": 330,
+          "blockEnd": 330
+        }
+      ],
+      "status": "extracts_available"
+    }
+  ],
+  "coverage": {
+    "documents": 1,
+    "totalChunks": 183,
+    "selectedChunks": 9
+  },
+  "analysis": {
+    "status": "pending_provider",
+    "valuation": null,
+    "mispricing": null,
+    "interpretationVerified": false
+  },
+  "claim": "C0_REPORTED_ONLY",
+  "performance": null,
+  "predictiveClaim": false,
+  "delivery": "published_capture"
+}

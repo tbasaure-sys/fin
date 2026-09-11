@@ -1,332 +1,49 @@
 "use client";
-
 import Link from "next/link";
-import { useEffect } from "react";
-
-import styles from "@/app/home-page.module.css";
-import { BreakpointHero } from "@/components/breakpoint/breakpoint-hero";
 import { useLanguagePreference } from "@/components/language-layer";
-import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
-import { StressAccountGate } from "@/components/stress-account-gate";
-
-const COPY = {
-  es: {
-    g820Launch: {
-      kicker: "G820 · actualización diaria",
-      title: "Dislocaciones con doble margen de seguridad.",
-      body: "Explora el universo, separa daño de precio de daño del negocio y abre sólo los expedientes que merecen diligencia.",
-      action: "Abrir G820 Screener",
-    },
-    workflowKicker: "Cinco decisiones conectadas",
-    workflowTitle: "De una señal a una decisión defendible.",
-    workflowSub:
-      "BLS Prime ordena la investigación en una secuencia. Cada paso produce una salida concreta para el siguiente.",
-    steps: [
-      {
-        index: "01",
-        title: "Encontrar dislocaciones",
-        engine: "G820",
-        outcome: "Precio más dañado que el negocio y margen de seguridad suficiente incluso bajo una valoración conservadora.",
-        action: "Abrir G820",
-        href: "/g820",
-      },
-      {
-        index: "02",
-        title: "Descubrir",
-        engine: "FactorLab",
-        outcome: "Candidatos priorizados, con una razón verificable para dedicarles tiempo.",
-        action: "Buscar candidatos",
-        href: "/factorlab",
-      },
-      {
-        index: "03",
-        title: "Entender el precio",
-        engine: "Breakpoint",
-        outcome: "Expectativas implícitas de crecimiento y rentabilidad que el precio necesita.",
-        action: "Analizar una empresa",
-        href: "#breakpoint",
-      },
-      {
-        index: "04",
-        title: "Construir la tesis",
-        engine: "AURORA",
-        outcome: "Rango y estado de valoración, impulsores de valor y condiciones que invalidan la tesis.",
-        action: "Abrir AURORA",
-        href: "/aurora",
-      },
-      {
-        index: "05",
-        title: "Medir el riesgo",
-        engine: "Stress",
-        outcome: "Contribución al downside, concentración y posiciones que explican la pérdida.",
-        action: "Analizar mi cartera",
-        note: "Requiere cuenta",
-        requiresAccount: true,
-        href: "/stress",
-      },
-    ],
-    demo: {
-      kicker: "Demo determinista",
-      title: "Una lectura conectada, no herramientas sueltas.",
-      body:
-        "Este caso de Texas Instruments muestra cómo una señal avanza hasta una lectura de empresa y su impacto en cartera.",
-      disclosure: "Ejemplo congelado · 30 de junio de 2026 · No son datos en vivo.",
-      company: "Texas Instruments",
-      ticker: "TXN",
-      status: "En rango · revisar supuestos",
-      cards: [
-        ["Descubrimiento", "priority", "Calidad y caja justifican una revisión más profunda."],
-        ["Precio", "price", "El precio exige sostener crecimiento y rentabilidad; no basta con extrapolar el pasado."],
-        ["Tesis", "range", "El rango depende de márgenes, reinversión y recuperación del ciclo industrial."],
-        ["Riesgo", "downside", "Downside ilustrativo en un escenario adverso de 20 días; no es un pronóstico."],
-      ],
-      provenance:
-        "Cifras ilustrativas y estáticas para demostrar el producto. Una lectura real identifica la fecha de cada fuente, los supuestos usados y cualquier evidencia faltante.",
-      primary: "Abrir la lectura completa",
-      secondary: "Crear espacio de trabajo",
-    },
-    footer: "Software de análisis. No es asesoría financiera.",
-    terms: "Términos",
-    privacy: "Privacidad",
-  },
-  en: {
-    g820Launch: {
-      kicker: "G820 · daily refresh",
-      title: "Dislocations with a double margin of safety.",
-      body: "Explore the universe, separate price damage from business damage, and open only the files worth deeper diligence.",
-      action: "Open G820 Screener",
-    },
-    workflowKicker: "Five connected decisions",
-    workflowTitle: "From a signal to a defensible decision.",
-    workflowSub:
-      "BLS Prime organizes research into a sequence. Each step produces a concrete output for the next one.",
-    steps: [
-      {
-        index: "01",
-        title: "Find dislocations",
-        engine: "G820",
-        outcome: "Price damage beyond business damage, with enough margin of safety even under a conservative valuation.",
-        action: "Open G820",
-        href: "/g820",
-      },
-      {
-        index: "02",
-        title: "Discover",
-        engine: "FactorLab",
-        outcome: "Prioritized candidates with a verifiable reason to spend more time on them.",
-        action: "Find candidates",
-        href: "/factorlab",
-      },
-      {
-        index: "03",
-        title: "Understand the price",
-        engine: "Breakpoint",
-        outcome: "Implied growth and profitability expectations the price needs.",
-        action: "Analyze a company",
-        href: "#breakpoint",
-      },
-      {
-        index: "04",
-        title: "Build the thesis",
-        engine: "AURORA",
-        outcome: "Valuation range and state, value drivers, and conditions that falsify the thesis.",
-        action: "Open AURORA",
-        href: "/aurora",
-      },
-      {
-        index: "05",
-        title: "Measure risk",
-        engine: "Stress",
-        outcome: "Downside contribution, concentration, and the positions that explain the loss.",
-        action: "Analyze my portfolio",
-        note: "Account required",
-        requiresAccount: true,
-        href: "/stress",
-      },
-    ],
-    demo: {
-      kicker: "Deterministic demo",
-      title: "One connected reading, not separate tools.",
-      body:
-        "This Texas Instruments case shows how a signal moves into a company reading and its portfolio impact.",
-      disclosure: "Frozen example · June 30, 2026 · Not live data.",
-      company: "Texas Instruments",
-      ticker: "TXN",
-      status: "In range · review assumptions",
-      cards: [
-        ["Discovery", "priority", "Quality and cash generation justify a deeper review."],
-        ["Price", "price", "The price requires sustained growth and profitability; past performance alone is not enough."],
-        ["Thesis", "range", "The range depends on margins, reinvestment, and an industrial-cycle recovery."],
-        ["Risk", "downside", "Illustrative downside in a 20-day adverse scenario; this is not a forecast."],
-      ],
-      provenance:
-        "Static illustrative figures used to demonstrate the product. A real reading identifies each source date, every assumption, and any missing evidence.",
-      primary: "Open the full company read",
-      secondary: "Create workspace",
-    },
-    footer: "Research software. Not financial advice.",
-    terms: "Terms",
-    privacy: "Privacy",
-  },
-};
-
-// Fixed demo figures. They are intentionally immutable so the example can
-// never behave like a live market panel.
-const SAMPLE_METRICS = Object.freeze({
-  price: 187.2,
-  valueLow: 168,
-  valueHigh: 214,
-  priority: 0.88,
-  downside: -23.4,
-});
-
-function formatDemoMetric(key, language) {
-  const locale = language === "en" ? "en-US" : "es-CL";
-  if (key === "priority") return `${language === "en" ? "Priority" : "Prioridad"} ${SAMPLE_METRICS.priority.toLocaleString(locale)}`;
-  if (key === "price") return SAMPLE_METRICS.price.toLocaleString(locale, { style: "currency", currency: "USD" });
-  if (key === "range") return `$${SAMPLE_METRICS.valueLow}–${SAMPLE_METRICS.valueHigh}`;
-  if (key === "downside") return `${SAMPLE_METRICS.downside.toLocaleString(locale)}%`;
-  return language === "en" ? "3 tests" : "3 pruebas";
-}
-
-function useReveal() {
-  useEffect(() => {
-    if (typeof window === "undefined" || !("IntersectionObserver" in window)) return undefined;
-    const nodes = Array.from(document.querySelectorAll(`.${styles.reveal}`));
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-          entry.target.classList.add(styles.revealIn);
-          observer.unobserve(entry.target);
-        });
-      },
-      { threshold: 0.14 },
-    );
-    nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
-  }, []);
-}
-
-function localizeHref(href, language) {
-  if (href.startsWith("#")) return href;
-  return `${href}${href.includes("?") ? "&" : "?"}lang=${language}`;
-}
+import styles from "@/app/landing-page.module.css";
 
 export function PublicHomeExperience({ initialLanguage = "es" }) {
-  const { language } = useLanguagePreference(initialLanguage);
-  const copy = COPY[language] || COPY.es;
-
-  useReveal();
-
+  const { language, setLanguage } = useLanguagePreference(initialLanguage);
+  const en = language === "en";
+  const research = `/research?lang=${language}`;
+  const login = `/login?intent=signin&lang=${language}&next=${encodeURIComponent(research)}`;
   return (
-    <main className={styles.page}>
-      <PublicSiteHeader initialLanguage={initialLanguage} />
-
-      <section className={styles.g820Launch} aria-labelledby="g820-launch-title" id="g820-launch">
-        <div>
-          <p>{copy.g820Launch.kicker}</p>
-          <h2 id="g820-launch-title">{copy.g820Launch.title}</h2>
-          <span>{copy.g820Launch.body}</span>
-        </div>
-        <Link href={`/g820?lang=${language}`}>
-          {copy.g820Launch.action}
-          <span aria-hidden="true">→</span>
+    <div className={styles.page} data-no-translate>
+      <div className={styles.scene} aria-hidden="true" />
+      <a className={styles.skip} href="#main">{en ? "Skip to content" : "Ir al contenido"}</a>
+      <header className={styles.header}>
+        <Link className={styles.wordmark} href={`/?lang=${language}`} aria-label="BLS Prime">
+          BLS <span>/ PRIME</span>
         </Link>
-      </section>
-
-      <div id="breakpoint">
-        <BreakpointHero language={language} />
-      </div>
-
-      <section className={styles.workflow} aria-labelledby="workflow-title" id="workflow">
-        <div className={`${styles.sectionLead} ${styles.reveal}`}>
-          <p className={styles.sectionKicker}>{copy.workflowKicker}</p>
-          <h2 id="workflow-title">{copy.workflowTitle}</h2>
-          <p>{copy.workflowSub}</p>
-        </div>
-
-        <ol className={styles.decisionRail}>
-          {copy.steps.map((step, index) => (
-            <li className={`${styles.decisionStep} ${styles.reveal}`} key={step.index}>
-              <span className={styles.stepIndex}>{step.index}</span>
-              <div className={styles.stepCopy}>
-                <span className={styles.engine}>{step.engine}</span>
-                <h3>{step.title}</h3>
-                <p>{step.outcome}</p>
-                {step.requiresAccount ? (
-                  <StressAccountGate className={styles.stepAction} language={language}>
-                    {step.action}
-                    {step.note ? <small>{step.note}</small> : null}
-                    <span aria-hidden="true">→</span>
-                  </StressAccountGate>
-                ) : (
-                  <Link className={styles.stepAction} href={localizeHref(step.href, language)}>
-                    {step.action}
-                    {step.note ? <small>{step.note}</small> : null}
-                    <span aria-hidden="true">→</span>
-                  </Link>
-                )}
-              </div>
-              {index < copy.steps.length - 1 ? <span className={styles.connector} aria-hidden="true" /> : null}
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className={styles.demo} aria-labelledby="demo-title" id="demo">
-        <div className={`${styles.demoLead} ${styles.reveal}`}>
-          <div>
-            <p className={styles.sectionKicker}>{copy.demo.kicker}</p>
-            <h2 id="demo-title">{copy.demo.title}</h2>
-          </div>
-          <p>{copy.demo.body}</p>
-        </div>
-
-        <article className={`${styles.demoFrame} ${styles.reveal}`}>
-          <header className={styles.demoHeader}>
-            <div>
-              <span>{copy.demo.ticker}</span>
-              <strong>{copy.demo.company}</strong>
-            </div>
-            <p>{copy.demo.disclosure}</p>
-          </header>
-          <div className={styles.demoStatus}>
-            <span>{language === "en" ? "DECISION STATE" : "ESTADO DE DECISIÓN"}</span>
-            <strong>{copy.demo.status}</strong>
-          </div>
-          <div className={styles.demoGrid}>
-            {copy.demo.cards.map(([label, metric, detail]) => (
-              <section key={label}>
-                <span>{label}</span>
-                <strong>{formatDemoMetric(metric, language)}</strong>
-                <p>{detail}</p>
-              </section>
-            ))}
-          </div>
-          <footer className={styles.demoProvenance}>
-            <span>{language === "en" ? "PROVENANCE" : "PROVENIENCIA"}</span>
-            <p>{copy.demo.provenance}</p>
-          </footer>
-        </article>
-
-        <div className={`${styles.finalActions} ${styles.reveal}`}>
-          <Link className={styles.primaryAction} href={`/company/TXN?demo=1&lang=${language}`}>
-            {copy.demo.primary}
+        <nav aria-label={en ? "Main navigation" : "Navegación principal"}>
+          <Link href={`/methodology?lang=${language}`}>{en ? "The method" : "El método"}</Link>
+          <Link href={login}>{en ? "Sign in" : "Iniciar sesión"} <span aria-hidden="true">↗</span></Link>
+        </nav>
+      </header>
+      <main className={styles.main} id="main">
+        <div className={styles.intro}>
+          <p className={styles.signature}>BLS Prime</p>
+          <h1>{en ? <>Value is not always<br />in plain sight.</> : <>El valor no siempre<br />está a la vista.</>}</h1>
+          <p className={styles.description}>{en ? "Study the business. Question the price." : "Investiga el negocio. Cuestiona el precio."}</p>
+          <Link className={styles.enter} href={research}>
+            {en ? "Enter BLS Prime" : "Entrar a BLS Prime"} <span aria-hidden="true">↗</span>
           </Link>
-          <Link className={styles.secondaryAction} href={`/login?intent=signup&lang=${language}`}>
-            {copy.demo.secondary}
-          </Link>
+          <p className={styles.note}>{en ? "One account. A space to investigate." : "Una cuenta. Un espacio para investigar."}</p>
         </div>
-      </section>
-
+      </main>
       <footer className={styles.footer}>
-        <span>{copy.footer}</span>
-        <nav aria-label={`${copy.privacy} / ${copy.terms}`}>
-          <Link href={`/privacy?lang=${language}`}>{copy.privacy}</Link>
-          <Link href={`/terms?lang=${language}`}>{copy.terms}</Link>
+        <nav aria-label={en ? "Explore" : "Explorar"}>
+          <Link href={research}>{en ? "Companies" : "Empresas"}</Link><span aria-hidden="true">·</span>
+          <Link href={`/aurora?lang=${language}`}>{en ? "Valuation" : "Valoración"}</Link><span aria-hidden="true">·</span>
+          <Link href={`/app?lang=${language}`}>{en ? "Portfolio" : "Cartera"}</Link>
+        </nav>
+        <nav aria-label={en ? "Legal and language" : "Información legal e idioma"}>
+          <Link href={`/privacy?lang=${language}`}>{en ? "Privacy" : "Privacidad"}</Link>
+          <Link href={`/terms?lang=${language}`}>{en ? "Terms" : "Términos"}</Link>
+          <span className={styles.languages}><Link href="/?lang=es" onClick={() => setLanguage("es")} hrefLang="es" aria-current={!en ? "page" : undefined}>ES</Link><span aria-hidden="true">/</span><Link href="/?lang=en" onClick={() => setLanguage("en")} hrefLang="en" aria-current={en ? "page" : undefined}>EN</Link></span>
         </nav>
       </footer>
-    </main>
+    </div>
   );
 }

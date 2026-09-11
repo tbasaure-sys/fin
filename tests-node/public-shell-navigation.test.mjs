@@ -11,9 +11,9 @@ test("the public shell keeps Spanish context and identifies product engine route
 
   assert.deepEqual(navigation, [
     { id: "product", label: "Producto", href: "/product?lang=es", current: true },
+    { id: "research", label: "Investigar", href: "/research?lang=es", current: false },
     { id: "g820", label: "G820 Screener", href: "/g820?lang=es", current: false },
     { id: "methodology", label: "Metodología", href: "/methodology?lang=es", current: false },
-    { id: "breakpoint", label: "Analizar una empresa", href: "/?lang=es#breakpoint", current: false },
   ]);
 });
 
@@ -22,16 +22,16 @@ test("the public shell emits complete English navigation without losing locale",
 
   assert.deepEqual(navigation, [
     { id: "product", label: "Product", href: "/product?lang=en", current: false },
+    { id: "research", label: "Research", href: "/research?lang=en", current: false },
     { id: "g820", label: "G820 Screener", href: "/g820?lang=en", current: false },
     { id: "methodology", label: "Methodology", href: "/methodology?lang=en", current: true },
-    { id: "breakpoint", label: "Analyze a company", href: "/?lang=en#breakpoint", current: false },
   ]);
 });
 
 test("auth actions use real routes and preserve the selected language", () => {
   assert.deepEqual(buildPublicShellActions("es"), {
     signIn: { label: "Iniciar sesión", href: "/login?intent=signin&lang=es" },
-    signUp: { label: "Crear workspace", href: "/signup?lang=es" },
+    signUp: { label: "Crear cuenta", href: "/signup?lang=es" },
   });
 
   assert.deepEqual(buildPublicShellActions("en"), {

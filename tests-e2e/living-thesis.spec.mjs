@@ -1,0 +1,68 @@
+import {test,expect} from './filing-test-fixtures.mjs';
+import {createRequire} from 'node:module';
+const dossier=createRequire(import.meta.url)('../lib/research/published/MSFT.json');
+test.beforeEach(()=>test.skip(!process.env.BLS_E2E_AUTHENTICATED,'Requires authenticated test context'));
+
+test('a thesis is saved, reloaded, forked and compared without overwriting its base',async({page})=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('/research?ticker=MSFT&lang=es');
+ await expect(page.getByRole('heading',{name:'Tu explicación del negocio'})).toBeVisible();
+ await expect(page.getByText('Capital · no evaluado',{exact:true})).toBeVisible();
+ const unique=`Explain ${Date.now()}`;
+ await page.getByLabel('Explicación principal',{exact:true}).fill(unique);
+ await page.getByLabel('Explicación alternativa',{exact:true}).fill('The improvement may be temporary.');
+ await page.getByRole('button',{name:'02 Caja retenida'}).click();
+ await page.getByLabel('Incertidumbre decisiva',{exact:true}).fill('Does maintenance investment absorb the cash?');
+ await page.getByLabel('Próxima comprobación',{exact:true}).fill('Read the capital investment note.');
+ await page.getByLabel('Si se confirma',{exact:true}).fill('Lower sustainable cash.');
+ await page.getByLabel('Si se contradice',{exact:true}).fill('Maintain the cash hypothesis.');
+ await expect(page.getByTestId('next-check')).toContainText('Read the capital investment note.');
+ await page.getByLabel('Motivo de esta revisión').fill('First browser verification');
+ await page.getByRole('button',{name:'Guardar revisión',exact:true}).click();
+ await expect(page.getByRole('status').filter({hasText:'Revisión guardada'})).toBeVisible();
+ await page.reload();
+ await expect(page.getByLabel('Explicación principal',{exact:true})).toHaveValue(unique);
+ await page.getByRole('button',{name:'Crear escenario',exact:true}).click();
+ await page.getByLabel('Nombre del escenario',{exact:true}).fill('Cash stress');
+ await page.getByLabel('Explicación principal',{exact:true}).fill('Stress explanation');
+ await page.getByLabel('Motivo de esta revisión').fill('Separate scenario, not new facts');
+ await page.getByRole('button',{name:'Guardar revisión',exact:true}).click();
+ await expect(page.getByRole('status').filter({hasText:'Revisión guardada'})).toBeVisible();
+ await page.getByLabel('Escenario activo').selectOption('base');
+ await expect(page.getByLabel('Explicación principal',{exact:true})).toHaveValue(unique);
+ await page.getByRole('button',{name:'Qué cambió',exact:true}).click();
+ await page.getByRole('region',{name:'Tu explicación del negocio'}).locator('details').filter({hasText:'First browser verification'}).first().locator('summary').first().click();
+ await expect(page.getByText('First browser verification',{exact:true}).first()).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ expect(errors).toEqual([]);
+ await page.screenshot({path:`${process.env.BLS_QA_DIR}/living-thesis-${test.info().project.name}.png`,fullPage:false});
+});
+test('an assisted reading becomes an explicit editable draft, not a verified thesis',async({page})=>{
+ await page.route('**/api/research/theses?ticker=MSFT',r=>r.fulfill({json:{revisions:[]}}));
+ await page.route('**/api/public/research?ticker=MSFT',r=>r.fulfill({json:{dossier,ticket:'fixture',analysisAvailable:true}}));
+ const analysis={status:'draft',version:'fixture-v1',responseHash:'a'.repeat(64),sections:dossier.sections.map(s=>({id:s.id,findings:[{text:'Assisted qualitative interpretation',kind:'interpretation',evidence:[{chunkId:s.extracts[0].id,quote:s.extracts[0].text}]}],unknowns:['What could contradict this reading?'],checks:['Read the next segment disclosure']}))};
+ await page.route('**/api/public/research/analyze',r=>r.fulfill({json:{analysis,reportDossier:dossier}}));
+ await page.goto('/research?ticker=MSFT&lang=es');
+ await page.getByRole('button',{name:'Documentos y lectura',exact:true}).click();
+ await page.getByRole('button',{name:'Generar informe',exact:true}).click();
+ await expect(page.getByText('Assisted qualitative interpretation',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'Mi tesis',exact:true}).click();
+ await page.getByRole('button',{name:'Usar lectura como borrador',exact:true}).click();
+ await expect(page.getByLabel('Hipótesis de este eslabón',{exact:true})).toHaveValue('Assisted qualitative interpretation');
+ await expect(page.getByLabel('Si se confirma',{exact:true})).toHaveValue('');
+ await expect(page.getByText('Origen: lectura asistida · aún por contrastar',{exact:true})).toBeVisible();
+ await expect(page.getByText('Capital · no evaluado',{exact:true})).toBeVisible();
+});
+
+test('a failed save preserves the draft and documentary reading remains available',async({page})=>{
+ await page.route('**/api/research/theses?ticker=MSFT',r=>r.fulfill({json:{revisions:[]}}));
+ await page.route('**/api/research/theses',r=>r.fulfill({status:409,json:{error:'REVISION_CONFLICT'}}));
+ await page.goto('/research?ticker=MSFT&lang=es');
+ await page.getByLabel('Explicación principal',{exact:true}).fill('Keep this draft');
+ await page.getByLabel('Motivo de esta revisión').fill('Conflict test');
+ await page.getByRole('button',{name:'Guardar revisión',exact:true}).click();
+ await expect(page.getByRole('region',{name:'Tu explicación del negocio'}).getByRole('alert')).toContainText('otra revisión');
+ await expect(page.getByLabel('Explicación principal',{exact:true})).toHaveValue('Keep this draft');
+ await page.getByRole('button',{name:'Documentos y lectura',exact:true}).click();
+ await expect(page.getByRole('button',{name:'Generar informe',exact:true})).toBeVisible();
+});

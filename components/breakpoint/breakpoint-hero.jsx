@@ -27,7 +27,7 @@ const COPY = {
     ],
     stages: [
       "Validando el ticker…",
-      "Buscando datos públicos (SEC / mercado)…",
+      "Buscando estados financieros y datos de mercado…",
       "Leyendo estados financieros…",
       "Calculando lo que el precio exige…",
       "Preparando la lectura…",
@@ -35,10 +35,10 @@ const COPY = {
     errors: {
       EMPTY: "Escribe un ticker para continuar.",
       FORMAT: "Formato no válido. Usa letras, punto o guion (por ejemplo BRK.B).",
-      INVALID_INPUT: "Ese ticker no es válido para esta lectura. Prueba con otra empresa con cobertura SEC.",
+      INVALID_INPUT: "Ese ticker no es válido para esta lectura. Prueba con otra empresa con información pública disponible.",
       INVALID_REQUEST: "No pudimos leer la solicitud. Vuelve a intentarlo.",
       RATE_LIMITED: "Demasiadas lecturas seguidas. Espera un minuto y vuelve a intentarlo.",
-      DATA_UNAVAILABLE: "No hay datos públicos suficientes para construir esta lectura. Prueba otro ticker con cobertura SEC.",
+      DATA_UNAVAILABLE: "No hay datos públicos suficientes para construir esta lectura. Prueba otro ticker con información pública disponible.",
       TIMEOUT: "La lectura superó los 45 segundos y se detuvo. Tu ticker sigue en el campo: puedes reintentar.",
       NETWORK: "No hay conexión con el servicio de datos. Revisa tu red y reintenta.",
       UNKNOWN: "Algo falló al construir la lectura. Puedes reintentar o probar otro ticker.",
@@ -69,7 +69,7 @@ const COPY = {
     ],
     stages: [
       "Validating the ticker…",
-      "Fetching public data (SEC / market)…",
+      "Fetching financial statements and market data…",
       "Reading financial statements…",
       "Computing what the price requires…",
       "Preparing the reading…",
@@ -77,10 +77,10 @@ const COPY = {
     errors: {
       EMPTY: "Enter a ticker to continue.",
       FORMAT: "Invalid format. Use letters, a dot, or a hyphen (for example BRK.B).",
-      INVALID_INPUT: "That ticker is not valid for this reading. Try another SEC-covered company.",
+      INVALID_INPUT: "That ticker is not valid for this reading. Try another company with public filings.",
       INVALID_REQUEST: "We could not read the request. Please try again.",
       RATE_LIMITED: "Too many readings in a row. Wait a minute and try again.",
-      DATA_UNAVAILABLE: "There is not enough public data to build this reading. Try another SEC-covered ticker.",
+      DATA_UNAVAILABLE: "There is not enough public data to build this reading. Try another ticker with public filings.",
       TIMEOUT: "The reading passed 45 seconds and was stopped. Your ticker is still in the field: you can retry.",
       NETWORK: "No connection to the data service. Check your network and retry.",
       UNKNOWN: "Something failed while building the reading. Retry or try another ticker.",

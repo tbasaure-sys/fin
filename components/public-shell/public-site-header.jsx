@@ -15,7 +15,7 @@ const UI_COPY = {
     menu: "Abrir navegación",
     closeMenu: "Cerrar navegación",
     nav: "Navegación principal",
-    descriptor: "Decision workspace",
+    descriptor: "Investigación de inversiones",
   },
   en: {
     brandAria: "BLS Prime, home",
@@ -28,6 +28,7 @@ const UI_COPY = {
 };
 
 export function PublicSiteHeader({
+  authenticated = false,
   availableLanguages = ["es", "en"],
   initialLanguage = "es",
 }) {
@@ -108,12 +109,14 @@ export function PublicSiteHeader({
                 </button>
               ))}
             </div>
-            <Link className={styles.signIn} href={actions.signIn.href}>
+            {authenticated ? <Link className={styles.signIn} href={`/app?lang=${language}`}>
+              {language === "en" ? "Your account" : "Tu cuenta"}
+            </Link> : <><Link className={styles.signIn} href={actions.signIn.href}>
               {actions.signIn.label}
             </Link>
             <Link className={styles.signUp} href={actions.signUp.href}>
               {actions.signUp.label}
-            </Link>
+            </Link></>}
           </div>
         </div>
       </div>

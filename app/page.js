@@ -8,12 +8,12 @@ const HOME_METADATA = {
   es: {
     title: "BLS Prime | Espacio de decisión de inversión",
     description:
-      "Descubre empresas, contrasta precio y valor, y comprueba el efecto sobre tu cartera con datos fechados, supuestos visibles y razones claras para actuar o pasar.",
+      "El valor no siempre está a la vista. Investiga el negocio, cuestiona el precio y conecta evidencia, valoración y cartera.",
   },
   en: {
     title: "BLS Prime | Investment decision workspace",
     description:
-      "Discover companies, weigh price against value, and test the effect on your portfolio with dated data, visible assumptions, and clear reasons to act or pass.",
+      "Value is not always in plain sight. Study the business, question the price and connect evidence, valuation and portfolio context.",
   },
 };
 

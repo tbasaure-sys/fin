@@ -6,7 +6,7 @@
   --faint: rgba(242, 237, 226, 0.4);
   --line: rgba(242, 237, 226, 0.13);
   --line-strong: rgba(242, 237, 226, 0.24);
-  --brass: #d9a441;
+  --brass: #c1d7a0;
   --green: #4fc99b;
   --steel: #8fb0c9;
   --serif: "DM Serif Display", Georgia, serif;
@@ -23,7 +23,11 @@
   font-family: var(--sans);
 }
 
+.priceTool{max-width:90rem;margin:0 auto;border-bottom:1px solid rgba(242,237,226,.13)}
+.priceTool>summary{padding:24px clamp(24px,5vw,72px);cursor:pointer;font-size:14px;color:#c1d7a0;min-height:64px}
+
 .page::before {
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 0;
@@ -40,6 +44,10 @@
   position: relative;
   z-index: 1;
 }
+
+.documentCta{max-width:90rem;margin:auto;padding:56px clamp(24px,5vw,72px);border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:16px 48px;align-items:center}
+.documentCta>p{grid-column:1/-1;font-size:10px;letter-spacing:.12em;color:var(--brass);margin:0}.documentCta h2{font:400 36px var(--serif);margin:0}.documentCta>span{grid-column:1;color:var(--dim);font-size:13px;max-width:580px;line-height:1.8}.documentCta>a{grid-column:2;grid-row:2/4;min-height:48px;padding:14px 20px;border:1px solid var(--line);font-size:13px;color:var(--brass);text-decoration:none}
+@media(max-width:760px){.documentCta{display:block}.documentCta h2{margin:14px 0}.documentCta>span{display:block}.documentCta>a{display:inline-block;margin-top:24px}}
 
 .g820Launch {
   display: grid;

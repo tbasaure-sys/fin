@@ -154,6 +154,7 @@ export default function LoginPage({ searchParams = {} }) {
   const language = safeLanguage(searchParams.lang);
   const copy = COPY[language];
   const isSignup = intent === "signup";
+  const researchAccess = next.split(/[?#]/)[0] === "/research";
   const error = loginErrorMessage(searchParams.error, copy);
 
   return (
@@ -163,7 +164,7 @@ export default function LoginPage({ searchParams = {} }) {
         <div className={styles.copy}>
           <p className={styles.kicker}>{copy.eyebrow}</p>
           <h1 className={styles.headline}>{copy.headline}</h1>
-          <p className={styles.lead}>{copy.lead}</p>
+          <p className={styles.lead}>{researchAccess ? (language === "en" ? "Sign in to read company documents and request an evidence-based research draft. Your selected company will be waiting." : "Entra para leer documentos de empresas y solicitar un borrador de investigación con fuentes. Conservaremos la empresa que elegiste.") : copy.lead}</p>
           <div className={styles.benefits}>
             {copy.benefits.map(([index, title, body]) => (
               <div className={styles.benefit} key={title}>
@@ -182,7 +183,7 @@ export default function LoginPage({ searchParams = {} }) {
           <h2 className={styles.cardTitle} id="auth-title">
             {isSignup ? copy.signupTitle : copy.signinTitle}
           </h2>
-          <p className={styles.cardSub}>{isSignup ? copy.signupSub : copy.signinSub}</p>
+          <p className={styles.cardSub}>{researchAccess ? (language === "en" ? "Continue to company research after signing in." : "Continúa a la investigación de la empresa después de entrar.") : isSignup ? copy.signupSub : copy.signinSub}</p>
 
           {error ? <p className={styles.error}>{error}</p> : null}
 

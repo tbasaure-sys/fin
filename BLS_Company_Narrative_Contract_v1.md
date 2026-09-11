@@ -269,3 +269,39 @@ La capa que sigue siendo difícil es `decomposition`: reconocer que el daño est
 concentrado en la parte de menor calidad del P&L, y que el riesgo estructural real
 está en otra parte. Eso no lo resuelve el tamaño del modelo. Se resuelve con la
 rúbrica del prompt y con la calidad de las capas A–C.
+
+## 10) Tesis privada versionada — `bls-living-thesis-v1`
+
+La ruta `/research` incorpora un cuaderno de hipótesis, no una promoción del
+contrato narrativo a recomendación. `lib/research/thesis-engine.mjs` define su
+forma ejecutable; `tests-node/thesis-*.test.mjs` y `tests-e2e/living-thesis.spec.mjs`
+verifican la frontera y su uso. El informe automático sigue siendo una lectura
+selectiva independiente; sólo un gesto explícito incorpora un borrador al cuaderno.
+
+- Una tesis liga emisor, ticker y corte documental. No certifica security master,
+  listing epoch, clase ni continuidad histórica; `capital: not_assessed` permanece
+  incluso si todas las notas están completas.
+- La explicación principal y alternativa se desarrollan mediante seis eslabones:
+  negocio, caja retenida, derechos/deuda, precio/expectativas, realización y pérdida.
+  Sus dependencias son una secuencia explícita de revisión, no causalidad estimada.
+- Cada eslabón conserva hipótesis, pregunta, fuente de comprobación, consecuencias
+  opuestas, fecha opcional, materialidad y vínculos documentales. Soporte y
+  contradicción simultáneos producen `conflicted`; una cita nunca produce `verified`.
+- La prioridad de investigación sólo selecciona comprobaciones materiales con
+  pregunta, procedimiento y consecuencias distintas. Ordena vencimiento, fecha y
+  eslabón; no es un ranking de acciones ni un estimador de valor de información.
+- El texto privado no se envía al modelo. Un borrador importado conserva versión y
+  hash de respuesta; sus citas se vinculan como contexto, no como hechos validados.
+- El servidor deriva el propietario de la sesión, autentica antes de acceder a
+  datos y guarda revisiones inmutables con hash, padre, corte, fuentes y motivo.
+  La comparación optimista de revisión rechaza escrituras concurrentes obsoletas.
+  La producción exige almacenamiento persistente; nunca degrada a memoria volátil.
+- Actualizar documentos exige volver a vincular evidencia. Las fuentes previas se
+  conservan. Relojes de descarga y renumeración de extractos no son novedades.
+  Interpretación, actualización documental, corrección técnica y observación de
+  mercado son motivos declarados, no eventos económicos certificados.
+- El historial visible se limita a las últimas 100 revisiones por ticker; las
+  anteriores siguen almacenadas. La exportación contiene el borrador y ese historial.
+  El borrador sin guardar vive en memoria del navegador, con advertencia al salir.
+- `performance: null` y `predictiveClaim: false` son invariantes. No se altera V5,
+  G820 ni ningún holdout. Una versión guardada es trazabilidad, no prueba de alpha.

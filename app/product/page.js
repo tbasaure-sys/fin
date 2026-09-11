@@ -13,6 +13,7 @@ const COPY = {
     title: "Una decisión, no una colección de herramientas.",
     lead: "Descubrimiento, expectativas, valoración y riesgo de cartera convergen en un mismo proceso de investigación.",
     rows: [
+      ["00", "Trama", "Abre documentos de la empresa por ticker, contrasta extractos y genera un informe de negocio, caja y tesis. Las interpretaciones se presentan como borradores sujetos a revisión.", "/research?lang=es", "Investigar empresa"],
       ["01", "FactorLab", "Prioriza empresas que merecen una revisión y deja visible por qué aparecen ahora y qué puede invalidar la idea.", "/factorlab?lang=es", "Descubrir"],
       ["02", "G820", "Busca dislocaciones que superen dos pruebas independientes: daño de precio mayor que daño del negocio y supervivencia con margen de seguridad.", "/g820?lang=es", "Abrir screener"],
       ["03", "AURORA", "Contrasta precio, valor y evidencia. Publica un rango defendible o explica la brecha concreta que impide hacerlo.", "/aurora?lang=es", "Investigar"],
@@ -26,6 +27,7 @@ const COPY = {
     title: "One decision, not a collection of tools.",
     lead: "Discovery, expectations, valuation, and portfolio risk converge in a single research process.",
     rows: [
+      ["00", "Trama", "Open company filings by ticker, inspect excerpts, and generate a business, cash and thesis report. Interpretations are presented as drafts requiring review.", "/research?lang=en", "Research company"],
       ["01", "FactorLab", "Prioritize companies worth reviewing and keep visible why they surfaced now and what could invalidate the idea.", "/factorlab?lang=en", "Discover"],
       ["02", "G820", "Find dislocations that clear two independent tests: price damage beyond business damage and survival with a margin of safety.", "/g820?lang=en", "Open screener"],
       ["03", "AURORA", "Contrast price, value, and evidence. Publish a defensible range or explain the exact gap that prevents one.", "/aurora?lang=es", "Research in Spanish"],

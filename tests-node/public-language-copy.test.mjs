@@ -6,26 +6,7 @@ import test from "node:test";
 const root = path.resolve(import.meta.dirname, "..");
 const source = (file) => fs.readFileSync(path.join(root, file), "utf8");
 
-test("landing and Breakpoint use one four-step decision narrative", () => {
-  const home = source("components/public-home-experience.jsx");
-  const hero = source("components/breakpoint/breakpoint-hero.jsx");
-  const result = source("components/breakpoint/breakpoint-result.jsx");
-  const sitemap = source("app/sitemap.js");
-  assert.match(home, /Cuatro decisiones conectadas/);
-  assert.match(home, /title: "Descubrir"/);
-  assert.match(home, /title: "Entender el precio"/);
-  assert.match(home, /title: "Construir la tesis"/);
-  assert.match(home, /title: "Medir el riesgo"/);
-  assert.doesNotMatch(home, /title: "Monitorear"/);
-  assert.match(hero, /Lo que el precio necesita/i);
-  assert.match(hero, /const \[ticker, setTicker\] = useState\(""\)/);
-  assert.doesNotMatch(hero, /useState\("ASML"\)/);
-  assert.doesNotMatch(hero, /<svg|surfacePlot|FORMA ILUSTRATIVA|WHAT THE PRICE NEEDS/);
-  assert.doesNotMatch(sitemap, /breakpoint\/ASML/i);
-  assert.match(result, /retorno exigido a 5 a[nñ]os/i);
-  assert.doesNotMatch(hero, /MARKET-CLEARING SURFACE/);
-  assert.doesNotMatch(result, /hurdle:\s*"/i);
-});
+// Homepage behavior is exercised in tests-e2e/filing-research.spec.mjs.
 
 test("module surfaces explain the job in common words", () => {
   const aurora = source("app/valuation-os-lab/page.jsx");
@@ -41,16 +22,7 @@ test("module surfaces explain the job in common words", () => {
   assert.match(stress, /qu[eé] puede pasar si el mercado cae/i);
 });
 
-test("public copy distinguishes the frozen homepage example from live FactorLab", () => {
-  const home = source("components/public-home-experience.jsx");
-  const factorlab = source("components/factorlab-workstation.jsx");
-  assert.match(home, /Ejemplo congelado/);
-  assert.match(home, /Frozen example/);
-  assert.match(home, /No son datos en vivo/);
-  assert.match(factorlab, /Resultados construidos al solicitar la p[aá]gina con mercado actual/);
-  assert.match(factorlab, /No mostramos datos de ejemplo en su lugar/);
-  assert.match(factorlab, /\/api\/public\/factorlab/);
-});
+// Homepage behavior is exercised in tests-e2e/filing-research.spec.mjs.
 
 test("Breakpoint keeps localized failure copy at both the API and UI boundaries", () => {
   const hero = source("components/breakpoint/breakpoint-hero.jsx");

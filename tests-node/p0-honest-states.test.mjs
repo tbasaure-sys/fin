@@ -50,37 +50,11 @@ test("no financial figure is shown without a date or an explicit missing-data st
   assert.match(shell, /\.researchSignalGrid div\[data-missing="true"\]/);
 });
 
-test("illustrative homepage figures never animate like live market data", () => {
-  const home = source("components/public-home-experience.jsx");
-  assert.match(home, /SAMPLE_METRICS/);
-  assert.match(home, /Object\.freeze/);
-  // The old drift loop mutated example metrics on an interval.
-  assert.doesNotMatch(home, /setMetrics/);
-  // The sample disclosure must be readable in the demo header.
-  assert.match(home, /\{copy\.demo\.disclosure\}/);
-  assert.doesNotMatch(home, /aria-hidden[^>]*>\{copy\.demo\.disclosure/);
-});
+// Homepage behavior is exercised in tests-e2e/filing-research.spec.mjs.
 
-test("no CTA promises a trial and delivers only a signup wall", () => {
-  const home = source("components/public-home-experience.jsx");
-  const stress = source("components/stress-engine-public-page.jsx");
+// Homepage behavior is exercised in tests-e2e/filing-research.spec.mjs.
 
-  assert.doesNotMatch(home, /cta: "Probar mi cartera"/);
-  assert.doesNotMatch(home, /cta: "Test my portfolio"/);
-  assert.match(home, /requiere cuenta/i);
-  assert.match(home, /account required/i);
-  assert.match(home, /requiresAccount:\s*true/);
-  assert.match(home, /<StressAccountGate/);
-  assert.match(stress, /requiere cuenta/);
-  assert.match(stress, /account required/);
-});
-
-test("the homepage declares exactly one h1", () => {
-  const home = source("components/public-home-experience.jsx");
-  const hero = source("components/breakpoint/breakpoint-hero.jsx");
-  assert.equal((home.match(/<h1[\s>]/g) || []).length, 0);
-  assert.equal((hero.match(/<h1[\s>]/g) || []).length, 1);
-});
+// Homepage behavior is exercised in tests-e2e/filing-research.spec.mjs.
 
 test("every public route resolves to the same default language", async () => {
   const { routeDefaultLocale, resolveRequestLocale } = await import("../lib/i18n/locale.js");
