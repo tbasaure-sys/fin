@@ -61,3 +61,12 @@ test('limited-liability floors are applied in each counterfactual, not after att
  const r=fn(a,b);near(r.perShare.before,0);near(r.perShare.after,8);
  near(r.perShare.inputs,10);near(r.perShare.assumptions,-2);near(r.perShare.total,8);
 });
+
+test('equal endpoint quantities cannot certify that the same holding was maintained between snapshots',async()=>{
+ const fn=await compare(),a=revisionFixture(),b=revisionFixture({revenue:120,price:9});
+ for(const [i,r] of [a,b].entries())r.portfolio={status:'available',holdings:[{ticker:'TEST',quantity:2,asset_type:'stock',currency:'USD',market_value_usd:16,updated_at:r.savedAt,account_id:`account-${i}`} ]};
+ const r=fn(a,b);
+ assert.equal(r.position.quantity,2);near(r.position.gapChangeUsd,4);
+ assert.equal(r.position.holdingContinuityVerified,false,'matching endpoints are not transaction-history evidence');
+ assert.equal(r.position.realizedPnl,false);
+});

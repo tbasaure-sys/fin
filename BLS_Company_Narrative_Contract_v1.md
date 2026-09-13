@@ -940,7 +940,7 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 
 ## 27. Explicación de revisiones de valoración guardadas
 
-- `valuation-revision-v1` compara dos cálculos del mismo emisor y ticker bajo la
+- `valuation-revision-v1.1` compara dos cálculos del mismo emisor y ticker bajo la
   misma versión del modelo FCFF. Reproduce primero sus salidas con las fuentes,
   supuestos, cotización y reloj guardados; una incompatibilidad deja pendiente
   el desglose, sin reescribir el historial.
@@ -956,6 +956,9 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 - La traducción a una posición exige igual cantidad positiva, cotizaciones y
   registros compatibles y vigentes en ambos cortes. No es PnL realizado, retorno
   de cartera, recomendación ni una modificación de las posiciones del usuario.
+  Igual cantidad en ambos cortes no acredita continuidad de la tenencia, cuenta
+  ni ausencia de operaciones intermedias (`holdingContinuityVerified: false`).
+  La UI aplica esta distinción también a los registros v1, sin reescribirlos.
 - El baseline se busca entre valoraciones, independientemente de las 30 filas
   visibles del historial: primero en la revisión actual y luego en su ascendencia
   real, hasta ocho revisiones. No se busca en ramas alternativas ni otros usuarios.
@@ -965,7 +968,7 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
   proyección. El hash del nuevo registro protege el contenido incluido. No se
   incrustan recursivamente baselines ni se duplican historiales completos.
 - La UI distingue cifras, supuestos y precio; ofrece fuentes y valores anteriores
-  y actuales. Sólo muestra atribución para cálculos guardados, nunca para un borrador
+  y actuales con sus unidades y períodos. Sólo muestra atribución para cálculos guardados, nunca para un borrador
   pendiente de guardar. Cambiar una fuente no implica información económica nueva.
 - Regresiones: `tests-node/valuation-revision.test.mjs` y
   `tests-node/thesis-capital-service.test.mjs`.
