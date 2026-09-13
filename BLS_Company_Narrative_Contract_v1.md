@@ -917,3 +917,35 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 - Los datos antiguos sin depreciación física requieren actualización explícita de
   inputs; no se modifican snapshots guardados. Regresiones: `tests-node/reinvestment-diagnostic.test.mjs`,
   `tests-node/thesis-financials.test.mjs`, `tests-e2e/thesis-capital.spec.mjs`.
+
+## 27. Explicación de revisiones de valoración guardadas
+
+- `valuation-revision-v1` compara dos cálculos del mismo emisor y ticker bajo la
+  misma versión del modelo FCFF. Reproduce primero sus salidas con las fuentes,
+  supuestos, cotización y reloj guardados; una incompatibilidad deja pendiente
+  el desglose, sin reescribir el historial.
+- Se calculan las cuatro combinaciones de datos anteriores/actuales y supuestos
+  anteriores/actuales. El aporte de cada factor promedia ambos órdenes posibles
+  de actualización, repartiendo la interacción por igual. Es una descomposición
+  retrospectiva del cálculo, no causalidad económica ni información disponible
+  en la fecha anterior. Los aportes deben reconciliar con el cambio total.
+- Valor operativo, equity residual y valor por acción se calculan por separado;
+  el piso de responsabilidad limitada se aplica dentro de cada contrafactual.
+  Cambios en la base de acciones bloquean la comparación por acción hasta conciliar
+  los eventos corporativos. El precio sólo cambia la brecha valor menos precio.
+- La traducción a una posición exige igual cantidad positiva, cotizaciones y
+  registros compatibles y vigentes en ambos cortes. No es PnL realizado, retorno
+  de cartera, recomendación ni una modificación de las posiciones del usuario.
+- El baseline se busca entre valoraciones, independientemente de las 30 filas
+  visibles del historial: primero en la revisión actual y luego en su ascendencia
+  real, hasta ocho revisiones. No se busca en ramas alternativas ni otros usuarios.
+  Empates de fecha usan hash como desempate estable, no como orden económico.
+- El nuevo registro conserva una proyección autocontenida del baseline y su hash
+  de referencia al registro original completo; ese hash NO es un checksum de la
+  proyección. El hash del nuevo registro protege el contenido incluido. No se
+  incrustan recursivamente baselines ni se duplican historiales completos.
+- La UI distingue cifras, supuestos y precio; ofrece fuentes y valores anteriores
+  y actuales. Sólo muestra atribución para cálculos guardados, nunca para un borrador
+  pendiente de guardar. Cambiar una fuente no implica información económica nueva.
+- Regresiones: `tests-node/valuation-revision.test.mjs` y
+  `tests-node/thesis-capital-service.test.mjs`.
