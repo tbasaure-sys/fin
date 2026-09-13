@@ -427,18 +427,38 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 - Pruebas locales: `tests-node/report-reconstruction.test.mjs`,
   `tests-node/filing-analysis.test.mjs`, `tests-e2e/filing-analysis.spec.mjs`.
   `node --conditions=react-server scripts/check-report-fidelity.mjs --live` evalúa
-  controles positivos/negativos especificados por un humano sobre el paquete MSFT;
+  controles positivos/negativos de desarrollo sobre el paquete MSFT;
   permite una sola llamada externa de revisión. Sin `--live` no consume proveedor.
   Un PASS no certifica el generador, otras empresas, preguntas útiles o alpha.
 - Protocolo experimental `reference-review-v1`: el revisor selecciona referencias;
   el servidor recupera texto y offsets exactos. Una referencia existente prueba
   procedencia, no que la afirmación se desprenda de ella. Conflictos de identidad,
   fuentes ajenas a la afirmación y cobertura incompleta no aprueban una lectura.
-  No está conectado al generador publicado. `scripts/check-reference-review.mjs`
+  Se reutiliza en el generador y la calibración. `scripts/check-reference-review.mjs`
   permite una llamada explícita `--live` o reevaluación local `--replay` con hash
   compatible. Sus controles incluyen errores observados del generador; son desarrollo,
   no holdout. Clasificación, cobertura de las citas y utilidad del informe son pruebas
   distintas. Aprobar las primeras no autoriza promoción automática de un modelo.
+- `claim-local-review-experiment-v1` es un candidato separado, NO conectado a la
+  publicación. Cada solicitud experimental contiene una sola afirmación y sólo
+  sus fuentes citadas. Contrasta alcance/período, relación contable/causal y
+  calificadores; las tres dimensiones siguen siendo juicios del modelo.
+  Los rangos recuperan texto y offsets exactos de cada fuente; no hay truncamiento
+  a doce líneas. Aceptar referencias válidas no demuestra fidelidad semántica.
+- `scripts/claim-review-trial.mjs` congela solicitudes, fuentes, código, controles
+  y presupuesto antes de abrir resultados. Exige `--live`, realiza como máximo
+  una llamada por invocación, respeta `Retry-After` y no repite respuestas guardadas.
+  Una llamada interrumpida sin respuesta registrada exige investigación, no reinicio.
+  Etiquetas y pasajes esperados no se envían al modelo. No cambia proveedores,
+  modelos productivos, auth, límites de cuenta ni informes guardados.
+- Los controles `tests-node/fixtures/claim-review-controls.mjs` incluyen el fallo
+  real conservado de Apple y controles de Microsoft ya inspeccionados. Son etiquetas
+  del agente y desarrollo, no revisión humana independiente ni holdout. Un resultado
+  parcial no pasa; se separan falsas aprobaciones del modelo, bloqueos de procedencia,
+  falsos rechazos, cobertura de citas y respuestas inválidas. Un error de formato no
+  puede ocultar un error semántico y una cita al encabezado no cumple la cobertura.
+  Incluso un pase completo mantiene `qualityCertified: false`: falta demostrar
+  utilidad de informes completos y rendimiento en casos no usados para desarrollar.
 - Benchmark de producto: la documentación de Fiscal.ai ya incluye análisis de
   segmentos/KPI, modelos financieros, reverse DCF y seguimiento de cambios
   (https://docs.fiscal.ai/docs/guides/mcp-skills, consultado 2026-09-13). No se reclama
