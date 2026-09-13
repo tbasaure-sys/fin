@@ -1,0 +1,21 @@
+import {test,expect} from './filing-test-fixtures.mjs';
+import {briefInput} from '../tests-node/fixtures/economic-brief-input.mjs';
+test.beforeEach(()=>test.skip(!process.env.BLS_E2E_AUTHENTICATED,'Local authenticated QA only'));
+test('economic reading precedes detailed figures, tests growth dependence and hands a question to the thesis',async({page})=>{
+ const input=briefInput();let aiCalls=0,writes=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/public/research?ticker=TEST',r=>r.fulfill({json:{dossier:input.dossier,ticket:'qa-ticket',analysisAvailable:true}}));
+ await page.route('**/api/research/financial-reading',r=>r.fulfill({json:{packetHash:input.dossier.packetHash,reading:input.reading}}));
+ await page.route('**/api/research/theses**',r=>{if(r.request().method()==='POST')writes++;return r.fulfill({json:{revisions:[]}})});
+ await page.route('**/api/public/research/analyze',r=>{aiCalls++;return r.abort()});
+ await page.goto('/research?ticker=TEST&lang=es');
+ const brief=page.locator('[data-economic-brief]');await expect(brief.getByRole('heading',{name:'Lectura económica',exact:true})).toBeVisible();
+ await expect(brief).toContainText('Hardware');await expect(brief).toContainText('20,0');
+ await brief.getByText('Poner a prueba este crecimiento',{exact:true}).click();
+ await expect(brief.getByRole('status')).toContainText('−10,0');
+ await brief.getByRole('slider').fill('100');await expect(brief.getByRole('status')).toContainText('+20,0');
+ await brief.getByRole('button',{name:'Contrastar en mi tesis',exact:true}).first().click();
+ await page.getByRole('button',{name:'Usar esta pregunta',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'Incertidumbre decisiva',exact:true})).toHaveValue(/Hardware/);
+ expect(aiCalls).toBe(0);expect(writes).toBe(0);expect(errors).toEqual([]);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

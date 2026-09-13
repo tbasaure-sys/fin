@@ -1,0 +1,12 @@
+.brief{border-bottom:1px solid var(--line);margin:0 0 28px;padding:8px 0 24px;font-size:15px;line-height:1.65;min-width:0}
+.brief header{display:block;margin:0 0 28px}.brief h2{font:400 clamp(28px,3vw,40px)/1.15 "DM Serif Display",Georgia,serif;margin:0 0 8px}
+.brief article{display:grid;grid-template-columns:130px minmax(0,1fr);gap:24px;padding:28px 0;border-top:1px solid var(--line)}
+.brief h3{font-size:21px;font-weight:500;line-height:1.35;margin:0 0 10px}.brief p{max-width:80ch;color:var(--muted);margin:8px 0 16px}
+.brief .period{font-size:12px;font-variant-numeric:tabular-nums}.index{color:var(--accent);font-size:11px;letter-spacing:.1em;padding-top:6px}
+.brief summary{cursor:pointer;min-height:44px;align-content:center;color:var(--accent);font-size:13px}.brief details{margin:12px 0}.brief details p{font-size:13px}
+.brief label{display:block;font-size:13px;color:var(--muted)}.brief input{display:block;width:100%;max-width:460px;accent-color:var(--accent);height:40px}
+.brief .result{font-size:32px;color:var(--paper);font-variant-numeric:tabular-nums}.result small{display:block;font-size:12px;color:var(--muted)}
+.bridge{max-width:620px;font-variant-numeric:tabular-nums}.bridge div{display:flex;justify-content:space-between;gap:24px;padding:7px 0}.bridge dt{color:var(--muted)}.bridge dd{margin:0;white-space:nowrap}.bridge div:last-child{border-top:1px solid var(--line);color:var(--accent)}
+.brief button{background:transparent;border:0;font:inherit;font-size:13px;color:var(--accent);min-height:44px;cursor:pointer;padding:0}.brief a{color:var(--accent);font-size:13px;text-underline-offset:4px}
+.brief button:hover,.brief a:hover{color:var(--paper)}.brief button:focus-visible,.brief input:focus-visible,.brief summary:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+@media(max-width:650px){.brief article{grid-template-columns:1fr;gap:12px;padding:24px 0}.brief h3{font-size:20px}.brief p{font-size:14px}.bridge{font-size:13px}.bridge div{gap:12px}.brief .result{font-size:30px}}

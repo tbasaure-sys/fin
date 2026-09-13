@@ -5,13 +5,52 @@ import {valueThesis,defaultAssumptions,portfolioImpact} from '../lib/research/th
 const dossier=createRequire(import.meta.url)('../lib/research/published/MSFT.json');
 const now=()=>new Date().toISOString();
 test.beforeEach(()=>test.skip(!process.env.BLS_E2E_AUTHENTICATED,'Requires authenticated test context'));
-test('valuation keeps assumptions across tabs, persists calculations, and preserves a draft after server failure',async({page})=>{
+
+for(const lang of ['es','en'])test(`source-based reinvestment stress changes a draft only on request (${lang})`,async({page},testInfo)=>{
+ const en=lang==='en',revision={hash:'a'.repeat(64),dossier,thesis:newThesis(dossier),revision:1,branch:'base',savedAt:now(),changes:{changed:[],recheck:[]}};
+ const f=(value,concept,unit='USD')=>({value,unit,start:'2025-07-01',end:'2026-06-30',availableAt:dossier.sources[0].acceptedAt,accession:dossier.sources[0].accession,sourceHash:'f'.repeat(64),filingHash:dossier.sources[0].sha256,url:dossier.sources[0].url,concepts:[concept]});
+ const financial={ticker:'MSFT',asOf:dossier.asOf,facts:{revenue:f(100e6,'Revenues'),ebit:f(20e6,'OperatingIncomeLoss'),cash:f(20e6,'CashAndCashEquivalentsAtCarryingValue'),debt:f(40e6,'DebtCurrent'),shares:f(10e6,'WeightedAverageNumberOfDilutedSharesOutstanding','shares')},currency:'USD',identity:{singleClass:true,supportedBusiness:true},warnings:[]};
+ financial.history=[{end:'2026-06-30',facts:{revenue:financial.facts.revenue,capex:f(15e6,'PaymentsToAcquirePropertyPlantAndEquipment'),depreciation:f(5e6,'Depreciation')}}];
+ const input={kind:'inputs',hash:'b'.repeat(64),thesisHash:revision.hash,financial,quote:null,portfolio:{status:'unavailable'},assumptions:{...defaultAssumptions(financial),growth:.1,terminalGrowth:.02},savedAt:now()};
+ await page.route('**/api/research/financial-reading',r=>r.fulfill({json:{packetHash:dossier.packetHash,reading:{version:'financial-reading-v1',ticker:dossier.ticker,asOf:dossier.asOf,status:'unresolved',periods:[]}}}));
+ await page.route('**/api/public/research?ticker=MSFT',r=>r.fulfill({json:{dossier,ticket:'fixture'}}));
+ await page.route('**/api/research/theses?ticker=MSFT',r=>r.fulfill({json:{revisions:[revision]}}));
+ let writes=0;await page.route('**/api/research/capital**',r=>{if(r.request().method()==='POST')writes++;return r.fulfill({json:{records:[input]}})});
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(`/research?ticker=MSFT&lang=${lang}`);
+ await page.getByRole('button',{name:en?'My thesis':'Mi tesis',exact:true}).click();
+ await page.getByRole('button',{name:en?'Valuation and portfolio':'Valoración y cartera',exact:true}).click();
+ const panel=page.getByRole('region',{name:en?'Valuation and portfolio':'Valoración y cartera'});
+ const diagnostic=panel.getByRole('region',{name:en?'The investment behind the value':'La inversión detrás del valor'});
+ await expect(diagnostic).toBeVisible();
+ await expect(diagnostic.getByRole('cell',{name:'150',exact:true})).toBeVisible();
+ await expect(diagnostic.getByRole('cell',{name:'50',exact:true})).toBeVisible();
+ await diagnostic.locator('table').evaluate(el=>el.scrollIntoView({block:'center'}));
+ await expect(diagnostic.getByRole('cell',{name:'150',exact:true})).toBeInViewport();
+ await expect(diagnostic.getByRole('cell',{name:'50',exact:true})).toBeInViewport();
+ expect(await diagnostic.locator('table').evaluate(el=>el.scrollWidth<=el.parentElement.clientWidth+1),'the paired values must fit without horizontal scrolling').toBe(true);
+ await expect(diagnostic).toContainText(en?'It does not identify maintenance':'No identifica mantenimiento');
+ const growth=panel.getByLabel(en?'Annual revenue growth (%)':'Crecimiento anual de ingresos (%)');
+ await expect(growth).toHaveValue('10');expect(writes).toBe(0);
+ await diagnostic.getByText(en?'Calculation and source documents':'Cálculo y documentos fuente',{exact:true}).click();
+ await expect(diagnostic.locator('a').first()).toHaveAttribute('href',dossier.sources[0].url);
+ await diagnostic.getByRole('button',{name:en?'Test the second explanation':'Probar la segunda explicación'}).click();
+ await expect(growth).toHaveValue('0');
+ await expect(panel.getByLabel(en?'Terminal growth (%)':'Crecimiento terminal (%)')).toHaveValue('0');
+ await expect(panel.getByLabel(en?'Net maintenance / sales (%)':'Mantenimiento neto / ventas (%)')).toHaveValue('10');
+ await expect(panel.getByLabel(en?'I reviewed identified debt':'He revisado la deuda identificada',{exact:false})).not.toBeChecked();
+ expect(writes).toBe(0);expect(errors).toEqual([]);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+ await diagnostic.scrollIntoViewIfNeeded();await page.screenshot({path:testInfo.outputPath(`reinvestment-${lang}.png`)});
+});
+test('valuation keeps assumptions across tabs, persists calculations, and preserves a draft after server failure',async({page},testInfo)=>{
+ await page.route('**/api/research/financial-reading',r=>r.fulfill({json:{packetHash:dossier.packetHash,reading:{version:'financial-reading-v1',ticker:dossier.ticker,asOf:dossier.asOf,status:'unresolved',periods:[]}}}));
  const thesis=newThesis(dossier),revision={hash:'a'.repeat(64),dossier,thesis,revision:1,branch:'base',savedAt:now(),changes:{changed:[],recheck:[]}};
  await page.route('**/api/public/research?ticker=MSFT',r=>r.fulfill({json:{dossier,ticket:'fixture'}}));
  await page.route('**/api/research/theses?ticker=MSFT',r=>r.fulfill({json:{revisions:[revision]}}));
  const f=(value,unit='USD')=>({value,unit,start:'2025-07-01',end:'2026-06-30',availableAt:dossier.sources[0].acceptedAt,accession:dossier.sources[0].accession,sourceHash:'f'.repeat(64),url:dossier.sources[0].url,concepts:['test']});
  const financial={ticker:'MSFT',asOf:dossier.asOf,facts:{revenue:f(100e6),ebit:f(20e6),cash:f(20e6),debt:f(40e6),shares:f(10e6,'shares')},currency:'USD',identity:{singleClass:true,supportedBusiness:true},warnings:[]};
- const quote={ticker:'MSFT',price:8,currency:'USD',asOf:now(),shares:10e6,instrumentType:'EQUITY'},portfolio={status:'available',holdings:[]};
+ const quote={ticker:'MSFT',price:8,currency:'USD',asOf:now(),shares:10e6,instrumentType:'EQUITY'},portfolio={status:'available',holdings:[{ticker:'MSFT',quantity:2,currency:'USD',asset_type:'stock',market_value_usd:16,updated_at:now()}]};
  const input={kind:'inputs',hash:'b'.repeat(64),thesisHash:revision.hash,financial,quote,portfolio,assumptions:defaultAssumptions(financial),savedAt:now()};
  let rows=[],fail=false;
  await page.route('**/api/research/capital**',async route=>{
@@ -31,6 +70,12 @@ test('valuation keeps assumptions across tabs, persists calculations, and preser
  await panel.getByLabel('Fundamento de estos supuestos').fill('QA hypothesis, not an observed absence of claims.');
  await panel.getByLabel('He revisado la deuda identificada',{exact:false}).check();
  await expect(panel.getByText('Brecha frente a referencia',{exact:true})).toBeVisible();
+ const conditions=panel.getByRole('region',{name:'Qué tendría que cambiar para sostener el precio'});
+ await expect(conditions).toBeVisible();await expect(conditions).toContainText('12%');await expect(conditions).toContainText('5%');
+ if(process.env.BLS_QA_CAPTURE){await conditions.evaluate(el=>el.scrollIntoView({block:'start'}));await page.screenshot({path:`${process.env.TEMP}/bls-price-conditions-${testInfo.project.name}.png`})}
+ await conditions.getByRole('button',{name:'Simular 1 pp menos de margen'}).click();
+ await expect(panel.getByLabel('Margen operativo al año 5 (%)')).toHaveValue('19');
+ await expect(conditions).toContainText('US$ -1,25');
  await page.getByRole('button',{name:'Trabajar la tesis',exact:true}).click();
  await page.getByRole('button',{name:'Valoración y cartera',exact:true}).click();
  await expect(panel.getByLabel('Fundamento de estos supuestos')).toHaveValue('QA hypothesis, not an observed absence of claims.');

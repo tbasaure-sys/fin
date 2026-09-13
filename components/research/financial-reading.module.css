@@ -1,0 +1,35 @@
+.reading{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:30px 0;margin:8px 0 32px;min-width:0;font-size:14px;line-height:1.6}
+.reading header{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.reading>details>summary{cursor:pointer;min-height:44px;padding:10px 0;color:var(--accent)}
+.reading h2{font:400 clamp(27px,3vw,36px)/1.15 "DM Serif Display",Georgia,serif;margin:0 0 8px}
+.reading h3{font-size:15px;margin:0 0 12px}
+.reading p{color:var(--muted);margin:8px 0 16px}
+.reading button{background:transparent;border:0;color:var(--accent);font:inherit;cursor:pointer;min-height:44px;padding:8px 0;text-align:left}
+.reading a{color:var(--accent);text-underline-offset:4px}
+.reading button:hover,.reading a:hover{color:var(--paper)}
+.reading button:focus-visible,.reading summary:focus-visible,.tableScroll:focus-visible,.reading a:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.years{white-space:nowrap;color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
+.reading .units{font-size:12px;margin:14px 0}
+.tableScroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain}
+.tableScroll table{width:100%;min-width:490px;border-collapse:collapse;font-variant-numeric:tabular-nums;text-align:right}
+.tableScroll th,.tableScroll td{padding:5px 12px;border-bottom:1px solid var(--line)}
+.tableScroll thead th{font-size:13px;font-weight:500;color:var(--muted);padding-bottom:12px}
+.tableScroll th:first-child{width:42%;text-align:left;padding-left:0}
+.tableScroll tbody th{font-weight:400;font-size:14px}
+.tableScroll th small{display:block;font-size:10px;font-weight:400}
+.tableScroll td button{width:100%;text-align:right;color:var(--paper);border-radius:2px;transition:background .15s}
+.tableScroll td button:hover,.tableScroll td button[aria-pressed=true]{background:#233226;color:var(--accent)}
+.tableScroll .residual th,.tableScroll .residual td button{color:var(--accent);font-weight:600}
+.missing{font-size:12px;color:var(--muted)}
+.capital summary,.method summary{cursor:pointer;min-height:44px;padding:12px 0;color:var(--muted);font-size:13px}
+.detail{border-left:2px solid var(--accent);padding:16px 20px;margin:16px 0 24px;background:#122018;overflow-wrap:anywhere}
+.detailHead{display:flex;justify-content:space-between;align-items:baseline;gap:16px}
+.detailHead button{font-size:12px;white-space:nowrap}
+.detail .formula{font-size:24px;color:var(--paper);font-variant-numeric:tabular-nums;margin:8px 0}
+.detail p,.detail li{font-size:13px}.detail ul{list-style:none;padding:0;display:flex;gap:28px;flex-wrap:wrap}
+.detail li{flex:1;min-width:200px}.detail li details{margin-top:12px}.detail summary{cursor:pointer}.detail code{font-size:11px;color:var(--muted)}
+.signals{padding-top:24px}.signals ul{padding:0;list-style:none;margin:0}.signals li{padding:12px 0 18px;border-bottom:1px solid var(--line)}
+.signals li strong{font-weight:500}.signals li p{max-width:78ch;font-size:14px;margin:6px 0}.signals li div{display:flex;flex-wrap:wrap;gap:4px 22px}.signals li button{font-size:12px;text-decoration:underline;text-underline-offset:4px}
+.reading .thesis{margin-top:12px;font-weight:500}.method p{max-width:85ch;font-size:12px}.srOnly{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+@media(max-width:600px){.reading{padding:24px 0}.reading header{display:block}.years{display:none}.detail{padding:14px}.detailHead{align-items:flex-start}.detailHead h3{max-width:65%}.detail li{min-width:100%}.reading .units{max-width:38ch}.tableScroll table{min-width:0;table-layout:fixed}.tableScroll th,.tableScroll td{padding:5px 3px}.tableScroll tbody th{font-size:12px;line-height:1.5}.tableScroll th:first-child{width:42%}.tableScroll td button{font-size:12px;letter-spacing:-.025em}.tableScroll thead th{font-size:11px}.missing{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.tableScroll td button{transition:none}}

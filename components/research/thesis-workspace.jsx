@@ -1,12 +1,12 @@
 "use client";
 import {trackProductEvent} from '@/lib/product-events.mjs';
 import {useEffect,useRef,useState} from 'react';
-import {newThesis,evaluateThesis,compareEvidence,companyKey,NODE_IDS,assistedProposal} from '@/lib/research/thesis-engine.mjs';
+import {newThesis,evaluateThesis,compareEvidence,companyKey,NODE_IDS,assistedProposal,researchQuestionProposal} from '@/lib/research/thesis-engine.mjs';
 import {THESIS_COPY} from './thesis-copy';
 import styles from './thesis.module.css';
 import {CapitalWorkspace} from './capital-workspace';
 
-export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
+export function ThesisWorkspace({dossier,ticket,language,report,researchPrompt,onRead}){
  const c=THESIS_COPY[language]||THESIS_COPY.es;
  const [thesis,setThesis]=useState(()=>newThesis(dossier));
  const [pinned,setPinned]=useState(dossier),[records,setRecords]=useState([]),[branch,setBranch]=useState('base');
@@ -29,6 +29,13 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
  useEffect(()=>{if(!dirty)return;const warn=e=>{e.preventDefault();e.returnValue=''};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn)},[dirty]);
  const assessment=evaluateThesis(thesis),node=thesis.nodes[active],status=assessment.nodes[active];
  const proposal=assistedProposal(node.id,report,pinned);
+ const questionProposal=researchQuestionProposal(thesis,researchPrompt,pinned);
+ useEffect(()=>{if(researchPrompt)setView('editor')},[researchPrompt]);
+ function useQuestion(){
+  if(!questionProposal)return;
+  setThesis(t=>({...t,nodes:t.nodes.map(n=>n.id===questionProposal.nodeId?{...n,question:questionProposal.question,test:questionProposal.test}:n)}));
+  setActive(NODE_IDS.indexOf(questionProposal.nodeId));setView('editor');setDirty(true);setSaved(false);
+ }
  const documents=compareEvidence(pinned,dossier),chunks=[...new Map(pinned.sections.flatMap(s=>s.extracts.map(e=>[e.id,e]))).values()];
  const heads=[...new Map([...records].reverse().map(r=>[r.branch,r])).values()];
  function edit(key,value){setThesis(t=>({...t,[key]:value}));setDirty(true);setSaved(false)}
@@ -77,6 +84,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
      <p>{c.dependency}: {r.changes.recheck.map(label).join(' → ')||'—'}</p><small>{r.hash}</small></details>})}
     {records.length===100?<p>{c.historyLimit}</p>:null}
    </div>:<div hidden={view!=='editor'}>
+    {questionProposal?<section className={styles.provenance}><p>{language==='en'?'Question from the economic brief · not saved':'Pregunta de la lectura económica · sin guardar'}</p><p>{questionProposal.question}</p><button type="button" onClick={useQuestion}>{language==='en'?'Use this question':'Usar esta pregunta'}</button></section>:null}
     <div className={styles.explanations}>
      <label>{c.explanation}<textarea aria-label={c.explanation} maxLength={2000} rows={4} value={thesis.explanation} onChange={e=>edit('explanation',e.target.value)} placeholder={language==='en'?'What would have to be true?':'¿Qué tendría que ser cierto?'} /></label>
      <label>{c.alternative}<textarea aria-label={c.alternative} maxLength={2000} rows={4} value={thesis.alternative} onChange={e=>edit('alternative',e.target.value)} placeholder={language==='en'?'The strongest explanation against your thesis.':'La explicación más fuerte en contra de tu tesis.'} /></label>

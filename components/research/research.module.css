@@ -708,3 +708,15 @@
 .finding summary { color:#bfd49c; cursor:pointer; font-size:13px; }
 .finding blockquote { margin:14px 0; padding-left:16px; border-left:2px solid #607652; overflow-wrap:anywhere; }
 .finding a { color:#bfd49c; font-size:12px; }
+.reportMeta { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 20px; margin:18px 0; }
+.analysis .reportScope { font-size:14px; max-width:70ch; color:#9eada3; }
+.reportAudit { margin:28px 0 20px; padding-block:16px; border-block:1px solid #29362e; }
+.reportAudit summary { cursor:pointer; color:#bfd49c; font-size:14px; padding:5px 0; }
+.reportAudit p { font-size:13px; }
+.reportAudit summary:focus-visible,.reportGap a:focus-visible { outline:2px solid #bfd49c; outline-offset:4px; }
+.reportGap { padding:10px 0 20px; }
+.reportGap a { color:#bfd49c; display:inline-block; padding:8px 0; }
+.consultedSources summary { cursor:pointer; color:#bfd49c; padding:12px 0; }
+.consultedSources summary:focus-visible { outline:2px solid #bfd49c; outline-offset:4px; }
+.analysis .consultedSources p { font-size:13px; }
+.consultedSources blockquote { margin:16px 0 0; padding-left:16px; border-left:2px solid #607652; overflow-wrap:anywhere; white-space:pre-wrap; font-size:15px; }

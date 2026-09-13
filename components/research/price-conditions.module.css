@@ -1,0 +1,6 @@
+.conditions{padding:22px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:24px 0}
+.condition{padding:20px 0;border-top:1px solid var(--line)}
+.condition h5{font-size:16px;font-weight:500;margin:0 0 18px}
+.condition dl{max-width:550px}.condition dd{color:var(--accent)}
+.condition .impact{color:var(--paper);font-variant-numeric:tabular-nums}
+.condition button{min-height:44px}

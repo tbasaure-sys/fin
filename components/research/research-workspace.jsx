@@ -7,6 +7,8 @@ import { useLanguagePreference } from "@/components/language-layer";
 import { TickerSearch } from "./ticker-search";
 import { AnalysisPanel } from "./analysis-panel";
 import { ThesisWorkspace } from "./thesis-workspace";
+import { FinancialReading } from "./financial-reading";
+import { RevenueBreakdown } from "./revenue-breakdown";
 import styles from "./research.module.css";
 
 const COPY = {
@@ -156,6 +158,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
   const [analysisStarted,setAnalysisStarted]=useState(false);
   const [workspaceView,setWorkspaceView]=useState('documents');
   const [assistedReport,setAssistedReport]=useState(null);
+  const [researchPrompt,setResearchPrompt]=useState(null);
   useEffect(() => {
     if (!ticker) return;
     const controller = new AbortController();
@@ -164,6 +167,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
     setState({ loading: true, dossier: null, error: null });
     setAnalysisStarted(false);
     setAssistedReport(null);
+    setResearchPrompt(null);
     fetch(`/api/public/research?ticker=${encodeURIComponent(ticker)}`, {
       signal: controller.signal,
     })
@@ -263,12 +267,14 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
                 {copy.download} ↓
               </button>
             </div>
-            <nav className={styles.workspaceTabs} aria-label={language==='en'?'Research workspace':'Espacio de investigación'}>
+            <FinancialReading key={`${dossier.packetHash}:${state.ticket}`} dossier={dossier} ticket={state.ticket} language={language} onThesis={prompt=>{if(prompt?.nodeId)setResearchPrompt(prompt);setWorkspaceView('thesis');document.getElementById('thesis-workspace-tabs')?.scrollIntoView({block:'start'})}} />
+            <details><summary>{language==='en'?'Full revenue breakdown':'Desglose completo de ingresos'}</summary><RevenueBreakdown key={dossier.packetHash} dossier={dossier} language={language} /></details>
+            <nav id="thesis-workspace-tabs" className={styles.workspaceTabs} aria-label={language==='en'?'Research workspace':'Espacio de investigación'}>
               <button aria-pressed={workspaceView==='thesis'} onClick={()=>setWorkspaceView('thesis')}>{language==='en'?'My thesis':'Mi tesis'}</button>
               <button aria-pressed={workspaceView==='documents'} onClick={()=>setWorkspaceView('documents')}>{language==='en'?'Documents & reading':'Documentos y lectura'}</button>
             </nav>
             <div hidden={workspaceView!=='thesis'}>
-              <ThesisWorkspace key={dossier.packetHash} dossier={dossier} ticket={state.ticket} language={language} report={assistedReport} onRead={()=>setWorkspaceView('documents')} />
+              <ThesisWorkspace key={dossier.packetHash} dossier={dossier} ticket={state.ticket} language={language} report={assistedReport} researchPrompt={researchPrompt} onRead={()=>setWorkspaceView('documents')} />
             </div>
             <div hidden={workspaceView!=='documents'}>
             {!analysisStarted ? <div className={styles.notice}>
@@ -325,15 +331,15 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
                 </p>
                 <h2>{copy.sections[active]}</h2>
                 <AnalysisPanel key={`${dossier.packetHash}:${language}`} dossier={dossier} ticket={state.ticket} available={state.available} language={language} sectionId={section.id} onStarted={()=>setAnalysisStarted(true)} onReport={setAssistedReport} />
-                <div className={styles.questions}>
+                {!assistedReport?<div className={styles.questions}>
                   <h3>{copy.questionTitle}</h3>
                   <ul>
                     {copy.questions[active].map((q) => (
                       <li key={q}>{q}</li>
                     ))}
                   </ul>
-                </div>
-                <h3 className={styles.extractHeading}>
+                </div>:null}
+                <h3 id={`sources-${section.id}`} className={styles.extractHeading}>
                   {copy.extracts} <span>{section.extracts.length}</span>
                 </h3>
                 {section.extracts.length ? (

@@ -1,10 +1,10 @@
 {
-  "version": "bls-filing-dossier-v1",
+  "version": "bls-filing-dossier-v2",
   "ticker": "MSFT",
   "name": "MICROSOFT CORP",
   "cik": 789019,
   "asOf": "2026-09-07T02:28:55.812Z",
-  "packetHash": "5d7bdbe36f7a14c2ff4055866ef58d6ec7dc6e3ba028019823670e39a05d8325",
+  "packetHash": "0d706117a6fe31925baec503114bdfe33120f366fc9bd3feaa7b6ff54383805e",
   "sources": [
     {
       "form": "10-K",
@@ -25,78 +25,611 @@
       "id": "business",
       "extracts": [
         {
-          "id": "D1:173",
-          "text": "Windows faces competition from various software products and from alternative platforms and devices. Microsoft Defender for Endpoint competes with endpoint security solution providers.\nOur Enterprise Mobility + Security offerings compete with products from a range of competitors including identity vendors, security solution vendors, and numerous other security point solution vendors.\nLinkedIn faces competition from online professional networks; recruiting, talent management, and human resource services companies; job boards; companies that provide learning and development products and services; online and offline outlets that generate revenue from advertisers and marketers; and online and offline outlets for companies with lead generation and customer intelligence and insights.\nDynamics competes with cloud-based and on-premises business solution providers.\nIntelligent Cloud\nOur Intelligent Cloud segment consists of our public, private, and hybrid server products and cloud services that power modern business and developers. This segment primarily comprises:\nServer products and cloud services, including Azure and other cloud services, comprising cloud and AI consumption-based services, GitHub cloud services, Health and Life Sciences cloud services (formerly Nuance Healthcare cloud services), virtual desktop offerings, and other cloud services; and Server products, comprising SQL Server, Windows Server, Visual Studio, System Center, related Client Access Licenses (“CALs”), and other on-premises offerings.\nEnterprise and partner services, including Enterprise Support Services, Industry Solutions, Microsoft Partner Network, and Learning Experience.\nPART I\nItem 1\nServer Products and Cloud Services",
-          "blockStart": 173,
-          "blockEnd": 183
+          "id": "D1:120",
+          "text": "ITEM 1. BUSINESS\nGENERAL\nMicrosoft is a technology company committed to making digital technology and artificial intelligence (“AI”) available broadly and doing so responsibly. Our mission is to empower every person and every organization on the planet to achieve more.\nWe develop and support a broad portfolio of technology solutions for individuals and businesses, focusing on secure, trusted, and innovative platforms and applications that meet evolving customer needs across AI, cloud computing, productivity and collaboration, and personal computing. We strive to create opportunity, growth, and impact in every country around the world.\nAI is fundamentally transforming productivity for every individual, organization, and industry. Microsoft's AI offerings span every layer of the technology stack, enabling transformative outcomes across sectors and unlocking opportunity for every country, community, and individual.\nWe believe AI should be as empowering as it is powerful, and we’re committed to designing and deploying AI responsibly with safety and security from the outset.\nWhat We Offer\nFounded in 1975, we develop and support software, services, devices, and solutions that deliver new value for customers and help people and businesses realize their full potential.\nWe offer an array of services, including cloud-based solutions that provide customers with AI, software, services, platforms, and content, and we provide solution support and consulting services. We also deliver relevant online advertising to a global audience.\nOur products include operating systems, server applications, business solution applications, software development tools, desktop and server management tools, and video games. We also design and sell devices, including PCs, tablets, gaming and entertainment consoles, other intelligent devices, and related accessories.\nDigital transformation and adoption of AI continues to revolutionize more business workstreams for organizations in every sector across the globe. For enterprises, digital technology empowers employees, optimizes operations, engages customers, and in some cases, changes the very core of products and services.\n3\nPART I\nItem 1",
+          "kind": "prose",
+          "blockStart": 120,
+          "blockEnd": 133,
+          "documentSection": "1"
         },
         {
-          "id": "D1:508",
-          "text": "OVERVIEW\nMicrosoft is a technology company committed to making digital technology and artificial intelligence (“AI”) available broadly and doing so responsibly, with a mission to empower every person and every organization on the planet to achieve more. We create platforms and applications, powered by AI, that deliver innovative solutions that meet the evolving needs of our customers.\nWe generate revenue by offering a wide range of cloud-based solutions, content, and other services to people and businesses; licensing and supporting an array of software products; delivering relevant online advertising to a global audience; and designing and selling devices. Our most significant expenses are related to compensating employees; supporting and investing in our cloud-based services, including datacenter operations; designing, manufacturing, marketing, and selling our other products and services; and income taxes.\nHighlights from fiscal year 2026 compared with fiscal year 2025 included:\nMicrosoft Cloud revenue increased 27% to $214.4 billion.\nCommercial remaining performance obligation increased 84% to $678 billion.\nMicrosoft 365 Commercial cloud revenue increased 17%.\nMicrosoft 365 Consumer cloud revenue increased 28%.\nLinkedIn revenue increased 11%.\nDynamics 365 revenue increased 18%.\nAzure and other cloud services revenue increased 41%.\nWindows OEM and Devices revenue decreased slightly.\nXBOX content and services revenue decreased 5%.\nSearch advertising (formerly Search and news advertising) revenue excluding traffic acquisition costs increased 12%.\nIndustry Trends and Opportunities\nOur industry is dynamic and highly competitive, with frequent changes in both technologies and business models. Each industry shift is an opportunity to conceive new products, new technologies, or new ideas that can further transform the industry and our business. At Microsoft, we push the boundaries of what is possible through a broad range of research and development activities that seek to identify and address the changing demands of customers and users, industry trends, and competitive forces.",
-          "blockStart": 508,
-          "blockEnd": 523
+          "id": "D1:608",
+          "text": "ITEM 7. MANAGEMENT’S DISCUSSION AND ANALYSIS OF FINANCIAL CONDITION AND RESULTS OF OPERATIONS\nThe following Management’s Discussion and Analysis of Financial Condition and Results of Operations (“MD&A”) is intended to help the reader understand the results of operations and financial condition of Microsoft Corporation. MD&A is provided as a supplement to, and should be read in conjunction with, our consolidated financial statements and the accompanying Notes to Financial Statements (Part II, Item 8 of this Form 10-K). This section generally discusses the results of our operations for the year ended June 30, 2026 compared to the year ended June 30, 2025. For a discussion of the year ended June 30, 2025 compared to the year ended June 30, 2024, please refer to Part II, Item 7, “Management’s Discussion and Analysis of Financial Condition and Results of Operations” in our Annual Report on Form 10-K for the year ended June 30, 2025.\nOVERVIEW\nMicrosoft is a technology company committed to making digital technology and artificial intelligence (“AI”) available broadly and doing so responsibly, with a mission to empower every person and every organization on the planet to achieve more. We create platforms and applications, powered by AI, that deliver innovative solutions that meet the evolving needs of our customers.\nWe generate revenue by offering a wide range of cloud-based solutions, content, and other services to people and businesses; licensing and supporting an array of software products; delivering relevant online advertising to a global audience; and designing and selling devices. Our most significant expenses are related to compensating employees; supporting and investing in our cloud-based services, including datacenter operations; designing, manufacturing, marketing, and selling our other products and services; and income taxes.\nHighlights from fiscal year 2026 compared with fiscal year 2025 included:\n•\nMicrosoft Cloud revenue increased 27% to $214.4 billion.\n•\nCommercial remaining performance obligation increased 84% to $678 billion.\n•\nMicrosoft 365 Commercial cloud revenue increased 17%.\n•\nMicrosoft 365 Consumer cloud revenue increased 28%.\n•",
+          "kind": "prose",
+          "blockStart": 608,
+          "blockEnd": 622,
+          "documentSection": "7"
         },
         {
-          "id": "D1:578",
-          "text": "Adjusted net income and adjusted diluted earnings per share (“EPS”) are non-GAAP financial measures. These non-GAAP financial measures exclude net gains and losses from investments in OpenAI. Refer to the Non-GAAP Financial Measures section below for a reconciliation of our financial results reported in accordance with GAAP to non-GAAP financial results.\nFiscal Year 2026 Compared with Fiscal Year 2025\nRevenue increased $50.1 billion or 18% driven by growth in Microsoft Cloud. Intelligent Cloud revenue increased driven by Azure. Productivity and Business Processes revenue increased driven by Microsoft 365 Commercial cloud. More Personal Computing revenue decreased driven by XBOX (formerly Gaming), offset in part by growth in Search advertising.\nCost of revenue increased $18.5 billion or 21% driven by growth in Microsoft Cloud.\nGross margin increased $31.6 billion or 16% with growth across each of our segments.\nGross margin percentage decreased slightly driven by continued investments in AI infrastructure and growing AI product usage, offset in part by efficiency gains across the Microsoft Cloud.\nMicrosoft Cloud gross margin percentage decreased to 66% driven by continued investments in AI infrastructure and growing AI product usage, offset in part by efficiency gains in Azure and Microsoft 365 Commercial cloud.\nOperating expenses increased $4.9 billion or 7% driven by continued investments in research and development compute capacity, AI talent, and data to support product development that benefits the entire portfolio, impairment and other related expenses in our XBOX business, investments in commercial sales, and higher Copilot advertising expenses.\nOperating income increased $26.7 billion or 21% driven by growth in Productivity and Business Processes and Intelligent Cloud.\nRevenue and operating income both included a favorable foreign currency impact of 2%.\nPART II\nItem 7",
-          "blockStart": 578,
-          "blockEnd": 589
+          "id": "D1:2588",
+          "text": "Our Microsoft Cloud revenue, which includes Microsoft 365 Commercial cloud, Azure and other cloud services, the commercial portion of LinkedIn, and Dynamics 365, was $214.4 billion, $168.9 billion, and $137.7 billion in fiscal years 2026, 2025, and 2024, respectively. These amounts are included in Server products and cloud services, Microsoft 365 Commercial products and cloud services, LinkedIn, and Dynamics products and cloud services in the table above.\nAssets are not allocated to segments for internal reporting presentations. A portion of amortization and depreciation is included with various other costs in an overhead allocation to each segment. It is impracticable for us to separately identify the amount of amortization and depreciation by segment that is included in the measure of segment profit or loss.\nLong-lived assets, excluding financial instruments and tax assets, classified by the location of the controlling statutory company and with countries over 10% of the total shown separately, were as follows:",
+          "kind": "prose",
+          "blockStart": 2588,
+          "blockEnd": 2590,
+          "documentSection": "8"
         }
       ],
+      "coverage": {
+        "policy": "economic-roles-v1",
+        "roles": [
+          {
+            "id": "business_overview",
+            "status": "selected",
+            "chunkId": "D1:120"
+          },
+          {
+            "id": "current_performance",
+            "status": "selected",
+            "chunkId": "D1:608"
+          },
+          {
+            "id": "segment_economics",
+            "status": "selected",
+            "chunkId": "D1:2588"
+          }
+        ],
+        "excludedIncompleteTables": 0,
+        "excludedOversizedChunks": 0,
+        "characters": 5401,
+        "completeEconomicAssessment": false
+      },
       "status": "extracts_available"
     },
     {
       "id": "cash",
       "extracts": [
         {
-          "id": "D1:734",
-          "text": "The following table reconciles our financial results reported in accordance with GAAP to non-GAAP financial results:\n(In millions, except percentages and per share amounts) | | 2026 | | | 2025 | | | | 2024 | | | Percentage Change 2026 Versus 2025 | | | Percentage Change 2025 Versus 2024 |\nOther income (expense), net | | $ | 10,697 | | | $ | (4,901 | ) | | $ | (1,646 | ) | | 318% | | | (198)% |\nNet (gains) losses from investments in OpenAI | | | (6,530 | ) | | | 4,763 | | | | 1,482 | | | (237)% | | | 221% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nAdjusted other income (expense), net (non-GAAP) | | $ | 4,167 | | | $ | (138 | ) | | $ | (164 | ) | | 3,120% | | | 16% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nNet income | | $ | 133,749 | | | $ | 101,832 | | | $ | 88,136 | | | 31% | | | 16% |\nNet (gains) losses from investments in OpenAI, net of tax of $1,567, $(1,143), and $(356) | | | (4,963 | ) | | | 3,620 | | | | 1,126 | | | (237)% | | | 221% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nAdjusted net income (non-GAAP) | | $ | 128,786 | | | $ | 105,452 | | | $ | 89,262 | | | 22% | | | 18% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nDiluted earnings per share | | $ | 17.95 | | | $ | 13.64 | | | $ | 11.80 | | | 32% | | | 16% |\nNet (gains) losses from investments in OpenAI | | | (0.67 | ) | | | 0.49 | | | | 0.15 | | | (237)% | | | 227% |\n| | | | | | | | | | | | | | | | | |\n| | | | | | | | | | | | | | | | | |\nAdjusted diluted earnings per share (non-GAAP) | | $ | 17.28 | | | $ | 14.13 | | | $ | 11.95 | | | 22% | | | 18% |\n| | | | | | | | | | | | | | | | | |\nLIQUIDITY AND CAPITAL RESOURCES\nWe expect existing cash, cash equivalents, short-term investments, cash flows from operations, and access to capital markets to continue to be sufficient to fund our operating activities and cash commitments for investing and financing activities, such as dividends, share repurchases, debt maturities, and material capital expenditures, for at least the next 12 months and thereafter for the foreseeable future.\nPART II\nItem 7\nCash, Cash Equivalents, and Investments",
-          "blockStart": 734,
-          "blockEnd": 760
+          "id": "D1:T1195",
+          "kind": "table",
+          "text": "PART II\nItem 8\nCASH FLOWS STATEMENTS\n(In millions) | | | | | | | | |\n|\n| | |\nYear Ended June 30, | | 2026 | | | 2025 | | | 2024 |\n| | |\nOperations | | | | | | | | | | | |\nNet income | | $ | 133,749 | | | $ | 101,832 | | | $ | 88,136 |\nAdjustments to reconcile net income to net cash from operations: | | | | | | | | | | | |\nDepreciation, amortization, and other | | | 38,534 | | | | 29,433 | | | | 20,958 |\nStock-based compensation expense | | | 12,405 | | | | 11,974 | | | | 10,734 |\nNet recognized losses (gains) on investments and derivatives | | | (11,047 | ) | | | 5,329 | | | | 1,634 |\nDeferred income taxes | | | 14,189 | | | | (7,056 | ) | | | (4,738 | )\nChanges in operating assets and liabilities: | | | | | | | | | | | |\nAccounts receivable | | | (12,737 | ) | | | (10,581 | ) | | | (7,191 | )\nInventories | | | (461 | ) | | | 309 | | | | 1,284 |\nOther current assets | | | (2,627 | ) | | | (3,044 | ) | | | (1,648 | )\nOther long-term assets | | | (3,964 | ) | | | (2,950 | ) | | | (6,817 | )\nAccounts payable | | | 5,268 | | | | 569 | | | | 3,545 |\nUnearned revenue | | | 9,361 | | | | 5,438 | | | | 5,348 |\nIncome taxes | | | (1,875 | ) | | | (38 | ) | | | 1,687 |\nOther current liabilities | | | 6,847 | | | | 5,922 | | | | 4,867 |\nOther long-term liabilities | | | (4,707 | ) | | | (975 | ) | | | 749 |\n| | | | | | | | |\n| | | | | | | | | | | |\nNet cash from operations | | | 182,935 | | | | 136,162 | | | | 118,548 |\n| | | | | | | | |\n| | | | | | | | | | | |\nFinancing | | | | | | | | | | | |\nProceeds from issuance (repayments) of debt, maturities of 90 days or less, net | | | 0 | | | | (5,746 | ) | | | 5,250 |\nProceeds from issuance of debt | | | 0 | | | | 0 | | | | 24,395 |\nRepayments of debt | | | (3,000 | ) | | | (3,216 | ) | | | (29,070 | )\nCommon stock issued | | | 2,009 | | | | 2,056 | | | | 2,002 |\nCommon stock repurchased | | | (22,271 | ) | | | (18,420 | ) | | | (17,254 | )\nCommon stock cash dividends paid | | | (26,445 | ) | | | (24,082 | ) | | | (21,771 | )\nOther, net | | | (2,839 | ) | | | (2,291 | ) | | | (1,309 | )\n| | | | | | | | |\n| | | | | | | | | | | |\nNet cash used in financing | | | (52,546 | ) | | | (51,699 | ) | | | (37,757 | )\n| | | | | | | | |\n| | | | | | | | | | | |\nInvesting | | | | | | | | | | | |\nAdditions to property and equipment | | | (115,948 | ) | | | (64,551 | ) | | | (44,477 | )\nAcquisition of companies, net of cash acquired and divestitures, and purchases of intangible and other assets | | | (1,743 | ) | | | (5,978 | ) | | | (69,132 | )\nPurchases of investments | | | (58,351 | ) | | | (29,775 | ) | | | (17,732 | )\nMaturities of investments | | | 34,605 | | | | 16,079 | | | | 24,775 |\nSales of investments | | | 21,798 | | | | 9,309 | | | | 10,894 |\nOther, net | | | (19,861 | ) | | | 2,317 | | | | (1,298 | )\n| | | | | | | | |\n| | | | | | | | | | | |\nNet cash used in investing | | | (139,500 | ) | | | (72,599 | ) | | | (96,970 | )\n| | | | | | | | |\n| | | | | | | | | | | |\nEffect of foreign exchange rates on cash and cash equivalents | | | (196 | ) | | | 63 | | | | (210 | )\n| | | | | | | | |\n| | | | | | | | | | | |\nNet change in cash and cash equivalents | | | (9,307 | ) | | | 11,927 | | | | (16,389 | )\nCash and cash equivalents, beginning of period | | | 30,242 | | | | 18,315 | | | | 34,704 |\n| | | | | | | | |\n| | | | | | | | | | | |\nCash and cash equivalents, end of period | | $ | 20,935 | | | $ | 30,242 | | | $ | 18,315 |\n| | | | | | | | | | | |",
+          "blockStart": 1195,
+          "blockEnd": 1255,
+          "contextBlockStart": 1192,
+          "documentSection": "8",
+          "table": {
+            "complete": true,
+            "rows": 62,
+            "nested": false
+          }
         },
         {
-          "id": "D1:764",
-          "text": "A majority of our investments are priced by pricing vendors and are generally Level 1 or Level 2 investments as these vendors either provide a quoted market price in an active market or use observable inputs for their pricing without applying significant adjustments. Broker pricing is used mainly when a quoted price is not available, the investment is not priced by our pricing vendors, or when a broker price is more reflective of fair values in the market in which the investment trades. Our broker-priced investments are generally classified as Level 2 investments because the broker prices these investments based on similar assets without applying significant adjustments. In addition, all our broker-priced investments have a sufficient level of trading volume to demonstrate that the fair values used are appropriate for these investments. Our fair value processes include controls that are designed to ensure appropriate fair values are recorded. These controls include model validation, review of key model inputs, analysis of period-over-period fluctuations, and independent recalculation of prices where appropriate.\nCash Flows",
-          "blockStart": 764,
-          "blockEnd": 765
+          "id": "D1:918",
+          "text": "Cash from operations increased $46.8 billion to $182.9 billion for fiscal year 2026, primarily due to an increase in cash received from customers and a decrease in cash used to pay income taxes, offset in part by an increase in cash paid to suppliers. Cash used in financing increased $847 million to $52.5 billion for fiscal year 2026, primarily due to a $6.0 billion decrease in cash used for repayments of debt, offset in part by a $3.9 billion increase in common stock repurchases and a $2.4 billion increase in dividends paid. Cash used in investing increased $66.9 billion to $139.5 billion for fiscal year 2026, primarily due to a $51.4 billion increase in additions to property and equipment and a $22.2 billion increase in cash used in other investing primarily to facilitate the purchase of components, offset in part by a $4.2 billion decrease in cash used in the acquisition of companies, net of cash acquired and divestitures, and purchases of intangible and other assets and a $2.4 billion decrease in cash used in net investment purchases, sales, and maturities.\nDebt Proceeds\nWe issue debt to take advantage of favorable pricing and liquidity in the debt markets, reflecting our credit rating. The proceeds of these issuances were or will be used for general corporate purposes, which may include, among other things, funding for working capital, capital expenditures, repurchases of capital stock, acquisitions, and repayment of existing debt. Refer to Note 10 – Debt of the Notes to Financial Statements (Part II, Item 8 of this Form 10-K).\n43\nPART II\nItem 7\nUnearned Revenue\nUnearned revenue comprises mainly unearned revenue related to volume licensing programs, which may include cloud services and Software Assurance (“SA”). Unearned revenue is generally invoiced annually at the beginning of each contract period for multi-year agreements and recognized ratably over the coverage period. Unearned revenue also includes payments for other offerings for which we have been paid in advance and earn the revenue when we transfer control of the product or service. Refer to Note 1 – Accounting Policies of the Notes to Financial Statements (Part II, Item 8 of this Form 10-K).",
+          "kind": "prose",
+          "blockStart": 918,
+          "blockEnd": 925,
+          "documentSection": "7"
         },
         {
-          "id": "D1:766",
-          "text": "Cash from operations increased $46.8 billion to $182.9 billion for fiscal year 2026, primarily due to an increase in cash received from customers and a decrease in cash used to pay income taxes, offset in part by an increase in cash paid to suppliers. Cash used in financing increased $847 million to $52.5 billion for fiscal year 2026, primarily due to a $6.0 billion decrease in cash used for repayments of debt, offset in part by a $3.9 billion increase in common stock repurchases and a $2.4 billion increase in dividends paid. Cash used in investing increased $66.9 billion to $139.5 billion for fiscal year 2026, primarily due to a $51.4 billion increase in additions to property and equipment and a $22.2 billion increase in cash used in other investing primarily to facilitate the purchase of components, offset in part by a $4.2 billion decrease in cash used in the acquisition of companies, net of cash acquired and divestitures, and purchases of intangible and other assets and a $2.4 billion decrease in cash used in net investment purchases, sales, and maturities.\nDebt Proceeds\nWe issue debt to take advantage of favorable pricing and liquidity in the debt markets, reflecting our credit rating. The proceeds of these issuances were or will be used for general corporate purposes, which may include, among other things, funding for working capital, capital expenditures, repurchases of capital stock, acquisitions, and repayment of existing debt. Refer to Note 10 – Debt of the Notes to Financial Statements (Part II, Item 8 of this Form 10-K).\nPART II\nItem 7\nUnearned Revenue\nUnearned revenue comprises mainly unearned revenue related to volume licensing programs, which may include cloud services and Software Assurance (“SA”). Unearned revenue is generally invoiced annually at the beginning of each contract period for multi-year agreements and recognized ratably over the coverage period. Unearned revenue also includes payments for other offerings for which we have been paid in advance and earn the revenue when we transfer control of the product or service. Refer to Note 1 – Accounting Policies of the Notes to Financial Statements (Part II, Item 8 of this Form 10-K).",
-          "blockStart": 766,
-          "blockEnd": 772
+          "id": "D1:600",
+          "text": "We returned $10.2 billion to shareholders in the form of share repurchases and dividends in the fourth quarter of fiscal year 2026. Refer to Note 15 – Stockholders’ Equity of the Notes to Financial Statements (Part II, Item 8 of this Form 10-K) for further discussion regarding share repurchases and dividends.\n32\nPART II\nItem 6",
+          "kind": "prose",
+          "blockStart": 600,
+          "blockEnd": 603,
+          "documentSection": "5"
         }
       ],
+      "coverage": {
+        "policy": "economic-roles-v1",
+        "roles": [
+          {
+            "id": "cash_flow_statement",
+            "status": "selected",
+            "chunkId": "D1:T1195"
+          },
+          {
+            "id": "cash_explanation",
+            "status": "selected",
+            "chunkId": "D1:918"
+          },
+          {
+            "id": "capital_obligations",
+            "status": "selected",
+            "chunkId": "D1:918"
+          }
+        ],
+        "excludedIncompleteTables": 0,
+        "excludedOversizedChunks": 0,
+        "characters": 5956,
+        "completeEconomicAssessment": false
+      },
       "status": "extracts_available"
     },
     {
       "id": "thesis",
       "extracts": [
         {
-          "id": "D1:294",
-          "text": "Our competitors range in size from diversified global companies with significant research and development resources to small, specialized firms who may be more effective in deploying technical, marketing, and financial resources. Barriers to entry in many of our businesses are low and many of the areas in which we compete evolve rapidly with changing and disruptive technologies, shifting user needs, and frequent introductions of new products and services. If we do not continue to innovate and provide products, devices, and services that appeal to businesses and consumers, we may not remain competitive, which could adversely affect our business, financial condition, and results of operations.\nCompetition among platform-based ecosystems\nAn important element of our business model has been to create platform-based ecosystems on which many participants can build diverse solutions. A well-established ecosystem creates beneficial network effects among users, application developers, and the platform provider that can accelerate growth. Establishing significant scale in the marketplace is necessary to meet consumer demand and to achieve and maintain attractive margins. Firms offering competing platforms may make it more difficult to attract and retain customers.\nA competing vertically-integrated model, in which a single firm controls the hardware and software elements of a product and related services, has succeeded with some consumer products such as PCs, tablets, smartphones, gaming consoles, wearables, and other endpoint devices. Competitors pursuing this model also earn revenue from services integrated with the hardware and software platform, including applications and content sold through their integrated marketplaces. They may also be able to claim security and performance benefits from their vertically-integrated offer. We also offer some vertically-integrated hardware and software products and services. Expansion of our vertically-integrated capabilities, including developing proprietary hardware, infrastructure, and artificial intelligence (“AI”) models, could increase our cost structure, reduce margins, and expose us to operational risks.",
-          "blockStart": 294,
-          "blockEnd": 297
+          "id": "D1:344",
+          "text": "ITEM 1A. RISK FACTORS\nOur operations and financial results are subject to various risks and uncertainties, including those described below, that could adversely affect our business, operations, financial condition, results of operations, liquidity, and the trading price of our common stock. Statements in this section reflect our beliefs and opinions as to matters that could adversely affect us in the future. References to past events are provided by way of example only and are not intended to be a complete listing or a representation as to whether or not such matters have occurred in the past.\nSTRATEGIC AND COMPETITIVE RISKS\nWe face intense competition across all markets for our products and services, which could adversely affect our results of operations.\nCompetition in the technology sector\nOur competitors range in size from diversified global companies with significant research and development resources to small, specialized firms who may be more effective in deploying technical, marketing, and financial resources. Barriers to entry in many of our businesses are low and many of the areas in which we compete evolve rapidly with changing and disruptive technologies, shifting user needs, and frequent introductions of new products and services. If we do not continue to innovate and provide products, devices, and services that appeal to businesses and consumers, we may not remain competitive, which could adversely affect our business, financial condition, and results of operations.\nCompetition among platform-based ecosystems\nAn important element of our business model has been to create platform-based ecosystems on which many participants can build diverse solutions. A well-established ecosystem creates beneficial network effects among users, application developers, and the platform provider that can accelerate growth. Establishing significant scale in the marketplace is necessary to meet consumer demand and to achieve and maintain attractive margins. Firms offering competing platforms may make it more difficult to attract and retain customers.\n•",
+          "kind": "prose",
+          "blockStart": 344,
+          "blockEnd": 352,
+          "documentSection": "1a"
         },
         {
-          "id": "D1:312",
-          "text": "PART I\nItem 1A\nDemand for cloud-based and AI products and services is evolving and difficult to forecast. Overestimation of demand or misalignment of capacity investments may result in underutilization of infrastructure and may lead to impairment of assets on our balance sheet. Conversely, demand exceeding available capacity limits our ability to meet customer needs in a timely manner.\nThe cost structure for AI products and services is subject to significant uncertainty, including with respect to model training and inference costs, the availability and pricing of components, and energy costs. If these costs increase, remain elevated, or fail to decline, or if pricing for AI products and services declines as a result of competition, commoditization, or other market forces, our margins, financial condition, and results of operations could be adversely affected.",
-          "blockStart": 312,
-          "blockEnd": 315
+          "id": "D1:353",
+          "text": "A competing vertically-integrated model, in which a single firm controls the hardware and software elements of a product and related services, has succeeded with some consumer products such as PCs, tablets, smartphones, gaming consoles, wearables, and other endpoint devices. Competitors pursuing this model also earn revenue from services integrated with the hardware and software platform, including applications and content sold through their integrated marketplaces. They may also be able to claim security and performance benefits from their vertically-integrated offer. We also offer some vertically-integrated hardware and software products and services. Expansion of our vertically-integrated capabilities, including developing proprietary hardware, infrastructure, and artificial intelligence (“AI”) models, could increase our cost structure, reduce margins, and expose us to operational risks.\n•\nWe derive substantial revenue from licenses of Windows operating systems on PCs. We face significant competition from competing platforms developed for new types of devices, including smartphones and tablets. These devices compete on multiple bases including price and the perceived utility of the device and its platform. Users continue to turn to these devices to perform functions that in the past were performed by PCs. Even if many users view these devices as complementary to a PC, the prevalence of these devices may make it more difficult to attract application developers to our PC operating system platforms. Competing with operating systems licensed at low or no cost may decrease our PC operating system margins. Popular products or services offered on competing platforms could increase their competitive strength. In addition, some of our devices compete with products made by our OEM partners, which may affect their commitment to our platform.\n•",
+          "kind": "prose",
+          "blockStart": 353,
+          "blockEnd": 356,
+          "documentSection": "1a"
         },
         {
-          "id": "D1:330",
-          "text": "Acquisitions, joint ventures, and strategic alliances could have an adverse effect on our business. We expect to continue making acquisitions and entering into joint ventures and strategic alliances as part of our long-term business strategy. For example, in October 2023 we completed our acquisition of Activision Blizzard, Inc. Additionally, we have a long-term strategic partnership with OpenAI. Acquisitions and other transactions and arrangements involve significant challenges and risks, including that they do not advance our business strategy, that we get an unsatisfactory return on our investment, that they raise new compliance-related obligations and challenges, that we have difficulty integrating and retaining new employees, business systems, and technology, that they distract management from our other businesses, or that announced transactions may not be completed. If an arrangement fails to adequately anticipate changing circumstances and interests of a party, it may result in early termination or renegotiation of the arrangement. We also have limited ability to control or influence third parties with whom we have arrangements, which may impact our ability to realize the anticipated benefits. The success of these transactions and arrangements depend in part on our ability to leverage them to enhance our existing products and services or develop compelling new ones, as well as the acquired companies’ ability to meet our policies and processes in areas such as data governance, privacy, digital safety, responsible AI, and cybersecurity. It may take longer than expected to realize the full economic benefits from these transactions and arrangements, such as increased revenue or enhanced efficiencies, or the benefits may ultimately be smaller than we expected, which could cause an impairment of goodwill or intangibles. We have recorded, and may in the future be required to record, a significant charge in our consolidated financial statements during the period in which any impairment of our goodwill or amortizable intangible assets is determined, negatively affecting our results of operations. In addition, these transactions and arrangements have been and may be subject to legal and regulatory challenge. These events could adversely affect our business, operations, financial condition, and results of operations.",
-          "blockStart": 330,
-          "blockEnd": 330
+          "id": "D1:376",
+          "text": "15\nPART I\nItem 1A\nDemand for cloud-based and AI products and services is evolving and difficult to forecast. Overestimation of demand or misalignment of capacity investments may result in underutilization of infrastructure and may lead to impairment of assets on our balance sheet. Conversely, demand exceeding available capacity limits our ability to meet customer needs in a timely manner.\nThe cost structure for AI products and services is subject to significant uncertainty, including with respect to model training and inference costs, the availability and pricing of components, and energy costs. If these costs increase, remain elevated, or fail to decline, or if pricing for AI products and services declines as a result of competition, commoditization, or other market forces, our margins, financial condition, and results of operations could be adversely affected.",
+          "kind": "prose",
+          "blockStart": 376,
+          "blockEnd": 380,
+          "documentSection": "1a"
         }
       ],
+      "coverage": {
+        "policy": "economic-roles-v1",
+        "roles": [
+          {
+            "id": "operating_risks",
+            "status": "selected",
+            "chunkId": "D1:344"
+          },
+          {
+            "id": "financial_risks",
+            "status": "selected",
+            "chunkId": "D1:344"
+          },
+          {
+            "id": "competitive_risks",
+            "status": "selected",
+            "chunkId": "D1:344"
+          }
+        ],
+        "excludedIncompleteTables": 0,
+        "excludedOversizedChunks": 0,
+        "characters": 4820,
+        "completeEconomicAssessment": false
+      },
       "status": "extracts_available"
     }
   ],
+  "revenueBreakdown": {
+    "version": "revenue-breakdown-v1",
+    "sourceId": "D1",
+    "partitions": [
+      {
+        "sourceId": "D1",
+        "tableId": 76,
+        "axis": "srt:ProductOrServiceAxis",
+        "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "unit": "USD",
+        "currentTotal": {
+          "value": 331839000000,
+          "factId": "F_0316687c-ee9f-4f70-b690-d7ba528fa116",
+          "contextId": "C_29985a27-1d12-4b7e-9a06-156523f6e71e",
+          "start": "2025-07-01",
+          "end": "2026-06-30"
+        },
+        "priorTotal": {
+          "value": 281724000000,
+          "factId": "F_2178941a-2586-4318-9637-457675acd227",
+          "contextId": "C_7575f467-7692-4974-a3da-f27e7e8e1c47",
+          "start": "2024-07-01",
+          "end": "2025-06-30"
+        },
+        "rows": [
+          {
+            "member": "msft:ServerProductsAndCloudServicesMember",
+            "label": "Server products and cloud services",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 98435000000,
+              "factId": "F_f34ecc3b-a3b0-48ce-8601-baa92029b7cc",
+              "contextId": "C_a39225c1-1598-4ed9-89df-2c2ee51ec961",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 129425000000,
+              "factId": "F_f3b24ba6-022f-4500-abc7-8bb91f5defee",
+              "contextId": "C_0f0ae254-b2e9-4ab6-a6d0-d4a55544d9e1",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 30990000000,
+            "currentShare": 0.39002347523949865,
+            "growthContribution": 0.11000127784640286
+          },
+          {
+            "member": "msft:MicrosoftThreeSixFiveCommercialProductsAndCloudServicesMember",
+            "label": "Microsoft 365 Commercial products and cloud services",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 87767000000,
+              "factId": "F_55e2d229-30e2-44e8-933c-9a980ed2a0c5",
+              "contextId": "C_d7f5887b-f307-40a0-83a0-a9d3f508ad20",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 101997000000,
+              "factId": "F_8ef6a6e7-1880-4a9f-9fa0-19ae1e399f5a",
+              "contextId": "C_25944adb-69cf-428f-9d7f-004f76811e84",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 14230000000,
+            "currentShare": 0.30736893493531503,
+            "growthContribution": 0.050510428646476695
+          },
+          {
+            "member": "msft:XBOXMember",
+            "label": "XBOX",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 23455000000,
+              "factId": "F_92e376de-056a-43ef-b95d-040cd30bda8a",
+              "contextId": "C_7608c41a-8c5e-49dd-a28d-8d1f64043e06",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 21790000000,
+              "factId": "F_a677034c-dce7-49e0-9970-2474e310b36e",
+              "contextId": "C_ad572921-0328-46e0-a837-96116611f339",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": -1665000000,
+            "currentShare": 0.06566437338588894,
+            "growthContribution": -0.005910039613238488
+          },
+          {
+            "member": "msft:LinkedInCorporationMember",
+            "label": "LinkedIn",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 17812000000,
+              "factId": "F_cd7f7adb-8893-4559-b5ee-22d407e34c9f",
+              "contextId": "C_df20ae2e-3297-414d-955f-6dc5b0400ed1",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 19817000000,
+              "factId": "F_aeb7f76d-87a2-4784-a372-7629a34edb40",
+              "contextId": "C_f2e14946-de11-4a9d-a07d-8b47aae20bd1",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 2005000000,
+            "currentShare": 0.0597187190173548,
+            "growthContribution": 0.007116894549275177
+          },
+          {
+            "member": "msft:WindowsAndDevicesMember",
+            "label": "Windows and Devices",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 17314000000,
+              "factId": "F_b49307e4-6ce6-4afe-8d24-f982dd55b836",
+              "contextId": "C_6a3cfbc1-b1cf-409d-ae44-9fe2e5e066de",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 17084000000,
+              "factId": "F_58d162f5-76cd-4490-a511-9f6e5fb8defc",
+              "contextId": "C_6eff9f34-cb09-48c9-8509-bda353947399",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": -230000000,
+            "currentShare": 0.05148279738065749,
+            "growthContribution": -0.0008164018684954069
+          },
+          {
+            "member": "msft:SearchAdvertisingMember",
+            "label": "Search advertising",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 13878000000,
+              "factId": "F_8f27b46d-980e-406c-9294-cc1f0672d787",
+              "contextId": "C_1913f71c-3f61-49a6-87c8-0dff7114a175",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 15176000000,
+              "factId": "F_4c411582-1fa0-445d-878f-f2a307a76afd",
+              "contextId": "C_ced25e7f-242c-4bdd-b63f-a339ea0c1cab",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 1298000000,
+            "currentShare": 0.04573302113374257,
+            "growthContribution": 0.004607346196987122
+          },
+          {
+            "member": "msft:MicrosoftThreeSixFiveConsumerProductsAndCloudServicesMember",
+            "label": "Microsoft 365 Consumer products and cloud services",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 7404000000,
+              "factId": "F_21517b50-ae0f-470b-b1fc-97cad91984f4",
+              "contextId": "C_e53e3860-d02f-4eba-8208-7998a6c8a46c",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 9175000000,
+              "factId": "F_77279e29-d1a3-42c2-a032-d45c5cd23c9f",
+              "contextId": "C_2b6c8fe3-56ce-4473-851c-0ca9e3642706",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 1771000000,
+            "currentShare": 0.0276489502439436,
+            "growthContribution": 0.006286294387414633
+          },
+          {
+            "member": "msft:DynamicsProductsAndCloudServicesMember",
+            "label": "Dynamics products and cloud services",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 7827000000,
+              "factId": "F_117b1159-492c-414b-a0f0-ba8b84f540e7",
+              "contextId": "C_43489efc-6193-4daf-953c-68541a9c2227",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 9006000000,
+              "factId": "F_dc8c8c44-cd2e-4daa-9324-0be523f88d68",
+              "contextId": "C_f4e594de-10df-4d23-ab59-221f02a4f2ef",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 1179000000,
+            "currentShare": 0.02713966712773363,
+            "growthContribution": 0.0041849469693742815
+          },
+          {
+            "member": "msft:EnterpriseAndPartnerServicesMember",
+            "label": "Enterprise and partner services",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 7760000000,
+              "factId": "F_78d45222-9596-448a-bff7-a3559273a250",
+              "contextId": "C_b373eea1-ccad-4ba1-a878-38cb5be28175",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 8260000000,
+              "factId": "F_0dc92384-0f33-4ba8-8fb1-7025fd6eb46c",
+              "contextId": "C_7fcc7781-7501-4bdc-a5d2-4af2680a0289",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 500000000,
+            "currentShare": 0.02489158899345767,
+            "growthContribution": 0.001774786670642189
+          },
+          {
+            "member": "msft:OtherProductsAndServicesMember",
+            "label": "Other",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 72000000,
+              "factId": "F_f9efc2e9-03c8-431a-b6a2-f78137df0d70",
+              "contextId": "C_20b11fc7-870d-4e96-bacc-3ab952207329",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 109000000,
+              "factId": "F_4b8ec381-0bbf-4d64-8a6c-31712b94b710",
+              "contextId": "C_a4a1448d-9abf-4ef8-99d2-d632d9f3d97d",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 37000000,
+            "currentShare": 0.00032847254240761335,
+            "growthContribution": 0.00013133421362752196
+          }
+        ],
+        "totalGrowth": 0.1778868679984666,
+        "reconciliation": {
+          "priorGap": 0,
+          "currentGap": 0,
+          "roundingTolerance": {
+            "prior": 5500000,
+            "current": 5500000
+          }
+        }
+      },
+      {
+        "sourceId": "D1",
+        "tableId": 74,
+        "axis": "us-gaap:StatementBusinessSegmentsAxis",
+        "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "unit": "USD",
+        "currentTotal": {
+          "value": 331839000000,
+          "factId": "F_0316687c-ee9f-4f70-b690-d7ba528fa116",
+          "contextId": "C_29985a27-1d12-4b7e-9a06-156523f6e71e",
+          "start": "2025-07-01",
+          "end": "2026-06-30"
+        },
+        "priorTotal": {
+          "value": 281724000000,
+          "factId": "F_2178941a-2586-4318-9637-457675acd227",
+          "contextId": "C_7575f467-7692-4974-a3da-f27e7e8e1c47",
+          "start": "2024-07-01",
+          "end": "2025-06-30"
+        },
+        "rows": [
+          {
+            "member": "msft:ProductivityAndBusinessProcessesMember",
+            "label": "Productivity And Business Processes",
+            "labelBasis": "taxonomy_identifier",
+            "prior": {
+              "value": 120810000000,
+              "factId": "F_93258a8b-60c3-47ad-8e5c-dc2959f1e09f",
+              "contextId": "C_a3ad6fc8-9442-4077-bc9b-0655ddf1d229",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 139996000000,
+              "factId": "F_ac0ce5dd-e6a4-4ea0-b444-c8be614d09dc",
+              "contextId": "C_007d085b-16be-487c-b22c-4e0afdd5cc58",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 19186000000,
+            "currentShare": 0.4218792848339104,
+            "growthContribution": 0.06810211412588207
+          },
+          {
+            "member": "msft:IntelligentCloudMember",
+            "label": "Intelligent Cloud",
+            "labelBasis": "taxonomy_identifier",
+            "prior": {
+              "value": 106265000000,
+              "factId": "F_549c1ffb-385e-4200-a6c1-2df6e915c11a",
+              "contextId": "C_bbdfdc9b-8974-4595-a833-1a79001b6023",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 137791000000,
+              "factId": "F_a06acec4-abed-4c4a-8bc2-57409c2d1093",
+              "contextId": "C_c4b4c258-8b46-4318-86c1-218c3d731d53",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 31526000000,
+            "currentShare": 0.41523449624667386,
+            "growthContribution": 0.11190384915733129
+          },
+          {
+            "member": "msft:MorePersonalComputingMember",
+            "label": "More Personal Computing",
+            "labelBasis": "taxonomy_identifier",
+            "prior": {
+              "value": 54649000000,
+              "factId": "F_bd133dde-0418-4c08-8564-ec526fc4e010",
+              "contextId": "C_dea1eb85-57ec-415a-b1e9-eb18c1f2071e",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 54052000000,
+              "factId": "F_b172b8cc-466d-4448-803b-ec73bcc8673d",
+              "contextId": "C_2a3f7495-56da-49b0-8095-4459ec5fae64",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": -597000000,
+            "currentShare": 0.16288621891941574,
+            "growthContribution": -0.0021190952847467736
+          }
+        ],
+        "totalGrowth": 0.1778868679984666,
+        "reconciliation": {
+          "priorGap": 0,
+          "currentGap": 0,
+          "roundingTolerance": {
+            "prior": 2000000,
+            "current": 2000000
+          }
+        }
+      },
+      {
+        "sourceId": "D1",
+        "tableId": 75,
+        "axis": "srt:StatementGeographicalAxis",
+        "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+        "unit": "USD",
+        "currentTotal": {
+          "value": 331839000000,
+          "factId": "F_0316687c-ee9f-4f70-b690-d7ba528fa116",
+          "contextId": "C_29985a27-1d12-4b7e-9a06-156523f6e71e",
+          "start": "2025-07-01",
+          "end": "2026-06-30"
+        },
+        "priorTotal": {
+          "value": 281724000000,
+          "factId": "F_2178941a-2586-4318-9637-457675acd227",
+          "contextId": "C_7575f467-7692-4974-a3da-f27e7e8e1c47",
+          "start": "2024-07-01",
+          "end": "2025-06-30"
+        },
+        "rows": [
+          {
+            "member": "country:US",
+            "label": "United States (a)",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 144546000000,
+              "factId": "F_455ecfb6-3833-4689-868e-73ee7fcb7373",
+              "contextId": "C_ae21455a-0dcc-4220-8490-732287c0d55c",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 170794000000,
+              "factId": "F_d1664d85-267f-4f2b-9ad1-455903641d72",
+              "contextId": "C_346d4f8a-f09b-4341-9a95-0294de433bc9",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 26248000000,
+            "currentShare": 0.5146893523666597,
+            "growthContribution": 0.09316920106203234
+          },
+          {
+            "member": "us-gaap:NonUsMember",
+            "label": "Other countries",
+            "labelBasis": "filing_row",
+            "prior": {
+              "value": 137178000000,
+              "factId": "F_d0dfbc26-0a8e-4e5b-ada5-c53ec6f95a47",
+              "contextId": "C_3109fb5c-3d27-4d0c-a99c-89b80f5eaa64",
+              "start": "2024-07-01",
+              "end": "2025-06-30"
+            },
+            "current": {
+              "value": 161045000000,
+              "factId": "F_822eae74-974a-46c8-9a81-50c15ca1a718",
+              "contextId": "C_2e47d51b-4236-4fdd-8d3d-d3c303729cfa",
+              "start": "2025-07-01",
+              "end": "2026-06-30"
+            },
+            "change": 23867000000,
+            "currentShare": 0.48531064763334025,
+            "growthContribution": 0.08471766693643425
+          }
+        ],
+        "totalGrowth": 0.1778868679984666,
+        "reconciliation": {
+          "priorGap": 0,
+          "currentGap": 0,
+          "roundingTolerance": {
+            "prior": 1500000,
+            "current": 1500000
+          }
+        }
+      }
+    ],
+    "exclusions": [],
+    "economicCauseVerified": false,
+    "status": "available",
+    "start": "2025-07-01",
+    "end": "2026-06-30"
+  },
   "coverage": {
     "documents": 1,
-    "totalChunks": 183,
+    "totalChunks": 311,
     "selectedChunks": 9
   },
   "analysis": {

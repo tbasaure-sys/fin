@@ -52,6 +52,11 @@ test("source links cannot point to an arbitrary domain", () => {
   bad.sources[0].url = "https://evil.test/filing";
   assert.throws(() => compileDossier(bad), /INVALID_SOURCE/);
 });
+
+test('a decomposition cannot cite a source outside its dossier',()=>{
+ const p=input();p.revenueBreakdown={sourceId:'D99',partitions:[]};
+ assert.throws(()=>compileDossier(p),/ORPHAN_REVENUE_SOURCE/);
+});
 test("empty thematic evidence remains unknown", () => {
   const empty = input();
   empty.chunks = [];
