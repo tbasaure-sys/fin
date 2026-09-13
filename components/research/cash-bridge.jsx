@@ -2,8 +2,8 @@
 import styles from './cash-bridge.module.css';
 
 export const CASH_METRIC_LABELS={
- es:{da:'Depreciación, agotamiento y amortización',receivablesChange:'Variación de cuentas por cobrar',inventoryChange:'Variación de inventarios',payablesChange:'Variación de cuentas por pagar'},
- en:{da:'Depreciation, depletion and amortization',receivablesChange:'Reported receivables change',inventoryChange:'Reported inventory change',payablesChange:'Reported payables change'},
+ es:{netIncome:'Resultado neto',sbc:'Compensación en acciones',da:'Depreciación, agotamiento y amortización',receivablesChange:'Variación de cuentas por cobrar',inventoryChange:'Variación de inventarios',payablesChange:'Variación de cuentas por pagar'},
+ en:{netIncome:'Net income',sbc:'Share-based compensation',da:'Depreciation, depletion and amortization',receivablesChange:'Reported receivables change',inventoryChange:'Reported inventory change',payablesChange:'Reported payables change'},
 };
 const COPY={
  es:{title:'Cómo cambió la caja',scope:'Aportes al cambio, en millones de USD. No son saldos de caja.',
@@ -44,7 +44,8 @@ export function CashBridge({bridge,language='es',format,onSelect}){
   </li>;
  }
  return <section className={styles.bridge} data-cash-bridge aria-label={c.title}>
-  <div className={styles.heading}><h3>{c.title}</h3><span>{bridge.from} → {bridge.to}</span></div>
+  <div className={styles.heading}><h3>{c.title}</h3><span>{bridge.periods?`${bridge.periods.current.start} → ${bridge.periods.current.end}`:`${bridge.from} → ${bridge.to}`}</span></div>
+  {bridge.basis==='cumulative'?<p>{language==='en'?'Cumulative comparison against ':'Comparación acumulada frente a '}{bridge.periods.prior.start} → {bridge.periods.prior.end}. {language==='en'?'Not annualized.':'Sin anualizar.'}</p>:null}
   <p>{c.scope}</p>
   <ul className={styles.rows}>
    {bridge.components.map(row)}

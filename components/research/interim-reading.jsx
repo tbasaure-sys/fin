@@ -1,6 +1,7 @@
 "use client";
 import {useEffect,useRef,useState} from 'react';
 import styles from './interim-reading.module.css';
+import {CashBridge,CASH_METRIC_LABELS} from './cash-bridge';
 
 const METRICS=['revenue','ebit','cfo','capex','cashAfterCapex'];
 const ALLOCATION=[['cfo',''],['capex','−'],['buybacks','−'],['dividends','−'],['cashAfterDistributions','='],['otherCashMovements','+'],['cashChange','=']];
@@ -18,7 +19,7 @@ const TEXT={es:{title:'Desde el último cierre anual',units:'Acumulado del ejerc
 export function InterimReading({interim,language='es',format}){
  const base=TEXT[language]||TEXT.es,capital=CAPITAL[language]||CAPITAL.es;
  const activity=ACTIVITY[language]||ACTIVITY.es;
- const copy={...base,labels:{...base.labels,...capital.labels,...activity.labels}};
+ const copy={...base,labels:{...base.labels,...capital.labels,...activity.labels,...(CASH_METRIC_LABELS[language]||CASH_METRIC_LABELS.es)}};
  const [selection,setSelection]=useState(null),detailRef=useRef(null);
  useEffect(()=>{if(selection){detailRef.current?.focus({preventScroll:true});detailRef.current?.scrollIntoView({block:'nearest'});}},[selection]);
  if(!interim||interim.status==='no_new_interim')return null;
@@ -42,6 +43,7 @@ export function InterimReading({interim,language='es',format}){
     <th scope="row">{copy.labels[metric]}</th>{['prior','current','change'].map(period=><td key={period}>{cell(metric,period)}</td>)}
    </tr>)}</tbody>
   </table>
+  <CashBridge bridge={interim.cashBridge} language={language} format={format} onSelect={ref=>setSelection({metric:ref.metric,period:ref.period})}/>
   {interim.metrics.buybacks?<section className={styles.allocation} data-cash-allocation>
    <h4>{capital.title}</h4><p>{capital.scope}</p>
    <dl>{ALLOCATION.map(([metric,operator])=><div key={metric} data-allocation-metric={metric} className={operator==='='?styles.subtotal:undefined}>

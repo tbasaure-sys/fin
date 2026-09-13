@@ -806,6 +806,23 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 
 ## 24. Caja y retornos al accionista — acumulado trazable
 
+- La lectura del último acumulado expone `interim.cashBridge` con la misma
+  identidad contable que el puente anual: cambios de resultado neto, D&A, SBC,
+  cuentas por cobrar, inventarios y cuentas por pagar, más diferencia no
+  clasificada. Se toman cambios publicados en el estado de flujos, no diferencias
+  de saldos de balance. Los aumentos de activos operativos restan caja; los de
+  pasivos operativos suman, conservando los signos reportados.
+- Cada pareja debe conservar concepto, accession, período acumulado comparable,
+  unidad, disponibilidad y hashes; cada componente comparte base con los anclajes
+  de caja. Una partida ausente o conflictiva queda pendiente y dentro de la
+  diferencia no clasificada. No se sustituye por el trimestre aislado, TTM ni año
+  anterior. El puente anual permanece separado y no recibe cifras interinas.
+- La interfaz identifica ambos períodos acumulados y permite inspeccionar cada
+  cifra original. Un aporte contable no demuestra una causa económica, caja
+  recurrente ni financiación de un pago. D&A y SBC no son entradas de efectivo.
+  Regresiones: `tests-node/interim-financials.test.mjs` y
+  `tests-node/financial-reading.test.mjs`.
+
 - El acumulado del informe fijado incorpora pagos por recompra de acciones comunes,
   dividendos totales y cambio de efectivo incluyendo efectivo restringido y efecto
   de cambio. Se reutiliza la carga financiera autenticada; no hay llamada al modelo.

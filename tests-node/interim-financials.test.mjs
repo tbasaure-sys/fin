@@ -25,6 +25,63 @@ function run({raw,dossier}){
  return financialReading(financial);
 }
 
+function cashDriversFixture(){
+ const f=fixture();
+ for(const [concept,prior,current] of [
+  ['NetIncomeLoss',10,15],['DepreciationDepletionAndAmortization',2,3],['ShareBasedCompensation',1,2],
+  ['IncreaseDecreaseInAccountsReceivable',4,8],['IncreaseDecreaseInInventories',3,2],['IncreaseDecreaseInAccountsPayable',2,3],
+ ])f.raw.facts['us-gaap'][concept]={units:{USD:[
+  {val:prior,accn:'interim',form:'10-Q',start:'2025-01-01',end:'2025-06-30'},
+  {val:current,accn:'interim',form:'10-Q',start:'2026-01-01',end:'2026-06-30'},
+  {val:999,accn:'interim',form:'10-Q',start:'2026-04-01',end:'2026-06-30'},
+ ]}};
+ return f;
+}
+
+test('latest cumulative cash changes are explained from the same filing without quarterly substitution',()=>{
+ const r=run(cashDriversFixture()),b=r.interim.cashBridge;
+ assert.equal(b?.status,'available');assert.equal(b.basis,'cumulative');
+ assert.equal(b.operatingCashChange,4);
+ assert.deepEqual(b.components.map(c=>[c.id,c.effect]),[['netIncome',5],['da',1],['sbc',1],['receivablesChange',-4],['inventoryChange',1],['payablesChange',1]]);
+ assert.equal(b.unexplained.value,-1);assert.equal(b.capex.effect,-4);assert.equal(b.cashAfterCapexChange,0);
+ assert.equal(b.explanationComplete,false);
+ assert.equal(b.periods.current.start,'2026-01-01');assert.equal(b.periods.prior.start,'2025-01-01');
+ assert.deepEqual(b.components[0].evidence,[{end:'2025-06-30',metric:'netIncome',period:'prior'},{end:'2026-06-30',metric:'netIncome',period:'current'}]);
+ assert.equal(r.cashBridge.status,'unresolved','new cumulative data must not fill missing annual history');
+});
+
+test('missing or conflicted cumulative drivers remain in the unclassified difference',()=>{
+ const f=cashDriversFixture();delete f.raw.facts['us-gaap'].IncreaseDecreaseInAccountsReceivable;
+ let b=run(f).interim.cashBridge;
+ assert.equal(b?.unexplained.value,-5);assert.ok(b.missingComponents.some(x=>x.id==='receivablesChange'));
+ const g=cashDriversFixture(),rows=g.raw.facts['us-gaap'].IncreaseDecreaseInAccountsReceivable.units.USD;
+ rows.push({...rows[1],val:9});b=run(g).interim.cashBridge;
+ assert.equal(b?.unexplained.value,-5);assert.ok(b.missingComponents.some(x=>x.id==='receivablesChange'));
+});
+
+test('a missing current cash anchor cannot revive an older annual explanation',()=>{
+ const f=cashDriversFixture();f.raw.facts['us-gaap'].NetCashProvidedByUsedInOperatingActivities.units.USD=
+  f.raw.facts['us-gaap'].NetCashProvidedByUsedInOperatingActivities.units.USD.filter(r=>r.accn!=='interim');
+ assert.equal(run(f).interim.cashBridge?.status,'unresolved');
+});
+
+test('cumulative cash components cannot mix source hashes, periods or derived inputs with the cash anchors',()=>{
+ for(const mutate of [
+  pair=>{for(const period of ['prior','current'])pair[period].terms[0].fact.filingHash='c'.repeat(64)},
+  pair=>{pair.current.terms[0].fact.start='2026-04-01'},
+  pair=>{pair.current.terms[0].coefficient=2},
+  pair=>{pair.current.terms[0].fact.value=123},
+ ]){
+  const f=cashDriversFixture(),financial=normalizeThesisFinancials(f.raw,{cik:1,tickers:['TEST'],sic:'7372'},f.dossier,'a'.repeat(64),f.dossier.asOf);
+  mutate(financial.interim.metrics.receivablesChange);
+  const b=financialReading(financial).interim.cashBridge;
+  assert.ok(b.missingComponents.some(c=>c.id==='receivablesChange'));
+  assert.equal(b.unexplained.value,-5);
+ }
+ const f=cashDriversFixture(),financial=normalizeThesisFinancials(f.raw,{cik:1,tickers:['TEST'],sic:'6020'},f.dossier,'a'.repeat(64),f.dossier.asOf);
+ assert.equal(financialReading(financial).interim.cashBridge.status,'not_applicable');
+});
+
 function capitalFixture(){
  const f=fixture();
  for(const [concept,prior,current] of [
