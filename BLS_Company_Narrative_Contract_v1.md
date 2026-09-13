@@ -713,6 +713,20 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 - Una fecha o un localizador documental no se trata como un importe financiero.
   Esta distinción de formato no valida la fecha, su período ni su correspondencia
   con la afirmación; eso requiere contraste documental separado.
+- v11.3 reconoce años de informes, trimestres explícitos y meses con año en español
+  e inglés sin confundirlos con importes. Cantidades financieras posteriores a un
+  localizador siguen rechazadas; una fecha sintácticamente válida no gana respaldo.
+- `namedQuarterScope` añade una comprobación acotada sobre la afirmación y sus
+  citas: si nombran trimestres incompatibles, la afirmación se retira aun cuando
+  el revisor la apruebe y entra en el mismo ciclo acotado de reconstrucción.
+  Se conserva el veredicto anterior al control y el motivo documental.
+- No se deduce un trimestre fiscal desde una fecha, un pie de página ni la expresión
+  «tres meses». Referencias implícitas o una posible diferencia calendario/fiscal
+  quedan `unresolved`. Coincidencia de números de trimestre sólo significa
+  `not_contradicted`: NO verifica años, atribución causal, magnitudes ni contenido.
+  La aprobación de la IA sigue sin equivaler a verificación semántica.
+  Regresiones: `tests-node/filing-analysis.test.mjs`, incluidos el rechazo y la
+  reconstrucción de una afirmación de primer trimestre con fuente del tercero.
 - HTTP 413 se tipa como `PROVIDER_REQUEST_TOO_LARGE`, sin espera ni reintento
   automático del mismo envío. Desde v10.1, si el proveedor declara un límite de
   tokens que coincide con su cabecera y una reserva solicitada superior, se permite

@@ -11,6 +11,77 @@ function answer(){return {sections:dossier.sections.map(s=>({id:s.id,findings:[{
 function supportedReviews(){return dossier.sections.map(s=>({id:`${s.id}:0`,verdict:'supported',reason:'Lectura acotada.',allClausesSupported:true,scopeLimited:true,catalystStatus:'not_claimed',support:[{chunkId:s.extracts[0].id,quote:s.extracts[0].text.slice(0,90)}]}))}
 const completionResponse=raw=>Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(referenceProviderPayload(raw,dossier))}}],usage:{total_tokens:12}});
 
+test('report years and spaced quarter dates do not masquerade as financial quantities',async()=>{
+ const m=await implementation();
+ for(const text of ['Consultar el informe anual 2025.','Consultar el 10‑K 2025.','Consultar el informe trimestral Q3 2026.','See the annual report 2025.','See the 2026 Q3 report.','El saldo se informa al 27 jun 2026.',
+  'Comparar el trimestre de 2026 frente a 2025.','El período terminó en junio de 2026.','El período terminó en junio 2026.','For the period ended June 2026.']){
+  const raw=answer();raw.sections[0].checks=[text];
+  assert.equal(m.validateAnalysis(raw,dossier).sections[0].checks[0],text);
+ }
+});
+
+test('date-looking financial amounts and quantities following a valid date remain rejected',async()=>{
+ const m=await implementation();
+ for(const text of ['El informe anual 2025 millones de dólares.','El 10-K 2025 billion in revenue.','El informe trimestral Q3 2026 millones.','En Q3 2026 la caja aumentó 15 millones.','El saldo fue de 2026 dólares.',
+  'En junio 2026 millones.','Mayor caja frente a 2025 dólares.']){
+  const raw=answer();raw.sections[0].checks=[text];
+  assert.throws(()=>m.validateAnalysis(raw,dossier),/INVALID_ANALYSIS/);
+ }
+});
+
+test('a reviewer cannot publish a first-quarter claim supported only by explicit third-quarter evidence',async()=>{
+ const m=await implementation();
+ const sourceText='Products gross margin and gross margin percentage increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to a different mix of products and tariff refunds, partially offset by higher costs, including memory.';
+ const d=structuredClone(dossier);d.sections[0].extracts[0].text=sourceText;
+ const raw=answer();raw.sections[0].findings[0].text='El margen de productos mejoró en el primer trimestre de 2026.';
+ const rows=supportedReviews();rows[0].support=[{chunkId:d.sections[0].extracts[0].id,quote:sourceText}];
+ const result=m.applyReview(m.validateAnalysis(raw,d),{reviews:rows},d);
+ assert.equal(result.sections[0].findings.length,0);
+ const assessment=result.review.assessments[0];
+ assert.equal(assessment.scopeCheck.status,'conflict');
+ assert.deepEqual(assessment.scopeCheck.claimedQuarters,[1]);
+ assert.deepEqual(assessment.scopeCheck.sourceQuarters,[3]);
+ assert.equal(assessment.reviewVerdictBeforeScopeCheck,'supported');
+ assert.equal(result.interpretationVerified,false);
+});
+
+test('named-quarter checks retain compatible statements and do not infer fiscal quarters from dates or footers',async()=>{
+ const m=await implementation();
+ for(const [text,quote,status] of [
+  ['El margen mejoró en el tercer trimestre de 2026.','Gross margin increased during the third quarter of 2026 due to product mix.','not_contradicted'],
+  ['El margen mejoró en el primer trimestre de 2026.','Gross margin increased during the three months ended June 27, 2026.','unresolved'],
+  ['El margen mejoró en el primer trimestre de 2026.','Gross margin increased due to product mix.\nApple Inc. | Q3 2026 Form 10-Q | 16','unresolved'],
+  ['El margen mejoró en el primer trimestre de 2026.','Gross margin increased in the third calendar quarter of 2026 due to product mix.','unresolved'],
+ ]){
+  const d=structuredClone(dossier);d.sections[0].extracts[0].text=quote;
+  const raw=answer();raw.sections[0].findings[0].text=text;
+  const rows=supportedReviews();rows[0].support=[{chunkId:d.sections[0].extracts[0].id,quote}];
+  const result=m.applyReview(m.validateAnalysis(raw,d),{reviews:rows},d);
+  assert.equal(result.sections[0].findings.length,1);
+  assert.equal(result.review.assessments[0].scopeCheck.status,status);
+  assert.equal(result.interpretationVerified,false);
+ }
+});
+
+test('a conflicting period enters reconstruction even when the reference reviewer approves it',async()=>{
+ const m=await implementation(),d=structuredClone(dossier);
+ d.sections[0].extracts[0].text='Products gross margin increased during the third quarter of 2026 due to a different mix of products and tariff refunds, partially offset by higher costs.';
+ const incorrect=answer();incorrect.sections[0].findings[0].text='El margen mejoró en el primer trimestre de 2026.';
+ const corrected=structuredClone(incorrect);corrected.sections[0].findings[0].text='El margen mejoró en el tercer trimestre de 2026.';
+ const reviews=supportedReviews();reviews[0].support=[{chunkId:d.sections[0].extracts[0].id,quote:d.sections[0].extracts[0].text}];
+ let calls=0;
+ const result=await m.generateAnalysis(d,{apiKey:'test-key',diagnose:()=>{},fetcher:async()=>{
+  const raw=[incorrect,{reviews},corrected,{reviews}][calls++];
+  assert.ok(raw,'no unbounded redrafting');
+  return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(referenceProviderPayload(raw,d))}}],usage:{total_tokens:10}});
+ }});
+ assert.equal(calls,4);
+ assert.equal(result.reconstruction.status,'recovered');
+ assert.equal(result.sections[0].findings[0].text,'El margen mejoró en el tercer trimestre de 2026.');
+ assert.equal(result.review.excluded[0].scopeCheck.status,'conflict');
+ assert.equal(result.interpretationVerified,false);
+});
+
 test('a different reviewer uses its supported format and records the model actually called',async()=>{
  const m=await implementation(),sent=[];
  const result=await m.generateAnalysis(dossier,{apiKey:'test-key',reviewModel:'qwen/qwen3.8-27b',diagnose:()=>{},fetcher:async(_url,options)=>{
