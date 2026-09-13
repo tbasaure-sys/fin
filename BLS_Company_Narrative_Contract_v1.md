@@ -358,3 +358,33 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
   flujo visual `tests-e2e/thesis-capital.spec.mjs`. Licencia máxima: investigación
   condicional reproducible; `performance: null`, `predictiveClaim: false`. V5, G820,
   posiciones reales y rangos de holdout no cambian por usar esta interfaz.
+
+## 12. Entrada y medición de utilidad
+
+- El ejemplo público `/example` es un caso histórico fechado, no el último estado
+  de Microsoft ni una valoración admisible. Las cifras tienen fuente/localizador;
+  el estrés de peso y caída es aritmética hipotética independiente.
+- Documentos es la primera vista privada. Preparar cifras permite guardar, por
+  acción explícita, un expediente inicial con hipótesis vacías. No se inventa una
+  tesis resuelta ni se cuenta esta preparación como una tesis redactada.
+- Medición requiere opt-in; sólo siete nombres de evento y UUID aleatorio. No
+  se aceptan tickers, correos, posiciones o texto. Se almacena un hash con clave,
+  fecha UTC y tipo de evento; se deduplica por navegador/día/evento. La retención
+  lógica es 30 días y la limpieza física ocurre en la siguiente escritura.
+  DNT/GPC y revocación bloquean nuevos envíos. Los conteos no son usuarios
+  verificados ni un embudo causal; no sustituyen entrevistas o tráfico total.
+
+## 13. Rendimientos registrados v2
+
+- Cero es un valor terminal válido; no se recortan ganancias ni pérdidas. Un
+  valor ausente conserva su fila y bloquea el acumulado, sin reiniciarlo.
+- Los flujos se asignan por `captured_at`, no por el bucket redondeado. Los flujos
+  internos de compra/venta no constituyen aportes externos. Historial legacy sin
+  financiación identificada permanece sin resolver.
+- Flujos en límites conocidos permiten TWR; flujos interiores permiten sólo
+  Modified Dietz aproximado. Sin tiempos o cobertura no se publica el acumulado.
+  La UI nunca sustituye un TWR nulo por crecimiento de valor o retorno desde costo.
+- El importe externo neto no reemplaza movimientos individuales compensados.
+  XIRR usa las fechas de los movimientos disponibles, no las de las capturas.
+- Prueba de regresión: `tests-node/recorded-performance.test.mjs`. Esta corrección
+  contable no certifica benchmarks, datos PIT, integridad del ledger o alpha.

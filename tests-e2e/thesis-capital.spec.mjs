@@ -22,6 +22,7 @@ test('valuation keeps assumptions across tabs, persists calculations, and preser
  });
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/research?ticker=MSFT&lang=es');
+ await page.getByRole('button',{name:'Mi tesis',exact:true}).click();
  await page.getByRole('button',{name:'Valoración y cartera',exact:true}).click();
  const panel=page.getByRole('region',{name:'Valoración y cartera'});
  await panel.getByRole('button',{name:'Cargar cifras y conectar cartera'}).click();
@@ -35,7 +36,7 @@ test('valuation keeps assumptions across tabs, persists calculations, and preser
  await expect(panel.getByLabel('Fundamento de estos supuestos')).toHaveValue('QA hypothesis, not an observed absence of claims.');
  await panel.getByRole('button',{name:'Guardar cálculo',exact:true}).click();
  await expect(panel.getByRole('status').filter({hasText:'Cálculo guardado'})).toBeVisible();
- await page.reload();await page.getByRole('button',{name:'Valoración y cartera',exact:true}).click();
+ await page.reload();await page.getByRole('button',{name:'Mi tesis',exact:true}).click();await page.getByRole('button',{name:'Valoración y cartera',exact:true}).click();
  await expect(panel.getByLabel('Fundamento de estos supuestos')).toHaveValue('QA hypothesis, not an observed absence of claims.');
  fail=true;await panel.getByLabel('Fundamento de estos supuestos').fill('Keep this draft on failure');
  await panel.getByRole('button',{name:'Guardar cálculo',exact:true}).click();

@@ -1,4 +1,5 @@
 "use client";
+import {trackProductEvent} from '@/lib/product-events.mjs';
 import {useEffect,useRef,useState} from 'react';
 import {newThesis,evaluateThesis,compareEvidence,companyKey,NODE_IDS,assistedProposal} from '@/lib/research/thesis-engine.mjs';
 import {THESIS_COPY} from './thesis-copy';
@@ -38,15 +39,16 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
   setBranch(id);setCurrent(record);setParent(null);setThesis(record.thesis);setPinned(record.dossier);setDirty(false);setSaved(false);setError('');setReason('');setChunk('');
  }
  function fork(){if(dirty||!current)return;if(capitalDirty&&!window.confirm(c.discard))return;setBranch(`scenario-${crypto.randomUUID()}`);setParent(current);setCurrent(null);setThesis({...thesis,name:c.newScenario});setDirty(true);setSaved(false);setReason('');setError('')}
- async function save(){
+ async function save(options={}){
   if(capitalDirty&&!window.confirm(c.discard))return;
   if(saving)return;const controller=new AbortController();saveController.current=controller;
   const timer=setTimeout(()=>controller.abort(),30000);setSaving(true);setError('');setSaved(false);
   try{
    const response=await fetch('/api/research/theses',{method:'POST',headers:{'Content-Type':'application/json'},signal:controller.signal,
-    body:JSON.stringify({thesis,dossier:pinned,ticket,branch,expectedRevision:current?.revision||0,parentHash:parent?.hash||null,reason,changeKind:kind})});
+    body:JSON.stringify({thesis,dossier:pinned,ticket,branch,expectedRevision:current?.revision||0,parentHash:parent?.hash||null,reason:options.initial&&!current?'Expediente inicial para explorar cifras; hipótesis aún sin resolver.':reason,changeKind:kind})});
    const body=await response.json();if(!response.ok)throw Error(response.status===401?'AUTH_REQUIRED':body.error);
    const record=body.revision;setCurrent(record);setParent(null);setRecords(rows=>[record,...rows].slice(0,100));setDirty(false);setSaved(true);setReason('');
+   if(!options.initial)trackProductEvent('thesis_saved');
   }catch(e){setError(e.message||'THESIS_STORAGE_UNAVAILABLE')}
   finally{clearTimeout(timer);setSaving(false);saveController.current=null}
  }
@@ -110,7 +112,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
     <p role="status" className={styles.saveStatus}>{saved?`${c.saved} · v${current?.revision}`:dirty?c.unsaved:''}</p>
    </div>}
    {view==='capital'&&dirty?<p>{language==='en'?'Save your thesis changes first to value this revision.':'Guarda los cambios de tu tesis antes de valorar esta revisión.'}</p>:null}
-   <div hidden={view!=='capital'||dirty}><CapitalWorkspace key={current?.hash||'unsaved'} revision={current} language={language} active={view==='capital'} onDirty={setCapitalDirty}/></div>
+   <div hidden={view!=='capital'||dirty}><CapitalWorkspace key={current?.hash||'unsaved'} revision={current} language={language} active={view==='capital'} onDirty={setCapitalDirty} onPrepare={()=>save({initial:true})} preparing={saving||loading}/></div>
   </fieldset>
  </section>;
 }

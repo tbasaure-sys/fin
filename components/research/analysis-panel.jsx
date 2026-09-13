@@ -1,4 +1,5 @@
 "use client";
+import {trackProductEvent} from '@/lib/product-events.mjs';
 import {useEffect,useRef,useState} from 'react';
 import styles from './research.module.css';
 import {requestAnalysis} from '@/lib/research/analysis-client.mjs';
@@ -34,6 +35,7 @@ export function AnalysisPanel({dossier,ticket,available,language,sectionId,onSta
    const body=await requestAnalysis({dossier,ticket,language},{signal:abort.signal});
    setState({analysis:body.analysis,reportDossier:body.reportDossier||dossier,cached:body.cached===true,loading:false,error:null});
    onReport?.({analysis:body.analysis,dossier:body.reportDossier||dossier});
+   trackProductEvent('report_generated');
   }catch(e){setState({analysis:null,loading:false,error:e.message,reference:e.reference,retryAfterSeconds:e.retryAfterSeconds})}
   finally{clearTimeout(timer);controller.current=null}
  }

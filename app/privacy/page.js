@@ -28,7 +28,7 @@ const COPY = {
     tag: "Privacy Policy",
     title: "What we store, and what we do not.",
     intro: (brand) => `This page describes the data flows implemented in ${brand} today, why the data is needed, and which controls are currently available. When a control is not yet self-service, we say so.`,
-    effective: "Effective date: July 27, 2026",
+    effective: "Effective date: September 13, 2026",
     sections: [
       [
         "1. Account data",
@@ -76,7 +76,7 @@ const COPY = {
     tag: "Política de Privacidad",
     title: "Qué guardamos y qué no.",
     intro: (brand) => `Esta página describe los flujos de datos implementados hoy en ${brand}, por qué son necesarios y qué controles están disponibles. Cuando un control todavía no es autoservicio, lo decimos.`,
-    effective: "Vigente desde el 27 de julio de 2026",
+    effective: "Vigente desde el 13 de septiembre de 2026",
     sections: [
       [
         "1. Datos de cuenta",
@@ -141,6 +141,7 @@ export default function PrivacyPage() {
       </section>
 
       <section className={styles.legalBody}>
+        <article id="usage"><h2>{locale==='en'?'Optional product measurement':'Medición opcional del producto'}</h2><p>{locale==='en'?'Only if you enable it, we store a random browser identifier locally for 30 days and send named usage events: visits, example views, workspace entry, document loads, reports and saved research. Events contain no ticker, holdings, text, email or account ID. The server stores a keyed hash of the identifier and daily events, not the original identifier or IP. Records older than 30 days are removed on the next event write. You can disable future collection with the control at the bottom of any page. Existing aggregate records expire on that schedule. Do Not Track and Global Privacy Control are respected. Counts reflect consenting browsers, not verified people.':'Sólo si lo permites, guardamos un identificador aleatorio del navegador localmente por 30 días y enviamos eventos de uso: visitas, ejemplos vistos, entrada al espacio privado, documentos cargados, informes e investigaciones guardadas. No contienen ticker, posiciones, texto, correo ni ID de cuenta. El servidor guarda un hash con clave del identificador y eventos diarios, no el identificador original ni la IP. Los registros con más de 30 días se eliminan al recibir el siguiente evento. Puedes desactivar nuevos envíos al pie de cualquier página. Los registros existentes vencen según ese plazo. Respetamos Do Not Track y Global Privacy Control. Los conteos representan navegadores que aceptaron, no personas verificadas.'}</p></article>
         {copy.sections.map(([title, body]) => (
           <article key={title}>
             <h2>{title}</h2>

@@ -31,10 +31,10 @@ export function ResearchEntry({ language = "es" }) {
           </p>
           <TickerSearch language={language} home />
           <div className={styles.entryLinks}>
-            <Link href={`/research?ticker=MSFT&lang=${language}`}>
+            <Link href={`/example?lang=${language}`}>
               {en
-                ? "Explore Microsoft’s real filings"
-                : "Ver documentos reales de Microsoft"}{" "}
+                ? "See the historical Microsoft example"
+                : "Ver el ejemplo histórico de Microsoft"}{" "}
               →
             </Link>
             <span>

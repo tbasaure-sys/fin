@@ -6,6 +6,7 @@ test.beforeEach(()=>test.skip(!process.env.BLS_E2E_AUTHENTICATED,'Requires authe
 test('a thesis is saved, reloaded, forked and compared without overwriting its base',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto('/research?ticker=MSFT&lang=es');
+ await page.getByRole('button',{name:'Mi tesis',exact:true}).click();
  await expect(page.getByRole('heading',{name:'Tu explicación del negocio'})).toBeVisible();
  await expect(page.getByText('Capital · no evaluado',{exact:true})).toBeVisible();
  const unique=`Explain ${Date.now()}`;
@@ -21,6 +22,7 @@ test('a thesis is saved, reloaded, forked and compared without overwriting its b
  await page.getByRole('button',{name:'Guardar revisión',exact:true}).click();
  await expect(page.getByRole('status').filter({hasText:'Revisión guardada'})).toBeVisible();
  await page.reload();
+ await page.getByRole('button',{name:'Mi tesis',exact:true}).click();
  await expect(page.getByLabel('Explicación principal',{exact:true})).toHaveValue(unique);
  await page.getByRole('button',{name:'Crear escenario',exact:true}).click();
  await page.getByLabel('Nombre del escenario',{exact:true}).fill('Cash stress');
@@ -58,6 +60,7 @@ test('a failed save preserves the draft and documentary reading remains availabl
  await page.route('**/api/research/theses?ticker=MSFT',r=>r.fulfill({json:{revisions:[]}}));
  await page.route('**/api/research/theses',r=>r.fulfill({status:409,json:{error:'REVISION_CONFLICT'}}));
  await page.goto('/research?ticker=MSFT&lang=es');
+ await page.getByRole('button',{name:'Mi tesis',exact:true}).click();
  await page.getByLabel('Explicación principal',{exact:true}).fill('Keep this draft');
  await page.getByLabel('Motivo de esta revisión').fill('Conflict test');
  await page.getByRole('button',{name:'Guardar revisión',exact:true}).click();

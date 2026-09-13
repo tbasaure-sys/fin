@@ -1,30 +1,30 @@
 # BLS Prime
 
-**Un espacio de decisión de inversión para pasar de una empresa interesante a una tesis defendible.**
+**Entiende la caja de una empresa, contrasta tu tesis y conecta sus supuestos con tu cartera.**
 
-[Abrir BLS Prime](https://www.blsprime.com) · [Producto](https://www.blsprime.com/product?lang=es) · [Metodología](https://www.blsprime.com/methodology?lang=es)
+[Abrir BLS Prime](https://www.blsprime.com) · [Ver un ejemplo real sin cuenta](https://www.blsprime.com/example?lang=es) · [Investigar](https://www.blsprime.com/research?lang=es) · [Metodología](https://www.blsprime.com/methodology?lang=es)
 
-BLS Prime conecta descubrimiento, precio, valoración y riesgo de cartera en un solo flujo. No intenta reemplazar el juicio del usuario ni producir una señal de compra o venta: organiza la evidencia necesaria para decidir si una oportunidad merece capital, más investigación o simplemente pasar.
+BLS Prime organiza evidencia, preguntas y escenarios; no recomienda compras, ejecuta órdenes ni demuestra alpha. Empieza por el ejemplo histórico de Microsoft, con fuente y cálculos visibles, sin cuenta ni llamadas a un modelo. Para trabajar con documentos actuales, guardar investigación o conectar posiciones se requiere autenticación.
 
 ## Qué ofrece
 
-### 1. FactorLab — descubrir empresas
+### 1. Leer antes de escribir
 
-Prioriza acciones usando datos de mercado, estados financieros presentados y filtros de investigación visibles. Cada candidato conserva la razón por la que apareció y los controles que podría no superar.
+Introduce un ticker en Investigación. Documentos y lectura es la primera vista. El informe asistido se solicita explícitamente; citas y revisión automática no certifican que sus interpretaciones sean correctas.
 
-### 2. Breakpoint — entender qué exige el precio
+### 2. Contrastar una tesis
 
-Parte del precio actual y muestra qué crecimiento, rentabilidad y ejecución tendría que sostener una empresa para justificarlo. La primera lectura pública no requiere una cuenta.
+Conserva hipótesis, contraargumentos, evidencia y próximas comprobaciones. Las revisiones privadas son inmutables y pueden compararse. Una hipótesis no resuelta no se presenta como un hecho verificado.
 
-### 3. AURORA — estimar valor razonable
+### 3. Explorar cifras y exposición
 
-Construye un rango aproximado de valor por acción, identifica el método usado y explica por qué el intervalo tiene esa amplitud. La confianza cambia con la calidad y actualidad de la evidencia; una cobertura más débil produce un rango más prudente, no una precisión falsa.
+Desde Mi tesis → Valoración y cartera puedes preparar un expediente inicial sin redactar una tesis. Carga fundamentos documentales, revisa supuestos y observa escenarios y sensibilidad. El valor por acción exige conciliar deuda, obligaciones, caja y acciones; no se rellenan desconocidos con cero.
 
-Las cifras se calculan de forma determinista. El modelo abierto alojado mediante Hugging Face sólo clasifica y explica resultados ya calculados: no modifica el precio, el rango ni los supuestos y no inventa datos. Si el proveedor no está disponible, la explicación determinista sigue funcionando.
+El impacto en cartera es una simulación de una posición, no riesgo conjunto ni retorno esperado. Los cálculos se guardan con sus inputs y versión. AURORA sigue disponible como exploración pública separada; no sustituye el expediente privado.
 
-### 4. Stress Engine — medir el efecto en cartera
+### 4. Medir sin inventar historial
 
-Evalúa concentración, contribución al downside y escenarios adversos condicionados por régimen para mostrar qué posiciones explican el riesgo potencial de una cartera.
+Los rendimientos registrados conservan pérdidas totales y no recortan extremos. Flujos dentro de un intervalo utilizan Modified Dietz, identificado como aproximación; ausencia de tiempo/cobertura bloquea el acumulado. El histórico hipotético de posiciones actuales permanece separado de la trayectoria personal. G820, FactorLab y Stress conservan sus rutas de exploración.
 
 ## Principios del producto
 
@@ -37,9 +37,7 @@ Evalúa concentración, contribución al downside y escenarios adversos condicio
 ## Flujo de una lectura
 
 ```text
-FactorLab              Breakpoint                AURORA                  Stress Engine
-descubrir       ->     entender el precio  ->   valorar y explicar  ->  medir en cartera
-candidatos             expectativas implícitas   rango + impulsores      downside + concentración
+Ejemplo público → Documentos → Tesis privada → Valoración condicional → Exposición
 ```
 
 ## Arquitectura
@@ -49,7 +47,7 @@ candidatos             expectativas implícitas   rango + impulsores      downsi
 - **Persistencia:** Neon/Postgres para usuarios, sesiones, workspaces y lecturas durables.
 - **Datos financieros:** backend canónico, SEC EDGAR y Financial Modeling Prep, según cobertura.
 - **Valoración:** cálculos deterministas, controles de precio, método, evidencia y auditoría.
-- **Explicación de valoración:** Hugging Face Inference Providers con fallback local determinista.
+- **Interpretación:** servicio externo configurable; no modifica los cálculos deterministas de la tesis.
 - **Idiomas:** español e inglés, con preferencia persistida en el navegador.
 
 ## Desarrollo local
@@ -66,6 +64,15 @@ npm run dev
 ```
 
 La aplicación queda disponible en `http://localhost:3000`.
+
+## Verificación y medición
+
+- `npm run test:web`: contratos, contabilidad adversarial y aislamiento.
+- `npm run build`: build de producción.
+- `BLS_E2E_BASE_URL` selecciona el entorno de pruebas; `BLS_E2E_BROWSER_CHANNEL=msedge` permite usar Edge instalado sin descargar otro navegador.
+- `tests-e2e/product-entry.spec.mjs` verifica ejemplo sin cuenta, cálculos, consentimiento y navegación. `prepare-capital.spec.mjs` verifica preparación sin redactar hipótesis; requiere contexto autenticado de pruebas.
+- `node scripts/product-metrics.mjs`, con `DATABASE_URL` provista de forma segura, devuelve agregados de los últimos 30 días. Sólo incluye navegadores que aceptaron medición; no representa todos los visitantes ni usuarios humanos certificados. No exporta identificadores ni contenido financiero.
+- No se copió código ni se implementó todavía un importador de Portfolio Performance. La integración de archivos sigue separada de estas correcciones.
 
 ### Variables principales
 

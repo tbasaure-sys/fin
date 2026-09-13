@@ -12,6 +12,7 @@ export default defineConfig({
   retries: 1,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
+    launchOptions: process.env.BLS_E2E_BROWSER_CHANNEL ? {channel:process.env.BLS_E2E_BROWSER_CHANNEL} : {},
     baseURL: process.env.BLS_E2E_BASE_URL || "https://www.blsprime.com",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",

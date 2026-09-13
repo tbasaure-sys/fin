@@ -1,4 +1,5 @@
 "use client";
+import {trackProductEvent} from '@/lib/product-events.mjs';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {valueThesis,portfolioImpact} from '@/lib/research/thesis-valuation.mjs';
 import styles from './capital.module.css';
@@ -23,7 +24,7 @@ const FLAGS={
  VALUATION_COMPARISON_UNRESOLVED:['El impacto monetario espera una comparación por acción válida.','Dollar impact awaits a valid per-share comparison.']
 };
 const fields=[['growth',-20,30,['Crecimiento anual de ingresos (%)','Annual revenue growth (%)']],['margin',1,80,['Margen operativo al año 5 (%)','Year 5 operating margin (%)']],['taxRate',0,60,['Impuestos normalizados (%)','Normalized tax rate (%)']],['discountRate',4,30,['Costo de capital (%)','Cost of capital (%)']],['terminalGrowth',0,4,['Crecimiento terminal (%)','Terminal growth (%)']],['salesToCapital',.2,20,['Ventas / capital incremental (x)','Incremental sales / capital (x)']],['maintenanceRate',0,30,['Mantenimiento neto / ventas (%)','Net maintenance / sales (%)']],['cashUsableRate',0,100,['Caja utilizable (%)','Usable cash (%)']]];
-export function CapitalWorkspace({revision,language,onDirty}){
+export function CapitalWorkspace({revision,language,onDirty,onPrepare,preparing=false}){
  const lang=language==='en'?'en':'es',c=WORDS[lang],index=lang==='en'?1:0;
  const [bundle,setBundle]=useState(null),[a,setA]=useState(null),[records,setRecords]=useState([]),[dirty,setDirty]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false);
  const controller=useRef(null),loaded=useRef(false);
@@ -50,10 +51,11 @@ export function CapitalWorkspace({revision,language,onDirty}){
   try{const body=action==='load'?{action,thesisHash:revision.hash}:{action,thesisHash:revision.hash,inputHash:bundle.kind==='inputs'?bundle.hash:bundle.inputHash,assumptions:a};
    const response=await fetch('/api/research/capital',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:ctrl.signal});
    if(!response.ok)throw Error();const {record}=await response.json();adopt(record);setRecords(old=>[record,...old.filter(r=>r.hash!==record.hash)].slice(0,30));
+   if(action!=='load')trackProductEvent('valuation_saved');
   }catch{setError(c.error)}finally{clearTimeout(timer);setBusy(false)}
  }
  function download(record){const url=URL.createObjectURL(new Blob([JSON.stringify(record,null,2)],{type:'application/json'})),link=document.createElement('a');link.href=url;link.download=`${revision.dossier.ticker}-valuation-${record.hash.slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
- if(!revision)return <section className={styles.root}><h3>{c.title}</h3><p>{c.saveThesis}</p></section>;
+ if(!revision)return <section className={styles.root} aria-label={c.title}><h3>{c.title}</h3><p>{index?'Explore the figures without writing a thesis first. We save an initial private dossier; its hypotheses remain unresolved.':'Explora las cifras sin redactar primero una tesis. Guardaremos un expediente privado inicial; sus hipótesis seguirán sin resolver.'}</p><button type="button" disabled={preparing} onClick={onPrepare}>{preparing?(index?'Preparing…':'Preparando…'):(index?'Prepare my financial workspace':'Preparar mi análisis de cifras')}</button></section>;
  return <section className={styles.root} aria-label={c.title}>
   <header className={styles.header}><div><h3>{c.title}</h3><p>{c.intro}</p></div><button type="button" disabled={busy} onClick={()=>run('load')}>{bundle?c.refresh:c.load}</button></header>
   <p className={styles.meta}>{c.record} {revision.revision} · {revision.thesis.name} · {c.private}</p>

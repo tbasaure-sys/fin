@@ -70,7 +70,7 @@ test("plain-language trades reject multiple tickers instead of guessing", async 
 test("portfolio history computes TWR after external flows instead of raw value growth", () => {
   const rows = [
     { date: "2026-01-01", total_value_usd: 100, benchmark_price_usd: 100, external_flow_usd: 0 },
-    { date: "2026-02-01", total_value_usd: 150, benchmark_price_usd: 101, external_flow_usd: 50 },
+    { date: "2026-02-01", total_value_usd: 150, benchmark_price_usd: 101, external_flow_usd: 50, external_flow_timing: 'end' },
     { date: "2026-04-01", total_value_usd: 165, benchmark_price_usd: 102, external_flow_usd: 0 },
   ];
 
@@ -84,16 +84,16 @@ test("portfolio history computes TWR after external flows instead of raw value g
   assert.equal(series[2].value_growth, 1.65);
   assert.equal(series[1].period_return, 0);
   assert.equal(Number(series[2].period_return.toFixed(4)), 0.1);
-  assert.equal(series[1].performance_method, "twr_external_flow_adjusted");
+  assert.equal(series[1].performance_method, "twr_observed_boundaries");
 
   const metrics = buildHistoryPerformanceMetrics(rows);
   assert.equal(Number(metrics.totalTwr.toFixed(4)), 0.1);
   assert.equal(Number.isFinite(metrics.moneyWeightedReturn), true);
-  assert.equal(metrics.performanceMethod, "time_weighted_external_flow_adjusted");
+  assert.equal(metrics.performanceMethod, "twr_observed_boundaries");
   assert.equal(metrics.externalFlowCount, 1);
 });
 
-test("portfolio history skips missing or zero-value snapshots instead of plotting fake TWR", () => {
+test("portfolio history awaits initial capital but preserves all observations", () => {
   const rows = [
     { date: "2026-01-01", total_value_usd: 0, benchmark_price_usd: 100, external_flow_usd: 0 },
     { date: "2026-01-02", total_value_usd: null, benchmark_price_usd: 101, external_flow_usd: 0 },

@@ -100,7 +100,7 @@ test("normalizeWorkspaceDashboard uses quote payloads when backend portfolio quo
   assert.equal(dashboard.workspace_summary.primary_stance, "Stay measured");
 });
 
-test("normalizeWorkspaceDashboard drops zero gaps from portfolio performance history", () => {
+test("normalizeWorkspaceDashboard preserves zero observations instead of silently dropping them", () => {
   const dashboard = normalizeWorkspaceDashboard({
     workspaceId: "alpha-retail",
     snapshot: {
@@ -127,9 +127,10 @@ test("normalizeWorkspaceDashboard drops zero gaps from portfolio performance his
   });
 
   const chart = dashboard.modules.portfolio.charts.growthComparison;
-  assert.equal(chart.length, 2);
-  assert.deepEqual(chart.map((row) => row.date), ["2026-06-01", "2026-06-03"]);
-  assert.ok(chart.every((row) => row.portfolio > 0 && row.benchmark > 0));
+  assert.equal(chart.length, 3);
+  assert.deepEqual(chart.map((row) => row.date), ["2026-06-01", "2026-06-02", "2026-06-03"]);
+  assert.equal(chart[1].portfolio, 0);
+  assert.equal(chart[1].benchmark, 0);
   assert.equal(dashboard.modules.portfolio.analytics.totalReturnLabel, "Historial corto");
 });
 

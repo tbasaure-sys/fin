@@ -1,4 +1,5 @@
 "use client";
+import {trackProductEvent} from '@/lib/product-events.mjs';
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
@@ -153,7 +154,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
     [active, setActive] = useState(0),
     [attempt, setAttempt] = useState(0);
   const [analysisStarted,setAnalysisStarted]=useState(false);
-  const [workspaceView,setWorkspaceView]=useState('thesis');
+  const [workspaceView,setWorkspaceView]=useState('documents');
   const [assistedReport,setAssistedReport]=useState(null);
   useEffect(() => {
     if (!ticker) return;
@@ -170,8 +171,10 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
         const body = await response.json();
         if (response.status === 401) throw Error("AUTH_REQUIRED");
         if (!response.ok) throw Error(body.error || "SOURCE_UNAVAILABLE");
-        if (current)
+        if (current) {
           setState({ loading: false, dossier: body.dossier, ticket: body.ticket, available: body.analysisAvailable, error: null });
+          trackProductEvent('research_loaded');
+        }
       })
       .catch((error) => {
         if (current)

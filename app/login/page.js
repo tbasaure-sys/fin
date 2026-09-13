@@ -29,7 +29,7 @@ export function generateMetadata() {
   };
 }
 
-const DEFAULT_NEXT = "/app#holdings";
+const DEFAULT_NEXT = "/research";
 
 const COPY = {
   en: {

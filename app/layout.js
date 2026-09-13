@@ -1,6 +1,7 @@
 import "./globals.css";
 import { headers } from "next/headers";
 import { LanguageLayer } from "@/components/language-layer";
+import {ProductMeasurement} from '@/components/product-measurement';
 import { buildCacheRecoveryScript } from "@/lib/client/cache-recovery";
 import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
@@ -92,6 +93,7 @@ export default function RootLayout({ children }) {
       <body>
         <LanguageLayer initialLanguage={requestLocale} />
         {children}
+        <ProductMeasurement />
       </body>
     </html>
   );

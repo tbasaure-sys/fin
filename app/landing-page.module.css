@@ -1,5 +1,10 @@
 .page{--ivory:#eee9dd;--sage:#c0c9a5;position:relative;isolation:isolate;min-height:100svh;display:flex;flex-direction:column;overflow:clip;background:#101812;color:var(--ivory);font-family:"DM Sans",sans-serif}
 .scene{position:absolute;inset:0;z-index:-2;background:url('/images/bls-threshold.png') center center/cover no-repeat;animation:arrive 1.4s ease-out both}
+.scene{height:100svh;bottom:auto}
+.main{flex:none!important;min-height:calc(100svh - 100px)!important;box-sizing:border-box}
+.proof{padding:70px 7vw 80px;background:#101812;border-top:1px solid #465344}
+.proof h2{font-family:'DM Serif Display',serif;font-size:clamp(30px,4vw,50px);font-weight:400;max-width:850px;line-height:1.2}
+.proof p{max-width:700px;line-height:1.8}.proof>a{display:inline-block;color:var(--sage);padding:12px 0;text-decoration:underline;text-underline-offset:6px;transition:transform .2s}.proof>a:hover{transform:translateX(4px)}
 .scene::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,13,9,.24),transparent 65%)}
 .page a{color:inherit;text-decoration:none}
 .page a:focus-visible{outline:2px solid var(--sage);outline-offset:7px}
@@ -31,4 +36,4 @@
 @keyframes arrive{from{opacity:.6;transform:scale(1.025)}to{opacity:1;transform:scale(1)}}
 @media(min-width:1800px){.main{padding-left:10vw}.scene{background-position:center 58%}}
 @media(max-width:700px){.header{padding:22px 22px;gap:16px}.wordmark{font-size:21px}.header nav{font-size:12px;gap:16px}.header nav a span{display:none}.main{padding:76px 26px 64px;min-height:530px;align-items:center}.signature{font-size:clamp(60px,15vw,86px);margin-bottom:28px}.intro h1{font-size:clamp(34px,8.4vw,46px)}.description{font-size:15px;max-width:245px;margin:24px 0 30px}.enter{font-size:16px;padding:18px 22px}.note{font-size:12px;max-width:240px}.scene{background-position:70% center}.scene::after{background:linear-gradient(90deg,rgba(6,13,9,.92),rgba(6,13,9,.8) 50%,rgba(6,13,9,.18))}.footer{margin:0 22px;align-items:flex-start;flex-direction:column;gap:20px;padding:22px 0;font-size:12px}.footer nav{gap:22px}.footer nav:last-child{width:100%}.languages{margin-left:auto}}
-@media(prefers-reduced-motion:reduce){.scene,.intro{animation:none}.page a,.enter span{transition:none}.enter:hover,.enter:hover span{transform:none}}
+@media(prefers-reduced-motion:reduce){.scene,.intro{animation:none}.page a,.enter span{transition:none}.enter:hover,.enter:hover span,.proof>a:hover{transform:none}}
