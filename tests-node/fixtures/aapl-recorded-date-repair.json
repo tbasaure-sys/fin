@@ -1,0 +1,500 @@
+{
+  "requestHashes": [
+    "bb56c2fe1e248f535741999c328c139e042ab606e82e661337695bdf4e31cf10",
+    "7b9edc49c8fc0354a3f27116ce7d18952940d215877c929137326573bb6f40d7"
+  ],
+  "dossier": {
+    "version": "bls-filing-dossier-v2",
+    "ticker": "AAPL",
+    "name": "Apple Inc.",
+    "cik": 320193,
+    "asOf": "2026-09-13T08:15:18.346Z",
+    "packetHash": "f10dcc46a2b84c2015c8d95ef6ceb7ee7a3ea6dc77e80c792290088a625f5704",
+    "sources": [
+      {
+        "form": "10-K",
+        "accession": "0000320193-25-000079",
+        "document": "aapl-20250927.htm",
+        "filedAt": "2025-10-31",
+        "acceptedAt": "2025-10-31T10:01:26.000Z",
+        "periodEnd": "2025-09-27",
+        "id": "D1",
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+        "sha256": "548ae59778cf08ee0f2ee088e7ece20d947076c3c01f74d2d65db4c2777e436a",
+        "retrievedAt": "2026-09-13T08:15:19.639Z"
+      },
+      {
+        "form": "10-Q",
+        "accession": "0000320193-26-000006",
+        "document": "aapl-20251227.htm",
+        "filedAt": "2026-01-30",
+        "acceptedAt": "2026-01-30T11:01:32.000Z",
+        "periodEnd": "2025-12-27",
+        "id": "D2",
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000006/aapl-20251227.htm",
+        "sha256": "3a3d9336a924488440e83b811ba354f654738cc822b6eb69ed6063e8cf348542",
+        "retrievedAt": "2026-09-13T08:15:19.965Z"
+      },
+      {
+        "form": "10-Q",
+        "accession": "0000320193-26-000013",
+        "document": "aapl-20260328.htm",
+        "filedAt": "2026-05-01",
+        "acceptedAt": "2026-05-01T10:01:00.000Z",
+        "periodEnd": "2026-03-28",
+        "id": "D3",
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm",
+        "sha256": "bb90060d61a273e51b5a472d65ae15d8b51bfd037ddf91e559f9d9adfe2a0228",
+        "retrievedAt": "2026-09-13T08:15:20.370Z"
+      },
+      {
+        "form": "10-Q",
+        "accession": "0000320193-26-000020",
+        "document": "aapl-20260627.htm",
+        "filedAt": "2026-07-31",
+        "acceptedAt": "2026-07-31T10:01:02.000Z",
+        "periodEnd": "2026-06-27",
+        "id": "D4",
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+        "sha256": "4ad5bea67cedfa7542d623900355cc8d143ef95c1acc135a597f2eedabdb9177",
+        "retrievedAt": "2026-09-13T08:15:20.793Z"
+      }
+    ],
+    "sections": [
+      {
+        "id": "business",
+        "extracts": [
+          {
+            "id": "D1:88",
+            "text": "Item 1. Business\nCompany Background\nThe Company designs, manufactures and markets smartphones, personal computers, tablets, wearables and accessories, and sells a variety of related services. The Company’s fiscal year is the 52- or 53-week period that ends on the last Saturday of September.\nProducts\niPhone\niPhone® is the Company’s line of smartphones based on its iOS operating system. The iPhone line includes iPhone 17 Pro, iPhone Air™, iPhone 17, iPhone 16 and iPhone 16e.\nMac\nMac® is the Company’s line of personal computers based on its macOS® operating system. The Mac line includes laptops MacBook Air® and MacBook Pro®, as well as desktops iMac®, Mac mini®, Mac Studio® and Mac Pro®.\niPad\niPad® is the Company’s line of multipurpose tablets based on its iPadOS® operating system. The iPad line includes iPad Pro®, iPad Air®, iPad and iPad mini®.\nWearables, Home and Accessories\nWearables includes smartwatches, wireless headphones and spatial computers. The Company’s line of smartwatches, based on its watchOS® operating system, includes Apple Watch® Series 11, Apple Watch SE® 3 and Apple Watch Ultra® 3. The Company’s line of wireless headphones includes AirPods®, AirPods Pro®, AirPods Max® and Beats® products. Apple Vision Pro™ is the Company’s spatial computer based on its visionOS® operating system.\nHome includes Apple TV 4K®, the Company’s media streaming and gaming device based on its tvOS® operating system, and HomePod® and HomePod mini®, high-fidelity wireless smart speakers.\nAccessories includes Apple-branded and third-party accessories.\nApple Inc. | 2025 Form 10-K | 1\nServices\nAdvertising\nThe Company’s advertising services include third-party licensing arrangements and the Company’s own advertising platforms.\nAppleCare\nThe Company offers a portfolio of fee-based service and support products under the AppleCare® brand. The offerings provide priority access to Apple technical support, access to the global Apple authorized service network for repair and replacement services, and in many cases additional coverage for instances of accidental damage or theft and loss, depending on the country and type of product.\nCloud Services",
+            "kind": "prose",
+            "blockStart": 88,
+            "blockEnd": 108,
+            "documentSection": "1"
+          },
+          {
+            "id": "D4:490",
+            "text": "Products Gross Margin\nProducts gross margin and gross margin percentage increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to a different mix of products and tariff refunds, partially offset by higher costs, including memory.\nServices Gross Margin\nServices gross margin increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher Services net sales and a different mix of services, partially offset by higher costs.\nServices gross margin percentage was flat during the third quarter of 2026 compared to the third quarter of 2025. Year-over-year Services gross margin percentage increased during the first nine months of 2026 primarily due to a different mix of services, partially offset by higher costs.\nThe Company’s future gross margins can be impacted by a variety of factors, as discussed in Part I, Item 1A of the 2025 Form 10-K and Part II, Item 1A of this Form 10-Q, in each case under the heading “Risk Factors.” As a result, the Company believes, in general, gross margins will be subject to volatility and downward pressure.\nApple Inc. | Q3 2026 Form 10-Q | 16\nOperating Expenses\nOperating expenses for the three- and nine-month periods ended June 27, 2026 and June 28, 2025, were as follows (dollars in millions):",
+            "kind": "prose",
+            "blockStart": 490,
+            "blockEnd": 498,
+            "documentSection": "2"
+          },
+          {
+            "id": "D4:T231",
+            "kind": "table",
+            "text": "Note 2 – Revenue\nThe following table shows disaggregated net sales, as well as the portion of total net sales that was previously deferred, for the three- and nine-month periods ended June 27, 2026 and June 28, 2025 (in millions):\nThree Months Ended | Nine Months Ended\nJune 27, 2026 | June 28, 2025 | June 27, 2026 | June 28, 2025\niPhone® | $ | 54,252 | $ | 44,582 | $ | 196,515 | $ | 160,561\nMac® | 10,352 | 8,046 | 27,137 | 24,982\niPad® | 6,191 | 6,581 | 21,700 | 21,071\nWearables, Home and Accessories | 7,883 | 7,404 | 27,277 | 26,673\nServices | 30,739 | 27,423 | 91,728 | 80,408\nTotal net sales | $ | 109,417 | $ | 94,036 | $ | 364,357 | $ | 313,695\nPortion of total net sales that was included in deferred revenue as of the beginning of the period | $ | 4,086 | $ | 4,015 | $ | 7,260 | $ | 6,958",
+            "blockStart": 231,
+            "blockEnd": 239,
+            "contextBlockStart": 229,
+            "documentSection": "1",
+            "table": {
+              "complete": true,
+              "rows": 11,
+              "nested": false
+            }
+          }
+        ],
+        "coverage": {
+          "policy": "economic-roles-v3",
+          "roles": [
+            {
+              "id": "business_overview",
+              "status": "selected",
+              "chunkId": "D1:88"
+            },
+            {
+              "id": "current_performance",
+              "status": "selected",
+              "chunkId": "D4:490"
+            },
+            {
+              "id": "segment_economics",
+              "status": "selected",
+              "chunkId": "D4:T231"
+            }
+          ],
+          "excludedIncompleteTables": 0,
+          "excludedOversizedChunks": 0,
+          "characters": 4321,
+          "completeEconomicAssessment": false
+        },
+        "status": "extracts_available"
+      },
+      {
+        "id": "cash",
+        "extracts": [
+          {
+            "id": "D4:T184",
+            "kind": "table",
+            "text": "Apple Inc.\nCONDENSED CONSOLIDATED STATEMENTS OF CASH FLOWS (Unaudited)\n(In millions)\nNine Months Ended\nJune 27, 2026 | June 28, 2025\nCash, cash equivalents, and restricted cash and cash equivalents, beginning balances | $ | 35,934 | $ | 29,943\nOperating activities:\nNet income | 101,464 | 84,544\nAdjustments to reconcile net income to cash generated by operating activities:\nDepreciation and amortization | 9,973 | 8,571\nShare-based compensation expense | 10,523 | 9,680\nOther | (2,037) | (1,748)\nChanges in operating assets and liabilities:\nAccounts receivable, net | 8,316 | 5,685\nVendor non-trade receivables | 5,671 | 13,555\nInventories | (5,461) | 1,223\nOther current and non-current assets | (16,266) | (6,116)\nAccounts payable | (5,203) | (18,479)\nOther current and non-current liabilities | 10,016 | (15,161)\nCash generated by operating activities | 116,996 | 81,754\nInvesting activities:\nPurchases of marketable securities | (48,752) | (17,591)\nProceeds from maturities of marketable securities | 26,504 | 35,036\nProceeds from sales of marketable securities | 12,016 | 10,785\nPayments for acquisition of property, plant and equipment | (6,799) | (9,473)\nOther | (1,780) | (975)\nCash generated by/(used in) investing activities | (18,811) | 17,782\nFinancing activities:\nPayments for taxes related to net share settlement of equity awards | (6,462) | (5,719)\nPayments for dividends and dividend equivalents | (11,778) | (11,559)\nRepurchases of common stock | (62,094) | (70,579)\nProceeds from issuance of term debt, net | — | 4,481\nRepayments of term debt | (8,146) | (9,682)\nRepayments of commercial paper, net | (5,911) | (65)\nOther | (184) | (87)\nCash used in financing activities | (94,575) | (93,210)\nIncrease in cash, cash equivalents, and restricted cash and cash equivalents | 3,610 | 6,326\nCash, cash equivalents, and restricted cash and cash equivalents, ending balances | $ | 39,544 | $ | 36,269\nSupplemental cash flow disclosure:\nCash paid for income taxes, net | $ | 26,555 | $ | 37,332",
+            "blockStart": 184,
+            "blockEnd": 220,
+            "contextBlockStart": 181,
+            "documentSection": "1",
+            "table": {
+              "complete": true,
+              "rows": 44,
+              "nested": false
+            }
+          },
+          {
+            "id": "D4:350",
+            "text": "Term Debt\nAs of June 27, 2026 and September 27, 2025, the Company had outstanding fixed-rate notes with varying maturities for an aggregate carrying amount of $82.3 billion and $90.7 billion, respectively (collectively the “Notes”). As of June 27, 2026 and September 27, 2025, the fair value of the Company’s Notes, based on Level 2 inputs, was $71.2 billion and $80.4 billion, respectively.\nNote 7 – Shareholders’ Equity\nShare Repurchase Program\nDuring the nine months ended June 27, 2026, the Company repurchased 215 million shares of its common stock for $61.8 billion. The Company’s share repurchase programs do not obligate the Company to acquire a minimum amount of shares. Under the programs, shares may be repurchased in privately negotiated or open market transactions, including under plans complying with Rule 10b5-1 under the Securities Exchange Act of 1934, as amended (“Exchange Act”).\nApple Inc. | Q3 2026 Form 10-Q | 10\nNote 8 – Share-Based Compensation\nRestricted Stock Units\nA summary of the Company’s restricted stock unit (“RSU”) activity and related information for the nine months ended June 27, 2026, is as follows:",
+            "kind": "prose",
+            "blockStart": 350,
+            "blockEnd": 358,
+            "documentSection": "1"
+          },
+          {
+            "id": "D1:T597",
+            "kind": "table",
+            "text": "Apple Inc.\nCONSOLIDATED STATEMENTS OF CASH FLOWS\n(In millions)\nYears ended\nSeptember 27, 2025 | September 28, 2024 | September 30, 2023\nCash, cash equivalents, and restricted cash and cash equivalents, beginning balances | $ | 29,943 | $ | 30,737 | $ | 24,977\nOperating activities:\nNet income | 112,010 | 93,736 | 96,995\nAdjustments to reconcile net income to cash generated by operating activities:\nDepreciation and amortization | 11,698 | 11,445 | 11,519\nShare-based compensation expense | 12,863 | 11,688 | 10,833\nOther | (89) | (2,266) | (2,227)\nChanges in operating assets and liabilities:\nAccounts receivable, net | (6,682) | (3,788) | (1,688)\nVendor non-trade receivables | (347) | (1,356) | 1,271\nInventories | 1,400 | (1,046) | (1,618)\nOther current and non-current assets | (9,197) | (11,731) | (5,684)\nAccounts payable | 902 | 6,020 | (1,889)\nOther current and non-current liabilities | (11,076) | 15,552 | 3,031\nCash generated by operating activities | 111,482 | 118,254 | 110,543\nInvesting activities:\nPurchases of marketable securities | (24,407) | (48,656) | (29,513)\nProceeds from maturities of marketable securities | 40,907 | 51,211 | 39,686\nProceeds from sales of marketable securities | 12,890 | 11,135 | 5,828\nPayments for acquisition of property, plant and equipment | (12,715) | (9,447) | (10,959)\nOther | (1,480) | (1,308) | (1,337)\nCash generated by investing activities | 15,195 | 2,935 | 3,705\nFinancing activities:\nPayments for taxes related to net share settlement of equity awards | (5,960) | (5,441) | (5,431)\nPayments for dividends and dividend equivalents | (15,421) | (15,234) | (15,025)\nRepurchases of common stock | (90,711) | (94,949) | (77,550)\nProceeds from issuance of term debt, net | 4,481 | — | 5,228\nRepayments of term debt | (10,932) | (9,958) | (11,151)\nProceeds from/(Repayments of) commercial paper, net | (2,032) | 3,960 | (3,978)\nOther | (111) | (361) | (581)\nCash used in financing activities | (120,686) | (121,983) | (108,488)\nIncrease/(Decrease) in cash, cash equivalents, and restricted cash and cash equivalents | 5,991 | (794) | 5,760\nCash, cash equivalents, and restricted cash and cash equivalents, ending balances | $ | 35,934 | $ | 29,943 | $ | 30,737\nSupplemental cash flow disclosure:\nCash paid for income taxes, net | $ | 43,369 | $ | 26,102 | $ | 18,679",
+            "blockStart": 597,
+            "blockEnd": 633,
+            "contextBlockStart": 594,
+            "documentSection": "8",
+            "table": {
+              "complete": true,
+              "rows": 44,
+              "nested": false
+            }
+          }
+        ],
+        "coverage": {
+          "policy": "economic-roles-v3",
+          "roles": [
+            {
+              "id": "cash_flow_statement",
+              "status": "selected",
+              "chunkId": "D4:T184"
+            },
+            {
+              "id": "cash_explanation",
+              "status": "not_identified",
+              "chunkId": null
+            },
+            {
+              "id": "capital_obligations",
+              "status": "selected",
+              "chunkId": "D4:350"
+            }
+          ],
+          "excludedIncompleteTables": 0,
+          "excludedOversizedChunks": 0,
+          "characters": 5462,
+          "completeEconomicAssessment": false
+        },
+        "status": "extracts_available"
+      },
+      {
+        "id": "thesis",
+        "extracts": [
+          {
+            "id": "D4:565",
+            "text": "The Company currently obtains certain components from single or limited sources, which exposes it to significant supply and pricing risks. In addition, many components, including those that are available from multiple sources, are at times subject to industry-wide shortages and significant commodity pricing fluctuations that can materially adversely affect the Company’s business, results of operations, financial condition and stock price. For example, the Company is experiencing a period of supply constraints and increasing costs for components driven by factors such as industry supply-demand imbalances for components, including advanced semiconductors, storage (NAND) and memory (DRAM), which adversely affects the Company’s ability to obtain sufficient quantities of components and products on commercially reasonable terms, or at all. The Company expects these trends to intensify, which may materially adversely impact the Company’s revenue, costs, gross margin, results of operations and financial condition. Actions, such as price increases, that have been and may in the future be taken by the Company may not effectively mitigate these negative impacts, and may also reduce demand for the Company’s products and materially adversely affect the Company’s revenue, costs, gross margin, results of operations and financial condition.",
+            "kind": "prose",
+            "blockStart": 565,
+            "blockEnd": 565,
+            "documentSection": "1a"
+          },
+          {
+            "id": "D1:151",
+            "text": "Adverse macroeconomic conditions, including slow growth or recession, high unemployment, inflation, tighter credit, higher interest rates, and currency fluctuations, can adversely impact consumer confidence and spending and materially adversely affect demand for the Company’s products and services. In addition, consumer confidence and spending can be materially adversely affected in response to changes in fiscal and monetary policy, financial market volatility, declines in income or asset values, and other economic factors.\nUncertainty about, or a decline in, global or regional economic conditions can also have a significant impact on the Company’s suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners, and developers. Potential outcomes include financial instability; inability to obtain credit to finance business operations; and insolvency.\nAdverse economic conditions can also lead to increased credit and collectibility risk on the Company’s trade receivables; the failure of derivative counterparties and other financial institutions; limitations on the Company’s ability to issue new debt; reduced liquidity; and declines in the fair values of the Company’s financial instruments. These and other impacts can materially adversely affect the Company’s business, results of operations, financial condition and stock price.\nApple Inc. | 2025 Form 10-K | 5\nThe Company’s business can be impacted by political events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions.\nPolitical events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions can have a material adverse effect on the Company and its customers, employees, suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners.",
+            "kind": "prose",
+            "blockStart": 151,
+            "blockEnd": 156,
+            "documentSection": "1a"
+          },
+          {
+            "id": "D4:570",
+            "text": "The Company believes that third-party developer support depends on the perceived benefits of creating software and services for the Company’s products compared to competitors’ platforms, such as Android for smartphones and tablets, Windows for personal computers and tablets, and PlayStation, Nintendo and Xbox for gaming platforms. This analysis may be based on factors such as the market position of the Company and its products, the anticipated revenue that may be generated, expected future growth of product sales, and the costs of developing such applications and services.\nApple Inc. | Q3 2026 Form 10-Q | 21\nThe Company’s minority market share in the global smartphone, personal computer, tablet and wearables markets can make developers less inclined to develop or upgrade software for the Company’s products and more inclined to devote their resources to developing and upgrading software for competitors’ products with larger market share. When developers focus their efforts on these competing platforms, the availability and quality of applications for the Company’s devices can suffer.\nThe Company relies on the continued availability and development of compelling and innovative software applications for its products. The Company’s products and operating systems are subject to rapid technological change, and when third-party developers are unable to or choose not to keep up with this pace of change, their applications can fail to take advantage of these changes to deliver improved customer experiences, can operate incorrectly, and can result in dissatisfied customers and lower customer demand for the Company’s products.",
+            "kind": "prose",
+            "blockStart": 570,
+            "blockEnd": 573,
+            "documentSection": "1a"
+          }
+        ],
+        "coverage": {
+          "policy": "economic-roles-v3",
+          "roles": [
+            {
+              "id": "operating_risks",
+              "status": "selected",
+              "chunkId": "D4:565"
+            },
+            {
+              "id": "financial_risks",
+              "status": "selected",
+              "chunkId": "D1:151"
+            },
+            {
+              "id": "competitive_risks",
+              "status": "selected",
+              "chunkId": "D4:570"
+            }
+          ],
+          "excludedIncompleteTables": 0,
+          "excludedOversizedChunks": 0,
+          "characters": 5067,
+          "completeEconomicAssessment": false
+        },
+        "status": "extracts_available"
+      }
+    ],
+    "revenueBreakdown": {
+      "version": "revenue-breakdown-v1",
+      "sourceId": "D4",
+      "partitions": [
+        {
+          "sourceId": "D4",
+          "tableId": 17,
+          "axis": "srt:ProductOrServiceAxis",
+          "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+          "unit": "USD",
+          "currentTotal": {
+            "value": 364357000000,
+            "factId": "f-383",
+            "contextId": "c-1",
+            "start": "2025-09-28",
+            "end": "2026-06-27"
+          },
+          "priorTotal": {
+            "value": 313695000000,
+            "factId": "f-384",
+            "contextId": "c-20",
+            "start": "2024-09-29",
+            "end": "2025-06-28"
+          },
+          "rows": [
+            {
+              "member": "aapl:IPhoneMember",
+              "label": "iPhone®",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 160561000000,
+                "factId": "f-364",
+                "contextId": "c-60",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 196515000000,
+                "factId": "f-363",
+                "contextId": "c-59",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 35954000000,
+              "currentShare": 0.539347398293432,
+              "growthContribution": 0.11461451409808891
+            },
+            {
+              "member": "aapl:MacMember",
+              "label": "Mac®",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 24982000000,
+                "factId": "f-368",
+                "contextId": "c-64",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 27137000000,
+                "factId": "f-367",
+                "contextId": "c-63",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 2155000000,
+              "currentShare": 0.07447915094261946,
+              "growthContribution": 0.0068697301518991375
+            },
+            {
+              "member": "aapl:IPadMember",
+              "label": "iPad®",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 21071000000,
+                "factId": "f-372",
+                "contextId": "c-68",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 21700000000,
+                "factId": "f-371",
+                "contextId": "c-67",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 629000000,
+              "currentShare": 0.059556972968819046,
+              "growthContribution": 0.002005132373802579
+            },
+            {
+              "member": "aapl:WearablesHomeandAccessoriesMember",
+              "label": "Wearables, Home and Accessories",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 26673000000,
+                "factId": "f-376",
+                "contextId": "c-72",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 27277000000,
+                "factId": "f-375",
+                "contextId": "c-71",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 604000000,
+              "currentShare": 0.07486338947790216,
+              "growthContribution": 0.0019254371284209183
+            },
+            {
+              "member": "us-gaap:ServiceMember",
+              "label": "Services",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 80408000000,
+                "factId": "f-380",
+                "contextId": "c-17",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 91728000000,
+                "factId": "f-379",
+                "contextId": "c-16",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 11320000000,
+              "currentShare": 0.2517530883172273,
+              "growthContribution": 0.03608600710881589
+            }
+          ],
+          "totalGrowth": 0.16150082086102743,
+          "reconciliation": {
+            "priorGap": 0,
+            "currentGap": 0,
+            "roundingTolerance": {
+              "prior": 3000000,
+              "current": 3000000
+            }
+          }
+        }
+      ],
+      "exclusions": [],
+      "economicCauseVerified": false,
+      "status": "available",
+      "start": "2025-09-28",
+      "end": "2026-06-27"
+    },
+    "coverage": {
+      "documents": 4,
+      "totalChunks": 467,
+      "selectedChunks": 9
+    },
+    "analysis": {
+      "status": "pending_provider",
+      "valuation": null,
+      "mispricing": null,
+      "interpretationVerified": false
+    },
+    "claim": "C0_REPORTED_ONLY",
+    "performance": null,
+    "predictiveClaim": false
+  },
+  "responses": [
+    {
+      "http": 200,
+      "receivedAt": 1789301874408,
+      "headers": {
+        "retry-after": null,
+        "x-ratelimit-limit-tokens": "8000",
+        "x-ratelimit-remaining-tokens": "2383",
+        "x-ratelimit-reset-tokens": "42.127s"
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"sections\": [\n    {\n      \"id\": \"business\",\n      \"findings\": [\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Apple genera ingresos principalmente a través de la venta de dispositivos (iPhone, Mac, iPad, Wearables, Home y accesorios) y de servicios asociados, como publicidad, AppleCare y Cloud Services.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D1:88\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Los márgenes brutos de productos y servicios mejoraron en el primer trimestre de 2026 frente a 2025, impulsados por una mezcla de productos más favorable y reembolsos arancelarios, aunque se vieron parcialmente contrarrestados por mayores costos de memoria.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:490\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"El crecimiento de los ingresos netos proviene de aumentos en iPhone y Services, mientras que la participación de ventas diferidas se mantuvo relativamente estable, indicando que la mayor parte de la facturación se reconoce en el período.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:T231\"\n            }\n          ]\n        }\n      ],\n      \"unknowns\": [\n        \"¿Cuál es la contribución exacta de cada segmento a la utilidad operativa, dado que los extractos no desglosan gastos por línea de negocio?\"\n      ],\n      \"checks\": [\n        \"Revisar la sección de Segment Reporting del Form 10‑K para obtener márgenes operativos por segmento.\"\n      ]\n    },\n    {\n      \"id\": \"cash\",\n      \"findings\": [\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"El flujo de efectivo operativo aumentó a $117 bn en los nueve meses terminados en junio 2026, impulsado por mayores ingresos netos y ajustes por depreciación, compensación basada en acciones y cambios en cuentas por cobrar y pasivos operativos.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:T184\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Apple utilizó la mayor parte del efectivo disponible para recompras de acciones, con $61.8 bn invertidos en la compra de 215 millones de acciones durante el mismo período.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:350\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"El endeudamiento a largo plazo se redujo a $82.3 bn al 27 jun 2026, reflejando pagos netos de deuda superiores a las emisiones, lo que disminuye la exposición a renovaciones de crédito a corto plazo.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:350\"\n            }\n          ]\n        }\n      ],\n      \"unknowns\": [\n        \"¿Cuál es la capacidad de generación de flujo libre después de inversiones en capital (CAPEX) y recompra de acciones, dado que los extractos no presentan el cálculo explícito?\"\n      ],\n      \"checks\": [\n        \"Obtener el estado de flujo de efectivo completo y la conciliación de flujo libre de efectivo del Form 10‑Q.\"\n      ]\n    },\n    {\n      \"id\": \"thesis\",\n      \"findings\": [\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Apple está expuesta a riesgos de suministro y precios de componentes críticos, especialmente semiconductores avanzados, NAND y DRAM, lo que podría reducir ingresos y márgenes si persisten las escaseces.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:565\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Condiciones macroeconómicas adversas (recesión, alta inflación, tipos de interés elevados) pueden disminuir la confianza del consumidor y la demanda de productos y servicios de Apple.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D1:151\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"La limitada cuota de mercado de Apple en smartphones, PC y wearables puede desalentar a desarrolladores externos, reduciendo la disponibilidad y calidad de aplicaciones y, por ende, la demanda de dispositivos.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:570\"\n            }\n          ]\n        }\n      ],\n      \"unknowns\": [\n        \"¿En qué medida Apple planea diversificar su cadena de suministro para mitigar la dependencia de fuentes limitadas?\"\n      ],\n      \"checks\": [\n        \"Buscar en la sección de Risk Factors del próximo Form 10‑K o 10‑Q cualquier plan de mitigación de riesgos de suministro.\"\n      ]\n    }\n  ]\n}",
+            "reasoning": "Need to output filing_analysis JSON. Build sections business, cash, thesis with findings, unknowns, checks. Use extracts. Provide up to 3 findings each. Let's craft.\n\n"
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "queue_time": 0.209637651,
+        "prompt_tokens": 5113,
+        "prompt_time": 0.216792963,
+        "completion_tokens": 1116,
+        "completion_time": 2.336018947,
+        "total_tokens": 6229,
+        "total_time": 2.55281191,
+        "completion_tokens_details": {
+          "reasoning_tokens": 37
+        }
+      },
+      "capacity": {
+        "limit": null,
+        "requested": null,
+        "dimension": null
+      },
+      "errorCode": null,
+      "failedGeneration": null,
+      "checksum": "0054b4f0372202fafefde74580152a858ed2b45536b1369df3e4dad4fa7b4f7f"
+    },
+    {
+      "http": 200,
+      "receivedAt": 1789302286997,
+      "headers": {
+        "retry-after": null,
+        "x-ratelimit-limit-tokens": "8000",
+        "x-ratelimit-remaining-tokens": "6405",
+        "x-ratelimit-reset-tokens": "11.962s"
+      },
+      "choices": [
+        {
+          "index": 0,
+          "message": {
+            "role": "assistant",
+            "content": "{\n  \"sections\": [\n    {\n      \"id\": \"business\",\n      \"findings\": [\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Apple genera ingresos principalmente a través de la venta de dispositivos y de servicios asociados, como publicidad, AppleCare y Cloud Services.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D1:88\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Los márgenes brutos de productos y servicios mejoraron en el trimestre frente al año anterior, impulsados por una mezcla de productos más favorable y reembolsos arancelarios, aunque se vieron parcialmente contrarrestados por mayores costos de memoria.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:490\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"El crecimiento de los ingresos netos proviene de aumentos en iPhone y Services, mientras que la participación de ventas diferidas se mantuvo relativamente estable, indicando que la mayor parte de la facturación se reconoce en el período.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:T231\"\n            }\n          ]\n        }\n      ],\n      \"unknowns\": [],\n      \"checks\": []\n    },\n    {\n      \"id\": \"cash\",\n      \"findings\": [\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"El flujo de efectivo operativo aumentó en los nueve meses terminados en junio, impulsado por mayores ingresos netos y ajustes por depreciación, compensación basada en acciones y cambios en cuentas por cobrar y pasivos operativos.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:T184\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Apple utilizó la mayor parte del efectivo disponible para recompras de acciones, invirtiendo una cantidad significativa en la compra de acciones durante el mismo período.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:350\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"El endeudamiento a largo plazo se redujo al 27 de junio, reflejando pagos netos de deuda superiores a las emisiones, lo que disminuye la exposición a renovaciones de crédito a corto plazo.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:350\"\n            }\n          ]\n        }\n      ],\n      \"unknowns\": [],\n      \"checks\": []\n    },\n    {\n      \"id\": \"thesis\",\n      \"findings\": [\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Apple está expuesta a riesgos de suministro y precios de componentes críticos, especialmente semiconductores avanzados, NAND y DRAM, lo que podría reducir ingresos y márgenes si persisten las escaseces.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:565\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"Condiciones macroeconómicas adversas pueden disminuir la confianza del consumidor y la demanda de productos y servicios de Apple.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D1:151\"\n            }\n          ]\n        },\n        {\n          \"kind\": \"interpretation\",\n          \"text\": \"La limitada cuota de mercado de Apple en smartphones, PC y wearables puede desalentar a desarrolladores externos, reduciendo la disponibilidad y calidad de aplicaciones y, por ende, la demanda de dispositivos.\",\n          \"evidence\": [\n            {\n              \"chunkId\": \"D4:570\"\n            }\n          ]\n        }\n      ],\n      \"unknowns\": [],\n      \"checks\": []\n    }\n  ]\n}",
+            "reasoning": "We need to output corrected JSON with qualitative texts no digits. Remove numbers from text. Also remove dollar signs etc. Provide sections business, cash, thesis order, unknowns empty lists, checks empty lists. Only format."
+          },
+          "logprobs": null,
+          "finish_reason": "stop"
+        }
+      ],
+      "usage": {
+        "queue_time": 0.216788028,
+        "prompt_tokens": 1219,
+        "prompt_time": 0.051113333,
+        "completion_tokens": 864,
+        "completion_time": 1.7957348720000001,
+        "total_tokens": 2083,
+        "total_time": 1.8468482050000001,
+        "completion_tokens_details": {
+          "reasoning_tokens": 45
+        }
+      },
+      "capacity": {
+        "limit": null,
+        "requested": null,
+        "dimension": null
+      },
+      "errorCode": null,
+      "failedGeneration": null,
+      "checksum": "95e9c14c33e6b3d688b59e966b39042cb76dcc837ffead6d06c5d332df7a5e86"
+    }
+  ],
+  "provenance": "Recorded live development probe, 2026-09-13; not a verified report"
+}

@@ -11,6 +11,46 @@ function answer(){return {sections:dossier.sections.map(s=>({id:s.id,findings:[{
 function supportedReviews(){return dossier.sections.map(s=>({id:`${s.id}:0`,verdict:'supported',reason:'Lectura acotada.',allClausesSupported:true,scopeLimited:true,catalystStatus:'not_claimed',support:[{chunkId:s.extracts[0].id,quote:s.extracts[0].text.slice(0,90)}]}))}
 const completionResponse=raw=>Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(referenceProviderPayload(raw,dossier))}}],usage:{total_tokens:12}});
 
+test('recorded Apple draft and repair reach review with identical requests and without laundering original claims',async()=>{
+ const m=await implementation(),fixture=require('./fixtures/aapl-recorded-date-repair.json');
+ const {hash}=await import('../lib/research/filing-engine.mjs');
+ let calls=0,progress;
+ await assert.rejects(()=>m.generateAnalysis(fixture.dossier,{apiKey:'offline-replay',diagnose:()=>{},onCheckpoint:async p=>{progress=structuredClone(p)},fetcher:async(_url,options)=>{
+  const request=JSON.parse(options.body),index=calls++;
+  if(index<2){
+   assert.equal(hash(request),fixture.requestHashes[index],'replay applies only to the exact recorded request');
+   return Response.json(fixture.responses[index]);
+  }
+  assert.ok(request.response_format.json_schema.schema.properties.reviews,'the next stage must review, not redraft');
+  // Deliberately stop here: this fixture has no real reviewer response.
+  return Response.json({error:{code:'rate_limit_exceeded'}},{status:429,headers:{'retry-after':'20'}});
+ }}),e=>e.message==='REPORT_PENDING');
+ assert.equal(calls,3);
+ assert.ok(progress.completed.draft);
+ const serialized=JSON.stringify(progress.completed.draft);
+ assert.ok(serialized.includes('27 de junio'),'repaired date must survive');
+ assert.ok(serialized.includes('primer trimestre'),'format repair cannot silently rewrite an original valid claim');
+ assert.equal(progress.completed.review,undefined,'syntax acceptance is not a completed review');
+});
+
+test('named dates reach semantic review instead of being rejected as financial quantities',async()=>{
+ const m=await implementation();
+ for(const date of ['27 de junio','27 de junio de 2026','27 June','June 27, 2026','June 27','27-jun-2026','27 jun. 2026','2026-06-27']){
+  const raw=answer();raw.sections[1].findings[0].text=`El endeudamiento se informa al ${date}.`;
+  const result=m.validateAnalysis(raw,dossier);
+  assert.equal(result.sections[1].findings[0].text,raw.sections[1].findings[0].text,date);
+  assert.equal(result.interpretationVerified,false);
+ }
+});
+
+test('date and document syntax cannot conceal adjacent financial amounts',async()=>{
+ const m=await implementation();
+ for(const text of ['$27 de junio','June 27 million','27 de junio 2026 millones','En 2026 USD','27-jun-2026 dólares','27 de junio, 15 millones','nota 12 millones','Office 365 USD','2026-06-27: 10%','27 de junio: veinte millones']){
+  const raw=answer();raw.sections[1].findings[0].text=text;
+  assert.throws(()=>m.validateAnalysis(raw,dossier),/INVALID_ANALYSIS/,text);
+ }
+});
+
 test('report years and spaced quarter dates do not masquerade as financial quantities',async()=>{
  const m=await implementation();
  for(const text of ['Consultar el informe anual 2025.','Consultar el 10‑K 2025.','Consultar el informe trimestral Q3 2026.','See the annual report 2025.','See the 2026 Q3 report.','El saldo se informa al 27 jun 2026.',

@@ -780,6 +780,14 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
   No se descartan referencias desconocidas para aceptar el resto; el conjunto
   sigue pendiente si contiene alguna. Esta corrección de identidad no certifica
   pertinencia económica ni transforma la revisión automática en prueba semántica.
+- La clasificación sintáctica de v11.4 admite fechas documentales con mes escrito,
+  con o sin año, y conserva el rechazo de importes adyacentes. No valida que la
+  fecha sea correcta ni que corresponda al período de la afirmación. El fixture
+  `aapl-recorded-date-repair.json` reproduce borrador y reparación reales con
+  igualdad de hashes de solicitudes; termina antes de la revisión externa y no
+  constituye un informe aprobado. Las cláusulas originales sintácticamente
+  válidas siguen intactas para su revisión, incluso si parecen incorrectas.
+  Regresión: `tests-node/filing-analysis.test.mjs`.
 - Los controles curados de citas no bastan para promover esta integración. La
   prueba completa debe incluir el borrador real, reparaciones, preguntas, revisión
   de todas las cláusulas y presupuesto de ejecución. Una referencia válida no
