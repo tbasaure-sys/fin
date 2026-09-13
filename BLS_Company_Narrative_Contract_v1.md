@@ -684,6 +684,23 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 
 ## 23. Integración v10 — procedencia comprobable, promoción pendiente
 
+- `scripts/probe-filing-report.mjs` ejecuta el generador completo sin publicar en
+  la base de datos ni reutilizar respuestas prefabricadas. `--prepare --input`
+  crea un directorio nuevo con expediente, hashes de los archivos JS/JSON de
+  `lib/`, lockfile, versión de Node y script de prueba. `--directory` inspecciona
+  sin red; las llamadas exigen `--live` explícito. El hash amplio puede invalidar
+  una prueba por cambios no relacionados; se prefiere eso a ignorar dependencias.
+- Cada solicitud y respuesta tiene un registro inmutable; el estado reanudable
+  está ligado al manifiesto y se escribe atómicamente. Una espera indicada por
+  el proveedor no repite etapas completadas. Un fallo terminal no se reinicia
+  silenciosamente. Los locks no se eliminan por considerarlos antiguos: si una
+  ejecución muere, primero se debe verificar que su proceso terminó. Una petición
+  sin respuesta registrada requiere resolver la interrupción antes de reintentar.
+- El registro no guarda cabeceras de autorización ni mensajes con identificadores
+  de cuenta. Conserva resultados de generación y límites numéricos del proveedor.
+  Terminar técnicamente sigue dejando `qualityCertified: false`; la cobertura
+  estructural del informe no certifica fidelidad, utilidad ni superioridad.
+  Regresiones del probe: `tests-node/report-probe.test.mjs`.
 - El generador local utiliza `reference-review-v1`: el revisor selecciona IDs de
   pasajes; el servidor reconstruye texto y posiciones desde el expediente original.
   Al proveedor se envían IDs y texto íntegro de cada pasaje, no las posiciones
