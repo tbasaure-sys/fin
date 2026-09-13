@@ -1,6 +1,50 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {briefInput} from './fixtures/economic-brief-input.mjs';
 async function implementation(){let mod;try{mod=await import('../lib/research/economic-brief.mjs')}catch(e){if(e.code!=='ERR_MODULE_NOT_FOUND')throw e}assert.ok(mod,'economic brief must be implemented');return mod}
+
+test('operating earnings reconcile into revenue at prior margin and the margin change at current revenue',async()=>{
+ const {economicBrief,operatingSensitivity}=await implementation(),input=briefInput(),before=JSON.stringify(input);
+ const o=economicBrief(input).operating;assert.ok(o,'operating earnings must be connected to the brief');
+ assert.equal(o.status,'available');assert.equal(o.prior,10);assert.equal(o.current,24);
+ assert.equal(o.priorMargin,.1);assert.equal(o.currentMargin,.2);
+ assert.equal(o.revenueEffect,2);assert.equal(o.marginEffect,12);assert.equal(o.change,14);
+ assert.equal(o.reconciliationGap,0);assert.equal(o.economicCauseVerified,false);assert.equal(o.normalized,false);
+ assert.equal(o.evidence.ebit.current.accession,'test-filing');
+ assert.equal(operatingSensitivity(o,0).operatingIncome,12);
+ assert.equal(operatingSensitivity(o,.5).operatingIncome,18);
+ assert.equal(operatingSensitivity(o,1).operatingIncome,24);
+ assert.equal(operatingSensitivity(o,0).changeVsObserved,-12);
+ assert.equal(operatingSensitivity(o,0).forecast,false);
+ assert.equal(operatingSensitivity(o,-.1),null);assert.equal(operatingSensitivity(o,1.1),null);
+ assert.equal(operatingSensitivity(o,NaN),null);assert.equal(JSON.stringify(input),before);
+});
+
+test('operating bridge preserves loss reversals and declining margins without calling them durable improvements',async()=>{
+ const {economicBrief,operatingSensitivity}=await implementation();
+ for(const [prior,current,expectedRevenue,expectedMargin,expectedZero] of [[-10,6,-2,18,-12],[20,12,4,-12,24],[10,12,2,0,12]]){
+  const input=briefInput(),pair=input.reading.interim.metrics.ebit;
+  pair.prior.value=pair.prior.terms[0].fact.value=prior;pair.current.value=pair.current.terms[0].fact.value=current;
+  const o=economicBrief(input).operating;assert.equal(o?.status,'available');
+  assert.equal(o.revenueEffect,expectedRevenue);assert.ok(Math.abs(o.marginEffect-expectedMargin)<1e-10);
+  assert.ok(Math.abs(o.revenueEffect+o.marginEffect-(current-prior))<1e-10);
+  assert.ok(Math.abs(operatingSensitivity(o,0).operatingIncome-expectedZero)<1e-10);
+ }
+});
+
+test('operating bridge does not substitute stale annual earnings or mix periods, tags, cutoffs or currencies',async()=>{
+ const {economicBrief}=await implementation();
+ for(const mutate of [x=>delete x.reading.interim.metrics.ebit,
+  x=>x.reading.interim.metrics.ebit.current.terms[0].fact.start='2026-04-01',
+  x=>x.reading.interim.metrics.ebit.prior.terms[0].fact.concepts=['different'],
+  x=>x.reading.interim.metrics.ebit.current.terms[0].fact.accession='other',
+  x=>x.reading.interim.metrics.ebit.current.terms[0].fact.availableAt='2027-01-01',
+  x=>x.reading.interim.metrics.ebit.current.unit='EUR',
+  x=>{x.reading.interim.metrics.revenue.prior.value=0;x.reading.interim.metrics.revenue.prior.terms[0].fact.value=0}]){
+   const input=briefInput();mutate(input);assert.equal(economicBrief(input).operating?.status,'unresolved');
+  }
+ const input=briefInput();delete input.dossier.revenueBreakdown;
+ assert.equal(economicBrief(input).operating?.status,'available','segment coverage must not gate consolidated earnings');
+});
 test('a growth bridge preserves offsetting businesses and measures dependence without calling it recurring revenue',async()=>{
  const {economicBrief,growthSensitivity}=await implementation(),input=briefInput(),before=JSON.stringify(input);
  const brief=economicBrief(input),g=brief.growth;
@@ -51,6 +95,7 @@ test('annual context needs complete fiscal years and cannot label a half year as
   const id=`${year}:${key}`;x.reading.evidence[id]=raw;return [key,{value:raw.value,unit:'USD',status:'known_value',evidenceKeys:[id]}];
  }))}));
  let b=economicBrief(x);assert.equal(b.cash.basis,'annual');assert.equal(b.cash.change,5);
+ assert.equal(b.operating.basis,'annual');assert.equal(b.operating.marginEffect,12);
  for(const f of Object.values(x.reading.evidence))f.start=f.start.replace('01-01','07-01');
- b=economicBrief(x);assert.equal(b.cash.status,'unresolved');
+ b=economicBrief(x);assert.equal(b.cash.status,'unresolved');assert.equal(b.operating.status,'unresolved');
 });

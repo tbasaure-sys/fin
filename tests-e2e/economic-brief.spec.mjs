@@ -11,11 +11,31 @@ test('economic reading precedes detailed figures, tests growth dependence and ha
  const brief=page.locator('[data-economic-brief]');await expect(brief.getByRole('heading',{name:'Lectura económica',exact:true})).toBeVisible();
  await expect(brief).toContainText('Hardware');await expect(brief).toContainText('20,0');
  await brief.getByText('Poner a prueba este crecimiento',{exact:true}).click();
- await expect(brief.getByRole('status')).toContainText('−10,0');
- await brief.getByRole('slider').fill('100');await expect(brief.getByRole('status')).toContainText('+20,0');
+ await expect(brief.getByRole('status').first()).toContainText('−10,0');
+ await brief.getByRole('slider').first().fill('100');await expect(brief.getByRole('status').first()).toContainText('+20,0');
  await brief.getByRole('button',{name:'Contrastar en mi tesis',exact:true}).first().click();
  await page.getByRole('button',{name:'Usar esta pregunta',exact:true}).click();
  await expect(page.getByRole('textbox',{name:'Incertidumbre decisiva',exact:true})).toHaveValue(/Hardware/);
+ expect(aiCalls).toBe(0);expect(writes).toBe(0);expect(errors).toEqual([]);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test('operating margin probe retains observed sales and transfers the period-specific question without saving',async({page})=>{
+ const input=briefInput();let aiCalls=0,writes=0;const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/public/research?ticker=TEST',r=>r.fulfill({json:{dossier:input.dossier,ticket:'qa-ticket',analysisAvailable:true}}));
+ await page.route('**/api/research/financial-reading',r=>r.fulfill({json:{packetHash:input.dossier.packetHash,reading:input.reading}}));
+ await page.route('**/api/research/theses**',r=>{if(r.request().method()==='POST')writes++;return r.fulfill({json:{revisions:[]}})});
+ await page.route('**/api/public/research/analyze',r=>{aiCalls++;return r.abort()});
+ await page.goto('/research?ticker=TEST&lang=es');
+ const operating=page.locator('[data-operating-bridge]');
+ await expect(operating.getByRole('heading',{name:'Ventas y margen: qué cambió en el resultado'})).toBeVisible();
+ await expect(operating).toContainText('10,0%');await expect(operating).toContainText('20,0%');
+ await operating.getByText('Poner a prueba este margen',{exact:true}).click();
+ await expect(operating.getByRole('status')).toContainText('10,0%');
+ await operating.getByRole('slider').fill('100');await expect(operating.getByRole('status')).toContainText('20,0%');
+ await operating.getByRole('button',{name:'Contrastar en mi tesis',exact:true}).click();
+ await page.getByRole('button',{name:'Usar esta pregunta',exact:true}).click();
+ await expect(page.getByRole('textbox',{name:'Incertidumbre decisiva',exact:true})).toHaveValue(/margen operativo/);
  expect(aiCalls).toBe(0);expect(writes).toBe(0);expect(errors).toEqual([]);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

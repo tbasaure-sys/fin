@@ -809,7 +809,7 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 - Regresiones: `tests-node/interim-financials.test.mjs`,
   `tests-e2e/financial-reading.spec.mjs`.
 
-## 25. Lectura económica y sensibilidad del crecimiento
+## 25. Lectura económica y sensibilidad de ingresos y margen
 
 - La lectura principal conecta contribuciones a ingresos, variación de caja tras
   pagos por activos físicos y asignación de caja. Es aritmética reproducible sobre
@@ -825,6 +825,18 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
 - La sensibilidad conserva una fracción de la variación de esa partida y mantiene
   constantes las demás. Al 0% vuelve al nivel comparable anterior; al 100% conserva
   el observado. No anualiza, no pronostica y no convierte esa variación en precio.
+- El puente de resultado operativo usa ingresos y EBIT de idénticos períodos,
+  conceptos comparables, unidad y accession. Reconcilia `ΔEBIT = ΔIngresos ×
+  margen_anterior + ingresos_actuales × Δmargen`. El orden asigna la interacción
+  al margen: no es atribución causal, variación de volumen ni normalización.
+  Márgenes negativos y deterioros no se descartan; ingresos no positivos o datos
+  incompatibles dejan el puente pendiente. La falta de segmentos no bloquea la
+  identidad consolidada cuando sus propias cifras son compatibles.
+- La sensibilidad de margen mantiene los ingresos actuales y conserva entre 0%
+  y 100% de su cambio observado. Volver a un margen anterior más alto es un
+  escenario de mejora, no de pérdida. Nunca se presenta como límite del riesgo.
+  La pregunta enviada a la tesis conserva el período, los márgenes, la fracción
+  elegida y la fuente; no modifica ni guarda supuestos de valoración por sí sola.
 - Caja y capex requieren períodos y accession compatibles; los años duran entre
   330 y 380 días y los acumulados entre 60 y 300 días. Un acumulado incompleto no
   se sustituye silenciosamente por un año anterior. Una conclusión conjunta sobre

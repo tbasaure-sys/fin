@@ -1,11 +1,12 @@
 "use client";
 import {useState} from 'react';
-import {economicBrief,growthSensitivity} from '@/lib/research/economic-brief.mjs';
+import {economicBrief,growthSensitivity,operatingSensitivity} from '@/lib/research/economic-brief.mjs';
 import styles from './economic-brief.module.css';
 
 export function EconomicBrief({dossier,reading,language='es',onThesis}){
- const en=language==='en',locale=en?'en-US':'es-CL',b=economicBrief({dossier,reading}),g=b.growth,c=b.cash,k=b.capital;
+ const en=language==='en',locale=en?'en-US':'es-CL',b=economicBrief({dossier,reading}),g=b.growth,o=b.operating,c=b.cash,k=b.capital;
  const [retained,setRetained]=useState(0),probe=growthSensitivity(g,retained/100);
+ const [retainedMargin,setRetainedMargin]=useState(0),marginProbe=operatingSensitivity(o,retainedMargin/100);
  if(b.status!=='available')return null;
  const pct=n=>new Intl.NumberFormat(locale,{style:'percent',minimumFractionDigits:1,maximumFractionDigits:1}).format(n);
  const money=n=>new Intl.NumberFormat(locale,{maximumFractionDigits:1}).format(n/1e6);
@@ -35,8 +36,35 @@ export function EconomicBrief({dossier,reading,language='es',onThesis}){
     {promptButton('business',en?`What supports the persistence of the change in ${g.primary.label}, rather than a temporary cycle or mix effect?`:`¿Qué respalda la persistencia de la variación de ${g.primary.label}, frente a un efecto transitorio de ciclo o mezcla?`,en?`Compare ${g.primary.label} and the remaining revenue lines against ${g.start} to ${g.end}; distinguish price, volume and mix only where separately disclosed. Revisit the growth assumption if the contributor reverses. Source: ${g.source.url}`:`Comparar ${g.primary.label} y las demás partidas con ${g.start} a ${g.end}; distinguir precio, volumen y mezcla sólo cuando estén desglosados. Revisar el supuesto de crecimiento si se revierte el aporte. Fuente: ${g.source.url}`)}
    </div>
   </article>:<p>{en?'A reconciled business-level growth breakdown remains unavailable.':'Falta un desglose conciliado para explicar la contribución de cada negocio.'}</p>}
+  {o.status==='available'?<article data-operating-bridge>
+   <span className={styles.index}>02 / {en?'EARNINGS':'RESULTADO'}</span>
+   <div><h3>{en?'Revenue and margin: what changed in earnings':'Ventas y margen: qué cambió en el resultado'}</h3>
+    <p className={styles.period}>{o.start} → {o.end} · {en?'vs.':'frente a'} {o.priorStart} → {o.priorEnd} · {o.basis==='cumulative'?(en?'Cumulative, not annualized':'Acumulado, sin anualizar'):(en?'Fiscal year':'Ejercicio anual')}</p>
+    <p>{en?'Operating income moved from ':'El resultado operativo pasó de '}{money(o.prior)} {en?'to':'a'} {money(o.current)} {en?'USD million; operating margin moved from ':'millones de USD; el margen operativo pasó de '}{pct(o.priorMargin)} {en?'to':'a'} {pct(o.currentMargin)}.</p>
+    <dl className={styles.bridge}>
+     <div><dt>{en?'Revenue change at the prior margin':'Cambio de ventas al margen anterior'}</dt><dd>{signed(o.revenueEffect)}</dd></div>
+     <div><dt>{en?'Margin change on current revenue':'Cambio de margen sobre ventas actuales'}</dt><dd>{signed(o.marginEffect)}</dd></div>
+     <div><dt>{en?'Earnings change · USD M':'Variación del resultado · USD M'}</dt><dd>{signed(o.change)}</dd></div>
+    </dl>
+    <p>{en?'This reconciles reported earnings. It does not separate price from volume or tell us whether the margin change will persist.':'Esto reconcilia el resultado publicado. No separa precio de volumen ni determina si el cambio de margen persistirá.'}</p>
+    <details className={styles.probe}><summary>{en?'Test this margin':'Poner a prueba este margen'}</summary>
+     <p>{en?'Keep reported revenue unchanged and retain this fraction of the margin change. At 0%, use the prior margin; at 100%, retain the observed result.':'Mantén las ventas publicadas y conserva esta fracción del cambio de margen. Al 0%, usa el margen anterior; al 100%, conserva el resultado observado.'}</p>
+     <label>{en?'Fraction of the margin change retained':'Fracción del cambio de margen que se conserva'}: {retainedMargin}%<input type="range" min="0" max="100" step="10" value={retainedMargin} onChange={e=>setRetainedMargin(Number(e.target.value))}/></label>
+     <p className={styles.result} role="status">{pct(marginProbe.margin)} <small>{money(marginProbe.operatingIncome)} {en?'USD million operating income':'millones de USD de resultado operativo'} · {signed(marginProbe.changeVsObserved)} {en?'vs. observed':'frente al observado'}</small></p>
+     <p>{en?'A same-period accounting scenario, not a forecast, normalized margin, or an estimate of the share price. If margins fell, returning to the prior margin is an improvement scenario, not downside protection.':'Escenario contable del mismo período, no pronóstico, margen normalizado ni precio estimado. Si el margen cayó, volver al anterior es un escenario de mejora, no una protección frente a pérdidas.'}</p>
+    </details>
+    <details><summary>{en?'Earnings calculation and sources':'Cálculo del resultado y fuentes'}</summary>
+     <p>{en?'Revenue first at the prior margin; then the margin change at current revenue. This ordering assigns the interaction term to margin; it is not a causal decomposition.':'Primero cambia ventas al margen anterior; después aplica el cambio de margen a las ventas actuales. Este orden asigna la interacción al margen; no es una descomposición causal.'}</p>
+     <p>({money(o.currentRevenue)} − {money(o.priorRevenue)}) × {pct(o.priorMargin)} = {signed(o.revenueEffect)} USD M<br/>
+      {money(o.currentRevenue)} × ({pct(o.currentMargin)} − {pct(o.priorMargin)}) = {signed(o.marginEffect)} USD M</p>
+     <p>{en?'Displayed figures are rounded; calculations use full precision.':'Las cifras visibles están redondeadas; el cálculo usa la precisión completa.'}</p>
+     {['revenue','ebit'].map(metric=><div key={metric}>{['prior','current'].map(period=><span key={period}>{sourceLink(o.evidence[metric][period],`${metric==='revenue'?(en?'Revenue':'Ingresos'):(en?'Operating income':'Resultado operativo')} · ${period==='prior'?(en?'prior':'anterior'):(en?'current':'actual')}`,o.evidence[metric][period])}{' '}</span>)}</div>)}
+    </details>
+    {promptButton('business',en?'Which part of the operating margin change is repeatable, and which needs normalization?':'¿Qué parte del cambio de margen operativo puede repetirse y qué parte necesita normalización?',en?`For ${o.start} to ${o.end}, compare the reported margin of ${pct(o.currentMargin)} with ${pct(o.priorMargin)} in the comparable prior period. The selected same-period scenario retains ${retainedMargin}% of the margin change, producing ${pct(marginProbe.margin)} at unchanged revenue. Check mix, pricing, costs and one-off items before adopting a valuation margin; do not assume these drivers are separately disclosed. Source: ${o.evidence.ebit.current.url}`:`Para ${o.start} a ${o.end}, contrastar el margen publicado de ${pct(o.currentMargin)} con ${pct(o.priorMargin)} en el período anterior comparable. El escenario seleccionado conserva ${retainedMargin}% del cambio de margen y produce ${pct(marginProbe.margin)} con ventas constantes. Revisar mezcla, precios, costos y partidas no recurrentes antes de adoptar un margen de valoración; no suponer que esos factores estén desglosados. Fuente: ${o.evidence.ebit.current.url}`)}
+   </div>
+  </article>:<p>{en?'Comparable revenue and operating income are missing for the earnings bridge.':'Faltan ingresos y resultado operativo comparables para reconstruir su variación.'}</p>}
   {c.status==='available'?<article>
-   <span className={styles.index}>02 / {en?'CASH':'CAJA'}</span>
+   <span className={styles.index}>03 / {en?'CASH':'CAJA'}</span>
    <div><h3>{en?'Separate cash generation from investment':'Separar generación de caja e inversión'}</h3>
     <p className={styles.period}>{c.start} → {c.end} · {c.basis==='cumulative'?(en?'Cumulative, not annualized':'Acumulado, sin anualizar'):(en?'Fiscal year':'Ejercicio anual')}</p>
     <p>{en?'Operating cash less cash PPE spending changed from ':'La caja operativa menos pagos por activos físicos pasó de '}{money(c.prior)} {en?'to':'a'} {money(c.current)} {en?'USD million':'millones de USD'}.</p>
@@ -52,7 +80,7 @@ export function EconomicBrief({dossier,reading,language='es',onThesis}){
    </div>
   </article>:<p>{en?'Comparable cash and physical investment are still missing.':'Faltan caja e inversión física comparables para reconstruir su variación.'}</p>}
   {k.status==='available'?<article>
-   <span className={styles.index}>03 / CAPITAL</span>
+   <span className={styles.index}>04 / CAPITAL</span>
    <div><h3>{en?'Trace the residual into the change in cash':'Del saldo intermedio a la variación de efectivo'}</h3>
     <p>{en?'After physical investment, buybacks and dividends, the selected residual is ':'Tras inversión física, recompras y dividendos, el saldo de esas partidas es '}{money(k.selectedResidual)} {en?'USD million':'millones de USD'}.</p>
     <dl className={styles.bridge}>{[
