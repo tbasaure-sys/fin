@@ -11,6 +11,60 @@ function answer(){return {sections:dossier.sections.map(s=>({id:s.id,findings:[{
 function supportedReviews(){return dossier.sections.map(s=>({id:`${s.id}:0`,verdict:'supported',reason:'Lectura acotada.',allClausesSupported:true,scopeLimited:true,catalystStatus:'not_claimed',support:[{chunkId:s.extracts[0].id,quote:s.extracts[0].text.slice(0,90)}]}))}
 const completionResponse=raw=>Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(referenceProviderPayload(raw,dossier))}}],usage:{total_tokens:12}});
 
+test('a different reviewer uses its supported format and records the model actually called',async()=>{
+ const m=await implementation(),sent=[];
+ const result=await m.generateAnalysis(dossier,{apiKey:'test-key',reviewModel:'qwen/qwen3.8-27b',diagnose:()=>{},fetcher:async(_url,options)=>{
+  const request=JSON.parse(options.body);sent.push(request);
+  return completionResponse(request.response_format.json_schema.schema.properties.sections?answer():{reviews:supportedReviews()});
+ }});
+ assert.equal(sent.length,2);
+ assert.equal(sent[0].response_format.json_schema.strict,true,'draft retains its native strict schema');
+ assert.equal(sent[1].model,'qwen/qwen3.8-27b');
+ assert.equal(sent[1].response_format.json_schema.strict,false,'review still requests the schema, without unsupported constrained decoding');
+ assert.equal(sent[1].reasoning_format,'hidden');
+ assert.equal(sent[1].reasoning_effort,'high');
+ assert.equal(result.review.model,sent[1].model);
+ assert.equal(result.attempts[1].model,sent[1].model);
+ assert.equal(result.interpretationVerified,false);
+ assert.equal(result.sections[0].findings.length,1,'source validation and retained findings still execute');
+});
+
+test('an unconfigured reviewer fails before any provider call rather than using a silent fallback',async()=>{
+ const m=await implementation();let calls=0;
+ await assert.rejects(()=>m.generateAnalysis(dossier,{apiKey:'test-key',reviewModel:'unregistered-model',diagnose:()=>{},fetcher:async()=>{calls++;return completionResponse(answer())}}),/UNSUPPORTED_REVIEW_MODEL/);
+ assert.equal(calls,0);
+});
+
+test('the model receives every source passage and its date without audit-only hashes or block offsets',async()=>{
+ const m=await implementation();let packet;
+ await m.generateAnalysis(dossier,{apiKey:'test-key',diagnose:()=>{},fetcher:async(_url,options)=>{
+  const request=JSON.parse(options.body);
+  if(request.response_format.json_schema.schema.properties.sections){packet=JSON.parse(request.messages[1].content).packet;return completionResponse(answer())}
+  return completionResponse({reviews:supportedReviews()});
+ }});
+ assert.deepEqual(packet.sections.flatMap(s=>s.extracts.map(c=>[c.id,c.text])),dossier.sections.flatMap(s=>s.extracts.map(c=>[c.id,c.text])));
+ assert.deepEqual(packet.sources.map(s=>[s.id,s.form,s.acceptedAt,s.periodEnd]),dossier.sources.map(s=>[s.id,s.form,s.acceptedAt,s.periodEnd]));
+ assert.ok(packet.sources.every(s=>s.sha256===undefined&&s.url===undefined));
+ assert.ok(packet.sections.every(s=>s.extracts.every(c=>c.blockStart===undefined&&c.blockEnd===undefined)));
+});
+
+test('recorded Apple review disagreement preserves the actual regional overreach instead of calling the baseline correct',async()=>{
+ const m=await implementation(),fixture=require('./fixtures/review-aapl-scope-disagreement.json');
+ const source=fixture.dossier.sections.flatMap(s=>s.extracts).find(c=>c.id==='D4:446').text;
+ assert.ok(source.includes('Greater China net sales increased'));
+ assert.ok(source.includes('Japan net sales increased'));
+ const original=m.validateAnalysis(fixture.draft,fixture.dossier);
+ const results=fixture.observations.map(o=>m.applyReferenceAnalysisReview(original,o.raw,fixture.dossier,{model:o.model}));
+ assert.ok(results[0].sections[0].findings.some(f=>f.reviewId==='business:1'),'the observed false approval remains visible');
+ assert.ok(!results[1].sections[0].findings.some(f=>f.reviewId==='business:1'));
+ assert.equal(results[1].review.assessments.find(r=>r.id==='business:1').reason,'en todas las regiones principales');
+ assert.equal(results[1].sections[2].findings.length,3,'the alternate observation did not merely reject every finding');
+ for(const result of results){
+  assert.equal(result.interpretationVerified,false);
+  assert.equal(result.predictiveClaim,false);
+ }
+});
+
 test('a persisted draft resumes at review after quota interruption without generating it again',async()=>{
  const m=await implementation();let progress,calls=0;
  const onCheckpoint=async state=>{progress=structuredClone(state)};

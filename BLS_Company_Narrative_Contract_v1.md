@@ -518,6 +518,15 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
   tabla use «net sales by category» en vez de «segment revenue». Se conservan
   tabla, encabezados y localizador originales; la selección textual no certifica
   conciliación ni permite inferir recurrencia, márgenes de producto o causalidad.
+- `economic-roles-v3` prioriza, dentro de la presentación más reciente con
+  evidencia de desempeño, explicaciones de cambios en beneficio operativo o
+  margen bruto frente a resúmenes de ventas. Complementa así la tabla de ingresos
+  con evidencia sobre rentabilidad. Si no encuentra esa explicación conserva la
+  selección de ventas; una mejora antigua no desplaza evidencia más reciente.
+  Es recuperación textual, no una clasificación automática de beneficio recurrente:
+  una mezcla favorable, devolución, cargo o mayor costo conserva la atribución y
+  el período de la fuente. No se calcula beneficio normalizado desde esas palabras.
+  Se conservan el máximo de tres extractos y seis mil caracteres por sección.
 - La fuente pertinente prevalece sobre una coincidencia incidental más reciente:
   una nota de medición de valor razonable no desplaza automáticamente la sección
   de riesgos o una nota de vencimientos. Cada extracto conserva su fuente y fecha;
@@ -679,6 +688,25 @@ persistencia y autenticación están en `lib/server/thesis-{financials,capital-*
   pasajes; el servidor reconstruye texto y posiciones desde el expediente original.
   Al proveedor se envían IDs y texto íntegro de cada pasaje, no las posiciones
   internas. No se truncan las fuentes para encajar una petición.
+- v11.2 permite contrastar un revisor de otra familia mediante una opción interna
+  del generador, no un parámetro del navegador. La política predeterminada no se
+  cambia por una prueba favorable aislada. Modelo efectivo, solicitud y versión
+  quedan ligados al recibo y al checkpoint; cambiar de revisor invalida la
+  reanudación. No existe fallback silencioso hacia un modelo distinto.
+- El adaptador de revisión Qwen solicita JSON Schema sin decodificación estricta;
+  conserva todas las validaciones locales, el contraste de referencias y la
+  reparación acotada. Un esquema solicitado no certifica la respuesta. El perfil
+  es experimental: ni una discrepancia favorable ni su presencia en el código
+  prueban que el informe completo sea entregable o mejor.
+- La redacción recibe los textos íntegros, IDs, formularios y fechas de fuente.
+  Hashes, URLs y offsets se conservan en el expediente y se resuelven en servidor,
+  sin consumir presupuesto de lectura del modelo. No se quitan pasajes ni fechas.
+- `tests-node/fixtures/review-aapl-scope-disagreement.json` conserva un error real:
+  atribuir los mismos tres motores de crecimiento a todas las regiones cuando el
+  pasaje distingue China y Japón. El replay verifica lo observado, incluido el
+  falso positivo de la política predeterminada; NO certifica su calidad ni convierte
+  un rechazo más estricto en un informe más útil. Las etiquetas no son revisión
+  humana independiente. Regresión: `tests-node/filing-analysis.test.mjs`.
 - Una referencia ajena, cobertura incompleta o una cláusula sin respaldo no permite
   aprobar una afirmación. Un conjunto mal formado no se repara descartando filas
   silenciosamente. Las preguntas necesitan su propia revisión de pertinencia.

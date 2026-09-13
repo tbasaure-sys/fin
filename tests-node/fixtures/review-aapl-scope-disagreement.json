@@ -1,0 +1,945 @@
+{
+  "version": "observed-scope-review-v1",
+  "purpose": "Observed model disagreement, not a certification of semantic accuracy or report usefulness.",
+  "dossier": {
+    "version": "bls-filing-dossier-v2",
+    "ticker": "AAPL",
+    "name": "Apple Inc.",
+    "cik": 320193,
+    "asOf": "2026-09-13T08:15:18.346Z",
+    "packetHash": "f10dcc46a2b84c2015c8d95ef6ceb7ee7a3ea6dc77e80c792290088a625f5704",
+    "sources": [
+      {
+        "form": "10-K",
+        "accession": "0000320193-25-000079",
+        "document": "aapl-20250927.htm",
+        "filedAt": "2025-10-31",
+        "acceptedAt": "2025-10-31T10:01:26.000Z",
+        "periodEnd": "2025-09-27",
+        "id": "D1",
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019325000079/aapl-20250927.htm",
+        "sha256": "548ae59778cf08ee0f2ee088e7ece20d947076c3c01f74d2d65db4c2777e436a",
+        "retrievedAt": "2026-09-13T08:15:19.639Z"
+      },
+      {
+        "form": "10-Q",
+        "accession": "0000320193-26-000006",
+        "document": "aapl-20251227.htm",
+        "filedAt": "2026-01-30",
+        "acceptedAt": "2026-01-30T11:01:32.000Z",
+        "periodEnd": "2025-12-27",
+        "id": "D2",
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000006/aapl-20251227.htm",
+        "sha256": "3a3d9336a924488440e83b811ba354f654738cc822b6eb69ed6063e8cf348542",
+        "retrievedAt": "2026-09-13T08:15:19.965Z"
+      },
+      {
+        "form": "10-Q",
+        "accession": "0000320193-26-000013",
+        "document": "aapl-20260328.htm",
+        "filedAt": "2026-05-01",
+        "acceptedAt": "2026-05-01T10:01:00.000Z",
+        "periodEnd": "2026-03-28",
+        "id": "D3",
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000013/aapl-20260328.htm",
+        "sha256": "bb90060d61a273e51b5a472d65ae15d8b51bfd037ddf91e559f9d9adfe2a0228",
+        "retrievedAt": "2026-09-13T08:15:20.370Z"
+      },
+      {
+        "form": "10-Q",
+        "accession": "0000320193-26-000020",
+        "document": "aapl-20260627.htm",
+        "filedAt": "2026-07-31",
+        "acceptedAt": "2026-07-31T10:01:02.000Z",
+        "periodEnd": "2026-06-27",
+        "id": "D4",
+        "url": "https://www.sec.gov/Archives/edgar/data/320193/000032019326000020/aapl-20260627.htm",
+        "sha256": "4ad5bea67cedfa7542d623900355cc8d143ef95c1acc135a597f2eedabdb9177",
+        "retrievedAt": "2026-09-13T08:15:20.793Z"
+      }
+    ],
+    "sections": [
+      {
+        "id": "business",
+        "extracts": [
+          {
+            "id": "D1:88",
+            "text": "Item 1. Business\nCompany Background\nThe Company designs, manufactures and markets smartphones, personal computers, tablets, wearables and accessories, and sells a variety of related services. The Company’s fiscal year is the 52- or 53-week period that ends on the last Saturday of September.\nProducts\niPhone\niPhone® is the Company’s line of smartphones based on its iOS operating system. The iPhone line includes iPhone 17 Pro, iPhone Air™, iPhone 17, iPhone 16 and iPhone 16e.\nMac\nMac® is the Company’s line of personal computers based on its macOS® operating system. The Mac line includes laptops MacBook Air® and MacBook Pro®, as well as desktops iMac®, Mac mini®, Mac Studio® and Mac Pro®.\niPad\niPad® is the Company’s line of multipurpose tablets based on its iPadOS® operating system. The iPad line includes iPad Pro®, iPad Air®, iPad and iPad mini®.\nWearables, Home and Accessories\nWearables includes smartwatches, wireless headphones and spatial computers. The Company’s line of smartwatches, based on its watchOS® operating system, includes Apple Watch® Series 11, Apple Watch SE® 3 and Apple Watch Ultra® 3. The Company’s line of wireless headphones includes AirPods®, AirPods Pro®, AirPods Max® and Beats® products. Apple Vision Pro™ is the Company’s spatial computer based on its visionOS® operating system.\nHome includes Apple TV 4K®, the Company’s media streaming and gaming device based on its tvOS® operating system, and HomePod® and HomePod mini®, high-fidelity wireless smart speakers.\nAccessories includes Apple-branded and third-party accessories.\nApple Inc. | 2025 Form 10-K | 1\nServices\nAdvertising\nThe Company’s advertising services include third-party licensing arrangements and the Company’s own advertising platforms.\nAppleCare\nThe Company offers a portfolio of fee-based service and support products under the AppleCare® brand. The offerings provide priority access to Apple technical support, access to the global Apple authorized service network for repair and replacement services, and in many cases additional coverage for instances of accidental damage or theft and loss, depending on the country and type of product.\nCloud Services",
+            "kind": "prose",
+            "blockStart": 88,
+            "blockEnd": 108,
+            "documentSection": "1"
+          },
+          {
+            "id": "D4:446",
+            "text": "Americas\nAmericas net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone, Services and Mac.\nEurope\nEurope net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone, Services and Mac. The strength in foreign currencies relative to the U.S. dollar had a net favorable year-over-year impact on Europe net sales during the first nine months of 2026.\nGreater China\nGreater China net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone. The strength in the renminbi relative to the U.S. dollar had a favorable year-over-year impact on Greater China net sales during the third quarter and first nine months of 2026.\nApple Inc. | Q3 2026 Form 10-Q | 14\nJapan\nJapan net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 due to higher net sales of iPhone. The weakness in the yen relative to the U.S. dollar had an unfavorable year-over-year impact on Japan net sales during the third quarter and first nine months of 2026.\nRest of Asia Pacific\nRest of Asia Pacific net sales increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to higher net sales of iPhone, Services and Mac. The strength in foreign currencies relative to the U.S. dollar had a net favorable year-over-year impact on Rest of Asia Pacific net sales during the third quarter of 2026.\nProducts and Services Performance\nThe following table shows net sales by category for the three- and nine-month periods ended June 27, 2026 and June 28, 2025 (dollars in millions):",
+            "kind": "prose",
+            "blockStart": 446,
+            "blockEnd": 458,
+            "documentSection": "2"
+          },
+          {
+            "id": "D4:T231",
+            "kind": "table",
+            "text": "Note 2 – Revenue\nThe following table shows disaggregated net sales, as well as the portion of total net sales that was previously deferred, for the three- and nine-month periods ended June 27, 2026 and June 28, 2025 (in millions):\nThree Months Ended | Nine Months Ended\nJune 27, 2026 | June 28, 2025 | June 27, 2026 | June 28, 2025\niPhone® | $ | 54,252 | $ | 44,582 | $ | 196,515 | $ | 160,561\nMac® | 10,352 | 8,046 | 27,137 | 24,982\niPad® | 6,191 | 6,581 | 21,700 | 21,071\nWearables, Home and Accessories | 7,883 | 7,404 | 27,277 | 26,673\nServices | 30,739 | 27,423 | 91,728 | 80,408\nTotal net sales | $ | 109,417 | $ | 94,036 | $ | 364,357 | $ | 313,695\nPortion of total net sales that was included in deferred revenue as of the beginning of the period | $ | 4,086 | $ | 4,015 | $ | 7,260 | $ | 6,958",
+            "blockStart": 231,
+            "blockEnd": 239,
+            "contextBlockStart": 229,
+            "documentSection": "1",
+            "table": {
+              "complete": true,
+              "rows": 11,
+              "nested": false
+            }
+          }
+        ],
+        "coverage": {
+          "policy": "economic-roles-v2",
+          "roles": [
+            {
+              "id": "business_overview",
+              "status": "selected",
+              "chunkId": "D1:88"
+            },
+            {
+              "id": "current_performance",
+              "status": "selected",
+              "chunkId": "D4:446"
+            },
+            {
+              "id": "segment_economics",
+              "status": "selected",
+              "chunkId": "D4:T231"
+            }
+          ],
+          "excludedIncompleteTables": 0,
+          "excludedOversizedChunks": 0,
+          "characters": 4806,
+          "completeEconomicAssessment": false
+        },
+        "status": "extracts_available"
+      },
+      {
+        "id": "cash",
+        "extracts": [
+          {
+            "id": "D4:T184",
+            "kind": "table",
+            "text": "Apple Inc.\nCONDENSED CONSOLIDATED STATEMENTS OF CASH FLOWS (Unaudited)\n(In millions)\nNine Months Ended\nJune 27, 2026 | June 28, 2025\nCash, cash equivalents, and restricted cash and cash equivalents, beginning balances | $ | 35,934 | $ | 29,943\nOperating activities:\nNet income | 101,464 | 84,544\nAdjustments to reconcile net income to cash generated by operating activities:\nDepreciation and amortization | 9,973 | 8,571\nShare-based compensation expense | 10,523 | 9,680\nOther | (2,037) | (1,748)\nChanges in operating assets and liabilities:\nAccounts receivable, net | 8,316 | 5,685\nVendor non-trade receivables | 5,671 | 13,555\nInventories | (5,461) | 1,223\nOther current and non-current assets | (16,266) | (6,116)\nAccounts payable | (5,203) | (18,479)\nOther current and non-current liabilities | 10,016 | (15,161)\nCash generated by operating activities | 116,996 | 81,754\nInvesting activities:\nPurchases of marketable securities | (48,752) | (17,591)\nProceeds from maturities of marketable securities | 26,504 | 35,036\nProceeds from sales of marketable securities | 12,016 | 10,785\nPayments for acquisition of property, plant and equipment | (6,799) | (9,473)\nOther | (1,780) | (975)\nCash generated by/(used in) investing activities | (18,811) | 17,782\nFinancing activities:\nPayments for taxes related to net share settlement of equity awards | (6,462) | (5,719)\nPayments for dividends and dividend equivalents | (11,778) | (11,559)\nRepurchases of common stock | (62,094) | (70,579)\nProceeds from issuance of term debt, net | — | 4,481\nRepayments of term debt | (8,146) | (9,682)\nRepayments of commercial paper, net | (5,911) | (65)\nOther | (184) | (87)\nCash used in financing activities | (94,575) | (93,210)\nIncrease in cash, cash equivalents, and restricted cash and cash equivalents | 3,610 | 6,326\nCash, cash equivalents, and restricted cash and cash equivalents, ending balances | $ | 39,544 | $ | 36,269\nSupplemental cash flow disclosure:\nCash paid for income taxes, net | $ | 26,555 | $ | 37,332",
+            "blockStart": 184,
+            "blockEnd": 220,
+            "contextBlockStart": 181,
+            "documentSection": "1",
+            "table": {
+              "complete": true,
+              "rows": 44,
+              "nested": false
+            }
+          },
+          {
+            "id": "D4:350",
+            "text": "Term Debt\nAs of June 27, 2026 and September 27, 2025, the Company had outstanding fixed-rate notes with varying maturities for an aggregate carrying amount of $82.3 billion and $90.7 billion, respectively (collectively the “Notes”). As of June 27, 2026 and September 27, 2025, the fair value of the Company’s Notes, based on Level 2 inputs, was $71.2 billion and $80.4 billion, respectively.\nNote 7 – Shareholders’ Equity\nShare Repurchase Program\nDuring the nine months ended June 27, 2026, the Company repurchased 215 million shares of its common stock for $61.8 billion. The Company’s share repurchase programs do not obligate the Company to acquire a minimum amount of shares. Under the programs, shares may be repurchased in privately negotiated or open market transactions, including under plans complying with Rule 10b5-1 under the Securities Exchange Act of 1934, as amended (“Exchange Act”).\nApple Inc. | Q3 2026 Form 10-Q | 10\nNote 8 – Share-Based Compensation\nRestricted Stock Units\nA summary of the Company’s restricted stock unit (“RSU”) activity and related information for the nine months ended June 27, 2026, is as follows:",
+            "kind": "prose",
+            "blockStart": 350,
+            "blockEnd": 358,
+            "documentSection": "1"
+          },
+          {
+            "id": "D1:T597",
+            "kind": "table",
+            "text": "Apple Inc.\nCONSOLIDATED STATEMENTS OF CASH FLOWS\n(In millions)\nYears ended\nSeptember 27, 2025 | September 28, 2024 | September 30, 2023\nCash, cash equivalents, and restricted cash and cash equivalents, beginning balances | $ | 29,943 | $ | 30,737 | $ | 24,977\nOperating activities:\nNet income | 112,010 | 93,736 | 96,995\nAdjustments to reconcile net income to cash generated by operating activities:\nDepreciation and amortization | 11,698 | 11,445 | 11,519\nShare-based compensation expense | 12,863 | 11,688 | 10,833\nOther | (89) | (2,266) | (2,227)\nChanges in operating assets and liabilities:\nAccounts receivable, net | (6,682) | (3,788) | (1,688)\nVendor non-trade receivables | (347) | (1,356) | 1,271\nInventories | 1,400 | (1,046) | (1,618)\nOther current and non-current assets | (9,197) | (11,731) | (5,684)\nAccounts payable | 902 | 6,020 | (1,889)\nOther current and non-current liabilities | (11,076) | 15,552 | 3,031\nCash generated by operating activities | 111,482 | 118,254 | 110,543\nInvesting activities:\nPurchases of marketable securities | (24,407) | (48,656) | (29,513)\nProceeds from maturities of marketable securities | 40,907 | 51,211 | 39,686\nProceeds from sales of marketable securities | 12,890 | 11,135 | 5,828\nPayments for acquisition of property, plant and equipment | (12,715) | (9,447) | (10,959)\nOther | (1,480) | (1,308) | (1,337)\nCash generated by investing activities | 15,195 | 2,935 | 3,705\nFinancing activities:\nPayments for taxes related to net share settlement of equity awards | (5,960) | (5,441) | (5,431)\nPayments for dividends and dividend equivalents | (15,421) | (15,234) | (15,025)\nRepurchases of common stock | (90,711) | (94,949) | (77,550)\nProceeds from issuance of term debt, net | 4,481 | — | 5,228\nRepayments of term debt | (10,932) | (9,958) | (11,151)\nProceeds from/(Repayments of) commercial paper, net | (2,032) | 3,960 | (3,978)\nOther | (111) | (361) | (581)\nCash used in financing activities | (120,686) | (121,983) | (108,488)\nIncrease/(Decrease) in cash, cash equivalents, and restricted cash and cash equivalents | 5,991 | (794) | 5,760\nCash, cash equivalents, and restricted cash and cash equivalents, ending balances | $ | 35,934 | $ | 29,943 | $ | 30,737\nSupplemental cash flow disclosure:\nCash paid for income taxes, net | $ | 43,369 | $ | 26,102 | $ | 18,679",
+            "blockStart": 597,
+            "blockEnd": 633,
+            "contextBlockStart": 594,
+            "documentSection": "8",
+            "table": {
+              "complete": true,
+              "rows": 44,
+              "nested": false
+            }
+          }
+        ],
+        "coverage": {
+          "policy": "economic-roles-v2",
+          "roles": [
+            {
+              "id": "cash_flow_statement",
+              "status": "selected",
+              "chunkId": "D4:T184"
+            },
+            {
+              "id": "cash_explanation",
+              "status": "not_identified",
+              "chunkId": null
+            },
+            {
+              "id": "capital_obligations",
+              "status": "selected",
+              "chunkId": "D4:350"
+            }
+          ],
+          "excludedIncompleteTables": 0,
+          "excludedOversizedChunks": 0,
+          "characters": 5462,
+          "completeEconomicAssessment": false
+        },
+        "status": "extracts_available"
+      },
+      {
+        "id": "thesis",
+        "extracts": [
+          {
+            "id": "D4:565",
+            "text": "The Company currently obtains certain components from single or limited sources, which exposes it to significant supply and pricing risks. In addition, many components, including those that are available from multiple sources, are at times subject to industry-wide shortages and significant commodity pricing fluctuations that can materially adversely affect the Company’s business, results of operations, financial condition and stock price. For example, the Company is experiencing a period of supply constraints and increasing costs for components driven by factors such as industry supply-demand imbalances for components, including advanced semiconductors, storage (NAND) and memory (DRAM), which adversely affects the Company’s ability to obtain sufficient quantities of components and products on commercially reasonable terms, or at all. The Company expects these trends to intensify, which may materially adversely impact the Company’s revenue, costs, gross margin, results of operations and financial condition. Actions, such as price increases, that have been and may in the future be taken by the Company may not effectively mitigate these negative impacts, and may also reduce demand for the Company’s products and materially adversely affect the Company’s revenue, costs, gross margin, results of operations and financial condition.",
+            "kind": "prose",
+            "blockStart": 565,
+            "blockEnd": 565,
+            "documentSection": "1a"
+          },
+          {
+            "id": "D1:151",
+            "text": "Adverse macroeconomic conditions, including slow growth or recession, high unemployment, inflation, tighter credit, higher interest rates, and currency fluctuations, can adversely impact consumer confidence and spending and materially adversely affect demand for the Company’s products and services. In addition, consumer confidence and spending can be materially adversely affected in response to changes in fiscal and monetary policy, financial market volatility, declines in income or asset values, and other economic factors.\nUncertainty about, or a decline in, global or regional economic conditions can also have a significant impact on the Company’s suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners, and developers. Potential outcomes include financial instability; inability to obtain credit to finance business operations; and insolvency.\nAdverse economic conditions can also lead to increased credit and collectibility risk on the Company’s trade receivables; the failure of derivative counterparties and other financial institutions; limitations on the Company’s ability to issue new debt; reduced liquidity; and declines in the fair values of the Company’s financial instruments. These and other impacts can materially adversely affect the Company’s business, results of operations, financial condition and stock price.\nApple Inc. | 2025 Form 10-K | 5\nThe Company’s business can be impacted by political events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions.\nPolitical events, trade and other international disputes, geopolitical tensions, conflict, terrorism, natural disasters, public health issues, industrial accidents and other business interruptions can have a material adverse effect on the Company and its customers, employees, suppliers, contract manufacturers, logistics providers, distributors, cellular network carriers and other channel partners.",
+            "kind": "prose",
+            "blockStart": 151,
+            "blockEnd": 156,
+            "documentSection": "1a"
+          },
+          {
+            "id": "D4:570",
+            "text": "The Company believes that third-party developer support depends on the perceived benefits of creating software and services for the Company’s products compared to competitors’ platforms, such as Android for smartphones and tablets, Windows for personal computers and tablets, and PlayStation, Nintendo and Xbox for gaming platforms. This analysis may be based on factors such as the market position of the Company and its products, the anticipated revenue that may be generated, expected future growth of product sales, and the costs of developing such applications and services.\nApple Inc. | Q3 2026 Form 10-Q | 21\nThe Company’s minority market share in the global smartphone, personal computer, tablet and wearables markets can make developers less inclined to develop or upgrade software for the Company’s products and more inclined to devote their resources to developing and upgrading software for competitors’ products with larger market share. When developers focus their efforts on these competing platforms, the availability and quality of applications for the Company’s devices can suffer.\nThe Company relies on the continued availability and development of compelling and innovative software applications for its products. The Company’s products and operating systems are subject to rapid technological change, and when third-party developers are unable to or choose not to keep up with this pace of change, their applications can fail to take advantage of these changes to deliver improved customer experiences, can operate incorrectly, and can result in dissatisfied customers and lower customer demand for the Company’s products.",
+            "kind": "prose",
+            "blockStart": 570,
+            "blockEnd": 573,
+            "documentSection": "1a"
+          }
+        ],
+        "coverage": {
+          "policy": "economic-roles-v2",
+          "roles": [
+            {
+              "id": "operating_risks",
+              "status": "selected",
+              "chunkId": "D4:565"
+            },
+            {
+              "id": "financial_risks",
+              "status": "selected",
+              "chunkId": "D1:151"
+            },
+            {
+              "id": "competitive_risks",
+              "status": "selected",
+              "chunkId": "D4:570"
+            }
+          ],
+          "excludedIncompleteTables": 0,
+          "excludedOversizedChunks": 0,
+          "characters": 5067,
+          "completeEconomicAssessment": false
+        },
+        "status": "extracts_available"
+      }
+    ],
+    "revenueBreakdown": {
+      "version": "revenue-breakdown-v1",
+      "sourceId": "D4",
+      "partitions": [
+        {
+          "sourceId": "D4",
+          "tableId": 17,
+          "axis": "srt:ProductOrServiceAxis",
+          "concept": "RevenueFromContractWithCustomerExcludingAssessedTax",
+          "unit": "USD",
+          "currentTotal": {
+            "value": 364357000000,
+            "factId": "f-383",
+            "contextId": "c-1",
+            "start": "2025-09-28",
+            "end": "2026-06-27"
+          },
+          "priorTotal": {
+            "value": 313695000000,
+            "factId": "f-384",
+            "contextId": "c-20",
+            "start": "2024-09-29",
+            "end": "2025-06-28"
+          },
+          "rows": [
+            {
+              "member": "aapl:IPhoneMember",
+              "label": "iPhone®",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 160561000000,
+                "factId": "f-364",
+                "contextId": "c-60",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 196515000000,
+                "factId": "f-363",
+                "contextId": "c-59",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 35954000000,
+              "currentShare": 0.539347398293432,
+              "growthContribution": 0.11461451409808891
+            },
+            {
+              "member": "aapl:MacMember",
+              "label": "Mac®",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 24982000000,
+                "factId": "f-368",
+                "contextId": "c-64",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 27137000000,
+                "factId": "f-367",
+                "contextId": "c-63",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 2155000000,
+              "currentShare": 0.07447915094261946,
+              "growthContribution": 0.0068697301518991375
+            },
+            {
+              "member": "aapl:IPadMember",
+              "label": "iPad®",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 21071000000,
+                "factId": "f-372",
+                "contextId": "c-68",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 21700000000,
+                "factId": "f-371",
+                "contextId": "c-67",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 629000000,
+              "currentShare": 0.059556972968819046,
+              "growthContribution": 0.002005132373802579
+            },
+            {
+              "member": "aapl:WearablesHomeandAccessoriesMember",
+              "label": "Wearables, Home and Accessories",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 26673000000,
+                "factId": "f-376",
+                "contextId": "c-72",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 27277000000,
+                "factId": "f-375",
+                "contextId": "c-71",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 604000000,
+              "currentShare": 0.07486338947790216,
+              "growthContribution": 0.0019254371284209183
+            },
+            {
+              "member": "us-gaap:ServiceMember",
+              "label": "Services",
+              "labelBasis": "filing_row",
+              "prior": {
+                "value": 80408000000,
+                "factId": "f-380",
+                "contextId": "c-17",
+                "start": "2024-09-29",
+                "end": "2025-06-28"
+              },
+              "current": {
+                "value": 91728000000,
+                "factId": "f-379",
+                "contextId": "c-16",
+                "start": "2025-09-28",
+                "end": "2026-06-27"
+              },
+              "change": 11320000000,
+              "currentShare": 0.2517530883172273,
+              "growthContribution": 0.03608600710881589
+            }
+          ],
+          "totalGrowth": 0.16150082086102743,
+          "reconciliation": {
+            "priorGap": 0,
+            "currentGap": 0,
+            "roundingTolerance": {
+              "prior": 3000000,
+              "current": 3000000
+            }
+          }
+        }
+      ],
+      "exclusions": [],
+      "economicCauseVerified": false,
+      "status": "available",
+      "start": "2025-09-28",
+      "end": "2026-06-27"
+    },
+    "coverage": {
+      "documents": 4,
+      "totalChunks": 467,
+      "selectedChunks": 9
+    },
+    "analysis": {
+      "status": "pending_provider",
+      "valuation": null,
+      "mispricing": null,
+      "interpretationVerified": false
+    },
+    "claim": "C0_REPORTED_ONLY",
+    "performance": null,
+    "predictiveClaim": false
+  },
+  "draft": {
+    "sections": [
+      {
+        "id": "business",
+        "findings": [
+          {
+            "kind": "interpretation",
+            "text": "Apple genera ingresos vendiendo dispositivos (iPhone, Mac, iPad, wearables, accesorios) y servicios asociados, entre los que destacan publicidad, AppleCare y servicios en la nube.",
+            "evidence": [
+              {
+                "chunkId": "D1:88"
+              }
+            ]
+          },
+          {
+            "kind": "interpretation",
+            "text": "El crecimiento de ventas netas en el trimestre y en los primeros nueve meses de 2026 se debe principalmente al aumento de iPhone, Services y Mac en todas las regiones principales.",
+            "evidence": [
+              {
+                "chunkId": "D4:446"
+              }
+            ]
+          }
+        ],
+        "unknowns": [
+          "¿Qué proporción de los ingresos totales proviene de servicios recurrentes frente a hardware?",
+          "¿Cuál es la exposición de ingresos a cada una de las regiones geográficas después de ajustar por tipo de cambio?"
+        ],
+        "checks": [
+          "Revisar la desagregación de ingresos por segmento y por región en la sección de notas de ingresos del 10‑K completo.",
+          "Buscar la tabla de ingresos recurrentes vs no recurrentes en el reporte de servicios."
+        ]
+      },
+      {
+        "id": "cash",
+        "findings": [
+          {
+            "kind": "interpretation",
+            "text": "Las actividades operativas generaron efectivo en el periodo, impulsadas por mayores ingresos y cambios en cuentas por cobrar y pasivos operativos.",
+            "evidence": [
+              {
+                "chunkId": "D4:T184"
+              }
+            ]
+          },
+          {
+            "kind": "interpretation",
+            "text": "Apple utilizó recursos para recomprar acciones durante el mismo periodo, reflejando una política activa de devolución de capital a los accionistas.",
+            "evidence": [
+              {
+                "chunkId": "D4:350"
+              }
+            ]
+          },
+          {
+            "kind": "interpretation",
+            "text": "Al cierre del periodo la compañía mantenía notas a tasa fija, indicando una fuente de financiamiento a largo plazo que sigue siendo significativa.",
+            "evidence": [
+              {
+                "chunkId": "D4:350"
+              }
+            ]
+          }
+        ],
+        "unknowns": [
+          "¿Cuál es la política de inversión en valores negociables y su objetivo de liquidez a corto plazo?",
+          "¿Qué parte del flujo de efectivo libre está destinada a inversiones de capital versus retornos a accionistas?"
+        ],
+        "checks": [
+          "Consultar la nota de política de inversión y gestión de tesorería en el 10‑K para confirmar el horizonte de inversión en valores negociables.",
+          "Revisar la conciliación de flujo de efectivo libre en la sección de inversiones de capital del reporte financiero."
+        ]
+      },
+      {
+        "id": "thesis",
+        "findings": [
+          {
+            "kind": "interpretation",
+            "text": "Apple reconoce que depende de componentes de fuentes únicas o limitadas, lo que genera riesgos de suministro y de precios que podrían afectar ingresos, costos y márgenes.",
+            "evidence": [
+              {
+                "chunkId": "D4:565"
+              }
+            ]
+          },
+          {
+            "kind": "interpretation",
+            "text": "Condiciones macroeconómicas adversas (recesión, inflación, tipos de cambio) pueden reducir la confianza del consumidor y la demanda de productos y servicios de Apple.",
+            "evidence": [
+              {
+                "chunkId": "D1:151"
+              }
+            ]
+          },
+          {
+            "kind": "interpretation",
+            "text": "Una participación de mercado minoritaria en smartphones y PCs puede limitar la motivación de desarrolladores externos, afectando la disponibilidad y calidad de aplicaciones y, por ende, la demanda de dispositivos Apple.",
+            "evidence": [
+              {
+                "chunkId": "D4:570"
+              }
+            ]
+          }
+        ],
+        "unknowns": [
+          "¿En qué medida los aumentos de precios de componentes se trasladarán a los precios finales sin erosionar la demanda?",
+          "¿Cuál es el impacto cuantitativo esperado de la desaceleración macroeconómica en la demanda de servicios recurrentes?"
+        ],
+        "checks": [
+          "Buscar declaraciones de la gerencia sobre estrategias de mitigación de costos de componentes en la sección de riesgos del 10‑K.",
+          "Revisar los pronósticos de demanda de servicios en presentaciones a inversores o notas de gestión para cuantificar sensibilidad macro."
+        ]
+      }
+    ]
+  },
+  "observations": [
+    {
+      "model": "openai/gpt-oss-120b",
+      "requestHash": "cf295082b8018fa728a29d795c986be07c2f63f3975c5ef3662d3eaf26284c6c",
+      "raw": {
+        "reviews": [
+          {
+            "id": "business:0",
+            "verdict": "supported",
+            "unsupportedClause": "",
+            "supportIds": [
+              "source0:2",
+              "source0:16",
+              "source0:17",
+              "source0:18",
+              "source0:20"
+            ]
+          },
+          {
+            "id": "business:1",
+            "verdict": "supported",
+            "unsupportedClause": "",
+            "supportIds": [
+              "source1:1",
+              "source1:3",
+              "source1:5",
+              "source1:8",
+              "source1:10"
+            ]
+          },
+          {
+            "id": "cash:0",
+            "verdict": "supported",
+            "unsupportedClause": "",
+            "supportIds": [
+              "source2:6",
+              "source2:7",
+              "source2:12",
+              "source2:13",
+              "source2:14",
+              "source2:15",
+              "source2:16",
+              "source2:17",
+              "source2:18",
+              "source2:19"
+            ]
+          },
+          {
+            "id": "cash:1",
+            "verdict": "supported",
+            "unsupportedClause": "",
+            "supportIds": [
+              "source3:4"
+            ]
+          },
+          {
+            "id": "cash:2",
+            "verdict": "supported",
+            "unsupportedClause": "",
+            "supportIds": [
+              "source3:0",
+              "source3:1"
+            ]
+          },
+          {
+            "id": "thesis:0",
+            "verdict": "supported",
+            "unsupportedClause": "",
+            "supportIds": [
+              "source4:0",
+              "source4:1",
+              "source4:2"
+            ]
+          },
+          {
+            "id": "thesis:1",
+            "verdict": "supported",
+            "unsupportedClause": "",
+            "supportIds": [
+              "source5:0"
+            ]
+          },
+          {
+            "id": "thesis:2",
+            "verdict": "supported",
+            "unsupportedClause": "",
+            "supportIds": [
+              "source6:2",
+              "source6:3"
+            ]
+          }
+        ],
+        "agenda": [
+          {
+            "id": "business:unknowns:0",
+            "verdict": "relevant",
+            "reason": "La proporción de ingresos recurrentes vs hardware es una métrica clave para evaluar la estabilidad del modelo de negocio; la premisa está basada en la existencia de servicios recurrentes descritos en los documentos.",
+            "sourceIds": [
+              "source0:16",
+              "source0:20"
+            ]
+          },
+          {
+            "id": "business:unknowns:1",
+            "verdict": "relevant",
+            "reason": "Entender la exposición geográfica de los ingresos, ajustada por tipo de cambio, es esencial para valorar riesgos de divisa y diversificación de mercado.",
+            "sourceIds": [
+              "source1:1",
+              "source1:3",
+              "source1:5",
+              "source1:8",
+              "source1:10"
+            ]
+          },
+          {
+            "id": "business:checks:0",
+            "verdict": "relevant",
+            "reason": "Verificar la desagregación por segmento y región permite confirmar la información de crecimiento citada y su origen.",
+            "sourceIds": [
+              "source1:1",
+              "source1:3",
+              "source1:5",
+              "source1:8",
+              "source1:10"
+            ]
+          },
+          {
+            "id": "business:checks:1",
+            "verdict": "relevant",
+            "reason": "Buscar una tabla que distinga ingresos recurrentes de no recurrentes ayuda a validar la composición de los servicios.",
+            "sourceIds": [
+              "source0:16",
+              "source0:20"
+            ]
+          },
+          {
+            "id": "cash:unknowns:0",
+            "verdict": "relevant",
+            "reason": "La política de inversión en valores negociables afecta la liquidez y la gestión del efectivo, información importante para evaluar la solidez financiera.",
+            "sourceIds": [
+              "source2:20",
+              "source2:21",
+              "source2:22",
+              "source2:23"
+            ]
+          },
+          {
+            "id": "cash:unknowns:1",
+            "verdict": "relevant",
+            "reason": "Desglosar el flujo de efectivo libre entre CAPEX y retornos a accionistas es crucial para entender la asignación de capital.",
+            "sourceIds": [
+              "source2:24",
+              "source2:27",
+              "source2:28",
+              "source2:29",
+              "source2:30"
+            ]
+          },
+          {
+            "id": "cash:checks:0",
+            "verdict": "relevant",
+            "reason": "Confirmar la nota de política de inversión y horizonte de inversión brinda claridad sobre la estrategia de tesorería.",
+            "sourceIds": [
+              "source2:20",
+              "source2:21",
+              "source2:22",
+              "source2:23"
+            ]
+          },
+          {
+            "id": "cash:checks:1",
+            "verdict": "relevant",
+            "reason": "Revisar la conciliación del flujo de efectivo libre permite validar la consistencia de los números reportados.",
+            "sourceIds": [
+              "source2:24",
+              "source2:27",
+              "source2:28",
+              "source2:29",
+              "source2:30"
+            ]
+          },
+          {
+            "id": "thesis:unknowns:0",
+            "verdict": "relevant",
+            "reason": "Evaluar el grado de traspaso de aumentos de precios de componentes a precios finales sin perder demanda es esencial para estimar márgenes futuros.",
+            "sourceIds": [
+              "source4:0",
+              "source4:1",
+              "source4:2"
+            ]
+          },
+          {
+            "id": "thesis:unknowns:1",
+            "verdict": "relevant",
+            "reason": "Cuantificar el impacto macroeconómico en la demanda de servicios recurrentes ayuda a modelar riesgos de ingresos.",
+            "sourceIds": [
+              "source5:0"
+            ]
+          },
+          {
+            "id": "thesis:checks:0",
+            "verdict": "relevant",
+            "reason": "Buscar declaraciones de mitigación de costos de componentes verifica si la empresa tiene planes para gestionar ese riesgo.",
+            "sourceIds": [
+              "source4:0",
+              "source4:1"
+            ]
+          },
+          {
+            "id": "thesis:checks:1",
+            "verdict": "relevant",
+            "reason": "Revisar pronósticos de demanda de servicios permite validar la sensibilidad a variables macroeconómicas.",
+            "sourceIds": [
+              "source5:0",
+              "source5:2"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "model": "qwen/qwen3.8-27b",
+      "requestHash": "0ab3207b98591ccabeaa93f7abe94e3aabed9a846b98b6cd65e8d6faf6217c96",
+      "raw": {
+        "agenda": [
+          {
+            "id": "business:unknowns:0",
+            "reason": "La pregunta es económicamente relevante porque distingue el mix de ingresos recurrentes frente a hardware, pero los extractos citados no contienen la proporción solicitada; la fuente motivadora es la descripción de servicios y la tabla de ventas por categoría.",
+            "sourceIds": [
+              "D4:T231"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "business:unknowns:1",
+            "reason": "Es pertinente conocer la exposición regional ajustada por tipo de cambio, pues los extractos muestran variaciones regionales y efectos de divisas, pero no proporcionan una exposición ajustada completa.",
+            "sourceIds": [
+              "D4:446"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "business:checks:0",
+            "reason": "Es una tarea viable y pertinente: revisar la desagregación de ingresos por segmento y región en las notas de ingresos del 10-K completo, dado que los extractos muestran ventas por categoría y región pero no la nota completa.",
+            "sourceIds": [
+              "D4:T231",
+              "D4:446"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "business:checks:1",
+            "reason": "La tarea asume que existe una tabla de ingresos recurrentes versus no recurrentes en el reporte de servicios; los extractos no evidencian esa tabla, por lo que la tarea no es viable tal como está planteada.",
+            "sourceIds": [
+              "D4:T231"
+            ],
+            "verdict": "irrelevant"
+          },
+          {
+            "id": "cash:unknowns:0",
+            "reason": "Es relevante porque los flujos muestran compras y ventas de valores negociables, pero no se describe la política de inversión ni el objetivo de liquidez a corto plazo.",
+            "sourceIds": [
+              "D4:T184"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "cash:unknowns:1",
+            "reason": "Es pertinente porque el flujo de efectivo muestra inversiones, capex y retornos a accionistas, pero no indica qué parte del flujo libre se destina a cada uso.",
+            "sourceIds": [
+              "D4:T184"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "cash:checks:0",
+            "reason": "Es una tarea viable y pertinente: consultar la nota de política de inversión y gestión de tesorería en el 10-K para confirmar el horizonte de inversión en valores negociables, ya que los extractos no contienen esa política.",
+            "sourceIds": [
+              "D4:T184"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "cash:checks:1",
+            "reason": "Es una tarea viable y pertinente: revisar la conciliación de flujo de efectivo libre en la sección de inversiones de capital, porque los extractos muestran componentes de flujo pero no una conciliación explícita de flujo libre.",
+            "sourceIds": [
+              "D4:T184"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "thesis:unknowns:0",
+            "reason": "Es relevante porque el extracto de riesgos describe restricciones de suministro y costos de componentes, pero no cuantifica el traslado a precios finales ni el efecto en demanda.",
+            "sourceIds": [
+              "D4:565"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "thesis:unknowns:1",
+            "reason": "Es pertinente porque el extracto de riesgos macroeconómicos indica posibles efectos en demanda, pero no cuantifica el impacto esperado en servicios recurrentes.",
+            "sourceIds": [
+              "D1:151"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "thesis:checks:0",
+            "reason": "Es una tarea viable y pertinente: buscar declaraciones de la gerencia sobre estrategias de mitigación de costos de componentes en la sección de riesgos, dado que el extracto identifica el riesgo pero no las estrategias de mitigación.",
+            "sourceIds": [
+              "D4:565"
+            ],
+            "verdict": "relevant"
+          },
+          {
+            "id": "thesis:checks:1",
+            "reason": "Es una tarea viable y pertinente: revisar pronósticos de demanda de servicios en presentaciones o notas de gestión para cuantificar sensibilidad macro, porque los extractos no contienen pronósticos cuantitativos.",
+            "sourceIds": [
+              "D1:151"
+            ],
+            "verdict": "relevant"
+          }
+        ],
+        "reviews": [
+          {
+            "id": "business:0",
+            "supportIds": [
+              "source0:2",
+              "source0:4",
+              "source0:6",
+              "source0:8",
+              "source0:10",
+              "source0:13",
+              "source0:15",
+              "source0:16",
+              "source0:18",
+              "source0:20"
+            ],
+            "unsupportedClause": "entre los que destacan publicidad, AppleCare y servicios en la nube",
+            "verdict": "unsupported"
+          },
+          {
+            "id": "business:1",
+            "supportIds": [
+              "source1:1",
+              "source1:3",
+              "source1:5",
+              "source1:8",
+              "source1:10"
+            ],
+            "unsupportedClause": "en todas las regiones principales",
+            "verdict": "unsupported"
+          },
+          {
+            "id": "cash:0",
+            "supportIds": [
+              "source2:7",
+              "source2:13",
+              "source2:17",
+              "source2:18",
+              "source2:19"
+            ],
+            "unsupportedClause": "impulsadas por mayores ingresos y cambios en cuentas por cobrar y pasivos operativos",
+            "verdict": "unsupported"
+          },
+          {
+            "id": "cash:1",
+            "supportIds": [
+              "source3:4"
+            ],
+            "unsupportedClause": "reflejando una política activa de devolución de capital a los accionistas",
+            "verdict": "unsupported"
+          },
+          {
+            "id": "cash:2",
+            "supportIds": [
+              "source3:1"
+            ],
+            "unsupportedClause": "indicando una fuente de financiamiento a largo plazo que sigue siendo significativa",
+            "verdict": "unsupported"
+          },
+          {
+            "id": "thesis:0",
+            "supportIds": [
+              "source4:0",
+              "source4:1",
+              "source4:2"
+            ],
+            "unsupportedClause": "",
+            "verdict": "supported"
+          },
+          {
+            "id": "thesis:1",
+            "supportIds": [
+              "source5:0"
+            ],
+            "unsupportedClause": "",
+            "verdict": "supported"
+          },
+          {
+            "id": "thesis:2",
+            "supportIds": [
+              "source6:2",
+              "source6:3"
+            ],
+            "unsupportedClause": "",
+            "verdict": "supported"
+          }
+        ]
+      }
+    }
+  ],
+  "adjudication": {
+    "claimId": "business:1",
+    "expected": "unsupported",
+    "reason": "The claim attributes iPhone, Services and Mac growth to all main regions. The cited passage attributes Greater China and Japan growth to iPhone, not all three categories.",
+    "sourceChunk": "D4:446",
+    "independentHumanReview": false
+  }
+}

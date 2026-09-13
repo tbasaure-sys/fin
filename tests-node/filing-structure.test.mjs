@@ -80,6 +80,31 @@ test('current product revenue tables reach the business analysis instead of an o
  }
 });
 
+test('current profitability explanations are selected before repeated regional sales summaries',()=>{
+ const sources=[{id:'D1',form:'10-Q',sha256:'a'.repeat(64),acceptedAt:'2026-07-31T00:00:00Z',url:'https://www.sec.gov/Archives/edgar/data/1/D1.htm'}];
+ const regional={id:'D1:10',kind:'prose',documentSection:'2',blockStart:10,text:'Americas net sales increased during the quarter primarily due to higher shipments. Europe net sales increased during the same period due to higher service sales.'};
+ // Exact public filing sentence, not an assertion that refunds are recurring.
+ const explanation={id:'D1:40',kind:'prose',documentSection:'2',blockStart:40,text:'Products gross margin and gross margin percentage increased during the third quarter and first nine months of 2026 compared to the same periods in 2025 primarily due to a different mix of products and tariff refunds, partially offset by higher costs, including memory.'};
+ const role=all=>compileDossier({ticker:'ACME',asOf:'2026-08-01T00:00:00Z',sources,chunks:all}).sections[0];
+ const selected=role([regional,explanation]);
+ assert.equal(selected.coverage.roles.find(r=>r.id==='current_performance').chunkId,explanation.id);
+ assert.equal(selected.extracts.find(c=>c.id===explanation.id).text,explanation.text);
+ const deterioration={...explanation,text:'Products gross margin decreased during the quarter primarily due to higher component costs, partially offset by a favorable mix of products. Management expects continuing volatility in gross margin.'};
+ assert.equal(role([regional,deterioration]).coverage.roles.find(r=>r.id==='current_performance').chunkId,deterioration.id,'retrieval must not prefer favorable performance');
+ assert.equal(role([regional]).coverage.roles.find(r=>r.id==='current_performance').chunkId,regional.id,'companies without a profit explanation retain current sales evidence');
+ assert.ok(selected.extracts.length<=3&&selected.coverage.characters<=6000);
+});
+
+test('an old margin improvement cannot displace performance evidence from a newer filing',()=>{
+ const sources=['D1','D2'].map((id,i)=>({id,form:i?'10-Q':'10-K',sha256:'a'.repeat(64),acceptedAt:`2026-0${i+1}-15T00:00:00Z`,url:`https://www.sec.gov/Archives/edgar/data/1/${id}.htm`}));
+ const chunks=[
+  {id:'D1:10',kind:'prose',documentSection:'7',blockStart:10,text:'Gross margin increased during the fiscal year because of a change in product mix and a tax refund. Higher manufacturing costs partially offset the improvement.'},
+  {id:'D2:10',kind:'prose',documentSection:'2',blockStart:10,text:'Net sales decreased during the quarter because of lower shipments of devices and industrial equipment. Service sales did not offset the lower demand for devices.'},
+ ];
+ const selected=compileDossier({ticker:'ACME',asOf:'2026-03-01T00:00:00Z',sources,chunks}).sections[0];
+ assert.equal(selected.coverage.roles.find(r=>r.id==='current_performance').chunkId,'D2:10');
+});
+
 test('a bare table heading cannot take an evidence slot from a substantive source', () => {
  const chunks=engine.makeChunks(engine.documentStructure('<h2>CASH FLOWS STATEMENTS</h2>'+html),'D1');
  const selected=engine.retrieve(chunks,engine.topics[1]);
