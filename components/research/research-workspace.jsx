@@ -6,6 +6,7 @@ import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { useLanguagePreference } from "@/components/language-layer";
 import { TickerSearch } from "./ticker-search";
 import { AnalysisPanel } from "./analysis-panel";
+import { JevPanel } from './jev-panel';
 import { ThesisWorkspace } from "./thesis-workspace";
 import styles from "./research.module.css";
 import {FinancialTerminal, CompanyComparison, Watchlist, useCompanyFinancials} from "./financial-terminal";
@@ -272,6 +273,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "", initial
               <ThesisWorkspace key={dossier.packetHash} dossier={dossier} ticket={state.ticket} language={language} report={assistedReport} onRead={()=>setWorkspaceView('documents')} />
             </div>
             <div hidden={workspaceView!=='documents'}>
+            <JevPanel kind="documents" language={language} dossier={dossier} ticket={state.ticket} ticker={ticker}/>
             <p className={styles.coverageNote}>{copy.at}: {date(dossier.asOf,language)} · {dossier.delivery==='published_capture'?copy.captured:copy.live}{dossier.unavailable?.length ? ` · ${dossier.unavailable.length} ${language==='en'?'documents unavailable':'documentos no disponibles'}`:''}</p>
             {dossier.scope?.startsWith('annual_and_latest_four')?<p className={styles.coverageNote}>{language==='en'?'Foreign issuer: annual report and up to four recent 6-K primary documents. Exhibits are not included.':'Emisor extranjero: informe anual y hasta cuatro documentos principales 6-K recientes. No se incluyen anexos.'}</p>:null}
             {!analysisStarted ? <div className={styles.notice}>

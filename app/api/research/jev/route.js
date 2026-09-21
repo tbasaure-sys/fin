@@ -1,0 +1,15 @@
+import { requireApiAuthSession } from '@/lib/server/auth/session';
+import { verifyDossier } from '@/lib/server/filing-analysis';
+import { thesisRepository } from '@/lib/server/thesis-repository';
+import { readOwnedPortfolio } from '@/lib/server/thesis-financials';
+import { consumePublicRateLimit } from '@/lib/server/data/public-rate-limit';
+import { researchMarketService } from '@/lib/server/research-market-service';
+import { jevService } from '@/lib/server/jev-service';
+import { createJevHttp } from '@/lib/server/jev-http';
+export const runtime='nodejs';
+export const dynamic='force-dynamic';
+export const maxDuration=90;
+const local=process.env.NODE_ENV!=='production'&&process.env.BLS_PRIME_STORAGE_BACKEND==='memory';
+const handler=createJevHttp({authenticate:requireApiAuthSession,service:jevService,market:researchMarketService,store:thesisRepository,verify:verifyDossier,consume:consumePublicRateLimit,readPortfolio:local?async()=>({status:'available',holdings:[]}):readOwnedPortfolio});
+export const GET=handler;
+export const POST=handler;

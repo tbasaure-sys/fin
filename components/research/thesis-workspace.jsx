@@ -5,6 +5,7 @@ import {newThesis,evaluateThesis,compareEvidence,companyKey,NODE_IDS,assistedPro
 import {THESIS_COPY} from './thesis-copy';
 import styles from './thesis.module.css';
 import {CapitalWorkspace} from './capital-workspace';
+import {JevPanel} from './jev-panel';
 
 export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
  const c=THESIS_COPY[language]||THESIS_COPY.es;
@@ -68,6 +69,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
     <nav aria-label={language==='en'?'Thesis views':'Vistas de tesis'}><button aria-pressed={view==='editor'} onClick={()=>setView('editor')}>{c.editor}</button><button aria-pressed={view==='capital'} onClick={()=>setView('capital')}>{language==='en'?'Valuation and portfolio':'Valoración y cartera'}</button><button aria-pressed={view==='history'} onClick={()=>setView('history')}>{c.history}</button></nav>
    </div>
    <p className={styles.provenance}>{c.cutoff}: {pinned.asOf.slice(0,10)} · {c.noClaim}</p>
+   <JevPanel kind="thesis" language={language} ticker={dossier.ticker} revisionHash={current?.hash} disabled={dirty}/>
    {documents.kind!=='same_documents'?<div className={styles.error}><p>{c.newDocs}</p><button onClick={adopt}>{c.adopt}</button></div>:null}
    {view==='history'?<div className={styles.history}>
     <h3>{c.history}</h3><p>{documents.kind==='same_documents'?c.sameDocs:c.newDocs}</p>
