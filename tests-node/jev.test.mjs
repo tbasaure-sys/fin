@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {questionsFor,validateJevAnswer,newsPairs,reviewPriority} from '../lib/research/jev.mjs';
+import {questionsFor,validateJevAnswer,newsPairs,reviewPriority,headlineNamesCompany,gateNewsAnswers} from '../lib/research/jev.mjs';
+import {createJevCompanyDirectory} from '../lib/server/jev-company-directory.js';
 import {createJevService} from '../lib/server/jev-service.js';
 import {createJevHttp} from '../lib/server/jev-http.js';
 import {hash} from '../lib/research/filing-engine.mjs';
@@ -54,6 +55,22 @@ test('company pairs round robin, deduplicate and preserve unknown portfolio valu
  assert.equal(newsPairs({articles:[article(0)]},'market').total,2);
  const q=questionsFor('news',0);const a={relevance:validateJevAnswer(answer(q.relevance),q.relevance),materiality:validateJevAnswer(answer(q.materiality),q.materiality)};
  assert.equal(reviewPriority({weight:0.8},a),0.8);assert.equal(reviewPriority({weight:null},a),null);assert.equal(reviewPriority({weight:0.8},{...a,relevance:{...a.relevance,uncertain:true}}),null);
+});
+test('competitor headlines cannot become direct target-company signals',()=>{
+ const q=questionsFor('news',0),a=Object.fromEntries(Object.entries(q).map(([k,v])=>[k,validateJevAnswer(answer(v),v)]));
+ const nike={ticker:'ONON',companyName:'On Holding AG',title:'NKE Stock In Focus After Stifel Lowers Price Target To $40',weight:0.1};
+ const gated=gateNewsAnswers(nike,a);assert.equal(gated.relevance.uncertain,true);assert.equal(gated.tone.uncertain,true);assert.equal(reviewPriority(nike,gated),null);
+ assert.equal(headlineNamesCompany('On Holding announces a partnership','ONON','On Holding AG'),true);
+ assert.equal(headlineNamesCompany('ONON (ONON) reports earnings','ONON',null),true);
+ assert.equal(headlineNamesCompany('MS NOW barred from press event','NOW','ServiceNow, Inc.'),false);
+ assert.equal(headlineNamesCompany('ServiceNow wins contract','NOW','ServiceNow, Inc.'),true);
+ assert.equal(headlineNamesCompany('Someone is holding stock','ONON','On Holding AG'),false);
+ const analyst=gateNewsAnswers({...nike,title:'On Holding downgraded'}, {...a,event:{...a.event,choice:'analyst'}});assert.equal(analyst.materiality.uncertain,true);
+});
+test('issuer directory caches public names and tolerates source outages',async()=>{
+ let calls=0;const load=createJevCompanyDirectory({fetcher:async()=>{calls++;return Response.json({0:{ticker:'ONON',title:'On Holding AG'}})}});
+ assert.equal((await load()).get('ONON'),'On Holding AG');await load();assert.equal(calls,1);
+ assert.equal((await createJevCompanyDirectory({fetcher:async()=>new Response('',{status:503})})()).size,0);
 });
 const session={user:{id:'owner'},workspace:{id:'space'}};
 const req=(body,origin='https://bls.test')=>new Request('https://bls.test/api/research/jev',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
