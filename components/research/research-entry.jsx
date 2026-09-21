@@ -35,7 +35,7 @@ export function ResearchEntry({ language = "es" }) {
               {en
                 ? "See the historical Microsoft example"
                 : "Ver el ejemplo histórico de Microsoft"}{" "}
-              →
+
             </Link>
             <span>
               {en
@@ -73,7 +73,7 @@ export function ResearchEntry({ language = "es" }) {
               <li key={x}>
                 <span>0{i + 1}</span>
                 {x}
-                <span aria-hidden="true">↗</span>
+
               </li>
             ))}
           </ol>
@@ -83,7 +83,7 @@ export function ResearchEntry({ language = "es" }) {
               : "Fuentes y extractos disponibles. Interpretación automática pendiente de activación."}
           </p>
           <Link href={`/research?ticker=MSFT&lang=${language}`}>
-            {en ? "Open documentary dossier" : "Abrir expediente documental"} →
+            {en ? "Open documentary dossier" : "Abrir expediente documental"}
           </Link>
         </div>
       </div>
@@ -115,7 +115,7 @@ export function ResearchEntry({ language = "es" }) {
           >
             <span>{label}</span>
             <strong>{name}</strong>
-            <span aria-hidden="true">↗</span>
+
           </Link>
         ))}
       </nav>

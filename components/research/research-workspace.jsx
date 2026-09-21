@@ -8,12 +8,13 @@ import { TickerSearch } from "./ticker-search";
 import { AnalysisPanel } from "./analysis-panel";
 import { ThesisWorkspace } from "./thesis-workspace";
 import styles from "./research.module.css";
+import {FinancialTerminal, CompanyComparison, Watchlist, useCompanyFinancials} from "./financial-terminal";
 
 const COPY = {
   es: {
-    title: "Investigar una empresa",
+    title: "Investigación de empresas",
     subtitle:
-      "Documentos primero. Interpretaciones separadas. Incertidumbre visible.",
+      "Cifras, documentos y decisiones en un solo lugar.",
     empty: "Abre un expediente por ticker",
     emptyBody:
       "Consulta el último informe anual y los trimestrales posteriores disponibles. Microsoft tiene una captura documental verificada para explorar el formato.",
@@ -24,13 +25,13 @@ const COPY = {
     errors: {
       AUTH_REQUIRED: "Tu sesión expiró. Inicia sesión para continuar con esta empresa.",
       NO_ISSUER:
-        "No encontramos ese ticker en el registro de empresas. Comprueba la clase de acción o prueba con otra empresa estadounidense.",
+        "No encontramos ese ticker en el registro de empresas. Comprueba la clase de acción o prueba con otra empresa registrada.",
       BUSY: "Hay otra consulta en curso. Espera unos segundos y reintenta.",
       SOURCE_UNAVAILABLE:
         "La fuente documental no respondió o se alcanzó el límite de descarga. Puedes consultar el documento original o reintentar.",
       INVALID_TICKER: "El ticker no tiene un formato válido.",
     },
-    retry: "Reintentar",
+    retry: "Reintentar documentos",
     pending: "Análisis automático pendiente",
     pendingBody:
       "Los documentos ya están disponibles. Genera un informe cuando lo decidas. El análisis comienza únicamente al pulsar el botón; no se ha generado una valoración ni un diagnóstico de precio.",
@@ -74,8 +75,8 @@ const COPY = {
       "Material de investigación. No es una recomendación ni evidencia de alpha.",
   },
   en: {
-    title: "Research a company",
-    subtitle: "Documents first. Interpretations separate. Uncertainty visible.",
+    title: "Company research",
+    subtitle: "Financials, documents and decisions in one place.",
     empty: "Open a company dossier",
     emptyBody:
       "Read the latest available annual filing and subsequent quarterly filings. Microsoft has a verified documentary capture to explore the format.",
@@ -86,13 +87,13 @@ const COPY = {
     errors: {
       AUTH_REQUIRED: "Your session expired. Sign in to continue researching this company.",
       NO_ISSUER:
-        "This ticker was not found in the company register. Check the share class or try another US company.",
+        "This ticker was not found in the company register. Check the share class or try another registered company.",
       BUSY: "Another request is running. Wait a few seconds and retry.",
       SOURCE_UNAVAILABLE:
         "The document source did not respond or the download limit was reached. Open the original document or retry.",
       INVALID_TICKER: "The ticker format is not valid.",
     },
-    retry: "Retry",
+    retry: "Retry documents",
     pending: "Automated analysis pending",
     pendingBody:
       "Documents are available now. Generate a report when you choose. Analysis starts only when you click the button; no valuation or price diagnosis has been generated.",
@@ -154,7 +155,9 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
     [active, setActive] = useState(0),
     [attempt, setAttempt] = useState(0);
   const [analysisStarted,setAnalysisStarted]=useState(false);
-  const [workspaceView,setWorkspaceView]=useState('documents');
+  const [workspaceView,setWorkspaceView]=useState('overview');
+  const financials=useCompanyFinancials(ticker);
+  const [query,setQuery]=useState('');
   const [assistedReport,setAssistedReport]=useState(null);
   useEffect(() => {
     if (!ticker) return;
@@ -207,34 +210,43 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
       <main className={styles.workInner}>
         <header className={styles.workHeading}>
           <div>
-            <p className={styles.kicker}>TRAMA · {copy.research}</p>
+
             <h1>{copy.title}</h1>
             <p>{copy.subtitle}</p>
           </div>
           <TickerSearch language={language} initialTicker={ticker} />
         </header>
+        <Watchlist ticker={ticker} language={language} />
+        {ticker ? <>
+          <div className={styles.companyHead}><div><span className={styles.symbol}>{ticker}</span><h2>{financials.company?.name || dossier?.name || ticker}</h2><p>{financials.company ? `${financials.company.namespace==='ifrs-full'?'IFRS':'US GAAP'} · ${financials.company.currency||'—'} · ${language==='en'?'Annual reporting':'Información anual'}` : copy.subtitle}</p></div>{dossier?<button className={styles.quietButton} onClick={download}>{copy.download}</button>:null}</div>
+          <nav className={styles.workspaceTabs} aria-label={language==='en'?'Research workspace':'Espacio de investigación'}>
+            {[['overview','Resumen','Overview'],['financials','Finanzas','Financials'],['documents','Documentos y análisis','Documents and analysis'],['thesis','Tesis y valoración','Thesis and valuation'],['compare','Comparar','Compare']].map(([id,es,en])=><button key={id} aria-pressed={workspaceView===id} onClick={()=>setWorkspaceView(id)}>{language==='en'?en:es}</button>)}
+          </nav>
+          {workspaceView==='overview'||workspaceView==='financials'?<FinancialTerminal state={financials} language={language} view={workspaceView} documentError={state.error} dossier={dossier} onView={setWorkspaceView} ticker={ticker}/>:null}
+          <div hidden={workspaceView!=='compare'}><CompanyComparison company={financials.company} language={language}/></div>
+        </> : null}
         {!ticker ? (
           <section className={styles.empty}>
             <span className={styles.bigIndex}>01 /</span>
             <h2>{copy.empty}</h2>
             <p>{copy.emptyBody}</p>
             <Link href={`/research?ticker=MSFT&lang=${language}`}>
-              Microsoft · MSFT →
+              Microsoft · MSFT
             </Link>
           </section>
         ) : null}
-        {state.loading ? (
+        {state.loading && ['documents','thesis'].includes(workspaceView) ? (
           <section className={styles.empty} role="status">
             <div className={styles.progress} />
             <h2>{copy.loading}</h2>
             <p>{copy.loadingBody}</p>
           </section>
         ) : null}
-        {state.error ? (
+        {state.error && ['documents','thesis'].includes(workspaceView) ? (
           <section className={styles.empty} role="alert">
             <h2>{copy.error}</h2>
             <p>{copy.errors[state.error] || copy.errors.SOURCE_UNAVAILABLE}</p>
-            {state.error === 'AUTH_REQUIRED' ? <a href={`/login?intent=signin&lang=${language}&next=${encodeURIComponent(`/research?ticker=${ticker}&lang=${language}`)}`}>{language === 'en' ? 'Sign in' : 'Iniciar sesión'} →</a> : <button onClick={() => setAttempt((n) => n + 1)}>
+            {state.error === 'AUTH_REQUIRED' ? <a href={`/login?intent=signin&lang=${language}&next=${encodeURIComponent(`/research?ticker=${ticker}&lang=${language}`)}`}>{language === 'en' ? 'Sign in' : 'Iniciar sesión'} </a> : <button onClick={() => setAttempt((n) => n + 1)}>
               {copy.retry}
             </button>}{" "}
             <a
@@ -242,35 +254,18 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
               target="_blank"
               rel="noreferrer"
             >
-              {language==='en'?'Search original documents':'Buscar documentos originales'} ↗
+              {language==='en'?'Search original documents':'Buscar documentos originales'}
             </a>
           </section>
         ) : null}
         {dossier ? (
           <>
-            <div className={styles.companyHead}>
-              <div>
-                <span className={styles.symbol}>{dossier.ticker}</span>
-                <h2>{dossier.name}</h2>
-                <p>
-                  {dossier.delivery === "published_capture"
-                    ? copy.captured
-                    : copy.live}{" "}
-                  · {copy.at}: {date(dossier.asOf, language)}
-                </p>
-              </div>
-              <button className={styles.quietButton} onClick={download}>
-                {copy.download} ↓
-              </button>
-            </div>
-            <nav className={styles.workspaceTabs} aria-label={language==='en'?'Research workspace':'Espacio de investigación'}>
-              <button aria-pressed={workspaceView==='thesis'} onClick={()=>setWorkspaceView('thesis')}>{language==='en'?'My thesis':'Mi tesis'}</button>
-              <button aria-pressed={workspaceView==='documents'} onClick={()=>setWorkspaceView('documents')}>{language==='en'?'Documents & reading':'Documentos y lectura'}</button>
-            </nav>
             <div hidden={workspaceView!=='thesis'}>
               <ThesisWorkspace key={dossier.packetHash} dossier={dossier} ticket={state.ticket} language={language} report={assistedReport} onRead={()=>setWorkspaceView('documents')} />
             </div>
             <div hidden={workspaceView!=='documents'}>
+            <p className={styles.coverageNote}>{copy.at}: {date(dossier.asOf,language)} · {dossier.delivery==='published_capture'?copy.captured:copy.live}{dossier.unavailable?.length ? ` · ${dossier.unavailable.length} ${language==='en'?'documents unavailable':'documentos no disponibles'}`:''}</p>
+            {dossier.scope?.startsWith('annual_and_latest_four')?<p className={styles.coverageNote}>{language==='en'?'Foreign issuer: annual report and up to four recent 6-K primary documents. Exhibits are not included.':'Emisor extranjero: informe anual y hasta cuatro documentos principales 6-K recientes. No se incluyen anexos.'}</p>:null}
             {!analysisStarted ? <div className={styles.notice}>
               <span aria-hidden="true">○</span>
               <div>
@@ -289,7 +284,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
                     >
                       <span>0{i + 1}</span>
                       {name}
-                      <span aria-hidden="true">→</span>
+
                     </button>
                   ))}
                 </nav>
@@ -313,7 +308,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
                       {copy.period}: {date(source.periodEnd, language)}
                     </p>
                     <a href={source.url} target="_blank" rel="noreferrer">
-                      {copy.original} ↗
+                      {copy.original}
                     </a>
                     <p className={styles.hash}>SHA-256 {source.sha256}</p>
                   </details>
@@ -336,8 +331,9 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
                 <h3 className={styles.extractHeading}>
                   {copy.extracts} <span>{section.extracts.length}</span>
                 </h3>
-                {section.extracts.length ? (
-                  section.extracts.map((extract) => {
+                <label className={styles.extractSearch}>{language==='en'?'Search selected excerpts':'Buscar en extractos seleccionados'}<input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder={language==='en'?'Search in original language…':'Busca en el idioma original…'}/></label>
+                {section.extracts.filter(e=>e.text.toLowerCase().includes(query.toLowerCase())).length ? (
+                  section.extracts.filter(e=>e.text.toLowerCase().includes(query.toLowerCase())).map((extract) => {
                     const source = dossier.sources.find(
                       (s) => s.id === extract.id.split(":")[0],
                     );
@@ -348,7 +344,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
                             {source.form} · {extract.id}
                           </span>
                           <a href={source.url} target="_blank" rel="noreferrer">
-                            {copy.original} ↗
+                            {copy.original}
                           </a>
                         </div>
                         <p className={styles.excerptPreview} lang="en">
@@ -363,7 +359,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
                     );
                   })
                 ) : (
-                  <p>{copy.noExtracts}</p>
+                  <p>{query?(language==='en'?'No excerpts match your search.':'Ningún extracto coincide con la búsqueda.'):copy.noExtracts}</p>
                 )}
               </article>
             </div>
@@ -373,7 +369,7 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
         <footer className={styles.workFooter}>
           {copy.disclaimer}
           <Link href={`/methodology?lang=${language}`}>
-            {language === "en" ? "Methodology" : "Metodología"} ↗
+            {language === "en" ? "Methodology" : "Metodología"}
           </Link>
         </footer>
       </main>

@@ -394,7 +394,7 @@
 .listPanel { display: grid; gap: 2rem; }
 .listPanel ul { margin: 1.2rem 0 0; padding: 0; list-style: none; border-top: 1px solid var(--company-line); }
 .listPanel li { padding: 0.9rem 0; border-bottom: 1px solid var(--company-line); color: #d9dfe4; }
-.listPanel li::before { margin-right: 0.7rem; color: #e3ba68; content: "↳"; }
+.listPanel li::before { margin-right: 0.7rem; color: #e3ba68; content: ""; }
 
 .scenarioGrid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--company-line); border-left: 1px solid var(--company-line); }
 .scenarioGrid article { min-height: 17rem; padding: 1.4rem; border-right: 1px solid var(--company-line); border-bottom: 1px solid var(--company-line); }

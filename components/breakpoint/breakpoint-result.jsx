@@ -53,8 +53,8 @@ export function BreakpointResult({ runId, language = "es" }) {
       <section className={styles.monitor}><span>{copy.monitor}</span><strong>{localizeBreakpointDriver(run.monitor.primaryDriver, language)}</strong><p>{run.monitor.falsifier || "—"}</p></section>
     </>}
     <section className={styles.detailGrid}><div><h2>{copy.provenance}</h2><ul className={styles.sources}>{(run.provenance?.sources || []).map((source, index) => <li key={`${source.label}-${index}`}><span>{localizeBreakpointSourceCategory(source.category, language)}</span><strong>{source.label}</strong><small>{date(source.date)}</small></li>)}</ul></div><div><h2>{copy.limitations}</h2><ul className={styles.limitations}>{(run.limitations || []).map((item) => <li key={item}>{item}</li>)}</ul></div></section>
-    <footer className={styles.resultFooter}><p>{copy.disclaimer}</p><div className={styles.resultActions}><Link href={links.company} className={styles.terminalLink}>{copy.terminal} <span>→</span></Link><Link href={links.queue} className={styles.queueLink}>{copy.queue}</Link></div></footer>
+    <footer className={styles.resultFooter}><p>{copy.disclaimer}</p><div className={styles.resultActions}><Link href={links.company} className={styles.terminalLink}>{copy.terminal} <span></span></Link><Link href={links.queue} className={styles.queueLink}>{copy.queue}</Link></div></footer>
   </main>;
 }
 
-function Flip({ title, flip, language }) { return <article className={styles.flip}><span>{title}</span><h2>{flip?.statement || "—"}</h2><dl>{(flip?.changes || []).map((change) => <div key={change.driver}><dt>{localizeBreakpointDriver(change.driver, language)}</dt><dd>{percent(change.from)} → {percent(change.to)}</dd></div>)}</dl></article>; }
+function Flip({ title, flip, language }) { return <article className={styles.flip}><span>{title}</span><h2>{flip?.statement || "—"}</h2><dl>{(flip?.changes || []).map((change) => <div key={change.driver}><dt>{localizeBreakpointDriver(change.driver, language)}</dt><dd>{percent(change.from)}  {percent(change.to)}</dd></div>)}</dl></article>; }

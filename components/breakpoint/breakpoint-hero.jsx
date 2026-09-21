@@ -309,7 +309,7 @@ export function BreakpointHero({ language = "es" }) {
         </form>
         <a className={styles.demoLink} href="#demo">
           {copy.demo}
-          <span aria-hidden="true">↓</span>
+
         </a>
         <ul className={styles.guarantees} aria-label={language === "en" ? "Reading guarantees" : "Garantías de la lectura"}>
           {copy.guarantees.map((guarantee) => (

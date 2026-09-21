@@ -708,3 +708,22 @@
 .finding summary { color:#bfd49c; cursor:pointer; font-size:13px; }
 .finding blockquote { margin:14px 0; padding-left:16px; border-left:2px solid #607652; overflow-wrap:anywhere; }
 .finding a { color:#bfd49c; font-size:12px; }
+
+/* Company terminal: compact chrome, independent data surfaces. */
+.workspace .workInner{max-width:1600px;padding:24px 32px 20px;margin:auto;min-height:calc(100vh - 90px)}
+.workspace .workHeading{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:0 0 20px;margin:0;border-bottom:1px solid var(--line)}
+.workspace .workHeading h1{font-family:"DM Sans",sans-serif;font-size:21px;line-height:1.35;letter-spacing:-.025em;margin:0}
+.workspace .workHeading p{font-size:12px;margin:6px 0 0;color:var(--muted)}
+.workspace .workHeading form{width:390px;max-width:100%}.workspace .workHeading form label{font-size:10px;margin-bottom:5px}.workspace .searchRow{min-height:40px}.workspace .searchRow input{padding:10px 12px;font-size:14px}.workspace .searchRow button{padding:10px 15px;font-size:12px}
+.workspace .companyHead{padding:8px 0 18px;margin:0;display:flex;justify-content:space-between;gap:16px;align-items:center}.workspace .companyHead h2{font-size:31px;margin:5px 0 8px;line-height:1.15}.workspace .companyHead p{font-size:11px;margin:0;color:var(--muted)}.workspace .symbol{font:600 12px "DM Sans",sans-serif;letter-spacing:.06em;color:var(--accent)}
+.workspace .workspaceTabs{border:1px solid var(--line);border-radius:4px;padding:4px;gap:4px;margin:0 0 20px}.workspace .workspaceTabs button{border:0;border-radius:3px;padding:10px 22px;min-height:38px;font-size:12px}.workspace .workspaceTabs button[aria-pressed=true]{background:var(--accent);color:#112015}
+.workspace .empty{min-height:240px;padding:38px 0}.workspace .empty h2{font-size:27px}.workspace .empty p{font-size:14px;max-width:650px}.workspace .workFooter{margin-top:28px;padding-top:20px;font-size:11px}.workspace .notice{margin:14px 0 20px;padding:16px}.workspace .notice p{font-size:12px}.workspace .reading h2{font-size:28px}.workspace .dossierLayout{gap:28px}.coverageNote{font-size:12px;color:var(--muted);line-height:1.6}.extractSearch{font-size:12px;display:flex;flex-direction:column;gap:8px;color:var(--muted);margin:20px 0}.extractSearch input{background:#101c15;color:var(--paper);border:1px solid #455d49;padding:12px;border-radius:4px;font:14px "DM Sans",sans-serif;width:100%}
+@media(max-width:700px){.workspace .workInner{padding:20px 16px}.workspace .workHeading{flex-direction:column;align-items:stretch;gap:18px}.workspace .workHeading form{width:100%}.workspace .companyHead h2{font-size:25px}.workspace .companyHead{flex-wrap:wrap}.workspace .workspaceTabs{flex-wrap:nowrap;overflow-x:auto;max-width:100%}.workspace .workspaceTabs button{white-space:nowrap;padding:10px 14px}.workspace .dossierLayout{grid-template-columns:minmax(0,1fr)}.workspace .companyHead .quietButton{font-size:11px;padding:9px 12px}}
+
+.workspace .workInner{padding-top:18px}.workspace .workHeading{padding-bottom:12px}.workspace .companyHead{padding:6px 0 14px;flex-direction:row;text-align:left;align-items:center}.workspace .companyHead h2{font-family:"DM Serif Display",Georgia,serif;font-weight:400;font-size:30px;margin:3px 0 5px}.workspace .inspector nav button>span:last-child{margin-left:0}.workspace .companyHead>div{display:block}.workspace .workHeading .searchRow{flex-direction:row}@media(max-width:620px){.workspace .companyHead h2{font-size:26px}.workspace .companyHead{align-items:flex-start}.workspace .workHeading p{margin-bottom:0}.workspace .quietButton{min-height:36px}}
+
+.workspace .workHeading>div>p:last-child{margin:6px 0 0}
+.workspace .workHeading .searchRow{flex-wrap:nowrap}
+.workspace .workHeading .searchRow input{width:auto;flex:1 1 0;min-width:0}
+.workspace .workHeading .searchRow button{width:auto;flex:none;min-height:40px;white-space:nowrap}
+@media(max-width:620px){.workspace .workHeading{gap:14px}.workspace .companyHead{gap:10px}.workspace .companyHead .quietButton{margin:0}.workspace .workspaceTabs{scrollbar-width:thin}.workspace .companyHead h2{font-size:24px}}

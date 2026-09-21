@@ -288,7 +288,7 @@ function WorldMap({ markets, onSelect, selectedId }) {
             <i />
             <span>{market.name}</span>
             <strong>{signed(market.score)}</strong>
-            <em>{market.trend === "rising" ? "↗" : market.trend === "falling" ? "↘" : "→"}</em>
+            <em>{market.trend === "rising" ? "+" : market.trend === "falling" ? "−" : "="}</em>
           </button>
         ))}
       </div>
@@ -541,7 +541,7 @@ export default function MosaicWorkspace({ initialMacro, initialSnapshot, workspa
           <div><strong>MOSAIC</strong><span>{workspaceName}</span></div>
         </div>
         <nav aria-label="MOSAIC navigation">
-          <Link href="/app">← {copy.back}</Link>
+          <Link href="/app"> {copy.back}</Link>
           <Link href="/aurora">{copy.openAurora}</Link>
           <button disabled={loading} onClick={() => refresh()} type="button"><span className={styles.refreshDot} />{loading ? copy.refreshing : copy.refresh}</button>
         </nav>
@@ -628,7 +628,7 @@ export default function MosaicWorkspace({ initialMacro, initialSnapshot, workspa
       <footer className={styles.footer}>
         <span>MOSAIC · {snapshot?.context?.version || "mosaic_context_v2"}</span>
         <p>Research only. Verify material signals against primary sources before acting.</p>
-        <Link href="/terms">Method & terms →</Link>
+        <Link href="/terms">Method & terms </Link>
       </footer>
     </main>
   );
