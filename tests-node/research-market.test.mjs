@@ -9,6 +9,7 @@ import {
   headlineTone,
   summarizeTone,
   portfolioUniverse,
+  normalizePlatformSentiment,
 } from "../lib/research/market-data.mjs";
 import { createResearchMarketService } from "../lib/server/research-market-service.js";
 import { createResearchMarketHttp } from "../lib/server/research-market-http.js";
@@ -408,4 +409,150 @@ test("share-class aliases retain the requested ticker in portfolio news filters"
     now.getTime(),
   );
   assert.deepEqual(rows[0].symbols, ["BRK.B"]);
+});
+
+test("cross-source sentiment keeps missing and zero activity distinct from bearish sentiment", () => {
+  const rows = normalizePlatformSentiment(
+    {
+      stocks: [
+        {
+          ticker: "ONON",
+          mentions: 0,
+          bullish_pct: 0,
+          bearish_pct: 0,
+          buzz_score: 0,
+          trend: "stable",
+        },
+        {
+          ticker: "NKE",
+          mentions: 8,
+          bullish_pct: 75,
+          bearish_pct: 50,
+          buzz_score: 110,
+          trend: "rising",
+        },
+      ],
+    },
+    ["ONON", "NKE", "MSFT"],
+    "reddit",
+  );
+  assert.equal(rows[0].status, "empty");
+  assert.equal(rows[0].bullish, null);
+  assert.equal(rows[0].activity, null);
+  assert.equal(rows[1].bullish, null);
+  assert.equal(rows[1].bearish, null);
+  assert.equal(rows[1].activity, null);
+  assert.equal(rows[2].count, null);
+  const pm = normalizePlatformSentiment(
+    {
+      stocks: [
+        {
+          ticker: "ONON",
+          trade_count: 12,
+          buzz_score: 45,
+          bullish_pct: 0,
+          bearish_pct: 100,
+        },
+      ],
+    },
+    ["ONON"],
+    "polymarket",
+  )[0];
+  assert.equal(pm.bullish, 0);
+  assert.equal(pm.unit, "trades");
+  assert.equal(pm.count, 12);
+});
+test("Adanos uses explicit UTC windows, batches at ten tickers, and preserves partial-source failure", async () => {
+  const calls = [];
+  const service = createResearchMarketService({
+    clock,
+    env: { ADANOS_API_KEY: "private-key" },
+    fetcher: async (url, options) => {
+      calls.push(url);
+      assert.equal(options.headers["X-API-Key"], "private-key");
+      const u = new URL(url);
+      assert.equal(u.searchParams.get("from"), "2026-09-15");
+      assert.equal(u.searchParams.get("to"), "2026-09-21");
+      const tickers = u.searchParams.get("tickers").split(",");
+      assert.ok(tickers.length <= 10);
+      return u.pathname.startsWith("/x/")
+        ? new Response("", { status: 403 })
+        : Response.json({
+            stocks: tickers.map((ticker) => ({
+              ticker,
+              buzz_score: 42,
+              mentions: 8,
+              trade_count: 2,
+              bullish_pct: 60,
+              bearish_pct: 10,
+              trend: "rising",
+            })),
+          });
+    },
+  });
+  const tickers = Array.from({ length: 12 }, (_, i) => `T${i}`);
+  const r = await service.sentiment(tickers);
+  assert.equal(calls.length, 8);
+  assert.equal(r.status, "available");
+  assert.equal(r.sources.x, "access_denied");
+  assert.equal(r.rows.length, 48);
+  assert.equal(r.rows.find((x) => x.source === "x").bullish, null);
+  assert.ok(!JSON.stringify(r).includes("private-key"));
+  await service.sentiment(tickers);
+  assert.equal(calls.length, 8);
+});
+test("unconfigured Adanos does not make network calls or return invented source scores", async () => {
+  const service = createResearchMarketService({
+    clock,
+    env: {},
+    fetcher: async () => {
+      throw Error("must not fetch");
+    },
+  });
+  const r = await service.sentiment(["ONON"]);
+  assert.equal(r.status, "not_configured");
+  assert.deepEqual(r.rows, []);
+});
+test("watchlist scan validates and deduplicates public tickers without creating portfolio weights", async () => {
+  const service = createResearchMarketService({
+    clock,
+    env: {},
+    fetcher: async () => Response.json({ news: [] }),
+  });
+  const r = await service.watchlist(["ONON", "onon", "NKE"]);
+  assert.equal(r.scope, "watchlist");
+  assert.equal(r.universe.total, 2);
+  assert.equal(r.coverage.coveredKnownValueWeight, null);
+  assert.ok(r.results.every((x) => x.weight === null));
+  assert.throws(() => service.watchlist(["../invalid"]), /INVALID_TICKER/);
+  assert.throws(
+    () => service.watchlist(new Array(31).fill("ONON")),
+    /INVALID_TICKERS/,
+  );
+});
+test("portfolio sentiment reads owned holdings even if caller supplies other tickers", async () => {
+  let received;
+  const handler = createResearchMarketHttp({
+    authenticate: async () => ({
+      user: { id: "owner" },
+      workspace: { id: "own" },
+    }),
+    service: {
+      sentiment: async (tickers) => {
+        received = tickers;
+        return { status: "available" };
+      },
+    },
+    readPortfolio: async () => ({
+      status: "available",
+      holdings: [{ ticker: "OWN", asset_type: "stock", market_value_usd: 10 }],
+    }),
+  });
+  const r = await handler(
+    new Request(
+      "https://example.com/?kind=sentiment&scope=portfolio&tickers=OTHER",
+    ),
+  );
+  assert.equal(r.status, 200);
+  assert.deepEqual(received, ["OWN"]);
 });

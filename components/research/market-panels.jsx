@@ -565,25 +565,193 @@ const toneLabel = (value, en) =>
     mixed: en ? "Mixed" : "Mixto",
     unclassified: en ? "Unclassified" : "Sin clasificar",
   })[value];
+function CrossSourcePanel({ ticker, scope, watchlist, en }) {
+  const [requested, setRequested] = useState(false);
+  const state = useMarket(
+      requested
+        ? new URLSearchParams({
+            kind: "sentiment",
+            scope,
+            ...(scope === "stock"
+              ? { ticker }
+              : scope === "watchlist"
+                ? { tickers: watchlist }
+                : {}),
+          }).toString()
+        : null,
+    ),
+    data = state.data;
+  const names = {
+    reddit: "Reddit",
+    x: "X",
+    news: en ? "News" : "Noticias",
+    polymarket: "Polymarket",
+  };
+  const trends = {
+    rising: en ? "Increasing" : "En aumento",
+    falling: en ? "Decreasing" : "En descenso",
+    stable: en ? "Stable" : "Estable",
+  };
+  return (
+    <section className={styles.panel}>
+      <div className={styles.sectionHeading}>
+        <h2>{en ? "Signals across sources" : "Señales de varias fuentes"}</h2>
+        <button
+          disabled={requested && state.loading}
+          onClick={() => (requested ? state.retry() : setRequested(true))}
+        >
+          {requested
+            ? en
+              ? "Refresh signals"
+              : "Actualizar señales"
+            : en
+              ? "Load source signals"
+              : "Consultar señales por fuente"}
+        </button>
+      </div>
+      <p>
+        {en
+          ? "Optional Adanos connection for Reddit, X, news and Polymarket. Queries the selected stock or the scanned portfolio/watchlist tickers on demand. Each platform is shown separately."
+          : "Conexión opcional de Adanos para Reddit, X, noticias y Polymarket. Consulta a demanda la empresa seleccionada o los tickers consultados de tu cartera o seguimiento. Cada plataforma se presenta por separado."}
+      </p>
+      {requested ? <RequestState state={state} en={en} /> : null}
+      {data ? (
+        <>
+          <p className={styles.caption}>
+            Adanos · {data.from} / {data.to} UTC ·{" "}
+            {en ? "Retrieved" : "Consultado"}:{" "}
+            {new Date(data.asOf).toLocaleString(en ? "en-US" : "es-CL")} ·{" "}
+            {en ? "Tickers omitted" : "Tickers omitidos"}: {data.omitted || 0}
+          </p>
+          {data.status !== "available" ? (
+            <p>
+              <Status value={data.status} en={en} />
+              {data.status === "not_configured"
+                ? en
+                  ? ". Requires an Adanos API key with a plan licensed for this deployment."
+                  : ". Requiere una clave de Adanos y un plan con licencia para este despliegue."
+                : null}
+            </p>
+          ) : null}
+          {data.rows?.length ? (
+            <>
+              <div className={styles.tableScroll}>
+                <table>
+                  <caption>
+                    {en
+                      ? "Attention measures activity, not bullishness. Percentages and trading signals are platform-specific; no cross-platform average is calculated. Zero activity has no sentiment score."
+                      : "La atención mide actividad, no optimismo. Los porcentajes y las señales de negociación dependen de cada plataforma; no se calcula un promedio entre fuentes. La ausencia de actividad no tiene puntaje de sentimiento."}
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th>Ticker</th>
+                      <th>{en ? "Source" : "Fuente"}</th>
+                      <th>{en ? "Attention / 100" : "Atención / 100"}</th>
+                      <th>{en ? "Bullish %" : "Alcista %"}</th>
+                      <th>{en ? "Bearish %" : "Bajista %"}</th>
+                      <th>{en ? "Volume" : "Volumen"}</th>
+                      <th>
+                        {en ? "Activity trend" : "Tendencia de actividad"}
+                      </th>
+                      <th>{en ? "Coverage" : "Cobertura"}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.rows.map((r) => (
+                      <tr key={`${r.ticker}:${r.source}`}>
+                        <th>{r.ticker}</th>
+                        <td>{names[r.source]}</td>
+                        <td>{fmt(r.activity, en)}</td>
+                        <td>{fmt(r.bullish, en)}</td>
+                        <td>{fmt(r.bearish, en)}</td>
+                        <td>
+                          {fmt(r.count, en, 0)}{" "}
+                          {r.unit === "trades"
+                            ? en
+                              ? "trades"
+                              : "operaciones"
+                            : en
+                              ? "mentions"
+                              : "menciones"}
+                        </td>
+                        <td>{trends[r.trend] || "—"}</td>
+                        <td>
+                          <Status value={r.status} en={en} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className={styles.caption}>
+                {en
+                  ? "Activity trend compares platform participation over time; it is not a price trend. These signals do not predict returns."
+                  : "La tendencia compara la participación en la plataforma a lo largo del tiempo; no es una tendencia del precio. Estas señales no predicen retornos."}
+              </p>
+            </>
+          ) : null}
+        </>
+      ) : null}
+    </section>
+  );
+}
 export function NewsScreener({ ticker, language, initialScope = "stock" }) {
   const en = language === "en",
     [scope, setScope] = useState(
       ticker
         ? initialScope
-        : initialScope === "portfolio"
-          ? "portfolio"
+        : ["portfolio", "watchlist"].includes(initialScope)
+          ? initialScope
           : "market",
     ),
     [query, setQuery] = useState(""),
     [tone, setTone] = useState("all"),
     [provider, setProvider] = useState("all"),
     [days, setDays] = useState("7"),
-    [symbol, setSymbol] = useState("all");
+    [symbol, setSymbol] = useState("all"),
+    [watchlist, setWatchlist] = useState("");
+  useEffect(() => {
+    const read = () => {
+      try {
+        const items = JSON.parse(
+          localStorage.getItem("bls-research-watchlist-v1") || "[]",
+        );
+        setWatchlist(
+          Array.isArray(items)
+            ? [
+                ...new Set(
+                  items.filter(
+                    (t) =>
+                      typeof t === "string" &&
+                      /^[A-Z][A-Z0-9.-]{0,11}$/.test(t),
+                  ),
+                ),
+              ]
+                .slice(0, 30)
+                .join(",")
+            : "",
+        );
+      } catch {
+        setWatchlist("");
+      }
+    };
+    read();
+    window.addEventListener("storage", read);
+    window.addEventListener("bls-watchlist-changed", read);
+    return () => {
+      window.removeEventListener("storage", read);
+      window.removeEventListener("bls-watchlist-changed", read);
+    };
+  }, []);
   const state = useMarket(
       new URLSearchParams({
         kind: "news",
         scope,
-        ...(scope === "stock" ? { ticker } : {}),
+        ...(scope === "stock"
+          ? { ticker }
+          : scope === "watchlist"
+            ? { tickers: watchlist }
+            : {}),
       }).toString(),
     ),
     data = state.data;
@@ -632,6 +800,9 @@ export function NewsScreener({ ticker, language, initialScope = "stock" }) {
               }}
             >
               {ticker ? <option value="stock">{ticker}</option> : null}
+              <option value="watchlist">
+                {en ? "My watchlist" : "Mi seguimiento"}
+              </option>
               <option value="portfolio">
                 {en ? "My portfolio" : "Mi cartera"}
               </option>
@@ -765,26 +936,46 @@ export function NewsScreener({ ticker, language, initialScope = "stock" }) {
             {data.universe ? (
               <>
                 <p>
-                  {en ? "Portfolio coverage" : "Cobertura de cartera"}:{" "}
-                  {data.coverage.withNews} / {data.universe.total}{" "}
+                  {scope === "watchlist"
+                    ? en
+                      ? "Watchlist coverage"
+                      : "Cobertura de seguimiento"
+                    : en
+                      ? "Portfolio coverage"
+                      : "Cobertura de cartera"}
+                  : {data.coverage.withNews} / {data.universe.total}{" "}
                   {en
                     ? "eligible tickers have recent news"
                     : "tickers elegibles tienen noticias recientes"}{" "}
-                  · {pct(data.coverage.coveredKnownValueWeight, en)}{" "}
-                  {en
-                    ? "of known positive USD value"
-                    : "del valor positivo conocido en USD"}
+                  {scope === "portfolio" ? (
+                    <>
+                      {" "}
+                      · {pct(data.coverage.coveredKnownValueWeight, en)}{" "}
+                      {en
+                        ? "of known positive USD value"
+                        : "del valor positivo conocido en USD"}
+                    </>
+                  ) : null}
                   .
                 </p>
                 <p className={styles.caption}>
-                  {en
-                    ? "Scans up to 20 stock/ETF tickers, largest known holdings first. Weights use stored portfolio valuations, not live quotes; missing valuations are excluded from the weight denominator. News coverage is not an exposure or sentiment score. Only symbols are sent to news providers."
-                    : "Se consultan hasta 20 tickers de acciones/ETF, empezando por las mayores posiciones conocidas. Los pesos usan valoraciones guardadas, no cotizaciones en vivo; las valoraciones ausentes se excluyen del denominador. La cobertura de noticias no es un puntaje de exposición ni de sentimiento. Solo se envían símbolos a los proveedores."}{" "}
-                  {en ? "Omitted" : "Omitidos"}: {data.universe.omitted} ·{" "}
-                  {en ? "Unpriced" : "Sin valoración positiva"}:{" "}
-                  {data.universe.unpriced} ·{" "}
-                  {en ? "Ineligible positions" : "Posiciones no elegibles"}:{" "}
-                  {data.universe.excluded}.
+                  {scope === "watchlist"
+                    ? en
+                      ? "Scans up to 20 tickers from the watchlist stored in this browser. Only symbols are sent to providers."
+                      : "Se consultan hasta 20 tickers del seguimiento guardado en este navegador. Solo se envían símbolos a los proveedores."
+                    : en
+                      ? "Scans up to 20 stock/ETF tickers, largest known holdings first. Weights use stored portfolio valuations, not live quotes; missing valuations are excluded from the weight denominator. News coverage is not an exposure or sentiment score. Only symbols are sent to news providers."
+                      : "Se consultan hasta 20 tickers de acciones/ETF, empezando por las mayores posiciones conocidas. Los pesos usan valoraciones guardadas, no cotizaciones en vivo; las valoraciones ausentes se excluyen del denominador. La cobertura de noticias no es un puntaje de exposición ni de sentimiento. Solo se envían símbolos a los proveedores."}{" "}
+                  {en ? "Omitted" : "Omitidos"}: {data.universe.omitted}{" "}
+                  {scope === "portfolio" ? (
+                    <>
+                      · {en ? "Unpriced" : "Sin valoración positiva"}:{" "}
+                      {data.universe.unpriced} ·{" "}
+                      {en ? "Ineligible positions" : "Posiciones no elegibles"}:{" "}
+                      {data.universe.excluded}
+                    </>
+                  ) : null}
+                  .
                 </p>
                 {results.length ? (
                   <div className={styles.tableScroll}>
@@ -792,7 +983,13 @@ export function NewsScreener({ ticker, language, initialScope = "stock" }) {
                       <thead>
                         <tr>
                           <th>{en ? "Holding" : "Posición"}</th>
-                          <th>{en ? "Known weight" : "Peso conocido"}</th>
+                          {scope === "portfolio" ? (
+                            <th>
+                              {en
+                                ? "Known portfolio weight"
+                                : "Peso conocido en cartera"}
+                            </th>
+                          ) : null}
                           <th>{en ? "Headlines (7d)" : "Titulares (7d)"}</th>
                           <th>
                             {en
@@ -812,7 +1009,9 @@ export function NewsScreener({ ticker, language, initialScope = "stock" }) {
                                 {r.ticker}
                               </button>
                             </th>
-                            <td>{pct(r.weight, en)}</td>
+                            {scope === "portfolio" ? (
+                              <td>{pct(r.weight, en)}</td>
+                            ) : null}
                             <td>{r.articles?.length || 0}</td>
                             <td>
                               {r.summary
@@ -841,9 +1040,13 @@ export function NewsScreener({ ticker, language, initialScope = "stock" }) {
                   </div>
                 ) : (
                   <p>
-                    {en
-                      ? "Add stock or ETF positions to your private portfolio to scan them here."
-                      : "Agrega acciones o ETF a tu cartera privada para consultarlos aquí."}{" "}
+                    {scope === "watchlist"
+                      ? en
+                        ? "Use Follow company above to add companies to your browser watchlist."
+                        : "Usa Seguir empresa para agregar empresas a tu seguimiento del navegador."
+                      : en
+                        ? "Add stock or ETF positions to your private portfolio to scan them here."
+                        : "Agrega acciones o ETF a tu cartera privada para consultarlos aquí."}{" "}
                     <a href="/app">
                       {en ? "Open workspace" : "Abrir espacio privado"}
                     </a>
@@ -854,6 +1057,15 @@ export function NewsScreener({ ticker, language, initialScope = "stock" }) {
           </>
         ) : null}
       </section>
+      {data && scope !== "market" ? (
+        <CrossSourcePanel
+          key={`${scope}:${ticker}:${watchlist}`}
+          ticker={ticker}
+          scope={scope}
+          watchlist={watchlist}
+          en={en}
+        />
+      ) : null}
       {data ? (
         <section className={styles.panel}>
           <h2>{en ? "Latest headlines" : "Últimos titulares"}</h2>

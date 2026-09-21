@@ -14,7 +14,7 @@ export function useCompanyFinancials(ticker){
 export function Watchlist({ticker,language}){
  const en=language==='en',key='bls-research-watchlist-v1';const [items,setItems]=useState([]),[ready,setReady]=useState(false),[error,setError]=useState(false);
  useEffect(()=>{try{const value=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(value))setItems(value.filter(v=>typeof v==='string'&&/^[A-Z][A-Z0-9.-]{0,11}$/.test(v)).slice(0,30))}catch{}setReady(true)},[]);
- function toggle(){const next=items.includes(ticker)?items.filter(t=>t!==ticker):[...items,ticker].slice(-30);try{localStorage.setItem(key,JSON.stringify(next));setItems(next);setError(false)}catch{setError(true)}}
+ function toggle(){const next=items.includes(ticker)?items.filter(t=>t!==ticker):[...items,ticker].slice(-30);try{localStorage.setItem(key,JSON.stringify(next));window.dispatchEvent(new Event("bls-watchlist-changed"));setItems(next);setError(false)}catch{setError(true)}}
  return <div className={styles.watchlist}><span>{en?'Watchlist':'Seguimiento'}</span>{items.map(t=><Link key={t} href={`/research?ticker=${t}&lang=${language}`} aria-current={t===ticker?'page':undefined}>{t}</Link>)}{/^[A-Z][A-Z0-9.-]{0,11}$/.test(ticker)?<button disabled={!ready} aria-pressed={items.includes(ticker)} onClick={toggle}>{items.includes(ticker)?(en?'Remove company':'Quitar empresa'):(en?'Follow company':'Seguir empresa')}</button>:null}<small>{error?(en?'Browser storage unavailable':'Almacenamiento del navegador no disponible'):(en?'Saved in this browser':'Guardado en este navegador')}</small></div>
 }
 export function FinancialTerminal({state,language,view='overview',dossier,onView,ticker,documentError}){
