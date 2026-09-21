@@ -727,3 +727,5 @@
 .workspace .workHeading .searchRow input{width:auto;flex:1 1 0;min-width:0}
 .workspace .workHeading .searchRow button{width:auto;flex:none;min-height:40px;white-space:nowrap}
 @media(max-width:620px){.workspace .workHeading{gap:14px}.workspace .companyHead{gap:10px}.workspace .companyHead .quietButton{margin:0}.workspace .workspaceTabs{scrollbar-width:thin}.workspace .companyHead h2{font-size:24px}}
+
+.financialFrequency{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 16px}.financialFrequency button{border:1px solid #435745;border-radius:4px;background:transparent;color:#c1d7a0;padding:10px 14px;font:500 12px "DM Sans",sans-serif;cursor:pointer}.financialFrequency button[aria-pressed=true]{background:#23362b;color:#e7ede6}.financialFrequency button:focus-visible{outline:2px solid #c1d7a0;outline-offset:3px}

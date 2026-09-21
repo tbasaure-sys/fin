@@ -17,12 +17,15 @@ export default async function ResearchPage({ searchParams = {} }) {
   );
   const next = new URLSearchParams({ lang: language });
   if (typeof searchParams.ticker === "string") next.set("ticker", searchParams.ticker);
+  if(searchParams.view==="news") {next.set("view","news");if(["stock","portfolio","market","watchlist"].includes(searchParams.scope))next.set("scope",searchParams.scope);}
   if (!await getServerAuthSession()) {
     redirect(`/login?intent=signin&lang=${language}&next=${encodeURIComponent(`/research?${next}`)}`);
   }
   return (
     <ResearchWorkspace
-      key={String(searchParams.ticker || "")}
+      key={`${searchParams.ticker || ""}:${searchParams.view || ""}:${searchParams.scope || ""}`}
+      initialView={searchParams.view==="news"?"news":"overview"}
+      initialScope={["stock","portfolio","market","watchlist"].includes(searchParams.scope)?searchParams.scope:"stock"}
       initialLanguage={language}
       ticker={
         typeof searchParams.ticker === "string" ? searchParams.ticker.trim().toUpperCase() : ""

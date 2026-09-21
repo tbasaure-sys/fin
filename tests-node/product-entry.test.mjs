@@ -12,7 +12,7 @@ test('analytics rejects sensitive fields, unknown events and absent consent',()=
 });
 test('financial evidence is the default and private valuation can begin without a written thesis',async()=>{
  const read=p=>readFile(new URL(p,import.meta.url),'utf8');
- assert.match(await read('../components/research/research-workspace.jsx'),/workspaceView,setWorkspaceView\]=useState\('overview'\)/);
+ assert.match(await read('../components/research/research-workspace.jsx'),/initialView="overview"/);
  assert.match(await read('../components/research/capital-workspace.jsx'),/Preparar mi análisis de cifras/);
  assert.match(await read('../app/research/page.js'),/getServerAuthSession/);
 });
