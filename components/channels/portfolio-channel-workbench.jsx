@@ -674,6 +674,7 @@ export function PortfolioChannelWorkbench() {
         <nav>
           <Link href="/">{copy.navHome}</Link>
           {session.workspace ? <Link href="/app">{copy.navWorkspace}</Link> : <Link href={`/login?lang=${language}&next=%2Fchannels`}>{copy.signIn}</Link>}
+          {session.workspace ? <Link href={`/research?view=news&scope=portfolio&lang=${language}`}>{language === "en" ? "Portfolio news" : "Noticias de mi cartera"}</Link> : null}
           <div className={styles.language} role="group">
             {["es", "en"].map((code) => <button aria-pressed={language === code} data-active={language === code} key={code} onClick={() => setLanguage(code)} type="button">{code.toUpperCase()}</button>)}
           </div>

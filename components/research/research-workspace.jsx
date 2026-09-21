@@ -10,6 +10,8 @@ import { ThesisWorkspace } from "./thesis-workspace";
 import styles from "./research.module.css";
 import {FinancialTerminal, CompanyComparison, Watchlist, useCompanyFinancials} from "./financial-terminal";
 
+import {IntegrationPanel,QuarterlyPanel,TranscriptPanel,NewsScreener} from './market-panels';
+
 const COPY = {
   es: {
     title: "Investigación de empresas",
@@ -144,7 +146,7 @@ function date(value, language) {
       )
     : "—";
 }
-export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
+export function ResearchWorkspace({ initialLanguage = "es", ticker = "", initialView="overview", initialScope="stock" }) {
   const { language } = useLanguagePreference(initialLanguage),
     copy = COPY[language] || COPY.es;
   const [state, setState] = useState({
@@ -155,7 +157,8 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
     [active, setActive] = useState(0),
     [attempt, setAttempt] = useState(0);
   const [analysisStarted,setAnalysisStarted]=useState(false);
-  const [workspaceView,setWorkspaceView]=useState('overview');
+  const [workspaceView,setWorkspaceView]=useState(initialView);
+  const [financialView,setFinancialView]=useState("annual");
   const financials=useCompanyFinancials(ticker);
   const [query,setQuery]=useState('');
   const [assistedReport,setAssistedReport]=useState(null);
@@ -220,14 +223,19 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "" }) {
         {ticker ? <>
           <div className={styles.companyHead}><div><span className={styles.symbol}>{ticker}</span><h2>{financials.company?.name || dossier?.name || ticker}</h2><p>{financials.company ? `${financials.company.namespace==='ifrs-full'?'IFRS':'US GAAP'} · ${financials.company.currency||'—'} · ${language==='en'?'Annual reporting':'Información anual'}` : copy.subtitle}</p></div>{dossier?<button className={styles.quietButton} onClick={download}>{copy.download}</button>:null}</div>
           <nav className={styles.workspaceTabs} aria-label={language==='en'?'Research workspace':'Espacio de investigación'}>
-            {[['overview','Resumen','Overview'],['financials','Finanzas','Financials'],['documents','Documentos y análisis','Documents and analysis'],['thesis','Tesis y valoración','Thesis and valuation'],['compare','Comparar','Compare']].map(([id,es,en])=><button key={id} aria-pressed={workspaceView===id} onClick={()=>setWorkspaceView(id)}>{language==='en'?en:es}</button>)}
+            {[['overview','Resumen','Overview'],['financials','Finanzas','Financials'],['documents','Documentos y análisis','Documents and analysis'],['thesis','Tesis y valoración','Thesis and valuation'],['segments','Segmentos','Segments'],['estimates','Consenso','Estimates'],['transcripts','Transcripciones','Transcripts'],['news','Noticias y sentimiento','News and sentiment'],['compare','Comparar','Compare']].map(([id,es,en])=><button key={id} aria-pressed={workspaceView===id} onClick={()=>setWorkspaceView(id)}>{language==='en'?en:es}</button>)}
           </nav>
-          {workspaceView==='overview'||workspaceView==='financials'?<FinancialTerminal state={financials} language={language} view={workspaceView} documentError={state.error} dossier={dossier} onView={setWorkspaceView} ticker={ticker}/>:null}
+          {workspaceView==='financials'?<div className={styles.financialFrequency}><button aria-pressed={financialView==='annual'} onClick={()=>setFinancialView('annual')}>{language==='en'?'Annual · SEC':'Anual · SEC'}</button><button aria-pressed={financialView==='quarter'} onClick={()=>setFinancialView('quarter')}>{language==='en'?'Quarterly / TTM · FMP':'Trimestral / 12 meses · FMP'}</button></div>:null}
+          {workspaceView==='overview'||(workspaceView==='financials'&&financialView==='annual')?<FinancialTerminal state={financials} language={language} view={workspaceView} documentError={state.error} dossier={dossier} onView={setWorkspaceView} ticker={ticker}/>:null}
+          {workspaceView==='financials'&&financialView==='quarter'?<div><QuarterlyPanel ticker={ticker} language={language}/></div>:null}
+          {['segments','estimates'].includes(workspaceView)?<IntegrationPanel key={`${ticker}-${workspaceView}`} ticker={ticker} language={language} kind={workspaceView}/>:null}
+          {workspaceView==='transcripts'?<TranscriptPanel ticker={ticker} language={language}/>:null}
           <div hidden={workspaceView!=='compare'}><CompanyComparison company={financials.company} language={language}/></div>
         </> : null}
-        {!ticker ? (
+        {workspaceView==='news'?<NewsScreener ticker={ticker} language={language} initialScope={initialScope}/>:null}
+        {!ticker && workspaceView!=='news' ? (
           <section className={styles.empty}>
-            <span className={styles.bigIndex}>01 /</span>
+            <Link href={`/research?view=news&scope=market&lang=${language}`}>{language==='en'?'Open news screener':'Abrir explorador de noticias'}</Link>
             <h2>{copy.empty}</h2>
             <p>{copy.emptyBody}</p>
             <Link href={`/research?ticker=MSFT&lang=${language}`}>
