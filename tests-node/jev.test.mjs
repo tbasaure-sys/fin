@@ -41,6 +41,12 @@ test('batch failures preserve successful items and cap parallelism',async()=>{
  const r=await service.evaluate('news',Array.from({length:60},(_,i)=>({id:String(i)})));
  assert.equal(r.status,'partial');assert.equal(r.items.filter(i=>i.answers).length,50);assert.ok(peak<=3);assert.equal(r.items[10].id,'10');
 });
+test('long thesis revisions are divided into bounded evidence batches',async()=>{
+ let calls=0;
+ const service=createJevService({env:{TYPESAFE_API_KEY:'s'},fetcher:async(url,opts)=>{calls++;assert.ok(JSON.parse(opts.body).state.items.length<=2);return provider(url,opts)}});
+ const r=await service.evaluate('thesis',Array.from({length:6},(_,i)=>({id:String(i),statement:'x'.repeat(2000),evidence:Array.from({length:8},()=>({text:'x'.repeat(2000)}))})));
+ assert.equal(r.status,'available');assert.equal(calls,3);
+});
 test('company pairs round robin, deduplicate and preserve unknown portfolio values',()=>{
  const article=i=>({url:`https://example.com/${i}`,title:'News',symbols:['A','B']});
  const feed={results:[{ticker:'A',weight:0.8,articles:Array.from({length:70},(_,i)=>article(i))},{ticker:'B',weight:null,articles:[article(0)]}]};
