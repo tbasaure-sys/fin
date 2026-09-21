@@ -961,11 +961,11 @@ export function NewsScreener({ ticker, language, initialScope = "stock" }) {
                 <p className={styles.caption}>
                   {scope === "watchlist"
                     ? en
-                      ? "Scans up to 20 tickers from the watchlist stored in this browser. Only symbols are sent to providers."
-                      : "Se consultan hasta 20 tickers del seguimiento guardado en este navegador. Solo se envían símbolos a los proveedores."
+                      ? "Scans up to 30 tickers from the watchlist stored in this browser. Only symbols are sent to providers."
+                      : "Se consultan hasta 30 tickers del seguimiento guardado en este navegador. Solo se envían símbolos a los proveedores."
                     : en
-                      ? "Scans up to 20 stock/ETF tickers, largest known holdings first. Weights use stored portfolio valuations, not live quotes; missing valuations are excluded from the weight denominator. News coverage is not an exposure or sentiment score. Only symbols are sent to news providers."
-                      : "Se consultan hasta 20 tickers de acciones/ETF, empezando por las mayores posiciones conocidas. Los pesos usan valoraciones guardadas, no cotizaciones en vivo; las valoraciones ausentes se excluyen del denominador. La cobertura de noticias no es un puntaje de exposición ni de sentimiento. Solo se envían símbolos a los proveedores."}{" "}
+                      ? "Scans up to 40 stock/ETF tickers, largest known holdings first. Weights use stored portfolio valuations, not live quotes; missing valuations are excluded from the weight denominator. News coverage is not an exposure or sentiment score. Only symbols are sent to news providers."
+                      : "Se consultan hasta 40 tickers de acciones/ETF, empezando por las mayores posiciones conocidas. Los pesos usan valoraciones guardadas, no cotizaciones en vivo; las valoraciones ausentes se excluyen del denominador. La cobertura de noticias no es un puntaje de exposición ni de sentimiento. Solo se envían símbolos a los proveedores."}{" "}
                   {en ? "Omitted" : "Omitidos"}: {data.universe.omitted}{" "}
                   {scope === "portfolio" ? (
                     <>
