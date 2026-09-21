@@ -526,7 +526,7 @@ test("watchlist scan validates and deduplicates public tickers without creating 
   assert.ok(r.results.every((x) => x.weight === null));
   assert.throws(() => service.watchlist(["../invalid"]), /INVALID_TICKER/);
   assert.throws(
-    () => service.watchlist(new Array(31).fill("ONON")),
+    () => service.watchlist(new Array(41).fill("ONON")),
     /INVALID_TICKERS/,
   );
 });
@@ -555,4 +555,32 @@ test("portfolio sentiment reads owned holdings even if caller supplies other tic
   );
   assert.equal(r.status, 200);
   assert.deepEqual(received, ["OWN"]);
+});
+
+test("33-position portfolios scan completely with bounded concurrency and disclose larger-universe truncation", async () => {
+  let active=0,peak=0;
+  const service = createResearchMarketService({
+    clock,
+    env: {},
+    fetcher: async () => {active++;peak=Math.max(peak,active);await new Promise(resolve=>setTimeout(resolve,1));active--;return Response.json({news:[]});},
+  });
+  const holdings = Array.from({ length: 33 }, (_, i) => ({
+    ticker: `T${i}`,
+    asset_type: "equity",
+    market_value_usd: 10,
+  }));
+  const r = await service.portfolio(holdings);
+  assert.equal(r.coverage.scanned, 33);
+  assert.ok(peak<=8);
+  assert.equal(r.universe.omitted, 0);
+  const large = portfolioUniverse([
+    ...holdings,
+    ...Array.from({ length: 12 }, (_, i) => ({
+      ticker: `X${i}`,
+      asset_type: "equity",
+      market_value_usd: 10,
+    })),
+  ]);
+  assert.equal(large.holdings.length, 40);
+  assert.equal(large.omitted, 5);
 });
