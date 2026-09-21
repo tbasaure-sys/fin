@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { QUARTER_METRICS, summarizeTone } from "@/lib/research/market-data.mjs";
 import styles from "./terminal.module.css";
+import { JevPanel } from './jev-panel';
 const fmt = (v, en, digits = 1) =>
   Number.isFinite(v)
     ? new Intl.NumberFormat(en ? "en-US" : "es-CL", {
@@ -1057,6 +1058,7 @@ export function NewsScreener({ ticker, language, initialScope = "stock" }) {
           </>
         ) : null}
       </section>
+      {data ? <JevPanel key={`jev:${scope}:${ticker}:${watchlist}`} kind="news" language={language} ticker={ticker} scope={scope} watchlist={watchlist}/> : null}
       {data && scope !== "market" ? (
         <CrossSourcePanel
           key={`${scope}:${ticker}:${watchlist}`}
