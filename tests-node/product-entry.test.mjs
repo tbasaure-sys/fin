@@ -10,9 +10,9 @@ test('analytics rejects sensitive fields, unknown events and absent consent',()=
  const body={event:'visit',visitor:'12345678-1234-4123-8123-123456789012',consent:true};assert.equal(validProductEvent(body),true);
  for(const changed of [{ticker:'MSFT'},{holdings:[]},{email:'test@example.test'},{event:'arbitrary'},{consent:false},{visitor:'user@example.test'}])assert.equal(Boolean(validProductEvent({...body,...changed})),false);
 });
-test('evidence is the default and private valuation can begin without a written thesis',async()=>{
+test('financial evidence is the default and private valuation can begin without a written thesis',async()=>{
  const read=p=>readFile(new URL(p,import.meta.url),'utf8');
- assert.match(await read('../components/research/research-workspace.jsx'),/workspaceView,setWorkspaceView\]=useState\('documents'\)/);
+ assert.match(await read('../components/research/research-workspace.jsx'),/workspaceView,setWorkspaceView\]=useState\('overview'\)/);
  assert.match(await read('../components/research/capital-workspace.jsx'),/Preparar mi análisis de cifras/);
  assert.match(await read('../app/research/page.js'),/getServerAuthSession/);
 });

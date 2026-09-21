@@ -58,7 +58,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
  const label=id=>c.labels[NODE_IDS.indexOf(id)]||({explanation:c.explanation,alternative:c.alternative,name:c.name}[id]||id);
  const describe=n=>n?['statement','question','test','ifYes','ifNo','nextAt'].filter(k=>n[k]).map(k=>`${c[k]}: ${n[k]}`).concat(n.evidence.map(e=>`${c.relation[e.relation]}: ${e.chunkId}`)).join('\n')||'—':'—';
  return <section className={styles.desk} aria-label={c.title}>
-  <header className={styles.heading}><div><p className={styles.eyebrow}>01 / {language==='en'?'LIVING THESIS':'TESIS VIVA'}</p><h2>{c.title}</h2><p>{c.intro}</p></div><button type="button" className={styles.textButton} onClick={download}>{c.download} ↓</button></header>
+  <header className={styles.heading}><div><p className={styles.eyebrow}>01 / {language==='en'?'LIVING THESIS':'TESIS VIVA'}</p><h2>{c.title}</h2><p>{c.intro}</p></div><button type="button" className={styles.textButton} onClick={download}>{c.download} </button></header>
   {loading?<p role="status">{language==='en'?'Loading your private revisions…':'Cargando tus revisiones privadas…'}</p>:null}
   {error?<div role="alert" className={styles.error}><p>{c.errors[error]||c.errors.THESIS_STORAGE_UNAVAILABLE}</p>{!dirty?<button onClick={()=>setAttempt(a=>a+1)}>{c.retry}</button>:null}</div>:null}
   <fieldset disabled={loading||saving} className={styles.fieldset}>
@@ -74,7 +74,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
     {!records.length?<p>{c.none}</p>:null}
     {records.map(r=>{const prior=records.find(p=>p.hash===r.parentHash);return <details key={r.hash}><summary>{r.thesis.name} · v{r.revision} · {r.savedAt.slice(0,16).replace('T',' ')} UTC</summary><p>{r.reason}</p><p>{c.kinds[r.changeKind]} · {language==='en'?'Economic novelty not verified':'Novedad económica no verificada'}</p>
      {r.changes.changed.map(id=><div key={id}><strong>{label(id)}</strong><p>{language==='en'?'Before: ':'Antes: '}{prior?(NODE_IDS.includes(id)?describe(prior.thesis.nodes.find(n=>n.id===id)):prior.thesis[id])||'—':'—'}</p><p>{language==='en'?'After: ':'Después: '}{NODE_IDS.includes(id)?describe(r.thesis.nodes.find(n=>n.id===id)):r.thesis[id]}</p></div>)}
-     <p>{c.dependency}: {r.changes.recheck.map(label).join(' → ')||'—'}</p><small>{r.hash}</small></details>})}
+     <p>{c.dependency}: {r.changes.recheck.map(label).join('  ')||'—'}</p><small>{r.hash}</small></details>})}
     {records.length===100?<p>{c.historyLimit}</p>:null}
    </div>:<div hidden={view!=='editor'}>
     <div className={styles.explanations}>
@@ -84,7 +84,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
     <div className={styles.bridge}><p className={styles.eyebrow}>{c.bridge}</p><nav aria-label={c.bridge}>{c.labels.map((name,i)=><button key={name} aria-pressed={active===i} onClick={()=>{setActive(i);setChunk('')}}><span>0{i+1}</span> {name}</button>)}</nav></div>
     <div className={styles.columns}><div className={styles.editor}>
      <div className={styles.nodeTitle}><h3>{c.labels[active]}</h3><span>{c.state[status.state]}</span></div><p>{c.prompts[active]}</p>
-     {proposal?<button onClick={importDraft} disabled={Boolean(node.statement||node.question||node.test||node.evidence.length)}>{language==='en'?'Use reading as a draft':'Usar lectura como borrador'}</button>:!report?<button className={styles.textButton} onClick={onRead}>{language==='en'?'Start with documents and an assisted reading →':'Empezar por documentos y una lectura asistida →'}</button>:null}
+     {proposal?<button onClick={importDraft} disabled={Boolean(node.statement||node.question||node.test||node.evidence.length)}>{language==='en'?'Use reading as a draft':'Usar lectura como borrador'}</button>:!report?<button className={styles.textButton} onClick={onRead}>{language==='en'?'Start with documents and an assisted reading ':'Empezar por documentos y una lectura asistida '}</button>:null}
      {node.draftSource?<p>{language==='en'?'Origin: assisted reading · still to be tested':'Origen: lectura asistida · aún por contrastar'}</p>:null}
      <label>{c.statement}<textarea aria-label={c.statement} rows={3} maxLength={2000} value={node.statement} onChange={e=>editNode('statement',e.target.value)} /></label>
      <details className={styles.evidence}><summary>{c.evidence} · {node.evidence.length}</summary><p>{c.evidenceHint}</p>
@@ -92,13 +92,13 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
       {chunk?<blockquote lang="en">{chunks.find(e=>e.id===chunk)?.text}</blockquote>:null}
       <label>{language==='en'?'Relationship':'Relación'}<select value={relation} onChange={e=>setRelation(e.target.value)}>{Object.entries(c.relation).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
       <button disabled={!chunk||node.evidence.length>=16||node.evidence.some(e=>e.chunkId===chunk&&e.relation===relation)} onClick={()=>{editNode('evidence',[...node.evidence,{chunkId:chunk,relation}]);setChunk('')}}>{c.add}</button>
-      {node.evidence.map((e,i)=>{const quote=chunks.find(v=>v.id===e.chunkId),source=pinned.sources.find(s=>s.id===e.chunkId.split(':')[0]);return <details key={`${e.chunkId}:${e.relation}`}><summary>{e.chunkId} · {c.relation[e.relation]}</summary><blockquote lang="en">{quote?.text}</blockquote><a href={source?.url} target="_blank" rel="noreferrer">{c.quote} ↗</a><p>{source?.acceptedAt} · SHA-256 {source?.sha256}</p><button onClick={()=>editNode('evidence',node.evidence.filter((_,j)=>j!==i))}>{c.remove}</button></details>})}
+      {node.evidence.map((e,i)=>{const quote=chunks.find(v=>v.id===e.chunkId),source=pinned.sources.find(s=>s.id===e.chunkId.split(':')[0]);return <details key={`${e.chunkId}:${e.relation}`}><summary>{e.chunkId} · {c.relation[e.relation]}</summary><blockquote lang="en">{quote?.text}</blockquote><a href={source?.url} target="_blank" rel="noreferrer">{c.quote} </a><p>{source?.acceptedAt} · SHA-256 {source?.sha256}</p><button onClick={()=>editNode('evidence',node.evidence.filter((_,j)=>j!==i))}>{c.remove}</button></details>})}
      </details>
      <label>{c.question}<textarea aria-label={c.question} rows={2} maxLength={2000} value={node.question} onChange={e=>editNode('question',e.target.value)} /></label>
      <label>{c.test}<textarea aria-label={c.test} rows={2} maxLength={2000} value={node.test} onChange={e=>editNode('test',e.target.value)} /></label>
      <div className={styles.twoFields}>{['ifYes','ifNo'].map(key=><label key={key}>{c[key]}<textarea aria-label={c[key]} rows={2} maxLength={2000} value={node[key]} onChange={e=>editNode(key,e.target.value)} /></label>)}</div>
      <div className={styles.twoFields}><label>{c.nextAt}<input type="date" value={node.nextAt} onChange={e=>editNode('nextAt',e.target.value)} /></label><label className={styles.check}><input type="checkbox" checked={node.material} onChange={e=>editNode('material',e.target.checked)} />{c.material}</label></div>
-     <details className={styles.dependency}><summary>{c.dependency}</summary><p>{c.labels.slice(active+1).join(' → ')||'—'}</p><small>{c.dependencyNote}</small></details>
+     <details className={styles.dependency}><summary>{c.dependency}</summary><p>{c.labels.slice(active+1).join('  ')||'—'}</p><small>{c.dependencyNote}</small></details>
     </div><aside className={styles.attention}>
      <section data-testid="next-check"><p className={styles.eyebrow}>{c.next}</p>{assessment.nextCheck?<><h3>{label(assessment.nextCheck.id)}</h3><p>{assessment.nextCheck.question}</p><strong>{assessment.nextCheck.test}</strong><p>{c.ifYes}: {assessment.nextCheck.ifYes}<br/>{c.ifNo}: {assessment.nextCheck.ifNo}</p>{assessment.nextCheck.overdue?<p>{c.overdue}</p>:null}</>:<p>{c.noNext}</p>}<small>{c.queueRule}</small></section>
      <section><h3>{c.capital}</h3><p>{c.capitalBody}</p></section>

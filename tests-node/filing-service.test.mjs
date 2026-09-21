@@ -63,3 +63,12 @@ test("unknown SEC ticker remains an error rather than an invented company", asyn
   const load = createFilingService({ fetcher: fixtureFetch() });
   await assert.rejects(load("ZZNOTREAL"), /NO_ISSUER/);
 });
+
+test('an unavailable optional foreign update keeps the verified annual report and exposes the gap',async()=>{
+ const load=createFilingService({now:()=> '2026-08-01T00:00:00Z',fetcher:async url=>{
+  if(url.includes('company_tickers'))return Response.json({0:{ticker:'ONON',cik_str:1}});
+  if(url.includes('submissions'))return Response.json({name:'On',filings:{recent:{form:['20-F','6-K'],accessionNumber:['0000000001-26-000001','0000000001-26-000002'],primaryDocument:['annual.htm','update.htm'],filingDate:['2026-03-01','2026-05-01'],acceptanceDateTime:['2026-03-01T12:00:00Z','2026-05-01T12:00:00Z'],reportDate:['2025-12-31','2026-03-31']}}});
+  return url.endsWith('annual.htm')?new Response('<p>Revenue increased. Cash flows and risks.</p>'):new Response('',{status:503});
+ }});
+ const d=await load('ONON');assert.equal(d.sources.length,1);assert.equal(d.sources[0].form,'20-F');assert.equal(d.unavailable.length,1);assert.match(d.scope,/excludes_exhibits/);
+});

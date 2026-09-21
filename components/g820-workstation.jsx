@@ -187,7 +187,7 @@ function dateLabel(value, language) {
 }
 
 function Key({ pass, children }) {
-  return <span className={pass ? styles.keyPass : styles.keyClosed}>{pass ? "✓" : "×"} {children}</span>;
+  return <span className={pass ? styles.keyPass : styles.keyClosed}>{pass ? "" : "×"} {children}</span>;
 }
 
 function statusLabel(status) {

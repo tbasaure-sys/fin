@@ -64,15 +64,15 @@ export function AnalysisPanel({dossier,ticket,available,language,sectionId,onSta
     <span className={styles.kicker}>{copy.kinds[finding.kind]}</span><p>{finding.text}</p>
     {finding.evidence.map((e,j)=>{const source=(state.reportDossier||dossier).sources.find(s=>s.id===e.chunkId.split(':')[0]);return <details key={j}>
       <summary>{copy.cite}</summary><blockquote lang="en">{e.quote}</blockquote>
-      <a href={source?.url} target="_blank" rel="noreferrer">{source?.form} · {e.chunkId} ↗</a>
+      <a href={source?.url} target="_blank" rel="noreferrer">{source?.form} · {e.chunkId} </a>
     </details>})}
    </div>)}
    {state.analysis.review?.excluded.filter(r=>r.id.startsWith(`${sectionId}:`)).map(r=><p key={r.id}>{language==='en'?'Reading withheld by automated critique: ':'Lectura retirada por la revisión automática: '}{r.reason}</p>)}
    {section?.findings.length===0?<p>{language==='en'?'No supported reading to publish for this section. Consult the original evidence.':'No hay una lectura respaldada para publicar en esta sección. Consulta la evidencia original.'}</p>:null}
    <h4>{copy.missing}</h4><ul>{section?.unknowns.map((s,i)=><li key={i}>{s}</li>)}</ul>
    <h4>{copy.checks}</h4><ul>{section?.checks.map((s,i)=><li key={i}>{s}</li>)}</ul>
-   <button className={styles.quietButton} onClick={download}>{copy.download} ↓</button>
+   <button className={styles.quietButton} onClick={download}>{copy.download} </button>
   </>}
-  {state.error?<div role="alert"><p>{copy.errors[state.error]||copy.unavailable}</p>{state.retryAfterSeconds>0?<p>{language==='en'?`The service indicates a retry after ${state.retryAfterSeconds} seconds.`:`El servicio indica reintentar después de ${state.retryAfterSeconds} segundos.`}</p>:null}{state.error==='AUTH_REQUIRED'?<a href={`/login?intent=signin&lang=${language}&next=${encodeURIComponent(`/research?ticker=${dossier.ticker}&lang=${language}`)}`}>{language==='en'?'Sign in':'Iniciar sesión'} →</a>:null}{state.reference?<small>{language==='en'?'Error reference':'Referencia del fallo'}: {state.reference}</small>:null}</div>:null}
+  {state.error?<div role="alert"><p>{copy.errors[state.error]||copy.unavailable}</p>{state.retryAfterSeconds>0?<p>{language==='en'?`The service indicates a retry after ${state.retryAfterSeconds} seconds.`:`El servicio indica reintentar después de ${state.retryAfterSeconds} segundos.`}</p>:null}{state.error==='AUTH_REQUIRED'?<a href={`/login?intent=signin&lang=${language}&next=${encodeURIComponent(`/research?ticker=${dossier.ticker}&lang=${language}`)}`}>{language==='en'?'Sign in':'Iniciar sesión'} </a>:null}{state.reference?<small>{language==='en'?'Error reference':'Referencia del fallo'}: {state.reference}</small>:null}</div>:null}
  </section>;
 }

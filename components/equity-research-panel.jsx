@@ -199,7 +199,7 @@ function AuroraDecisionSummary({ research }) {
           </div>
           {adjustments.length ? (
             <div className={styles.researchAttentionCallout}>
-              <span>Puente MOSAIC → AURORA</span>
+              <span>Puente MOSAIC  AURORA</span>
               <strong>El contexto modifica el rango sólo mediante exposiciones demostrables</strong>
               <p>{adjustments.map((item) => item.chain).join(" · ")}</p>
             </div>
@@ -1659,7 +1659,7 @@ function renderEvidence(research) {
         </div>
       </div>
 
-      <small className={styles.researchScrollHint}>Desliza para ver todas las columnas →</small>
+      <small className={styles.researchScrollHint}>Desliza para ver todas las columnas </small>
       <div aria-label="Fuentes consultadas" className={`${styles.researchTable} ${styles.researchSourceTable}`} role="table">
         <div className={styles.researchTableHeader} role="row">
           <span role="columnheader">Fuente</span>
@@ -1946,7 +1946,7 @@ function renderDelta(research, valuationPresentation) {
           value={String(research.history?.run_count || 1)}
         />
         <ResearchMetric
-          detail={delta.period_changed ? `${delta.previous_period} → ${delta.current_period}` : "El período fiscal más reciente no ha cambiado."}
+          detail={delta.period_changed ? `${delta.previous_period}  ${delta.current_period}` : "El período fiscal más reciente no ha cambiado."}
           label="Período"
           tone={delta.period_changed ? "warn" : "neutral"}
           value={delta.current_period || "-"}

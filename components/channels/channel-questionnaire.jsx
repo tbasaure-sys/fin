@@ -411,11 +411,11 @@ function QuestionScreen({ answers, copy, index, language, onBack, onChange, onCo
 
         <div className={styles.questionActions}>
           <button className={styles.secondaryButton} onClick={onBack} type="button">
-            <span aria-hidden="true">←</span> {copy.back}
+             {copy.back}
           </button>
           <button className={styles.primaryButton} disabled={!canContinue} type="submit">
             {index === CHANNEL_QUESTIONS.length - 1 ? copy.finish : copy.continue}
-            <span aria-hidden="true">→</span>
+
           </button>
         </div>
       </fieldset>
@@ -637,7 +637,7 @@ function ResultScreen({
               </button>
             ) : (
               <Link className={styles.primaryButton} href={loginHref} onClick={markPendingSave}>
-                {copy.loginToSave} <span aria-hidden="true">→</span>
+                {copy.loginToSave}
               </Link>
             )}
             {saveStatus === "error" ? <span className={styles.saveError}>{copy.saveError}</span> : null}
@@ -915,7 +915,7 @@ export function ChannelQuestionnaire() {
             <p className={styles.introduction}>{copy.introduction}</p>
             <div className={styles.introAction}>
               <button className={styles.primaryButton} onClick={start} type="button">
-                {copy.start} <span aria-hidden="true">→</span>
+                {copy.start}
               </button>
               <span>{copy.time}</span>
             </div>

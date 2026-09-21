@@ -63,7 +63,7 @@ export function TickerSearch({
             : en
               ? "Open dossier"
               : "Abrir expediente"}{" "}
-          <span aria-hidden="true">↗</span>
+
         </button>
       </div>
       {error ? (

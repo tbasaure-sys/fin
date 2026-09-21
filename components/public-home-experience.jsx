@@ -18,7 +18,7 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
         </Link>
         <nav aria-label={en ? "Main navigation" : "Navegación principal"}>
           <Link href={`/methodology?lang=${language}`}>{en ? "The method" : "El método"}</Link>
-          <Link href={login}>{en ? "Sign in" : "Iniciar sesión"} <span aria-hidden="true">↗</span></Link>
+          <Link href={login}>{en ? "Sign in" : "Iniciar sesión"} </Link>
         </nav>
       </header>
       <main className={styles.main} id="main">
@@ -27,7 +27,7 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
           <h1>{en ? <>Value is not always<br />in plain sight.</> : <>El valor no siempre<br />está a la vista.</>}</h1>
           <p className={styles.description}>{en ? "Understand the cash, challenge your thesis, and connect it to your portfolio." : "Entiende la caja, cuestiona tu tesis y conéctala con tu cartera."}</p>
           <Link className={styles.enter} href={`/example?lang=${language}`}>
-            {en ? "See a real example" : "Ver un ejemplo real"} <span aria-hidden="true">↗</span>
+            {en ? "See a real example" : "Ver un ejemplo real"}
           </Link>
           <p className={styles.note}>{en ? "Microsoft · sources and calculations · no account" : "Microsoft · fuentes y cálculos · sin cuenta"}</p>
         </div>
@@ -36,9 +36,9 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
         <p className={styles.note}>{en ? 'ONE COMPANY. A CONCRETE QUESTION.' : 'UNA EMPRESA. UNA PREGUNTA CONCRETA.'}</p>
         <h2 id="proof-title">{en ? 'More operating cash does not always mean more cash left over.' : 'Más caja operativa no siempre significa más caja disponible.'}</h2>
         <p>{en ? 'Walk through a historical Microsoft case: what changed, what remains unknown, and why position size matters. Then investigate a company of your own.' : 'Recorre un caso histórico de Microsoft: qué cambió, qué falta saber y por qué importa el tamaño de la posición. Después, investiga una empresa propia.'}</p>
-        <Link href={`/example?lang=${language}`}>{en ? 'Read the case' : 'Leer el caso'} →</Link>
+        <Link href={`/example?lang=${language}`}>{en ? 'Read the case' : 'Leer el caso'} </Link>
         <p className={styles.note}>{en ? 'Your research stays private. An account is required to save theses and connect holdings.' : 'Tu investigación permanece privada. Para guardar tesis y conectar posiciones necesitas una cuenta.'}</p>
-        <Link href={research}>{en ? 'Open my research space' : 'Abrir mi espacio de investigación'} ↗</Link>
+        <Link href={research}>{en ? 'Open my research space' : 'Abrir mi espacio de investigación'} </Link>
       </section>
       <footer className={styles.footer}>
         <nav aria-label={en ? "Explore" : "Explorar"}>

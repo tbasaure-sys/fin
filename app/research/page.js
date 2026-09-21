@@ -6,9 +6,9 @@ import { ResearchWorkspace } from "@/components/research/research-workspace";
 export const dynamic = "force-dynamic";
 export const metadata = {
   robots: { index: false, follow: false },
-  title: "Trama · Investigación documental",
+  title: "Investigación de empresas",
   description:
-    "Documentos de la empresa, caja, riesgos y preguntas de tesis. Sin precios objetivo automáticos.",
+    "Cifras financieras, documentos originales, comparaciones, tesis y valoración en un solo espacio.",
 };
 export default async function ResearchPage({ searchParams = {} }) {
   const language = normalizeLocale(
@@ -25,7 +25,7 @@ export default async function ResearchPage({ searchParams = {} }) {
       key={String(searchParams.ticker || "")}
       initialLanguage={language}
       ticker={
-        typeof searchParams.ticker === "string" ? searchParams.ticker : ""
+        typeof searchParams.ticker === "string" ? searchParams.ticker.trim().toUpperCase() : ""
       }
     />
   );
