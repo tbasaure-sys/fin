@@ -125,9 +125,9 @@ const WORKSPACE_NAV = [
     href: "/app/carteras",
     label: "Carteras",
     priority: "Privado",
-    detail: "IGMAR · MOM · YO",
+    detail: "Tus carteras",
     title: "Carteras",
-    body: "Resumen de las tres carteras y riesgos compartidos.",
+    body: "Resumen de tus carteras y riesgos compartidos.",
   },
 ];
 

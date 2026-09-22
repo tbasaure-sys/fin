@@ -11,6 +11,6 @@ export const metadata = {
 
 export default async function PrivateCarterasPage() {
   const authSession = await requireServerAuthSession("/app/carteras");
-  const initialData = await getCarterasDashboard("USD");
+  const initialData = await getCarterasDashboard("USD", authSession);
   return <PrivateCarterasDashboard initialData={initialData} user={authSession.user} />;
 }
