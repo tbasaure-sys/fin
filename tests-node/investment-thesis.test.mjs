@@ -33,6 +33,20 @@ test('Jev outage preserves the generated draft with an explicit unavailable revi
  const result=await generateInvestmentThesis(dossier,{apiKey:'test',fetcher:async()=>Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer())}}]}),jev:{evaluate:async()=>{throw Error('outage')}}});
  assert.equal(result.review.status,'unavailable');assert.equal(result.sections.length,6);
 });
+test('format repair is bounded and still rejects fabricated evidence',async()=>{
+ let calls=0;
+ const result=await generateInvestmentThesis(dossier,{apiKey:'test',fetcher:async()=>{
+  calls++;const raw=answer();if(calls===1)raw.sections[0].checks=['Read the 10-K'];
+  return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(raw)}}]});
+ },jev:{evaluate:async()=>({status:'not_configured',items:[]})}});
+ assert.equal(calls,2);assert.equal(result.sections.length,6);
+ calls=0;
+ await assert.rejects(()=>generateInvestmentThesis(dossier,{apiKey:'test',fetcher:async()=>{
+  calls++;const raw=answer();raw.sections[0].findings[0].evidence[0].chunkId='fabricated';
+  return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(raw)}}]});
+ }}),/INVALID_ANALYSIS/);
+ assert.equal(calls,2);
+});
 test('thesis generation uses a separate cache version and requires the signed dossier',async()=>{
  const secret='test-signing-secret',ticket=signDossier(dossier,secret);let storedKey;
  const analysis={...validateInvestmentThesis(answer(),dossier),language:'en',dossierHash:hash(dossier)};
