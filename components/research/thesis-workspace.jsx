@@ -15,7 +15,9 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
  const [capitalDirty,setCapitalDirty]=useState(false);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[dirty,setDirty]=useState(false),[error,setError]=useState(''),[saved,setSaved]=useState(false);
  const [reason,setReason]=useState(''),[kind,setKind]=useState('interpretation'),[attempt,setAttempt]=useState(0),[chunk,setChunk]=useState(''),[relation,setRelation]=useState('context');
- const saveController=useRef(null);
+ const saveController=useRef(null),claimInput=useRef(null),reasonInput=useRef(null);
+ const hasClaims=thesis.nodes.some(n=>n.statement.trim());
+ function prepareJev(){setView('editor');requestAnimationFrame(()=>{const target=hasClaims?reasonInput.current:claimInput.current;target?.scrollIntoView({block:'center'});target?.focus({preventScroll:true})})}
  useEffect(()=>()=>saveController.current?.abort(),[]);
  useEffect(()=>{
   const controller=new AbortController();let live=true;const timer=setTimeout(()=>controller.abort(),30000);
@@ -69,7 +71,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
     <nav aria-label={language==='en'?'Thesis views':'Vistas de tesis'}><button aria-pressed={view==='editor'} onClick={()=>setView('editor')}>{c.editor}</button><button aria-pressed={view==='capital'} onClick={()=>setView('capital')}>{language==='en'?'Valuation and portfolio':'Valoración y cartera'}</button><button aria-pressed={view==='history'} onClick={()=>setView('history')}>{c.history}</button></nav>
    </div>
    <p className={styles.provenance}>{c.cutoff}: {pinned.asOf.slice(0,10)} · {c.noClaim}</p>
-   <JevPanel kind="thesis" language={language} ticker={dossier.ticker} revisionHash={current?.hash} disabled={dirty}/>
+   <JevPanel kind="thesis" language={language} ticker={dossier.ticker} revisionHash={current?.hash} disabled={dirty} hasClaims={hasClaims} onPrepare={prepareJev}/>
    {documents.kind!=='same_documents'?<div className={styles.error}><p>{c.newDocs}</p><button onClick={adopt}>{c.adopt}</button></div>:null}
    {view==='history'?<div className={styles.history}>
     <h3>{c.history}</h3><p>{documents.kind==='same_documents'?c.sameDocs:c.newDocs}</p>
@@ -88,7 +90,7 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
      <div className={styles.nodeTitle}><h3>{c.labels[active]}</h3><span>{c.state[status.state]}</span></div><p>{c.prompts[active]}</p>
      {proposal?<button onClick={importDraft} disabled={Boolean(node.statement||node.question||node.test||node.evidence.length)}>{language==='en'?'Use reading as a draft':'Usar lectura como borrador'}</button>:!report?<button className={styles.textButton} onClick={onRead}>{language==='en'?'Start with documents and an assisted reading ':'Empezar por documentos y una lectura asistida '}</button>:null}
      {node.draftSource?<p>{language==='en'?'Origin: assisted reading · still to be tested':'Origen: lectura asistida · aún por contrastar'}</p>:null}
-     <label>{c.statement}<textarea aria-label={c.statement} rows={3} maxLength={2000} value={node.statement} onChange={e=>editNode('statement',e.target.value)} /></label>
+     <label>{c.statement}<textarea ref={claimInput} aria-label={c.statement} rows={3} maxLength={2000} value={node.statement} onChange={e=>editNode('statement',e.target.value)} /></label>
      <details className={styles.evidence}><summary>{c.evidence} · {node.evidence.length}</summary><p>{c.evidenceHint}</p>
       <label>{c.select}<select value={chunk} onChange={e=>setChunk(e.target.value)}><option value="">—</option>{chunks.map(e=><option key={e.id} value={e.id}>{e.id} · {e.text.slice(0,90)}</option>)}</select></label>
       {chunk?<blockquote lang="en">{chunks.find(e=>e.id===chunk)?.text}</blockquote>:null}
@@ -108,8 +110,8 @@ export function ThesisWorkspace({dossier,ticket,language,report,onRead}){
     <div className={styles.saveBar}>
      <label>{c.name}<input maxLength={80} value={thesis.name} onChange={e=>edit('name',e.target.value)} /></label>
      <label>{c.kind}<select value={kind} onChange={e=>setKind(e.target.value)}>{Object.entries(c.kinds).map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
-     <label className={styles.reason}>{c.reason}<input maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)} /></label>
-     <button className={styles.primary} onClick={save} disabled={!dirty||!reason.trim()||!thesis.name.trim()}>{saving?c.saving:c.save}</button>
+     <label className={styles.reason}>{c.reason}<input ref={reasonInput} maxLength={1000} value={reason} onChange={e=>setReason(e.target.value)} /></label>
+     <button className={styles.primary} onClick={save} disabled={(!dirty&&Boolean(current))||!reason.trim()||!thesis.name.trim()}>{saving?c.saving:c.save}</button>
     </div>
     <p role="status" className={styles.saveStatus}>{saved?`${c.saved} · v${current?.revision}`:dirty?c.unsaved:''}</p>
    </div>}

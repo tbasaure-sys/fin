@@ -15,8 +15,9 @@ const statusText={
  empty:['No hay evidencia elegible para evaluar.','No eligible evidence to assess.'],
  partial:['Evaluación parcial; algunos elementos no se pudieron evaluar.','Partial assessment; some items could not be assessed.']
 };
-export function JevPanel({kind,language,ticker,scope='stock',watchlist='',dossier,ticket,revisionHash,disabled=false}) {
+export function JevPanel({kind,language,ticker,scope='stock',watchlist='',dossier,ticket,revisionHash,disabled=false,hasClaims=true,onPrepare}) {
  const en=language==='en',c=labels[en?'en':'es'];
+ const needsPreparation=kind==='thesis'&&(disabled||!revisionHash||!hasClaims);
  const [connection,setConnection]=useState(''),[result,setResult]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState(''),[question,setQuestion]=useState(''),[filter,setFilter]=useState('all');
  const controller=useRef(null);
  useEffect(()=>{const ac=new AbortController();fetch('/api/research/jev',{signal:ac.signal,cache:'no-store'}).then(r=>r.ok?r.json():null).then(v=>{if(v)setConnection(v.status)}).catch(()=>{});return()=>{ac.abort();controller.current?.abort()}},[]);
@@ -33,13 +34,16 @@ export function JevPanel({kind,language,ticker,scope='stock',watchlist='',dossie
   <p>{kind==='news'?(en?'Assess each headline for each company. Portfolio review highlights relevant events and orders them by known holding weight.':'Evalúa cada titular por empresa. La revisión de cartera destaca eventos relevantes y los ordena por peso conocido de la posición.'):kind==='documents'?(en?'Ask a specific question to rank selected filing excerpts. Only the displayed excerpts are assessed.':'Haz una pregunta concreta para ordenar extractos del expediente. Solo se evalúan los extractos mostrados.'):(en?'Check saved claims against their linked excerpts and review whether the proposed tests distinguish outcomes.':'Contrasta afirmaciones guardadas con sus extractos vinculados y revisa si las pruebas propuestas distinguen resultados.')}</p>
   <form onSubmit={run}>
    {kind==='documents'?<label>{en?'Research question':'Pregunta de investigación'}<input required maxLength={600} value={question} onChange={e=>{setQuestion(e.target.value);setResult(null)}} placeholder={en?'What evidence describes customer concentration?':'¿Qué evidencia describe la concentración de clientes?'}/></label>:null}
-   <button type="submit" disabled={busy||disabled||(kind==='thesis'&&!revisionHash)||(kind==='documents'&&!question.trim())}>{busy?(en?'Assessing evidence…':'Evaluando evidencia…'):(en?'Assess with Jev':'Evaluar con Jev')}</button>
+   <button type="submit" hidden={needsPreparation&&Boolean(onPrepare)} disabled={busy||needsPreparation||disabled||(kind==='thesis'&&!revisionHash)||(kind==='documents'&&!question.trim())}>{busy?(en?'Assessing evidence…':'Evaluando evidencia…'):(en?'Assess with Jev':'Evaluar con Jev')}</button>
   </form>
-  {disabled||kind==='thesis'&&!revisionHash?<p>{en?'Save your thesis changes before reviewing this revision.':'Guarda los cambios de tu tesis antes de revisar esta versión.'}</p>:null}
+  {needsPreparation?<div>
+   <p>{!hasClaims?(en?'Add at least one claim to your thesis, then save it for review.':'Agrega al menos una afirmación a tu tesis y guarda la versión para evaluarla.'):disabled?(en?'Your thesis has unsaved changes. Save this revision before assessing it.':'Tu tesis tiene cambios sin guardar. Guarda esta versión antes de evaluarla.'):(en?'Save the first version of your thesis before assessing it.':'Guarda la primera versión de tu tesis antes de evaluarla.')}</p>
+   {onPrepare?<button type="button" onClick={onPrepare}>{!hasClaims?(en?'Add a thesis claim':'Agregar una afirmación'):(en?'Go to save thesis':'Ir a guardar tesis')}</button>:null}
+  </div>:null}
   <p className={styles.caption}>{en?'Experimental model assessment. Uncertain classifications remain unresolved; confidence is not accuracy or a probability of price gains. Sources and calculations remain independently inspectable.':'Evaluación experimental del modelo. Las clasificaciones inciertas quedan sin resolver; la confianza no es exactitud ni probabilidad de alza. Las fuentes y los cálculos se pueden revisar por separado.'}</p>
   {kind==='thesis'?<p className={styles.caption}>{en?'Runs only when requested. Sends the saved claims and cited excerpts to TypeSafe; does not send your identity, holdings or portfolio values. It does not edit your thesis.':'Se ejecuta solo al solicitarlo. Envía las afirmaciones guardadas y los extractos citados a TypeSafe; no envía tu identidad, posiciones ni valores de cartera. No modifica tu tesis.'}</p>:null}
   {error?<p role="alert">{error==='AUTH_REQUIRED'?(en?'Sign in again to continue.':'Vuelve a iniciar sesión para continuar.'):error==='DOSSIER_EXPIRED'?(en?'Reload the dossier before assessing its evidence.':'Recarga el expediente antes de evaluar su evidencia.'):error==='BUSY'?(en?'Too many requests. Retry later.':'Hay demasiadas consultas. Reintenta más tarde.'):(en?'Assessment unavailable. Retry; your research is preserved.':'Evaluación no disponible. Reintenta; tu investigación se conserva.')}</p>:null}
-  {statusText[result?.status||connection]?<p role="status">{statusText[result?.status||connection][en?1:0]}</p>:null}
+  {!needsPreparation&&statusText[result?.status||connection]?<p role="status">{statusText[result?.status||connection][en?1:0]}</p>:null}
   {result?.total!==undefined?<p>{result.assessed} / {result.total} {en?'items assessed':'elementos evaluados'} · {en?'Selected':'Seleccionados'}: {result.selected}{result.asOf?` · ${result.asOf.slice(0,19).replace('T',' ')} UTC`:''}</p>:null}
   {result?.items?.length?<>
    <div className={styles.controls}>{kind==='news'?<label>{en?'Show':'Mostrar'}<select value={filter} onChange={e=>setFilter(e.target.value)}><option value="all">{en?'All assessed headlines':'Todos los titulares evaluados'}</option><option value="attention">{en?'Material events to review':'Eventos relevantes para revisar'}</option></select></label>:null}<button type="button" onClick={exportResult}>{en?'Export assessment':'Exportar evaluación'}</button></div>

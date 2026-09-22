@@ -17,6 +17,7 @@ export default async function ResearchPage({ searchParams = {} }) {
   );
   const next = new URLSearchParams({ lang: language });
   if (typeof searchParams.ticker === "string") next.set("ticker", searchParams.ticker);
+  if(searchParams.view==="thesis")next.set("view","thesis");
   if(searchParams.view==="news") {next.set("view","news");if(["stock","portfolio","market","watchlist"].includes(searchParams.scope))next.set("scope",searchParams.scope);}
   if (!await getServerAuthSession()) {
     redirect(`/login?intent=signin&lang=${language}&next=${encodeURIComponent(`/research?${next}`)}`);
@@ -24,7 +25,7 @@ export default async function ResearchPage({ searchParams = {} }) {
   return (
     <ResearchWorkspace
       key={`${searchParams.ticker || ""}:${searchParams.view || ""}:${searchParams.scope || ""}`}
-      initialView={searchParams.view==="news"?"news":"overview"}
+      initialView={["news","thesis"].includes(searchParams.view)?searchParams.view:"overview"}
       initialScope={["stock","portfolio","market","watchlist"].includes(searchParams.scope)?searchParams.scope:"stock"}
       initialLanguage={language}
       ticker={
