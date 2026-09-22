@@ -67,6 +67,10 @@ export function PublicSiteHeader({
           <span className={styles.brandDescriptor}>{copy.descriptor}</span>
         </Link>
 
+        <Link className={styles.portfolios} href={`/app/carteras?lang=${language}`}>
+          {language === "en" ? "Portfolios" : "Carteras"}
+        </Link>
+
         <button
           aria-controls={menuId}
           aria-expanded={menuOpen}

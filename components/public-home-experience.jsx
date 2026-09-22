@@ -7,6 +7,7 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
   const { language, setLanguage } = useLanguagePreference(initialLanguage);
   const en = language === "en";
   const research = `/research?lang=${language}`;
+  const portfolios = `/app/carteras?lang=${language}`;
   const login = `/login?intent=signin&lang=${language}&next=${encodeURIComponent(research)}`;
   return (
     <div className={styles.page} data-no-translate>
@@ -17,6 +18,7 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
           BLS <span>/ PRIME</span>
         </Link>
         <nav aria-label={en ? "Main navigation" : "Navegación principal"}>
+          <Link href={portfolios}>{en ? "Portfolios" : "Carteras"}</Link>
           <Link href={`/methodology?lang=${language}`}>{en ? "The method" : "El método"}</Link>
           <Link href={login}>{en ? "Sign in" : "Iniciar sesión"} </Link>
         </nav>
@@ -44,7 +46,7 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
         <nav aria-label={en ? "Explore" : "Explorar"}>
           <Link href={research}>{en ? "Companies" : "Empresas"}</Link><span aria-hidden="true">·</span>
           <Link href={`/aurora?lang=${language}`}>{en ? "Public valuation" : "Valoración pública"}</Link><span aria-hidden="true">·</span>
-          <Link href={`/app?lang=${language}`}>{en ? "Portfolio" : "Cartera"}</Link>
+          <Link href={portfolios}>{en ? "Portfolios" : "Carteras"}</Link>
         </nav>
         <nav aria-label={en ? "Legal and language" : "Información legal e idioma"}>
           <Link href={`/privacy?lang=${language}`}>{en ? "Privacy" : "Privacidad"}</Link>
