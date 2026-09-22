@@ -13,12 +13,9 @@ test("Carteras lives behind the existing private workspace session", async () =>
   assert.match(middleware, /pathname === "\/app" \|\| pathname\.startsWith\("\/app\/"\)/);
 });
 
-test("Carteras uses the configured backend instead of exposing an unauthenticated browser origin", async () => {
-  const loader = await readFile(new URL("../lib/server/carteras-api.js", import.meta.url), "utf8");
-  assert.match(loader, /CARTERAS_API_BASE_URL/);
-  assert.match(loader, /CARTERAS_API_TOKEN/);
-  assert.match(loader, /authorization: `Bearer \$\{token\}`/);
-  assert.match(loader, /cache: "no-store"/);
-  assert.match(loader, /if \(!configuredBaseUrl\(\)\)/);
-  assert.match(loader, /source: "fallback"/);
+test("both routes pass the authenticated session to the portfolio loader", async () => {
+  for (const route of ["../app/app/carteras/page.js", "../app/api/carteras/dashboard/route.js"]) {
+    const source = await readFile(new URL(route, import.meta.url), "utf8");
+    assert.match(source, /getCarterasDashboard\([^,]+, authSession\)/);
+  }
 });

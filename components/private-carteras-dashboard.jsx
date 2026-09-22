@@ -137,17 +137,19 @@ export default function PrivateCarterasDashboard({ initialData, user }) {
   return (
     <main className={styles.shell}>
       <header className={styles.topbar}>
-        <div><span className={styles.eyebrow}>BLS Prime · privado</span><h1>Carteras</h1><p>IGMAR, MOM y YO en una sola lectura.</p></div>
+        <div><span className={styles.eyebrow}>BLS Prime · privado</span><h1>Carteras</h1><p>Las carteras conectadas a tu cuenta.</p></div>
         <div className={styles.topActions}><span>{user?.name || "Sesión privada"}</span><a href="/app">Volver al workspace</a></div>
       </header>
+      {portfolios.length === 0 ? <section className={styles.riskPanel} role="status"><h2>No hay carteras disponibles</h2><p>No hay una fuente de carteras autorizada y disponible para esta cuenta.</p></section> : <>
       <div className={styles.controls}>
         <span>Valor agregado: <strong>{formatMoney(total, currency)}</strong></span>
         <div className={styles.currency}><span>Moneda</span>{["USD", "CLP"].map((item) => <button type="button" key={item} className={currency === item ? styles.activeCurrency : ""} onClick={() => setCurrency(item)}>{item}</button>)}</div>
       </div>
       {loading ? <div className={styles.loading}>Actualizando conversión…</div> : null}
       <section className={styles.portfolioGrid}>{portfolios.map((panel) => <PortfolioPanel key={panel.key || panel.name} panel={panel} currency={currency} />)}</section>
-      <RiskMatrix risk={data?.risk} />
-      <footer className={styles.footer}><span>Fuente: {data?.source === "api" ? "Carteras API" : "último estado disponible"} · datos con fecha y procedencia.</span><span>Sin órdenes de inversión ni ejecución.</span></footer>
+      {data?.risk ? <RiskMatrix risk={data.risk} /> : null}
+      </> }
+      <footer className={styles.footer}>{portfolios.length > 0 ? <span>Fuente: {data?.source === "api" ? "Carteras API" : "último estado disponible"} · datos con fecha y procedencia.</span> : null}<span>Sin órdenes de inversión ni ejecución.</span></footer>
     </main>
   );
 }

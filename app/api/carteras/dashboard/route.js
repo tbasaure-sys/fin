@@ -9,6 +9,6 @@ export async function GET(request) {
   if (authSession instanceof Response) return authSession;
 
   const currency = new URL(request.url).searchParams.get("currency") || "USD";
-  const payload = await getCarterasDashboard(currency);
+  const payload = await getCarterasDashboard(currency, authSession);
   return NextResponse.json(payload, { headers: { "cache-control": "private, no-store" } });
 }
