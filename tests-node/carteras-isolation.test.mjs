@@ -1,35 +1,26 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { getCarterasDashboard } from '../lib/server/carteras-api.js';
+import test from "node:test";
+import assert from "node:assert/strict";
+import { getCarterasDashboard, summarizeOwnedHoldings } from "../lib/server/carteras-api.js";
 
-test('portfolio integration denies missing or mismatched ownership before fetching', async () => {
-  const keys = ['CARTERAS_OWNER_USER_ID','CARTERAS_WORKSPACE_ID','CARTERAS_API_BASE_URL','CARTERAS_API_TOKEN'];
-  const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
-  const originalFetch = globalThis.fetch;
-  let calls = 0;
-  try {
-    Object.assign(process.env, {CARTERAS_OWNER_USER_ID:'owner-test', CARTERAS_WORKSPACE_ID:'workspace-test', CARTERAS_API_BASE_URL:'https://portfolio.example', CARTERAS_API_TOKEN:'test-token'});
-    globalThis.fetch = async () => { calls++; return Response.json({ portfolios: [{ name: 'Test portfolio' }] }); };
-    for (const session of [null, {}, {user:{id:'other'},workspace:{id:'workspace-test'}}, {user:{id:'owner-test'},workspace:{id:'other'}}]) {
-      const result = await getCarterasDashboard('USD', session);
-      assert.deepEqual(result.dashboard.portfolios, []);
-      assert.equal(result.source, 'unavailable');
-    }
-    assert.equal(calls, 0);
-    const owner = {user:{id:'owner-test'},workspace:{id:'workspace-test'}};
-    const allowed = await getCarterasDashboard('USD', owner);
-    assert.equal(allowed.source, 'api');
-    assert.equal(calls, 2);
-    delete process.env.CARTERAS_OWNER_USER_ID;
-    assert.deepEqual((await getCarterasDashboard('USD', owner)).dashboard.portfolios, []);
-    assert.equal(calls, 2);
-    process.env.CARTERAS_OWNER_USER_ID = 'owner-test';
-    globalThis.fetch = async () => { throw new Error('offline'); };
-    assert.deepEqual((await getCarterasDashboard('USD', owner)).dashboard.portfolios, []);
-  } finally {
-    globalThis.fetch = originalFetch;
-    for (const key of keys) {
-      if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key];
-    }
-  }
+test("Carteras reads only the signed-in owner's workspace from Neon", async () => {
+  const calls = [];
+  const reader = async (owner, workspace) => {
+    calls.push([owner, workspace]);
+    return { status: "available", holdings: [{ ticker: "TEST", quantity: 2, current_price_usd: 10, market_value_usd: 20, updated_at: "2026-09-22T10:00:00Z" }] };
+  };
+  const session = { user: { id: "user-one" }, workspace: { id: "workspace-one" } };
+  const result = await getCarterasDashboard(session, { readPortfolio: reader, neonAvailable: () => true });
+  assert.deepEqual(calls, [["user-one", "workspace-one"]]);
+  assert.equal(result.holdings[0].ticker, "TEST");
+  assert.equal(result.totalKnownUsd, 20);
+  const noSession = await getCarterasDashboard(null, { readPortfolio: reader, neonAvailable: () => true });
+  assert.equal(noSession.status, "unavailable");
+  assert.equal(calls.length, 1);
+});
+
+test("unknown prices do not become fake zero-value holdings", () => {
+  const result = summarizeOwnedHoldings([{ ticker: "AA", quantity: 3, current_price_usd: null, market_value_usd: null }, { ticker: "BB", quantity: 1, current_price_usd: 10, market_value_usd: 10 }]);
+  assert.equal(result.holdings.find((item) => item.ticker === "AA").recordedValueUsd, null);
+  assert.equal(result.pricedCount, 1);
+  assert.equal(result.totalKnownUsd, 10);
 });

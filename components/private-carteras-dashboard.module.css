@@ -52,3 +52,20 @@
 .footer { max-width: 1420px; margin: 12px auto 0; color: #667985; font-size: 10px; }
 @media (max-width: 980px) { .portfolioGrid { grid-template-columns: 1fr; }.portfolioCard { display: grid; grid-template-columns: minmax(0, 1fr); }.portfolioCard .value { margin-top: 13px; } }
 @media (max-width: 640px) { .shell { padding: 17px 12px 28px; }.topbar { flex-direction: column; gap: 14px; }.topActions { width: 100%; justify-content: space-between; }.controls, .sectionHeader, .footer { flex-direction: column; align-items: flex-start; }.controls { gap: 10px; }.riskPanel, .portfolioCard { padding: 14px; }.riskLegend { flex-wrap: wrap; }.riskLegend small { width: 100%; margin-left: 0; }.allocationRow { grid-template-columns: 108px minmax(0, 1fr); }.donut { width: 108px; height: 108px; } }
+.caseList { display: grid; gap: 14px; margin-top: 18px; }
+.caseCard { border: 1px solid rgba(181,203,217,.15); border-radius: 10px; padding: 16px; background: rgba(7,14,20,.35); }
+.caseHeading, .caseActions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.caseHeading h3 { margin: 0 0 4px; color: #f4f7f8; font-size: 18px; }
+.caseHeading small, .caseQuiet, .controls small { display: block; color: #93a4b2; font-size: 12px; line-height: 1.5; }
+.caseActions button, .controls button { padding: 9px 12px; border: 1px solid rgba(119,201,189,.4); border-radius: 8px; background: rgba(119,201,189,.1); color: #e8eef3; cursor: pointer; font: inherit; }
+.caseActions a, .controls a, .matrix a, .riskPanel a { color: #9de0d5; }
+.eventList { list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 9px; }
+.eventList li { padding: 12px; border: 1px solid rgba(181,203,217,.12); border-radius: 8px; }
+.eventList p { margin: 6px 0; line-height: 1.5; }
+.eventList blockquote { margin: 8px 0; padding-left: 12px; border-left: 2px solid #77c9bd; color: #b5c3cd; }
+.eventList a { font-size: 12px; }
+.caseBaseline { display: grid; gap: 14px; margin-top: 12px; }
+.caseBaseline section { border-top: 1px solid rgba(255,255,255,.1); padding-top: 10px; }
+.caseBaseline h4 { margin: 0 0 6px; }
+.caseBaseline p { margin: 5px 0; }
+@media(max-width:640px) { .caseHeading, .caseActions { align-items: flex-start; flex-direction: column; } .caseActions { width: 100%; } }

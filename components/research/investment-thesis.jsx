@@ -18,7 +18,7 @@ function ThesisFinding({finding,sourceDossier,en}){
 }
 export function InvestmentThesis({dossier,ticket,available,language}){
  const en=language==='en',lang=en?'en':'es';
- const [state,setState]=useState({busy:false,report:null,error:''}),controller=useRef(null);
+ const [state,setState]=useState({busy:false,report:null,error:''}),[follow,setFollow]=useState({busy:false,message:'',error:''}),controller=useRef(null);
  useEffect(()=>()=>controller.current?.abort(),[]);
  async function generate(){
   if(controller.current)return;
@@ -30,6 +30,13 @@ export function InvestmentThesis({dossier,ticket,available,language}){
  }
  const report=state.report?.analysis,sourceDossier=state.report?.reportDossier||dossier;
  const errors={AUTH_REQUIRED:en?'Sign in again to generate your thesis.':'Vuelve a iniciar sesión para generar la tesis.',DOSSIER_EXPIRED:en?'Reload the company page to refresh its documents.':'Recarga la página de la empresa para actualizar sus documentos.',DAILY_LIMIT:en?'Today’s generation capacity has been reached. Try again later.':'Se alcanzó la capacidad de generación de hoy. Reintenta más tarde.',RATE_LIMITED:en?'Please wait a minute before trying again.':'Espera un minuto antes de reintentar.',PROVIDER_RATE_LIMIT:en?'The analysis provider is temporarily at capacity. Try again later.':'El proveedor de análisis alcanzó su capacidad temporal. Reintenta más tarde.',INVALID_ANALYSIS:en?'The generated draft failed its evidence or format checks. Try again.':'El borrador no superó los controles de evidencia o formato. Reintenta.',REPORT_PENDING:en?'The thesis is still being generated. Try again shortly to retrieve it.':'La tesis sigue en preparación. Reintenta en unos segundos para recuperarla.'};
+ async function followCase(){
+  if(!report||follow.busy)return;setFollow({busy:true,message:'',error:''});
+  try{const response=await fetch('/api/research/living-case',{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'follow',dossier,ticket,language:lang})});
+   const result=await response.json();if(!response.ok)throw Error(result.error||'CASE_UNAVAILABLE');
+   setFollow({busy:false,message:en?'Saved to your private portfolio follow-up.':'Guardada para seguimiento en tu cartera privada.',error:''});
+  }catch{setFollow({busy:false,message:'',error:en?'Could not save the case. Reload the company page and retry.':'No pudimos guardarla. Recarga la página de la empresa y reintenta.'})}
+ }
  function download(){const url=URL.createObjectURL(new Blob([JSON.stringify(state.report,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=`${dossier.ticker}-investment-thesis.json`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
  return <section className={`${styles.panel} ${styles.jevPanel}`} aria-label={en?'Generated investment thesis':'Tesis de inversión generada'} aria-busy={state.busy}>
   <h2>{en?`Investment thesis · ${dossier.ticker}`:`Tesis de inversión · ${dossier.ticker}`}</h2>
@@ -61,6 +68,8 @@ export function InvestmentThesis({dossier,ticket,available,language}){
     <h4>{en?'What remains unknown':'Qué falta por saber'}</h4><ul>{section.unknowns.map((t,i)=><li key={i}>{t}</li>)}</ul>
     <h4>{en?'What to check next':'Qué comprobar después'}</h4><ul>{section.checks.map((t,i)=><li key={i}>{t}</li>)}</ul>
    </section>)}
+   <div><button type="button" onClick={followCase} disabled={follow.busy}>{follow.busy?(en?'Saving…':'Guardando…'):(en?'Follow this thesis':'Seguir esta tesis')}</button> <a href={`/app/carteras?lang=${lang}`}>{en?'My portfolio and followed cases':'Mi cartera y tesis seguidas'}</a></div>
+   {follow.message?<p role="status">{follow.message}</p>:null}{follow.error?<p role="alert">{follow.error}</p>:null}
    <button type="button" onClick={download}>{en?'Download thesis and sources':'Descargar tesis y fuentes'}</button>
   </>:null}
  </section>;
