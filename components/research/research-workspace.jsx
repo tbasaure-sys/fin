@@ -7,6 +7,7 @@ import { useLanguagePreference } from "@/components/language-layer";
 import { TickerSearch } from "./ticker-search";
 import { AnalysisPanel } from "./analysis-panel";
 import { JevPanel } from './jev-panel';
+import {InvestmentThesis} from './investment-thesis';
 import { ThesisWorkspace } from "./thesis-workspace";
 import styles from "./research.module.css";
 import {FinancialTerminal, CompanyComparison, Watchlist, useCompanyFinancials} from "./financial-terminal";
@@ -270,7 +271,10 @@ export function ResearchWorkspace({ initialLanguage = "es", ticker = "", initial
         {dossier ? (
           <>
             <div hidden={workspaceView!=='thesis'}>
+              <InvestmentThesis key={`${dossier.packetHash}:${language}`} dossier={dossier} ticket={state.ticket} available={state.available} language={language}/>
+              <details><summary>{language==='en'?'Personal notes, scenarios and valuation (optional)':'Notas personales, escenarios y valoración (opcional)'}</summary>
               <ThesisWorkspace key={dossier.packetHash} dossier={dossier} ticket={state.ticket} language={language} report={assistedReport} onRead={()=>setWorkspaceView('documents')} />
+              </details>
             </div>
             <div hidden={workspaceView!=='documents'}>
             <JevPanel kind="documents" language={language} dossier={dossier} ticket={state.ticket} ticker={ticker}/>
