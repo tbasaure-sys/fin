@@ -34,6 +34,7 @@ export function InvestmentThesis({dossier,ticket,available,language}){
    <p role="status">{['available','partial'].includes(report.review?.status)?(en?'Jev evidence review included below; unresolved claims remain tentative.':'La revisión de evidencia de Jev se muestra abajo; las afirmaciones sin resolver siguen siendo tentativas.'):(en?'Jev review was unavailable for this draft. The source-linked draft is shown without that review.':'La revisión de Jev no estuvo disponible para este borrador. Se muestra el análisis con sus fuentes, sin esa revisión.')}</p>
    {report.sections.map((section,index)=><section key={section.id}>
     <h3>{titles[lang][index]}</h3>
+    {section.withheld?<p className={styles.caption}>{en?'A generated claim was withheld because its figures could not be matched to its cited excerpts.':'Se omitió una afirmación generada porque sus cifras no coincidían con sus extractos citados.'}</p>:null}
     {!section.findings.length?<p>{en?'The available excerpts do not support a conclusion for this section.':'Los extractos disponibles no respaldan una conclusión para esta sección.'}</p>:null}
     {section.findings.map((finding,i)=>{const review=report.review?.items?.find(r=>r.id===`${section.id}:${i}`),answer=review?.answers?.relation;return <div key={i}>
      <p>{finding.text}</p>

@@ -14,7 +14,7 @@ test('generated theses bind every quote to the signed evidence and reject fabric
  const fake=answer();fake.sections[0].findings[0].evidence[0].chunkId='invented';
  assert.throws(()=>validateInvestmentThesis(fake,dossier),/INVALID_ANALYSIS/);
  const price=answer();price.sections[0].findings[0].text='Target price $9999999999';
- assert.throws(()=>validateInvestmentThesis(price,dossier),/INVALID_ANALYSIS/);
+ const filtered=validateInvestmentThesis(price,dossier);assert.equal(filtered.sections[0].findings.length,0);assert.equal(filtered.sections[0].withheld,1);
  const order=answer();order.sections.reverse();assert.throws(()=>validateInvestmentThesis(order,dossier),/INVALID_ANALYSIS/);
  const empty=answer();empty.sections[4].findings=[];assert.equal(validateInvestmentThesis(empty,dossier).sections[4].findings.length,0);
 });
