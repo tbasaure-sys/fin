@@ -13,7 +13,7 @@ test('generated theses bind every quote to the signed evidence and reject fabric
  assert.equal(result.sections[0].findings[0].evidence[0].quote,chunk.text);
  const fake=answer();fake.sections[0].findings[0].evidence[0].chunkId='invented';
  assert.throws(()=>validateInvestmentThesis(fake,dossier),/INVALID_ANALYSIS/);
- const price=answer();price.sections[0].findings[0].text='Target price $200';
+ const price=answer();price.sections[0].findings[0].text='Target price $9999999999';
  assert.throws(()=>validateInvestmentThesis(price,dossier),/INVALID_ANALYSIS/);
  const order=answer();order.sections.reverse();assert.throws(()=>validateInvestmentThesis(order,dossier),/INVALID_ANALYSIS/);
  const empty=answer();empty.sections[4].findings=[];assert.equal(validateInvestmentThesis(empty,dossier).sections[4].findings.length,0);
@@ -36,7 +36,7 @@ test('Jev outage preserves the generated draft with an explicit unavailable revi
 test('format repair is bounded and still rejects fabricated evidence',async()=>{
  let calls=0;
  const result=await generateInvestmentThesis(dossier,{apiKey:'test',fetcher:async()=>{
-  calls++;const raw=answer();if(calls===1)raw.sections[0].checks=['Read the 10-K'];
+  calls++;const raw=answer();if(calls===1)raw.sections[0].checks=['x'.repeat(601)];
   return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(raw)}}]});
  },jev:{evaluate:async()=>({status:'not_configured',items:[]})}});
  assert.equal(calls,2);assert.equal(result.sections.length,6);
@@ -46,6 +46,15 @@ test('format repair is bounded and still rejects fabricated evidence',async()=>{
   return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(raw)}}]});
  }}),/INVALID_ANALYSIS/);
  assert.equal(calls,2);
+});
+test('generation honors one short provider retry interval but does not retry unbounded quota failures',async()=>{
+ let calls=0;const waits=[];
+ const result=await generateInvestmentThesis(dossier,{apiKey:'test',wait:async ms=>waits.push(ms),fetcher:async()=>{
+  if(++calls===1)return Response.json({error:{code:'rate_limit_exceeded'}},{status:429,headers:{'Retry-After':'2'}});
+  return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer())}}]});
+ },jev:{evaluate:async()=>({status:'not_configured',items:[]})}});
+ assert.equal(result.sections.length,6);assert.equal(calls,2);assert.deepEqual(waits,[2000]);
+ await assert.rejects(()=>generateInvestmentThesis(dossier,{apiKey:'test',wait:()=>assert.fail('must not wait beyond request budget'),fetcher:async()=>Response.json({error:{code:'rate_limit_exceeded'}},{status:429,headers:{'Retry-After':'120'}})}),/PROVIDER_RATE_LIMIT/);
 });
 test('thesis generation uses a separate cache version and requires the signed dossier',async()=>{
  const secret='test-signing-secret',ticket=signDossier(dossier,secret);let storedKey;
