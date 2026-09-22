@@ -7,7 +7,7 @@ import {reportKey,makeRecord} from '../lib/server/filing-report-cache.js';
 import {hash} from '../lib/research/filing-engine.mjs';
 const dossier=createRequire(import.meta.url)('../lib/research/published/MSFT.json');
 const chunk=dossier.sections[0].extracts[0];
-const answer=()=>({sections:THESIS_SECTIONS.map(id=>({id,findings:[{text:'A conditional case grounded in the reported business.',evidence:[{chunkId:chunk.id}]}],unknowns:['The durability of the economics remains unresolved.'],checks:['Check whether future filings contradict the reported economics.']}))});
+const answer=()=>({sections:THESIS_SECTIONS.map(id=>({id,findings:[{text:'A conditional case grounded in the reported business.',premise:'The source describes the reported business.',kind:'conditional',eventDate:'',evidence:[{chunkId:chunk.id,spanId:'0'}]}],unknowns:['The durability of the economics remains unresolved.'],checks:['Check whether future filings contradict the reported economics.']}))});
 test('generated theses bind every quote to the signed evidence and reject fabricated citations or prices',()=>{
  const result=validateInvestmentThesis(answer(),dossier);
  assert.equal(result.sections[0].findings[0].evidence[0].quote,chunk.text);
@@ -24,8 +24,8 @@ test('ticker-only generation reviews public generated claims without a saved use
   assert.equal(url,'https://api.groq.com/openai/v1/chat/completions');
   const body=JSON.parse(options.body);assert.ok(body.messages[0].content.includes('never ask them to supply their thesis'));
   return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer())}}]});
- },jev:{evaluate:async(kind,items)=>{assert.equal(kind,'thesis');reviewed=items;return {status:'available',items:[]}}}});
- assert.equal(result.version,THESIS_VERSION);assert.equal(reviewed.length,6);assert.equal(reviewed[0].evidence[0].text,chunk.text.slice(0,2000));
+ },jev:{evaluate:async(kind,items)=>{assert.equal(kind,'investment_thesis');reviewed=items;return {status:'available',items:[]}}}});
+ assert.equal(result.version,THESIS_VERSION);assert.equal(reviewed.length,6);assert.equal(reviewed[0].evidence[0].text,chunk.text.slice(0,700));
  assert.equal(result.dossierHash,hash(dossier));assert.equal(result.language,'en');
  assert.equal(result.valuation,null);
 });
@@ -47,13 +47,13 @@ test('format repair is bounded and still rejects fabricated evidence',async()=>{
  }}),/INVALID_ANALYSIS/);
  assert.equal(calls,2);
 });
-test('generation honors one short provider retry interval but does not retry unbounded quota failures',async()=>{
+test('generation honors a short provider retry interval but does not retry unbounded quota failures',async()=>{
  let calls=0;const waits=[];
  const result=await generateInvestmentThesis(dossier,{apiKey:'test',wait:async ms=>waits.push(ms),fetcher:async()=>{
   if(++calls===1)return Response.json({error:{code:'rate_limit_exceeded'}},{status:429,headers:{'Retry-After':'2'}});
   return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(answer())}}]});
  },jev:{evaluate:async()=>({status:'not_configured',items:[]})}});
- assert.equal(result.sections.length,6);assert.equal(calls,2);assert.deepEqual(waits,[2000]);
+ assert.equal(result.sections.length,6);assert.equal(calls,2);assert.deepEqual(waits,[3000]);
  await assert.rejects(()=>generateInvestmentThesis(dossier,{apiKey:'test',wait:()=>assert.fail('must not wait beyond request budget'),fetcher:async()=>Response.json({error:{code:'rate_limit_exceeded'}},{status:429,headers:{'Retry-After':'120'}})}),/PROVIDER_RATE_LIMIT/);
 });
 test('thesis generation uses a separate cache version and requires the signed dossier',async()=>{
@@ -64,4 +64,16 @@ test('thesis generation uses a separate cache version and requires the signed do
  const response=await handler(request({dossier,ticket,language:'en'}));assert.equal(response.status,200);assert.equal((await response.json()).cached,true);
  assert.equal(storedKey,reportKey(dossier,'en',THESIS_VERSION));
  assert.equal((await handler(request({dossier:{...dossier,ticker:'WRONG'},ticket,language:'en'}))).status,409);
+});
+test('selected evidence must be an exact source span, including evidence beyond the old truncation limit',async()=>{
+ const altered=structuredClone(dossier),late='The board approved the dividend in April 2025 after reviewing cash generation.';
+ altered.sections[0].extracts[0].text='Earlier context. '.repeat(200)+late;
+ const raw=answer();for(const s of raw.sections)s.findings[0].evidence[0].spanId=String(Math.floor(altered.sections[0].extracts[0].text.indexOf(late)/600));
+ raw.sections[4].findings[0].eventDate='April 2025';
+ assert.equal(validateInvestmentThesis(raw,altered).sections[4].findings[0].timing.status,'historical');
+ let items;
+ await generateInvestmentThesis(altered,{apiKey:'test',fetcher:async()=>Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify(raw)}}]}),jev:{evaluate:async(_kind,value)=>{items=value;return {status:'available',items:[]}}}});
+ assert.ok(items[0].evidence[0].text.includes(late));assert.ok(items[0].evidence[0].context.includes(late));
+ raw.sections[0].findings[0].evidence[0].spanId='invented';
+ assert.throws(()=>validateInvestmentThesis(raw,altered),/INVALID_ANALYSIS/);
 });
