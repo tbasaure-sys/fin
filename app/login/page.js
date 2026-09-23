@@ -67,7 +67,7 @@ const COPY = {
     errors: {
       account_exists: "An account already exists for this email. Sign in instead.",
       invalid_credentials: "Check your email and password, then try again.",
-      needs_password: "This account still needs a password. Use Create account to finish setup.",
+      needs_password: "Verify your email through Forgot password to finish setting up this account.",
       service_unavailable: "The workspace service is not reachable right now. Please try again later.",
       not_configured: "The workspace is not fully configured yet. Please contact the administrator.",
       validation: "Check the fields and try again.",
@@ -110,7 +110,7 @@ const COPY = {
     errors: {
       account_exists: "Ya existe una cuenta con ese email. Inicia sesión.",
       invalid_credentials: "Revisa tu email y contraseña, e intenta de nuevo.",
-      needs_password: "Esta cuenta todavía necesita contraseña. Usa Crear cuenta para terminar la configuración.",
+      needs_password: "Verifica tu correo desde Olvidé mi contraseña para terminar de configurar esta cuenta.",
       service_unavailable: "El servicio del workspace no está disponible ahora. Intenta de nuevo más tarde.",
       not_configured: "El workspace todavía no está completamente configurado. Contacta al administrador.",
       validation: "Revisa los campos e intenta de nuevo.",
@@ -233,7 +233,7 @@ export default function LoginPage({ searchParams = {} }) {
             <Link className={styles.textLink} href={switchHref(intent, next, language)}>
               {isSignup ? copy.switchToSignIn : copy.switchToSignup}
             </Link>
-            {!isSignup ? (
+            {(!isSignup || searchParams.error === "needs_password") ? (
               <Link className={styles.textLink} href={`/forgot-password?lang=${language}`}>
                 {copy.forgotPassword}
               </Link>
