@@ -44,8 +44,8 @@ test("public Stress Engine CTAs gate into the portfolio workspace instead of val
   const loginSource = readFileSync("app/login/page.js", "utf8");
   const terminalSource = readFileSync("components/terminal-app.jsx", "utf8");
 
-  // The minimal portal links to the already authenticated portfolio route.
-  assert.match(homeSource, /\/app\?lang=/);
+  // The public portal links to the portfolio entry point.
+  assert.match(homeSource, /\/app\/carteras\?lang=/);
   assert.match(stressSource, /<StressAccountGate/);
   assert.match(stressSource, /<StressAccountGate className=\{styles\.actionButton\}/);
   assert.match(gateSource, /PORTFOLIO_WORKSPACE_HREF\s*=\s*"\/app#holdings"/);

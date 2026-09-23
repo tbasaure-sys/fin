@@ -13,6 +13,51 @@ import {
   updateHoldingsFromInstruction,
 } from "../lib/server/private-portfolio.js";
 
+test("saved holdings can be confirmed and edited without inventing purchase data", async () => {
+  const tempRoot = await mkdtemp(join(tmpdir(), "blsprime-holdings-edit-"));
+  const workspaceId = `holdings-edit-${Date.now()}`;
+  const previous = {
+    stateDir: process.env.BLS_PRIME_HOLDINGS_STATE_DIR,
+    storage: process.env.BLS_PRIME_STORAGE_BACKEND,
+    remoteState: process.env.BLS_PRIME_REMOTE_HOLDINGS_STATE_URL,
+  };
+  process.env.BLS_PRIME_HOLDINGS_STATE_DIR = tempRoot;
+  process.env.BLS_PRIME_STORAGE_BACKEND = "memory";
+  process.env.BLS_PRIME_REMOTE_HOLDINGS_STATE_URL = "";
+
+  try {
+    const workspaceRoot = join(tempRoot, workspaceId);
+    await mkdir(workspaceRoot, { recursive: true });
+    await writeFile(join(workspaceRoot, "holdings_state.json"), JSON.stringify({
+      available: true,
+      updated_at: "2025-01-01T00:00:00.000Z",
+      portfolio_generation_started_at: "2025-01-01T00:00:00.000Z",
+      holdings: [{ ticker: "AAPL", quantity: 2, current_price_usd: 200, market_value_usd: 400, avg_cost_usd: null, purchase_date: null }],
+    }), "utf8");
+
+    const confirmed = await updateHoldingsFromInstruction({}, workspaceId, { confirmHoldings: true });
+    assert.equal(confirmed.holdings[0].avg_cost_usd, null);
+    assert.equal(confirmed.holdings[0].purchase_date, null);
+    assert.equal(confirmed.portfolio_generation_started_at, "2025-01-01T00:00:00.000Z");
+    assert.ok(Date.parse(confirmed.updated_at) > Date.parse("2025-01-01T00:00:00.000Z"));
+
+    const edited = await updateHoldingsFromInstruction({}, workspaceId, {
+      ticker: "AAPL", quantity: 2, avgCostUsd: 150, purchaseDate: "2025-02-03",
+    });
+    assert.equal(edited.holdings[0].avg_cost_usd, 150);
+    assert.equal(edited.holdings[0].purchase_date, "2025-02-03");
+    assert.equal(edited.holdings[0].current_price_usd, 200);
+  } finally {
+    if (previous.stateDir === undefined) delete process.env.BLS_PRIME_HOLDINGS_STATE_DIR;
+    else process.env.BLS_PRIME_HOLDINGS_STATE_DIR = previous.stateDir;
+    if (previous.storage === undefined) delete process.env.BLS_PRIME_STORAGE_BACKEND;
+    else process.env.BLS_PRIME_STORAGE_BACKEND = previous.storage;
+    if (previous.remoteState === undefined) delete process.env.BLS_PRIME_REMOTE_HOLDINGS_STATE_URL;
+    else process.env.BLS_PRIME_REMOTE_HOLDINGS_STATE_URL = previous.remoteState;
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
 test("an empty workspace never inherits holdings or analytics from the shared snapshot", async () => {
   const previousFallback = process.env.BLS_PRIME_ALLOW_HOLDINGS_FILE_FALLBACK;
   process.env.BLS_PRIME_ALLOW_HOLDINGS_FILE_FALLBACK = "false";

@@ -582,7 +582,16 @@ function HoldingsReturnBreakdown({ returns }) {
   );
 }
 
-function HoldingReturnContributionChart({ holdings, performanceReport }) {
+function HoldingReturnContributionChart({ holdings, performanceReport, onCompleteHoldingData = null, onConfirmHoldings = null }) {
+  if (["confirmation_required", "stale_confirmation_required"].includes(performanceReport?.status)) {
+    return (
+      <div className={styles.chartEmptyState}>
+        <strong>Confirma las posiciones guardadas</strong>
+        <p>Así podremos calcular el rendimiento con los precios disponibles y la cartera vigente.</p>
+        {onConfirmHoldings ? <button className={styles.secondaryButton} onClick={onConfirmHoldings} type="button">Confirmar posiciones</button> : null}
+      </div>
+    );
+  }
   const reportRows = safeList(performanceReport?.current?.contributions)
     .map((row) => ({
       ticker: row?.ticker,
@@ -612,6 +621,7 @@ function HoldingReturnContributionChart({ holdings, performanceReport }) {
       <div className={styles.chartEmptyState}>
         <strong>Falta costo base para calcular retornos</strong>
         <p>Agrega el precio promedio de compra. Con eso mostraremos P&amp;L y aporte por posición; con fecha de compra podremos reconstruir también la trayectoria histórica.</p>
+        {onCompleteHoldingData ? <button className={styles.secondaryButton} onClick={onCompleteHoldingData} type="button">Completar datos de compra</button> : null}
       </div>
     );
   }
@@ -656,11 +666,12 @@ function holdingWeightValue(holding) {
 }
 
 function compactCurrency(value) {
-  return Number.isFinite(Number(value)) ? formatCurrency(value) : "-";
+  const numeric = firstFiniteNumber(value);
+  return numeric !== null ? formatCurrency(numeric) : "-";
 }
 
 function compactPercent(value, signed = false) {
-  if (!Number.isFinite(Number(value))) return "-";
+  if (firstFiniteNumber(value) === null) return "-";
   return signed ? formatSignedPct(value) : formatPct(value);
 }
 
@@ -685,6 +696,13 @@ function scoreTone(value, inverse = false) {
 function cleanPortfolioLabel(value, fallback = "Sin clasificar") {
   const raw = String(value || "").trim();
   if (!raw || /^(unknown|n\/a|na|null|undefined)$/i.test(raw)) return fallback;
+  const savedLabels = {
+    "Edited in UI": "Editada en la aplicación",
+    "Confirmed portfolio": "Cartera confirmada",
+    "Private workspace": "Espacio privado",
+    "Remote holdings overlay": "Cartera sincronizada",
+  };
+  if (savedLabels[raw]) return savedLabels[raw];
   return cleanWorkspaceCopy(raw);
 }
 
@@ -837,11 +855,12 @@ function holdingTotalReturnInclDividends(holding) {
 
 function holdingValueSourceLabel(holding) {
   const source = cleanPortfolioLabel(holding?.valueSource, "");
-  if (/live|google|price|mercado|market/i.test(source)) return "Precio vivo";
-  if (/broker|snapshot|captura/i.test(source)) return "Snapshot broker";
+  if (/fmp_quote|live|google|mercado|market/i.test(source)) return "Cotización actual";
+  if (/stored_price|guardado/i.test(source)) return "Precio guardado";
+  if (/broker|snapshot|captura/i.test(source)) return "Captura del bróker";
   if (source) return source;
-  if (firstFiniteNumber(holding?.currentPriceUsd) !== null) return "Precio vivo";
-  if (firstFiniteNumber(holding?.brokerValueUsd) !== null) return "Snapshot broker";
+  if (firstFiniteNumber(holding?.currentPriceUsd) !== null) return "Precio guardado";
+  if (firstFiniteNumber(holding?.brokerValueUsd) !== null) return "Captura del bróker";
   return "Sin fuente";
 }
 
@@ -895,8 +914,8 @@ function buildPortfolioExecutiveRead({ analytics, holdings, hasDayPnl, dayPnl, t
   if (!safeList(holdings).length) return [];
   const totalValue = firstFiniteNumber(analytics?.totalValueUsd);
   const totalReturn = firstFiniteNumber(analytics?.totalReturnInclDividends, analytics?.unrealizedReturn);
-  const liveCount = safeList(holdings).filter((holding) => holdingValueSourceLabel(holding) === "Precio vivo").length;
-  const snapshotCount = safeList(holdings).filter((holding) => holdingValueSourceLabel(holding) === "Snapshot broker").length;
+  const liveCount = safeList(holdings).filter((holding) => holdingValueSourceLabel(holding) === "Cotización actual").length;
+  const snapshotCount = safeList(holdings).filter((holding) => holdingValueSourceLabel(holding) === "Captura del bróker").length;
   const bullets = [];
   bullets.push(
     totalReturn !== null
@@ -913,7 +932,7 @@ function buildPortfolioExecutiveRead({ analytics, holdings, hasDayPnl, dayPnl, t
     bullets.push("No hay movimiento intradía útil; la pantalla no convierte datos ausentes en 0%.");
   }
   if (liveCount || snapshotCount) {
-    bullets.push(`${liveCount} posiciones usan precio vivo y ${snapshotCount} usan snapshot del broker; la fuente queda visible por holding.`);
+    bullets.push(`${liveCount} posiciones usan una cotización actual y ${snapshotCount} usan una captura del bróker; la fuente queda visible por posición.`);
   }
   const reviewCount = safeList(reviewQueue).filter((holding) => holding.flagLabel !== "Normal").length;
   if (reviewCount) bullets.push(`${reviewCount} posiciones entran a revisión por concentración o riesgo alto.`);
@@ -972,7 +991,7 @@ function PortfolioDonutPanel({ holdings, topHolding }) {
       <div className={styles.portfolioMiniHead}>
         <div>
           <p className={styles.kicker}>Asignación</p>
-          <strong>{donut.rows.length ? "Por holding" : "-"}</strong>
+          <strong>{donut.rows.length ? "Por posición" : "-"}</strong>
         </div>
       </div>
       <div className={styles.portfolioDonutWrap}>
@@ -1270,7 +1289,16 @@ function sanitizeTickerInput(value) {
 }
 
 function sanitizeDecimalInput(value) {
-  return String(value || "").replace(/[^0-9.]/g, "").slice(0, 16);
+  let text = String(value || "").replace(/[^0-9.,]/g, "");
+  if (text.includes(",") && text.includes(".")) {
+    text = text.lastIndexOf(",") > text.lastIndexOf(".")
+      ? text.replace(/\./g, "").replace(",", ".")
+      : text.replace(/,/g, "");
+  } else {
+    text = text.replace(",", ".");
+  }
+  const [whole, ...decimal] = text.split(".");
+  return `${whole}${decimal.length ? `.${decimal.join("")}` : ""}`.slice(0, 16);
 }
 
 function sanitizeCurrencyInput(value) {
@@ -2394,7 +2422,7 @@ function PortfolioPanelLegacy({ portfolioModule, range, onRangeChange, xray }) {
   );
 }
 
-function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, onOpenRisk = null, showPositionTable = true, language = "es" }) {
+function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact = false, showAuroraAction = false, onOpenRisk = null, onCompleteHoldingData = null, onConfirmHoldings = null, confirmingHoldings = false, confirmationError = "", showPositionTable = true, language = "es" }) {
   const portfolio = portfolioModule || {};
   const analytics = portfolio.analytics || {};
   const holdings = safeList(portfolio.holdings);
@@ -2419,13 +2447,14 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
   const portfolioXray = xray || {};
   const concentration = portfolioXray.concentration || {};
   const totalValueLabel = hasHoldings && firstFiniteNumber(analytics.totalValueUsd) !== null ? formatCurrency(analytics.totalValueUsd) : "-";
-  const hasHoldingCostBasisData = holdings.some((holding) => holdingCostBasis(holding) !== null);
-  const activeCostBasisValue = firstFiniteNumber(analytics.activeCostBasisUsd) !== null
-    ? firstFiniteNumber(analytics.activeCostBasisUsd)
-    : hasHoldingCostBasisData
-      ? holdings.reduce((sum, holding) => sum + (holdingCostBasis(holding) || 0), 0)
-      : null;
+  const coveredHoldings = holdings.filter((holding) => holdingCostBasis(holding) > 0 && holdingAnalysisValue(holding) !== null);
+  const hasHoldingCostBasisData = coveredHoldings.length > 0;
+  const activeCostBasisValue = hasHoldingCostBasisData
+    ? coveredHoldings.reduce((sum, holding) => sum + holdingCostBasis(holding), 0)
+    : null;
   const activeCostBasisLabel = activeCostBasisValue !== null ? formatCurrency(activeCostBasisValue) : "-";
+  const basisCoverage = `${coveredHoldings.length} de ${holdings.length} posiciones con costo base`;
+  const partialBasis = hasHoldingCostBasisData && coveredHoldings.length < holdings.length;
   const hasPersonalHeadlineContract = typeof personalHeadline?.available === "boolean";
   const suppressLegacyBackcastHeadline = !hasPersonalHeadlineContract && performanceIsBackcast;
   const totalPnlValue = hasPersonalHeadlineContract
@@ -2477,18 +2506,29 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
         </div>
       </div>
 
+      {hasHoldings && ["confirmation_required", "stale_confirmation_required"].includes(portfolio?.holdingsSync?.status) && onConfirmHoldings ? (
+        <div className={styles.holdingsConfirmation} role="status">
+          <div>
+            <strong>Confirma tus posiciones para activar el rendimiento</strong>
+            <p>Revisa que la cartera guardada siga vigente. La confirmación vuelve a calcular con los precios disponibles; no registra operaciones.</p>
+          </div>
+          <button className={styles.primaryButton} disabled={confirmingHoldings} onClick={onConfirmHoldings} type="button">{confirmingHoldings ? "Confirmando..." : "Confirmar posiciones"}</button>
+          {confirmationError ? <p className={styles.errorText}>{confirmationError}</p> : null}
+        </div>
+      ) : null}
+
       <div className={styles.portfolioSummaryRail}>
         <MetricTile detail="Suma de posiciones activas." label="Valor total" value={totalValueLabel} />
-        <MetricTile detail="Capital invertido en posiciones activas." label="Costo base" value={activeCostBasisLabel} />
+        <MetricTile detail={hasHoldings ? basisCoverage : "Agrega posiciones para calcular el costo base."} label={partialBasis ? "Costo base conocido" : "Costo base"} value={activeCostBasisLabel} />
         <MetricTile
-          detail={totalPnlValue !== null ? `Sobre el costo base cargado (${activeCostBasisLabel}).` : "Falta costo base para calcular tu P&L actual."}
-          label="P&L actual"
+          detail={totalPnlValue !== null ? (partialBasis ? `Solo ${basisCoverage}.` : `Sobre el costo base cargado (${activeCostBasisLabel}).`) : "Falta costo base para calcular tu P&L actual."}
+          label={partialBasis ? "P&L de posiciones cubiertas" : "P&L actual"}
           tone={signedMoneyTone(currentPerformanceValue)}
           value={totalPnlLabel}
         />
         <MetricTile
-          detail={currentPerformanceValue !== null ? "Incluye dividendos cuando están cargados." : "Falta costo base; el backcast no sustituye tu retorno."}
-          label="Retorno actual"
+          detail={currentPerformanceValue !== null ? (partialBasis ? `Solo ${basisCoverage}.` : "Incluye dividendos cuando están cargados.") : "Falta costo base; la simulación histórica no sustituye tu retorno."}
+          label={partialBasis ? "Retorno de posiciones cubiertas" : "Retorno actual"}
           tone={signedMoneyTone(currentPerformanceValue)}
           value={currentPerformanceLabel || "-"}
         />
@@ -2499,14 +2539,14 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
           <div className={styles.portfolioSectionHead}>
             <div>
               <p className={styles.kicker}>Historial</p>
-              <h3>{analytics.hasPerformanceHistory ? `${performanceMethodLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "Performance actual"}</h3>
+              <h3>{analytics.hasPerformanceHistory ? `${performanceMethodLabel} vs ${analytics.benchmarkSymbol || "SPY"}` : "Rendimiento actual"}</h3>
             </div>
             {analytics.hasPerformanceHistory ? <RangeTabs language={language} onChange={onRangeChange} value={range} /> : null}
           </div>
           {analytics.hasPerformanceHistory ? (
             <PortfolioChart benchmarkSymbol={analytics.benchmarkSymbol} series={chartSeries} />
           ) : (
-            <HoldingReturnContributionChart holdings={holdings} performanceReport={performanceReport} />
+            <HoldingReturnContributionChart holdings={holdings} onCompleteHoldingData={onCompleteHoldingData} onConfirmHoldings={onConfirmHoldings} performanceReport={performanceReport} />
           )}
           <p className={styles.supportText}>
             {analytics.hasPerformanceHistory
@@ -2518,11 +2558,14 @@ function PortfolioPanel({ portfolioModule, range, onRangeChange, xray, compact =
               : performanceSeriesWarning
                 ? "Ocultamos la trayectoria histórica porque los snapshots alternan de forma artificial. La performance actual sigue disponible desde costo base."
               : currentPerformanceLabel
-                ? `Performance actual: ${currentPerformanceLabel} (${totalPnlLabel}). ${performanceInputActions.length ? performanceInputActions[0] : "Todavía no hay trayectoria histórica comparable."}`
+                ? `Rendimiento actual: ${currentPerformanceLabel} (${totalPnlLabel}). ${performanceInputActions.length ? performanceInputActions[0] : "Todavía no hay trayectoria histórica comparable."}`
                 : performanceInputActions.length
                   ? performanceInputActions.join(" ")
                   : "Conecta posiciones con costo base para mostrar performance actual; la fecha de compra permite reconstruir trayectoria y benchmark sin fotos guardadas."}
           </p>
+          {hasHoldings && coveredHoldings.length < holdings.length && onCompleteHoldingData && coveredHoldings.length > 0 ? (
+            <button className={styles.secondaryButton} onClick={onCompleteHoldingData} type="button">Completar costo base de {holdings.length - coveredHoldings.length} {holdings.length - coveredHoldings.length === 1 ? "posición" : "posiciones"}</button>
+          ) : null}
           {performanceReport?.explanation?.length ? (
             <div className={styles.performanceExplainer}>
               <strong>Lectura profesional</strong>
@@ -3609,7 +3652,10 @@ function HoldingsPanel({
   portfolioModule,
   holdingDraft,
   onHoldingDraftChange,
+  onEditHolding,
   onSubmitHoldingDraft,
+  onConfirmHoldings,
+  confirmationError,
   tradeInstruction,
   onTradeInstructionChange,
   onSubmitTrade,
@@ -3624,26 +3670,55 @@ function HoldingsPanel({
 }) {
   const portfolio = portfolioModule || {};
   const holdings = safeList(portfolio.holdings);
+  const editorRef = useRef(null);
+  const [editorOpen, setEditorOpen] = useState(!holdings.length);
+  const sortedHoldings = [...holdings].sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left));
+  const needsConfirmation = ["confirmation_required", "stale_confirmation_required"].includes(portfolio?.holdingsSync?.status);
+  useEffect(() => {
+    if (!holdingDraft?.editingTicker || !editorRef.current) return;
+    setEditorOpen(true);
+    requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }, [holdingDraft?.editingTicker]);
   const sizingMode = holdingDraft?.sizing || "shares";
   const quantityValue = String(holdingDraft?.quantity || "");
   const targetValueInput = String(holdingDraft?.targetValueUsd || "");
   const priceValue = String(holdingDraft?.price || "");
+  const avgCostValue = String(holdingDraft?.avgCostUsd || "");
+  const purchaseDateValue = String(holdingDraft?.purchaseDate || "");
   const tickerValue = String(holdingDraft?.ticker || "");
   const draftReady = Boolean(
     tickerValue &&
     ((sizingMode === "shares" && quantityValue !== "") || (sizingMode === "value" && targetValueInput !== "")),
   );
+  const chooseHolding = (holding) => {
+    onEditHolding(holding);
+    setEditorOpen(true);
+    requestAnimationFrame(() => editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
 
   return (
     <section className={styles.panel}>
       <div className={styles.panelHeader}>
         <div>
           <p className={styles.kicker}>Posiciones</p>
-          <h2>{holdings.length ? "Análisis de holdings" : "Tus posiciones aparecerán aquí"}</h2>
+          <h2>{holdings.length ? "Análisis de posiciones" : "Tus posiciones aparecerán aquí"}</h2>
           <p className={styles.supportText}>Valor, costo base, fuente de precio, exposición y próxima acción por posición.</p>
         </div>
         <ToneBadge tone="neutral">{holdings.length} posiciones</ToneBadge>
       </div>
+
+      {needsConfirmation && holdings.length ? (
+        <div className={styles.holdingsConfirmation} role="status">
+          <div>
+            <strong>Confirma que estas posiciones siguen vigentes</strong>
+            <p>La cartera guardada necesita una confirmación para calcular el rendimiento con los precios disponibles. Revísala antes de continuar; esto no registra operaciones.</p>
+          </div>
+          <button className={styles.primaryButton} disabled={pendingTrade} onClick={onConfirmHoldings} type="button">
+            {pendingTrade ? "Confirmando..." : "Confirmar posiciones"}
+          </button>
+          {confirmationError ? <p className={styles.errorText}>{confirmationError}</p> : null}
+        </div>
+      ) : null}
 
       {holdings.length ? (
         <div aria-label="Posiciones conectadas" className={`${styles.tableShell} ${styles.holdingsAnalysisTable}`} role="table">
@@ -3660,7 +3735,7 @@ function HoldingsPanel({
             <span role="columnheader">Acción</span>
           </div>
           <div className={styles.tableBody} role="rowgroup">
-            {[...holdings].sort((left, right) => holdingWeightValue(right) - holdingWeightValue(left)).map((holding) => {
+            {sortedHoldings.map((holding) => {
               const totalReturn = holdingTotalReturnInclDividends(holding);
               const totalPnl = holdingTotalPnlInclDividends(holding);
               return (
@@ -3669,7 +3744,7 @@ function HoldingsPanel({
                     <strong>{holding.ticker}</strong>
                     <span>{holdingName(holding)}</span>
                   </div>
-                  <span role="cell">{cleanPortfolioLabel(holding.theme || holding.thesisBucket || holding.industry || holding.region, "Sin tema")}</span>
+                  <span role="cell">{cleanPortfolioLabel(holding.theme || holding.thesisBucket || holding.industry || (holding.sector !== "Unknown" ? holding.sector : null), "Sin tema")}</span>
                   <span role="cell">{cleanPortfolioLabel(holding.sector, "-")}</span>
                   <span role="cell">{cleanPortfolioLabel(holding.region, "-")}</span>
                   <strong role="cell">{firstFiniteNumber(holding.shares, holding.quantity) !== null ? firstFiniteNumber(holding.shares, holding.quantity).toFixed(4).replace(/\.?0+$/, "") : "-"}</strong>
@@ -3682,7 +3757,7 @@ function HoldingsPanel({
                     {holdingValueSourceLabel(holding)}
                     {holdingMarketMetaLabel(holding) ? ` · ${holdingMarketMetaLabel(holding)}` : ""}
                   </span>
-                  <span role="cell">{holdingActionLabel(holding)}</span>
+                  <span className={styles.holdingTableAction} role="cell">{holdingActionLabel(holding)}<button className={styles.secondaryButton} onClick={() => chooseHolding(holding)} type="button">Editar</button></span>
                 </article>
               );
             })}
@@ -3692,8 +3767,38 @@ function HoldingsPanel({
         <p className={styles.emptyCopy}>Agrega una nota de operación o sincroniza tus posiciones privadas para armar la lista.</p>
       )}
 
-      <details className={styles.holdingsEditorDisclosure} open={!holdings.length}>
-        <summary>Editar holdings o registrar una operación</summary>
+      {holdings.length ? (
+        <div className={styles.holdingsMobileList} aria-label="Posiciones de la cartera">
+          {sortedHoldings.map((holding) => {
+            const totalReturn = holdingTotalReturnInclDividends(holding);
+            const totalPnl = holdingTotalPnlInclDividends(holding);
+            return (
+              <article className={styles.holdingMobileCard} key={`mobile-holding-${holding.ticker}`}>
+                <div className={styles.holdingMobileHead}>
+                  <div><strong>{holding.ticker}</strong><span>{holdingName(holding)}</span></div>
+                  <button className={styles.secondaryButton} onClick={() => chooseHolding(holding)} type="button">Editar</button>
+                </div>
+                <div className={styles.holdingMobileMetrics}>
+                  <div><span>Valor</span><strong>{compactCurrency(holdingAnalysisValue(holding))}</strong></div>
+                  <div><span>Acciones</span><strong>{firstFiniteNumber(holding.shares, holding.quantity) !== null ? firstFiniteNumber(holding.shares, holding.quantity).toFixed(4).replace(/\.?0+$/, "") : "-"}</strong></div>
+                  <div><span>Costo promedio</span><strong>{compactCurrency(holding.avgCostUsd)}</strong></div>
+                  <div><span>Retorno total</span><strong data-tone={signedMoneyTone(totalPnl)}>{totalReturn !== null ? `${formatSignedPct(totalReturn)} (${compactCurrency(totalPnl)})` : "Pendiente"}</strong></div>
+                </div>
+                <dl className={styles.holdingMobileDetails}>
+                  <div><dt>Tema</dt><dd>{cleanPortfolioLabel(holding.theme || holding.thesisBucket || holding.industry || (holding.sector !== "Unknown" ? holding.sector : null), "Sin tema")}</dd></div>
+                  <div><dt>Sector</dt><dd>{cleanPortfolioLabel(holding.sector, "-")}</dd></div>
+                  <div><dt>Región</dt><dd>{cleanPortfolioLabel(holding.region, "-")}</dd></div>
+                  <div><dt>Fuente</dt><dd>{holdingValueSourceLabel(holding)}{holdingMarketMetaLabel(holding) ? ` · ${holdingMarketMetaLabel(holding)}` : ""}</dd></div>
+                  <div><dt>Próxima acción</dt><dd>{holdingActionLabel(holding)}</dd></div>
+                </dl>
+              </article>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <details className={styles.holdingsEditorDisclosure} id="holdings-editor" onToggle={(event) => setEditorOpen(event.currentTarget.open)} open={editorOpen} ref={editorRef}>
+        <summary>Editar posiciones o registrar una operación</summary>
       <form
         className={styles.tradeComposer}
         onSubmit={(event) => {
@@ -3703,7 +3808,7 @@ function HoldingsPanel({
       >
         <div className={styles.tradeCopy}>
           <p className={styles.kicker}>Edición manual</p>
-          <h3>Corrige una posición existente</h3>
+          <h3>{holdingDraft?.editingTicker ? `Editar ${holdingDraft.editingTicker}` : "Agregar o corregir una posición"}</h3>
           <p>Usa esta opción solo si prefieres definir el resultado final directamente. Para registrar una compra o venta, usa el campo simple de abajo.</p>
         </div>
         <div className={styles.holdingQuickGrid}>
@@ -3713,6 +3818,7 @@ function HoldingsPanel({
               className={styles.textInput}
               onChange={(event) => onHoldingDraftChange("ticker", event.target.value)}
               placeholder="AAPL"
+              readOnly={Boolean(holdingDraft?.editingTicker)}
               type="text"
               value={tickerValue}
             />
@@ -3762,12 +3868,20 @@ function HoldingsPanel({
               value={priceValue}
             />
           </label>
+          <label className={styles.fieldStack}>
+            <span>Precio promedio de compra</span>
+            <input className={styles.textInput} inputMode="decimal" onChange={(event) => onHoldingDraftChange("avgCostUsd", event.target.value)} placeholder="Opcional" type="text" value={avgCostValue} />
+          </label>
+          <label className={styles.fieldStack}>
+            <span>Fecha de compra</span>
+            <input className={styles.textInput} max={new Date().toISOString().slice(0, 10)} onChange={(event) => onHoldingDraftChange("purchaseDate", event.target.value)} type="date" value={purchaseDateValue} />
+          </label>
         </div>
         <div className={styles.holdingQuickActions}>
           <button className={styles.primaryButton} disabled={pendingTrade || !draftReady} type="submit">
             {pendingTrade ? "Guardando..." : "Guardar posición"}
           </button>
-          <p className={styles.supportHint}>Esta ruta actualiza la posición final directamente, sin intentar inferir una nota de operación.</p>
+          <p className={styles.supportHint}>El costo promedio permite calcular tu resultado actual; la fecha permite reconstruir el historial. Si no los conoces, déjalos vacíos: no los inventaremos.</p>
         </div>
         {holdingDraftError ? <p className={styles.errorText}>{holdingDraftError}</p> : null}
       </form>
@@ -5593,7 +5707,7 @@ function ComplianceNotice({ copy }) {
 
 export default function TerminalApp({ initialSession, initialDashboard }) {
   const workspaceId = initialDashboard?.workspace_summary?.id || initialSession?.workspace?.id;
-  const { language } = useLanguagePreference();
+  const { language, setLanguage } = useLanguagePreference();
   const shellCopy = WORKSPACE_SHELL_COPY[language] || WORKSPACE_SHELL_COPY.es;
   const workspaceNav = useMemo(() => localizedWorkspaceNav(WORKSPACE_NAV, language), [language]);
   const workspaceNavAdvanced = useMemo(() => localizedWorkspaceNav(WORKSPACE_NAV_ADVANCED, language), [language]);
@@ -5616,12 +5730,16 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     quantity: "",
     targetValueUsd: "",
     price: "",
+    avgCostUsd: "",
+    purchaseDate: "",
+    editingTicker: "",
   });
   const pendingSectionScrollRef = useRef(null);
   const [tradeInstruction, setTradeInstruction] = useState("");
   const [tradeDate, setTradeDate] = useState("");
   const [tradePreview, setTradePreview] = useState(null);
   const [holdingDraftError, setHoldingDraftError] = useState("");
+  const [confirmationError, setConfirmationError] = useState("");
   const [tradeInstructionError, setTradeInstructionError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -5807,6 +5925,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               onRangeChange={setPortfolioRange}
               portfolioModule={portfolioModule}
               range={portfolioRange}
+              onCompleteHoldingData={() => editHolding(portfolioModule?.holdings?.find((holding) => !(holdingCostBasis(holding) > 0)) || portfolioModule?.holdings?.[0])}
+              onConfirmHoldings={confirmCurrentHoldings}
+              confirmingHoldings={pendingKey === "trade:confirm-holdings"}
+              confirmationError={confirmationError}
               showPositionTable={false}
               xray={dashboard?.xray}
             />
@@ -5814,7 +5936,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           <HoldingsPanel
             holdingDraft={holdingDraft}
             onHoldingDraftChange={updateHoldingDraft}
+            onEditHolding={editHolding}
             onSubmitHoldingDraft={submitHoldingDraft}
+            onConfirmHoldings={confirmCurrentHoldings}
+            confirmationError={confirmationError}
             onSubmitTrade={submitTradeInstruction}
             onTradeInstructionChange={(value) => {
               setTradeInstruction(value);
@@ -6030,15 +6155,54 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
         };
       }
 
-      if (field === "quantity" || field === "targetValueUsd" || field === "price") {
+      if (field === "quantity" || field === "targetValueUsd" || field === "price" || field === "avgCostUsd") {
         return {
           ...current,
           [field]: sanitizeDecimalInput(value),
         };
       }
 
+      if (field === "purchaseDate") return { ...current, purchaseDate: String(value || "") };
+
       return current;
     });
+  }
+
+  function editHolding(holding) {
+    if (!holding?.ticker) return;
+    const quantity = firstFiniteNumber(holding.shares, holding.quantity);
+    const price = firstFiniteNumber(holding.currentPriceUsd);
+    const avgCost = firstFiniteNumber(holding.avgCostUsd);
+    setHoldingDraft({
+      ticker: String(holding.ticker),
+      sizing: "shares",
+      quantity: quantity !== null ? String(quantity) : "",
+      targetValueUsd: "",
+      price: price !== null ? String(price) : "",
+      avgCostUsd: avgCost !== null && avgCost > 0 ? String(avgCost) : "",
+      purchaseDate: String(holding.purchaseDate || "").slice(0, 10),
+      editingTicker: String(holding.ticker),
+    });
+    setHoldingDraftError("");
+  }
+
+  async function confirmCurrentHoldings() {
+    if (!workspaceId) return;
+    setPendingKey("trade:confirm-holdings");
+    setConfirmationError("");
+    try {
+      const response = await fetch(`/api/v1/workspaces/${workspaceId}/portfolio`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmHoldings: true }),
+      });
+      const payload = await parseResponse(response);
+      await applyWorkspacePayload(payload, "Posiciones confirmadas.");
+    } catch (requestError) {
+      setConfirmationError(friendlyWorkspaceMessage(requestError?.message || requestError, "No se pudieron confirmar las posiciones."));
+    } finally {
+      setPendingKey(null);
+    }
   }
 
   function resetHoldingDraft() {
@@ -6048,6 +6212,9 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
       quantity: "",
       targetValueUsd: "",
       price: "",
+      avgCostUsd: "",
+      purchaseDate: "",
+      editingTicker: "",
     });
   }
 
@@ -6056,6 +6223,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
     const quantityText = String(holdingDraft.quantity || "").trim();
     const targetValueText = String(holdingDraft.targetValueUsd || "").trim();
     const priceText = String(holdingDraft.price || "").trim();
+    const avgCostText = String(holdingDraft.avgCostUsd || "").trim();
+    const purchaseDate = String(holdingDraft.purchaseDate || "").trim();
     const useQuantity = holdingDraft.sizing !== "value";
     const hasSizedValue = useQuantity ? quantityText !== "" : targetValueText !== "";
 
@@ -6073,6 +6242,8 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
           ticker,
           ...(useQuantity ? { quantity: Number(quantityText) } : { targetValueUsd: Number(targetValueText) }),
           ...(priceText ? { price: Number(priceText) } : {}),
+          ...(avgCostText ? { avgCostUsd: Number(avgCostText) } : {}),
+          ...(purchaseDate ? { purchaseDate } : {}),
         }),
       });
       const payload = await parseResponse(response);
@@ -6248,6 +6419,10 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
               </div>}
 
               <div className={styles.buttonRow}>
+                <div className={`${styles.segmentedControl} ${styles.headerLanguageControl}`} role="group" aria-label={language === "es" ? "Idioma" : "Language"}>
+                  <button aria-pressed={language === "en"} className={styles.segmentButton} data-active={language === "en"} onClick={() => setLanguage("en")} type="button">EN</button>
+                  <button aria-pressed={language === "es"} className={styles.segmentButton} data-active={language === "es"} onClick={() => setLanguage("es")} type="button">ES</button>
+                </div>
                 <button className={styles.primaryButton} disabled={pendingKey !== null} onClick={refreshWorkspace} type="button">
                   {pendingKey === "refresh" ? "Actualizando..." : isPortfolioWorkspace ? "Actualizar" : shellCopy.refresh}
                 </button>
@@ -6443,7 +6618,7 @@ export default function TerminalApp({ initialSession, initialDashboard }) {
                 <p className={styles.kicker}>Cartera</p>
                 <h2>Valor, retorno y diversificación real</h2>
               </div>
-              <Link className={styles.secondaryLink} href="/channels">Importar o reemplazar holdings</Link>
+              <Link className={styles.secondaryLink} href="/channels">Importar o reemplazar posiciones</Link>
             </div>
             {!hasPortfolioHoldings ? (
               <section className={styles.truthSurface} data-testid="portfolio-empty-hero">

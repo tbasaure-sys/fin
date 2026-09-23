@@ -50,7 +50,7 @@ export function LanguageLayer({ initialLanguage = "en" }) {
   return (
     <>
       {COMPONENT_LOCALIZED_PATHS.has(path) ? null : <LegacyLanguageTranslator language={language} />}
-      <LanguageDock language={language} setLanguage={setLanguage} />
+      {path === "/app" ? null : <LanguageDock language={language} setLanguage={setLanguage} />}
     </>
   );
 }
