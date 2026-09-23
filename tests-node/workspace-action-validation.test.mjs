@@ -80,6 +80,23 @@ test("parsePortfolioUpdatePayload accepts an atomic confirmed portfolio replacem
   );
 });
 
+test("parsePortfolioUpdatePayload carries purchase metadata and confirmation", () => {
+  assert.deepEqual(parsePortfolioUpdatePayload({
+    ticker: "MSFT",
+    quantity: "3",
+    avgCostUsd: "250.25",
+    purchaseDate: "2025-04-03",
+  }), {
+    ticker: "MSFT",
+    quantity: 3,
+    avgCostUsd: 250.25,
+    purchaseDate: "2025-04-03",
+  });
+  assert.deepEqual(parsePortfolioUpdatePayload({ confirmHoldings: true }), { confirmHoldings: true });
+  assert.throws(() => parsePortfolioUpdatePayload({ ticker: "MSFT", quantity: 3, avgCostUsd: -1 }), /avgCostUsd/);
+  assert.throws(() => parsePortfolioUpdatePayload({ ticker: "MSFT", quantity: 3, purchaseDate: "03-04-2025" }), /YYYY-MM-DD/);
+});
+
 test("parseFinancePlanPayload normalizes monthly cashflow fields", () => {
   const payload = parseFinancePlanPayload({
     monthlyIncome: "10000",
