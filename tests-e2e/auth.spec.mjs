@@ -4,6 +4,16 @@ const EMAIL = process.env.BLS_E2E_EMAIL;
 const PASSWORD = process.env.BLS_E2E_PASSWORD;
 
 test.describe("Autenticación", () => {
+  test("una sesión anónima no puede abrir el workspace ni la API privada", async ({ page, request }) => {
+    test.skip(process.env.BLS_E2E_LOCAL_BYPASS === "1", "El bypass local desactiva la autenticación");
+
+    await page.goto("/app?lang=es");
+    await expect(page).toHaveURL(/\/login\?/);
+
+    const sessionResponse = await request.get("/api/v1/session");
+    expect(sessionResponse.status()).toBe(401);
+  });
+
   test("login con contraseña incorrecta muestra error y no entra", async ({ page }) => {
     test.skip(!EMAIL, "Define BLS_E2E_EMAIL");
     await page.goto("/login?intent=signin&lang=es");
