@@ -20,7 +20,7 @@ const CHANNEL_PENDING_SAVE_KEY = `${CHANNEL_STORAGE_KEY}:pending-save`;
 
 const COPY = {
   es: {
-    brandAria: "Volver al inicio de BL'S",
+    brandAria: "Volver al inicio de BLS Prime",
     home: "Inicio",
     signIn: "Iniciar sesión",
     language: "Elegir idioma",
@@ -109,7 +109,7 @@ const COPY = {
     },
   },
   en: {
-    brandAria: "Back to BL'S home",
+    brandAria: "Back to BLS Prime home",
     home: "Home",
     signIn: "Sign in",
     language: "Choose language",
@@ -894,7 +894,7 @@ export function ChannelQuestionnaire() {
     <main className={`${styles.page} channels-route`} data-no-translate>
       <header className={styles.topbar}>
         <Link aria-label={copy.brandAria} className={styles.logo} href="/">
-          BL&apos;S
+          BLS Prime
         </Link>
         <div className={styles.topActions}>
           <Link className={styles.homeLink} href="/">

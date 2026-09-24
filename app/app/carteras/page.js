@@ -5,7 +5,7 @@ import { getCarterasDashboard } from "@/lib/server/carteras-api";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Carteras | BLS Prime",
+  title: "Carteras",
   robots: { index: false, follow: false },
 };
 

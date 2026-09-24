@@ -670,7 +670,7 @@ export function PortfolioChannelWorkbench() {
   return (
     <main className={`${styles.page} channels-route`} data-no-translate>
       <header className={styles.topbar}>
-        <Link className={styles.logo} href="/">BL&apos;S</Link>
+        <Link className={styles.logo} href="/">BLS Prime</Link>
         <nav>
           <Link href="/">{copy.navHome}</Link>
           {session.workspace ? <Link href="/app">{copy.navWorkspace}</Link> : <Link href={`/login?lang=${language}&next=%2Fchannels`}>{copy.signIn}</Link>}

@@ -19,7 +19,9 @@ const COPY = {
   es: {
     livePublicNote: "Resultados construidos al solicitar la página con mercado actual y estados financieros presentados. Para guardar candidatos necesitas un workspace.",
     livePrivateNote: "La cola está conectada a tu workspace y el universo se reconstruye desde proveedores actuales.",
-    live: "Live",
+    live: "En vivo",
+    kicker: "FactorLab / descubrimiento",
+    unavailable: "Sin datos",
     updating: "Actualizando datos",
     marketDataAsOf: "Datos de mercado al",
     providerCoverage: (succeeded, requested) => `${succeeded} de ${requested} empresas actualizadas`,
@@ -96,6 +98,8 @@ const COPY = {
     livePublicNote: "Results are built on request from current market data and filed financial statements. A workspace is required to save candidates.",
     livePrivateNote: "The queue is connected to your workspace and the universe is rebuilt from current providers.",
     live: "Live",
+    kicker: "FactorLab / research discovery",
+    unavailable: "No data",
     updating: "Refreshing data",
     marketDataAsOf: "Market data as of",
     providerCoverage: (succeeded, requested) => `${succeeded} of ${requested} companies refreshed`,
@@ -389,14 +393,14 @@ export function FactorLabWorkstation({
       <main>
         <section className={styles.hero}>
           <div>
-            <p className={styles.kicker}>FactorLab / research discovery</p>
+            <p className={styles.kicker}>{copy.kicker}</p>
             <h1>{copy.title}</h1>
             <p className={styles.lede}>{copy.intro}</p>
             <p className={styles.modeNote}>{publicMode ? copy.livePublicNote : copy.livePrivateNote}</p>
           </div>
           <div className={styles.freshness} aria-label={language === "es" ? "Estado de los datos" : "Data status"}>
             <strong>{copy.live}</strong>
-            <span>{isUpdating ? copy.updating : `${copy.marketDataAsOf} ${formatDataDate(run?.datasetAsOf, language)}`}</span>
+            <span>{isUpdating ? copy.updating : run ? `${copy.marketDataAsOf} ${formatDataDate(run.datasetAsOf, language)}` : liveState.status === "error" ? copy.errorTitle : copy.loadingTitle}</span>
             <span>{run ? copy.providerCoverage(providerStatus.succeeded, providerStatus.requested) : copy.liveCadence}</span>
             {run ? <span>{copy.liveCadence}</span> : null}
             {!publicMode ? <span data-positive="true">{copy.queueConnected}</span> : null}
@@ -404,10 +408,10 @@ export function FactorLabWorkstation({
         </section>
 
         <section className={styles.statusStrip} aria-label={language === "es" ? "Resumen de búsqueda" : "Search summary"}>
-          <div><span>{copy.considered}</span><strong>{considered}</strong></div>
-          <div><span>{copy.eligible}</span><strong>{run?.summary?.eligible || 0}</strong></div>
-          <div><span>{copy.shown}</span><strong>{run?.summary?.returned || 0}</strong></div>
-          <div><span>{copy.held}</span><strong>{run?.summary?.abstain || 0}</strong></div>
+          <div><span>{copy.considered}</span><strong>{run ? considered : "—"}</strong></div>
+          <div><span>{copy.eligible}</span><strong>{run ? run.summary?.eligible || 0 : "—"}</strong></div>
+          <div><span>{copy.shown}</span><strong>{run ? run.summary?.returned || 0 : "—"}</strong></div>
+          <div><span>{copy.held}</span><strong>{run ? run.summary?.abstain || 0 : "—"}</strong></div>
         </section>
 
         <section className={styles.workspace}>
@@ -434,9 +438,9 @@ export function FactorLabWorkstation({
             </div>
 
             {!run && liveState.status === "loading" ? (
-              <div className={styles.emptyState} role="status"><span>Live</span><h3>{copy.loadingTitle}</h3><p>{copy.loadingBody}</p></div>
+              <div className={styles.emptyState} role="status"><span>{copy.live}</span><h3>{copy.loadingTitle}</h3><p>{copy.loadingBody}</p></div>
             ) : !run && liveState.status === "error" ? (
-              <div className={styles.emptyState} role="alert"><span>503</span><h3>{copy.errorTitle}</h3><p>{copy.errorBody}</p><button onClick={() => setRefreshKey((value) => value + 1)} type="button">{copy.retry}</button></div>
+              <div className={styles.emptyState} role="alert"><span>{copy.unavailable}</span><h3>{copy.errorTitle}</h3><p>{copy.errorBody}</p><button onClick={() => setRefreshKey((value) => value + 1)} type="button">{copy.retry}</button></div>
             ) : run?.accepted && run.candidates.length ? (
               <div className={styles.candidateList}>
                 {run.candidates.map((row) => {

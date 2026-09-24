@@ -1,13 +1,21 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 
 import styles from "@/app/login-page.module.css";
+import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Recover access",
-  robots: { index: false, follow: false },
-};
+function requestLanguage() {
+  return normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+}
+
+export function generateMetadata() {
+  return {
+    title: requestLanguage() === "en" ? "Recover access" : "Recuperar acceso",
+    robots: { index: false, follow: false },
+  };
+}
 
 const COPY = {
   en: {
@@ -62,7 +70,7 @@ function safeLanguage(value) {
 }
 
 export default function ForgotPasswordPage({ searchParams = {} }) {
-  const language = safeLanguage(searchParams.lang);
+  const language = searchParams.lang ? safeLanguage(searchParams.lang) : requestLanguage();
   const copy = COPY[language];
   const sent = firstValue(searchParams.sent) === "1";
   const errorCode = String(firstValue(searchParams.error) || "").trim().toLowerCase();

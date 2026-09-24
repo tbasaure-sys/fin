@@ -52,7 +52,7 @@ test.describe("FactorLab decision workspace", () => {
     );
 
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Descubre qué empresa merece tu próxima hora.");
-    await expect(page.getByLabel("Estado de los datos").getByText("Live", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("Estado de los datos").getByText("En vivo", { exact: true })).toBeVisible();
     await expect(page.getByText(/Datos de mercado al 28 jul 2026/)).toBeVisible();
     await expect(page.getByText(/3 de 4 empresas actualizadas/)).toBeVisible();
     await expect(page.locator("main").getByText("Demo", { exact: true })).toHaveCount(0);

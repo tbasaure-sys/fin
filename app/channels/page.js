@@ -1,7 +1,7 @@
 import { ChannelQuestionnaire } from "@/components/channels/channel-questionnaire";
 
 export const metadata = {
-  title: "Channel Finder | BLS Prime",
+  title: "Channel Finder",
   description:
     "A public, private-by-default diagnostic for finding lawful information channels worth testing before researching a stock.",
 };

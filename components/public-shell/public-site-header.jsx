@@ -100,7 +100,7 @@ export function PublicSiteHeader({
           </nav>
 
           <div className={styles.actions}>
-            <div aria-label={copy.language} className={styles.language} role="group">
+            {languages.length > 1 ? <div aria-label={copy.language} className={styles.language} role="group">
               {languages.map((item) => (
                 <button
                   aria-pressed={language === item}
@@ -112,7 +112,7 @@ export function PublicSiteHeader({
                   {item.toUpperCase()}
                 </button>
               ))}
-            </div>
+            </div> : null}
             {authenticated ? <Link className={styles.signIn} href={`/app?lang=${language}`}>
               {language === "en" ? "Your account" : "Tu cuenta"}
             </Link> : <><Link className={styles.signIn} href={actions.signIn.href}>

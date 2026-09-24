@@ -1,0 +1,67 @@
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+  padding: 1rem clamp(1rem, 4vw, 2rem);
+  color: #c0c9a5;
+  background: #0d1510;
+  border-top: 1px solid #2b3629;
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.text {
+  flex: 1 1 22rem;
+  margin: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actions button,
+.actions a {
+  min-height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.85rem;
+  border: 1px solid #3b4738;
+  color: #dfe6d2;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+}
+
+.actions button:hover {
+  border-color: #6f7d68;
+}
+
+.actions .primary {
+  color: #10170f;
+  border-color: #c0c9a5;
+  background: #c0c9a5;
+}
+
+.actions .primary:hover {
+  border-color: #d3e6b6;
+  background: #d3e6b6;
+}
+
+.actions a {
+  border-color: transparent;
+  color: #c0c9a5;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.actions button:focus-visible,
+.actions a:focus-visible {
+  outline: 2px solid #c0c9a5;
+  outline-offset: 2px;
+}

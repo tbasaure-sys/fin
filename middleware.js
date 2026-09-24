@@ -37,8 +37,17 @@ export function middleware(request) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set(LANGUAGE_REQUEST_HEADER, locale);
 
+  // Next.js prefetches visible links (including language switchers such as
+  // "?lang=en"). A prefetch is not a user choice, so it must never persist.
+  const isPrefetch = Boolean(
+    request.headers.get("next-router-prefetch") ||
+    request.headers.get("x-middleware-prefetch") ||
+    request.headers.get("purpose") === "prefetch" ||
+    request.headers.get("sec-purpose")?.includes("prefetch"),
+  );
+
   const finalize = (response) => {
-    if (shouldPersistQueryLocale({ pathname, queryLanguage })) {
+    if (!isPrefetch && shouldPersistQueryLocale({ pathname, queryLanguage })) {
       response.cookies.set(LANGUAGE_COOKIE_KEY, locale, {
         httpOnly: false,
         sameSite: "lax",

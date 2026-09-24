@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { LANGUAGE_COOKIE_KEY, shouldPersistQueryLocale } from "@/lib/i18n/locale";
+import { LANGUAGE_COOKIE_KEY, isSpanishOnlyRoute, shouldPersistQueryLocale } from "@/lib/i18n/locale";
 
 export const LANGUAGE_STORAGE_KEY = LANGUAGE_COOKIE_KEY;
 
@@ -29,6 +29,7 @@ function writeLanguageCookie(language) {
 
 export function readStoredLanguage() {
   if (typeof window === "undefined") return "en";
+  if (isSpanishOnlyRoute(window.location.pathname)) return "es";
   try {
     const urlLanguage = new URLSearchParams(window.location.search).get("lang");
     if (SUPPORTED_LANGUAGES.has(urlLanguage) && shouldPersistQueryLocale({
@@ -46,6 +47,10 @@ export function readStoredLanguage() {
     const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
     if (SUPPORTED_LANGUAGES.has(stored)) return stored;
   } catch {}
+  // Fall back to the locale the server rendered with, so the client never
+  // flips a first-time visitor to a different language after hydration.
+  const documentLanguage = document.documentElement.lang;
+  if (SUPPORTED_LANGUAGES.has(documentLanguage)) return documentLanguage;
   return window.navigator.language?.toLowerCase().startsWith("es") ? "es" : "en";
 }
 

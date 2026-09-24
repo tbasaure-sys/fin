@@ -1,13 +1,21 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 
 import styles from "@/app/login-page.module.css";
+import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
 
-export const metadata = {
-  title: "Reset password",
-  robots: { index: false, follow: false },
-};
+function requestLanguage() {
+  return normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+}
+
+export function generateMetadata() {
+  return {
+    title: requestLanguage() === "en" ? "Reset password" : "Restablecer contraseña",
+    robots: { index: false, follow: false },
+  };
+}
 
 const COPY = {
   en: {
@@ -59,7 +67,7 @@ function safeLanguage(value) {
 }
 
 export default function ResetPasswordPage({ searchParams = {} }) {
-  const language = safeLanguage(searchParams.lang);
+  const language = searchParams.lang ? safeLanguage(searchParams.lang) : requestLanguage();
   const copy = COPY[language];
   const token = String(firstValue(searchParams.token) || "");
   const errorCode = String(firstValue(searchParams.error) || "").trim().toLowerCase();

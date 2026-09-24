@@ -3,6 +3,7 @@ import {useEffect,useState} from 'react';
 import {usePathname} from 'next/navigation';
 import {useLanguagePreference} from './language-layer';
 import {PRODUCT_EVENTS} from '@/lib/product-events.mjs';
+import styles from './product-measurement.module.css';
 const key='bls-product-measurement-v1';
 function choice(){try{const value=JSON.parse(localStorage.getItem(key));return value&&value.expires>Date.now()?value:null}catch{return null}}
 export function ProductMeasurement(){
@@ -20,9 +21,11 @@ export function ProductMeasurement(){
   const handle=e=>send(e.detail);window.addEventListener('bls-product-event',handle);return()=>window.removeEventListener('bls-product-event',handle);
  },[path,consent]);
  function choose(allow){const value={allow,expires:Date.now()+30*86400000,...(allow?{visitor:crypto.randomUUID()}:{})};try{localStorage.setItem(key,JSON.stringify(value));setConsent(value)}catch{setConsent({allow:false})}}
- return <aside aria-label={en?'Optional usage measurement':'Medición opcional de uso'} style={{padding:'18px 24px',background:'#101812',color:'#c0c9a5',fontSize:12,lineHeight:1.7,borderTop:'1px solid #354132'}}>
-  <span>{consent?.allow?(en?'Optional measurement enabled.':'Medición opcional activada.'):(en?'Help improve BLS Prime with optional usage counts.':'Ayuda a mejorar BLS Prime con conteos opcionales de uso.')} {en?'No tickers, holdings or research text.':'Sin tickers, posiciones ni texto de investigación.'} </span>
-  {consent?.allow?<button type="button" onClick={()=>choose(false)}>{en?'Disable':'Desactivar'}</button>:<><button type="button" onClick={()=>choose(true)}>{en?'Allow measurement':'Permitir medición'}</button>{!consent?<button type="button" onClick={()=>choose(false)}>{en?'Not now':'Ahora no'}</button>:null}</>}
-  {' '}<a href={`/privacy?lang=${language}#usage`}>{en?'Details':'Detalles'}</a>
+ return <aside aria-label={en?'Optional usage measurement':'Medición opcional de uso'} className={styles.bar} data-no-translate>
+  <p className={styles.text}>{consent?.allow?(en?'Optional measurement enabled.':'Medición opcional activada.'):(en?'Help improve BLS Prime with optional usage counts.':'Ayuda a mejorar BLS Prime con conteos opcionales de uso.')} {en?'No tickers, holdings or research text.':'Sin tickers, posiciones ni texto de investigación.'}</p>
+  <div className={styles.actions}>
+   {consent?.allow?<button type="button" onClick={()=>choose(false)}>{en?'Disable':'Desactivar'}</button>:<><button className={styles.primary} type="button" onClick={()=>choose(true)}>{en?'Allow measurement':'Permitir medición'}</button>{!consent?<button type="button" onClick={()=>choose(false)}>{en?'Not now':'Ahora no'}</button>:null}</>}
+   <a href={`/privacy?lang=${language}#usage`}>{en?'Details':'Detalles'}</a>
+  </div>
  </aside>;
 }

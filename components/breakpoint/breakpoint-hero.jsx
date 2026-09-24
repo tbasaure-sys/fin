@@ -128,10 +128,10 @@ function resolveAsOf(run, copy, language) {
   return { known: true, text: `${copy.asOfLabel} ${formatted}` };
 }
 
-export function BreakpointHero({ language = "es" }) {
+export function BreakpointHero({ language = "es", initialTicker = "" }) {
   const router = useRouter();
   const copy = COPY[language] || COPY.es;
-  const [ticker, setTicker] = useState("");
+  const [ticker, setTicker] = useState(initialTicker);
   // status: idle | loading | error | ready | navigating
   const [state, setState] = useState({ status: "idle", code: null, message: "" });
   const [stageIndex, setStageIndex] = useState(0);

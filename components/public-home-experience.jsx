@@ -51,7 +51,7 @@ export function PublicHomeExperience({ initialLanguage = "es" }) {
         <nav aria-label={en ? "Legal and language" : "Información legal e idioma"}>
           <Link href={`/privacy?lang=${language}`}>{en ? "Privacy" : "Privacidad"}</Link>
           <Link href={`/terms?lang=${language}`}>{en ? "Terms" : "Términos"}</Link>
-          <span className={styles.languages}><Link href="/?lang=es" onClick={() => setLanguage("es")} hrefLang="es" aria-current={!en ? "page" : undefined}>ES</Link><span aria-hidden="true">/</span><Link href="/?lang=en" onClick={() => setLanguage("en")} hrefLang="en" aria-current={en ? "page" : undefined}>EN</Link></span>
+          <span className={styles.languages}><Link href="/?lang=es" onClick={() => setLanguage("es")} hrefLang="es" prefetch={false} aria-current={!en ? "page" : undefined}>ES</Link><span aria-hidden="true">/</span><Link href="/?lang=en" onClick={() => setLanguage("en")} hrefLang="en" prefetch={false} aria-current={en ? "page" : undefined}>EN</Link></span>
         </nav>
       </footer>
     </div>

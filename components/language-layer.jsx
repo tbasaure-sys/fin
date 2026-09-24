@@ -14,6 +14,7 @@ const LegacyLanguageTranslator = dynamic(
 
 const COMPONENT_LOCALIZED_PATHS = new Set([
   "/",
+  "/example",
   "/login",
   "/forgot-password",
   "/reset-password",
@@ -25,7 +26,7 @@ const COMPONENT_LOCALIZED_PATHS = new Set([
   "/channels",
 ]);
 
-const LANGUAGE_DOCK_OMITTED_PATHS = new Set(["/", "/channels", "/aurora"]);
+const LANGUAGE_DOCK_OMITTED_PATHS = new Set(["/", "/example", "/channels", "/aurora"]);
 
 function LanguageDock({ language, setLanguage }) {
   return (

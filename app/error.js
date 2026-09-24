@@ -1,67 +1,49 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-const rawAppName = process.env.NEXT_PUBLIC_BLS_APP_NAME || "BLS Prime";
-const appName = /allocator workspace/i.test(rawAppName) ? "BLS Prime" : rawAppName;
+import { useLanguagePreference } from "@/components/language-preference";
+import styles from "@/components/status/status-page.module.css";
 
 const COPY = {
   en: {
-    kicker: "Workspace problem",
-    title: "We could not open the workspace.",
-    body: "The workspace needs a clean session. Start from the Stress Engine presentation, then sign in only when you are ready to run your portfolio.",
-    retry: "Reload workspace",
-    stress: "Stress Engine",
-    home: "Home",
+    kicker: "Something went wrong",
+    title: "We could not load this page.",
+    body: "The error was on our side, not in your data. Try again; if it keeps happening, go back home and reopen the page.",
+    retry: "Try again",
+    home: "Back to home",
   },
   es: {
-    kicker: "Problema de workspace",
-    title: "No pudimos abrir el workspace.",
-    body:
-      "El workspace necesita una sesi\u00f3n limpia. Parte desde la presentaci\u00f3n de Stress Engine e inicia sesi\u00f3n solo cuando quieras correr tu cartera.",
-    retry: "Recargar workspace",
-    stress: "Stress Engine",
-    home: "Inicio",
+    kicker: "Algo salió mal",
+    title: "No pudimos cargar esta página.",
+    body: "El error fue nuestro, no de tus datos. Vuelve a intentarlo; si se repite, regresa al inicio y abre la página de nuevo.",
+    retry: "Reintentar",
+    home: "Volver al inicio",
   },
 };
 
-function getInitialLanguage() {
-  if (typeof window === "undefined") return "en";
-  const stored = window.localStorage.getItem("blsprime_language_preference");
-  if (stored === "en" || stored === "es") return stored;
-  return window.navigator.language?.toLowerCase().startsWith("es") ? "es" : "en";
-}
-
 export default function Error({ error, reset }) {
-  const [language, setLanguage] = useState("en");
-  const copy = COPY[language] || COPY.en;
+  const { language } = useLanguagePreference("es");
+  const copy = COPY[language] || COPY.es;
 
   useEffect(() => {
     console.error(error);
   }, [error]);
 
-  useEffect(() => {
-    setLanguage(getInitialLanguage());
-  }, []);
-
   return (
-    <main className="status-page">
-      <div className="status-shell premium-card">
-        <p className="landing-kicker">{copy.kicker}</p>
-        <p className="brand-wordmark">{appName}</p>
-        <h1>{copy.title}</h1>
-        <p className="landing-support">{copy.body}</p>
-        <div className="hero-cta-row">
-          <Link className="primary-button" href="/stress">
-            {copy.stress}
-          </Link>
-          <Link className="ghost-button" href="/">
-            {copy.home}
-          </Link>
-          <button className="ghost-button" onClick={() => reset()}>
+    <main className={styles.page}>
+      <div className={styles.inner}>
+        <p className={styles.kicker}>{copy.kicker}</p>
+        <h1 className={styles.title}>{copy.title}</h1>
+        <p className={styles.body}>{copy.body}</p>
+        <div className={styles.actions}>
+          <button className={styles.primary} onClick={() => reset()} type="button">
             {copy.retry}
           </button>
+          <Link className={styles.secondary} href={`/?lang=${language}`}>
+            {copy.home}
+          </Link>
         </div>
       </div>
     </main>

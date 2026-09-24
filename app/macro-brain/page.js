@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export const metadata = {
-  title: "Macro Brain | BLS Prime",
+  title: "Macro Brain",
   description: "A short macro note that shows what changed, what to watch, and what was recorded.",
 };
 

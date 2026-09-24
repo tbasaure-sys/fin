@@ -151,8 +151,8 @@
 
 .signUp:hover,
 .signUp:focus-visible {
-  border-color: #f2cb7e;
-  background: #f2cb7e;
+  border-color: #d3e6b6;
+  background: #d3e6b6;
 }
 
 .menuButton {
@@ -294,10 +294,14 @@
   padding: 0 0.85rem;
   color: var(--shell-gold);
   border: 1px solid var(--shell-line);
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
   text-decoration: none;
+  text-transform: uppercase;
+  transition: color 160ms ease, border-color 160ms ease;
 }
+.portfolios:hover { color: var(--shell-paper); border-color: rgba(193, 215, 160, 0.5); }
 .portfolios:focus-visible { outline: 2px solid var(--shell-gold); outline-offset: 3px; }
 @media (min-width: 1321px) {
   .inner { grid-template-columns: auto minmax(0, 1fr) auto; gap: 1.5rem; }
