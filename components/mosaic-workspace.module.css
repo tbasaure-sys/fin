@@ -1,8 +1,8 @@
 .page {
-  --bg: #060a0d;
-  --surface: #0a1014;
-  --surface-2: #0d151a;
-  --surface-3: #111c21;
+  --bg: #070c09;
+  --surface: #0c120e;
+  --surface-2: #0f1812;
+  --surface-3: #141f17;
   --line: rgba(179, 210, 218, 0.12);
   --line-strong: rgba(179, 210, 218, 0.22);
   --text: #eef5f4;
@@ -10,8 +10,8 @@
   --dim: #617377;
   --cyan: #6ed6d0;
   --cyan-soft: rgba(110, 214, 208, 0.12);
-  --amber: #e8bd72;
-  --amber-soft: rgba(232, 189, 114, 0.14);
+  --amber: #b7c199;
+  --amber-soft: rgba(183, 193, 153, 0.14);
   --red: #ed8175;
   --red-soft: rgba(237, 129, 117, 0.13);
   --blue: #86aee8;
@@ -47,7 +47,7 @@
   gap: 1rem;
   padding: 0 1.25rem;
   border-bottom: 1px solid var(--line);
-  background: rgba(6, 10, 13, 0.9);
+  background: rgba(7, 12, 9, 0.9);
   backdrop-filter: blur(18px);
 }
 
@@ -82,11 +82,11 @@
   height: 1.85rem;
   display: grid;
   place-items: center;
-  color: #071012;
+  color: #0a0f0c;
   border-radius: 4px;
   background: var(--cyan);
   font-size: 0.92rem;
-  font-weight: 900;
+  font-weight: 600;
 }
 
 .brand > strong {
@@ -185,7 +185,7 @@
 .sectionLabel > span {
   color: var(--cyan);
   font-size: 0.66rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -213,11 +213,11 @@
   margin-bottom: 0.15rem;
   padding: 0.55rem 0.72rem;
   color: var(--amber);
-  border: 1px solid rgba(232, 189, 114, 0.24);
+  border: 1px solid rgba(183, 193, 153, 0.24);
   border-radius: 999px;
   background: var(--amber-soft);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .liveState > span {
@@ -240,8 +240,8 @@
 .statusWarning {
   padding: 0.75rem 1.25rem;
   color: var(--amber);
-  border-block: 1px solid rgba(232, 189, 114, 0.2);
-  background: rgba(232, 189, 114, 0.06);
+  border-block: 1px solid rgba(183, 193, 153, 0.2);
+  background: rgba(183, 193, 153, 0.06);
   font-size: 0.78rem;
 }
 
@@ -250,7 +250,7 @@
   grid-template-columns: 1.3fr repeat(3, minmax(0, 1fr));
   border: 1px solid var(--line);
   border-inline: 0;
-  background: rgba(9, 15, 19, 0.8);
+  background: rgba(11, 17, 13, 0.8);
 }
 
 .regimeStrip > article {
@@ -453,7 +453,7 @@
   border: 1px solid var(--line);
   background:
     radial-gradient(circle at 50% 45%, rgba(110, 214, 208, 0.065), transparent 42%),
-    rgba(1, 5, 8, 0.7);
+    rgba(4, 5, 4, 0.7);
 }
 
 .worldMap > svg,
@@ -489,9 +489,9 @@
   gap: 0.28rem;
   padding: 0.28rem 0.38rem;
   color: var(--text);
-  border: 1px solid rgba(232, 189, 114, 0.28);
+  border: 1px solid rgba(183, 193, 153, 0.28);
   border-radius: 3px;
-  background: rgba(6, 10, 13, 0.9);
+  background: rgba(7, 12, 9, 0.9);
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.32);
   cursor: pointer;
   transform: translate(-50%, -50%);
@@ -586,7 +586,7 @@
 }
 
 .heatCell[data-tone="tight"] {
-  background: linear-gradient(145deg, rgba(232, 189, 114, 0.12), rgba(232, 189, 114, 0.02));
+  background: linear-gradient(145deg, rgba(183, 193, 153, 0.12), rgba(183, 193, 153, 0.02));
 }
 
 .heatCell[data-tone="loose"] {
@@ -812,7 +812,7 @@
   overflow: auto;
   padding: 1.25rem;
   border-left: 1px solid var(--line);
-  background: rgba(9, 15, 19, 0.9);
+  background: rgba(11, 17, 13, 0.9);
   scrollbar-color: var(--line-strong) transparent;
 }
 
@@ -929,7 +929,7 @@
 .sectionLabel h3 {
   margin: 0;
   font-size: 0.77rem;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .drivers {
@@ -1040,7 +1040,7 @@
 .researchAngle span {
   color: var(--cyan);
   font-size: 0.61rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1208,7 +1208,7 @@
 .gapList article > div span {
   color: var(--amber);
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .gapList p,
@@ -1233,7 +1233,7 @@
   padding: 1rem 0 0.5rem;
   color: var(--cyan);
   font-size: 0.66rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -1273,7 +1273,7 @@
 
 .actionList article[data-priority="high"] em {
   color: var(--amber);
-  border-color: rgba(232, 189, 114, 0.22);
+  border-color: rgba(183, 193, 153, 0.22);
 }
 
 .macroWatch {

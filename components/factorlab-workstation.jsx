@@ -483,7 +483,6 @@ export function FactorLabWorkstation({
         </section>
       </main>
 
-      <footer className={styles.footer}><Link href="/">BLS Prime</Link><p>{copy.disclosure}</p></footer>
 
       {auditOpen && run ? (
         <div className={styles.drawerBackdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setAuditOpen(false); }}>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useId, useMemo, useState } from "react";
 
-import { useLanguagePreference } from "@/components/language-layer";
+import { useLanguageSwitch } from "./use-language-switch";
 import { buildPublicNavigation, buildPublicShellActions } from "@/lib/public-shell-navigation";
 import styles from "./public-site-header.module.css";
 
@@ -15,7 +15,7 @@ const UI_COPY = {
     menu: "Abrir navegación",
     closeMenu: "Cerrar navegación",
     nav: "Navegación principal",
-    descriptor: "Investigación de inversiones",
+    account: "Tu cuenta",
   },
   en: {
     brandAria: "BLS Prime, home",
@@ -23,7 +23,7 @@ const UI_COPY = {
     menu: "Open navigation",
     closeMenu: "Close navigation",
     nav: "Primary navigation",
-    descriptor: "Decision workspace",
+    account: "Your account",
   },
 };
 
@@ -31,9 +31,10 @@ export function PublicSiteHeader({
   authenticated = false,
   availableLanguages = ["es", "en"],
   initialLanguage = "es",
+  variant = "solid",
 }) {
   const pathname = usePathname() || "/";
-  const { language: preferredLanguage, setLanguage } = useLanguagePreference(initialLanguage);
+  const { language: preferredLanguage, switchLanguage: setLanguage } = useLanguageSwitch(initialLanguage);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
   const languages = availableLanguages.filter((item) => item === "es" || item === "en");
@@ -60,15 +61,10 @@ export function PublicSiteHeader({
   }, [menuOpen]);
 
   return (
-    <header className={`${styles.shell} public-site-header`} data-no-translate>
+    <header className={`${styles.shell} public-site-header`} data-no-translate data-variant={variant} data-open={menuOpen}>
       <div className={styles.inner}>
         <Link className={styles.brand} href={`/?lang=${language}`} aria-label={copy.brandAria}>
-          <span className={styles.brandName}>BLS Prime</span>
-          <span className={styles.brandDescriptor}>{copy.descriptor}</span>
-        </Link>
-
-        <Link className={styles.portfolios} href={`/app/carteras?lang=${language}`}>
-          {language === "en" ? "Portfolios" : "Carteras"}
+          BLS <span>/ PRIME</span>
         </Link>
 
         <button
@@ -100,27 +96,35 @@ export function PublicSiteHeader({
           </nav>
 
           <div className={styles.actions}>
-            {languages.length > 1 ? <div aria-label={copy.language} className={styles.language} role="group">
-              {languages.map((item) => (
-                <button
-                  aria-pressed={language === item}
-                  data-active={language === item}
-                  key={item}
-                  onClick={() => setLanguage(item)}
-                  type="button"
-                >
-                  {item.toUpperCase()}
-                </button>
-              ))}
-            </div> : null}
-            {authenticated ? <Link className={styles.signIn} href={`/app?lang=${language}`}>
-              {language === "en" ? "Your account" : "Tu cuenta"}
-            </Link> : <><Link className={styles.signIn} href={actions.signIn.href}>
-              {actions.signIn.label}
-            </Link>
-            <Link className={styles.signUp} href={actions.signUp.href}>
-              {actions.signUp.label}
-            </Link></>}
+            {languages.length > 1 ? (
+              <div aria-label={copy.language} className={styles.language} role="group">
+                {languages.map((item) => (
+                  <button
+                    aria-pressed={language === item}
+                    data-active={language === item}
+                    key={item}
+                    onClick={() => setLanguage(item)}
+                    type="button"
+                  >
+                    {item.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {authenticated ? (
+              <Link className={styles.signUp} href={`/app?lang=${language}`}>
+                {copy.account}
+              </Link>
+            ) : (
+              <>
+                <Link className={styles.signIn} href={actions.signIn.href}>
+                  {actions.signIn.label}
+                </Link>
+                <Link className={styles.signUp} href={actions.signUp.href}>
+                  {actions.signUp.label}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

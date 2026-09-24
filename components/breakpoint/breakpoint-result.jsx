@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { useEffect, useState } from "react";
 
 import styles from "./breakpoint.module.css";
@@ -30,13 +32,13 @@ export function BreakpointResult({ runId, language = "es" }) {
     return () => { active = false; };
   }, [runId, copy.unavailable]);
 
-  if (state.status === "loading") return <main className={styles.resultShell}><p className={styles.loading} aria-live="polite">{copy.loading}</p></main>;
-  if (state.status === "error") return <main className={styles.resultShell}><p className={styles.loading} aria-live="polite">{state.message}</p></main>;
+  if (state.status === "loading") return <><PublicSiteHeader initialLanguage={language} /><main className={styles.resultShell}><p className={styles.loading} aria-live="polite">{copy.loading}</p></main></>;
+  if (state.status === "error") return <><PublicSiteHeader initialLanguage={language} /><main className={styles.resultShell}><p className={styles.loading} aria-live="polite">{state.message}</p></main></>;
   const run = state.run?.payload || state.run;
   const attention = run.status !== "ready";
   const links = buildBreakpointCompanyLinks(run.ticker, language);
-  return <main className={styles.resultShell}>
-    <header className={styles.resultTop}><Link href={`/?lang=${language}`} className={styles.wordmark}>BLS Prime</Link><span>{run.ticker} · {run.model?.omegaVersion || "BREAKPOINT V1"}</span></header>
+  return <><PublicSiteHeader initialLanguage={language} /><main className={styles.resultShell}>
+    <p className={styles.resultTop}><span>{run.ticker} · {run.model?.omegaVersion || "BREAKPOINT V1"}</span></p>
     <section className={styles.resultLead} aria-labelledby="breakpoint-result-title">
       <p className={styles.eyebrow}>{copy.eyebrow}</p>
       <h1 id="breakpoint-result-title">{attention ? copy.unavailable : run.market.family.narrative}</h1>
@@ -54,7 +56,7 @@ export function BreakpointResult({ runId, language = "es" }) {
     </>}
     <section className={styles.detailGrid}><div><h2>{copy.provenance}</h2><ul className={styles.sources}>{(run.provenance?.sources || []).map((source, index) => <li key={`${source.label}-${index}`}><span>{localizeBreakpointSourceCategory(source.category, language)}</span><strong>{source.label}</strong><small>{date(source.date)}</small></li>)}</ul></div><div><h2>{copy.limitations}</h2><ul className={styles.limitations}>{(run.limitations || []).map((item) => <li key={item}>{item}</li>)}</ul></div></section>
     <footer className={styles.resultFooter}><p>{copy.disclaimer}</p><div className={styles.resultActions}><Link href={links.company} className={styles.terminalLink}>{copy.terminal} <span></span></Link><Link href={links.queue} className={styles.queueLink}>{copy.queue}</Link></div></footer>
-  </main>;
+  </main></>;
 }
 
 function Flip({ title, flip, language }) { return <article className={styles.flip}><span>{title}</span><h2>{flip?.statement || "—"}</h2><dl>{(flip?.changes || []).map((change) => <div key={change.driver}><dt>{localizeBreakpointDriver(change.driver, language)}</dt><dd>{percent(change.from)}  {percent(change.to)}</dd></div>)}</dl></article>; }

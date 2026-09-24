@@ -1,15 +1,15 @@
 .page {
-  --ink: #f5f1e8;
-  --muted: rgba(245, 241, 232, 0.68);
-  --dim: rgba(245, 241, 232, 0.46);
-  --line: rgba(245, 241, 232, 0.12);
-  --panel: rgba(255, 255, 255, 0.035);
-  --gold: #d6aa4b;
-  --green: #91d6a5;
+  --ink: var(--bls-ink);
+  --muted: var(--bls-muted);
+  --dim: var(--bls-dim);
+  --line: var(--bls-line);
+  --panel: var(--bls-surface-soft);
+  --gold: var(--bls-accent);
+  --green: var(--bls-good);
   --blue: #9abdf7;
   min-height: 100vh;
   color: var(--ink);
-  background: #05070b;
+  background: var(--bls-bg);
   font-family: "DM Sans", system-ui, sans-serif;
 }
 
@@ -18,9 +18,9 @@
 .example,
 .features,
 .record {
-  width: min(100%, 1180px);
+  width: min(100%, calc(var(--bls-max) + 2 * var(--bls-gutter)));
   margin: 0 auto;
-  padding-inline: clamp(1rem, 3vw, 2rem);
+  padding-inline: var(--bls-gutter);
 }
 
 .nav {
@@ -42,7 +42,7 @@
 
 .brand {
   font-size: 0.82rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -72,15 +72,15 @@
   min-height: 2.55rem;
   padding: 0.68rem 0.95rem;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.88rem;
   font-weight: 700;
 }
 
 .primaryButton {
-  color: #071019;
+  color: #0c140f;
   border-color: transparent;
-  background: linear-gradient(135deg, var(--green), var(--gold));
+  background: var(--bls-accent);
 }
 
 .secondaryButton,
@@ -107,7 +107,7 @@
   margin: 0 0 0.9rem;
   color: var(--gold);
   font-size: 0.74rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -161,9 +161,9 @@
   min-height: 25rem;
   padding: clamp(1rem, 2.4vw, 1.5rem);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 4px;
   background:
-    radial-gradient(circle at 28% 18%, rgba(214, 170, 75, 0.2), transparent 34%),
+    radial-gradient(circle at 28% 18%, rgba(158, 171, 118, 0.2), transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
 }
 
@@ -221,7 +221,7 @@
 .visualFacts strong {
   color: var(--ink);
   font-size: 1.45rem;
-  font-weight: 800;
+  font-weight: 600;
   line-height: 1;
 }
 
@@ -276,7 +276,7 @@
   min-width: 0;
   padding: 1rem;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--panel);
 }
 
@@ -357,7 +357,7 @@
 
 .statusLine span {
   color: var(--green);
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .featureList {
@@ -380,7 +380,7 @@
 .featureList span {
   color: var(--gold);
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .featureList p {

@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import Link from "next/link";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 
 import { BreakpointHero } from "@/components/breakpoint/breakpoint-hero";
 import styles from "@/components/breakpoint/breakpoint.module.css";
@@ -11,5 +11,5 @@ export default function BreakpointTickerPage({ params }) {
   const rawTicker = String(params?.ticker || "").trim().toUpperCase();
   const initialTicker = /^[A-Z][A-Z0-9.-]{0,9}$/.test(rawTicker) ? rawTicker : "";
   const language = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
-  return <main className={styles.resultShell}><header className={styles.resultTop}><Link href={`/?lang=${language}`} className={styles.wordmark}>BLS Prime</Link></header><BreakpointHero initialTicker={initialTicker} language={language} /></main>;
+  return <><PublicSiteHeader initialLanguage={language} /><main className={styles.resultShell}><BreakpointHero initialTicker={initialTicker} language={language} /></main></>;
 }

@@ -12,7 +12,7 @@
 
 .kicker {
   margin: 0 0 1.25rem;
-  color: #e0b25a;
+  color: #a9b585;
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.18em;
@@ -63,7 +63,7 @@
 }
 
 .primary {
-  color: #090d12;
+  color: #0b100d;
   border-color: #c1d7a0;
   background: #c1d7a0;
 }

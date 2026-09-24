@@ -435,7 +435,7 @@ function PortfolioChart({ series, benchmarkSymbol }) {
       <svg className={styles.chart} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Rendimiento del portafolio">
         <defs>
           <linearGradient id="workspaceChartLine" x1="0%" x2="100%" y1="0%" y2="0%">
-            <stop offset="0%" stopColor="rgba(248, 200, 111, 0.95)" />
+            <stop offset="0%" stopColor="rgba(189, 198, 161, 0.95)" />
             <stop offset="100%" stopColor="rgba(122, 210, 194, 0.95)" />
           </linearGradient>
           <linearGradient id="workspaceChartArea" x1="0%" x2="0%" y1="0%" y2="100%">
@@ -804,7 +804,7 @@ function buildPortfolioHorizonRows(analytics, returns, holdings) {
 }
 
 const PORTFOLIO_DONUT_COLORS = [
-  "rgba(248, 200, 111, 0.95)",
+  "rgba(189, 198, 161, 0.95)",
   "rgba(122, 210, 194, 0.92)",
   "rgba(118, 169, 255, 0.88)",
   "rgba(245, 145, 120, 0.9)",
@@ -1462,7 +1462,7 @@ function PhantomBreadthChart({ series }) {
       <svg className={styles.phantomChart} viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Amplitud visible y real en el tiempo">
         <defs>
           <linearGradient id="phantomGapFill" x1="0%" x2="100%" y1="0%" y2="100%">
-            <stop offset="0%" stopColor="rgba(248, 200, 111, 0.22)" />
+            <stop offset="0%" stopColor="rgba(189, 198, 161, 0.22)" />
             <stop offset="100%" stopColor="rgba(255, 134, 97, 0.08)" />
           </linearGradient>
         </defs>
@@ -4128,7 +4128,7 @@ function DiversificationClockCard({
   const H = ROW_H * 3 + ROW_GAP * 2;
 
   const rows = [
-    { label: "Visible", pct: visiblePct, fill: "rgba(248,200,111,0.72)", text: "rgba(248,200,111,1)" },
+    { label: "Visible", pct: visiblePct, fill: "rgba(189, 198, 161,0.72)", text: "rgba(189, 198, 161,1)" },
     { label: "Real", pct: realPct, fill: "rgba(122,210,194,0.72)", text: "rgba(122,210,194,1)" },
     { label: "Brecha", pct: gapPct, fill: "rgba(220,85,85,0.60)", text: "rgba(220,110,110,1)" },
   ];

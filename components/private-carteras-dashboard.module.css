@@ -1,4 +1,4 @@
-.shell { min-height: 100vh; padding: 28px clamp(16px, 4vw, 56px) 42px; color: #e8eef3; background: #0b0f16; }
+.shell { min-height: 100vh; padding: 28px clamp(16px, 4vw, 56px) 42px; color: #e8eef3; background: #0d140f; }
 .topbar, .controls, .sectionHeader, .cardHeader, .chartHeader, .footer { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
 .topbar { max-width: 1420px; margin: 0 auto 24px; padding-bottom: 22px; border-bottom: 1px solid rgba(181, 203, 217, .14); }
 .topbar h1 { margin: 4px 0 4px; font-size: clamp(28px, 4vw, 42px); letter-spacing: -.04em; }
@@ -10,12 +10,12 @@
 .controls strong { color: #e8eef3; font-size: 18px; font-weight: 570; }
 .currency { display: flex; gap: 6px; align-items: center; }
 .currency span { margin-right: 4px; }
-.currency button, .riskTabs button { border: 1px solid transparent; border-radius: 8px; background: transparent; color: #93a4b2; cursor: pointer; padding: 8px 10px; font: inherit; }
+.currency button, .riskTabs button { border: 1px solid transparent; border-radius: 4px; background: transparent; color: #93a4b2; cursor: pointer; padding: 8px 10px; font: inherit; }
 .currency button:hover, .riskTabs button:hover { color: #e8eef3; }
 .activeCurrency, .activeTab { background: rgba(119, 201, 189, .13) !important; border-color: rgba(119, 201, 189, .35) !important; color: #e8eef3 !important; }
 .loading { max-width: 1420px; margin: 0 auto 12px; color: #e2b071; font-size: 12px; }
 .portfolioGrid { max-width: 1420px; margin: 0 auto 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.portfolioCard, .riskPanel { border: 1px solid rgba(181, 203, 217, .16); border-radius: 14px; background: linear-gradient(150deg, rgba(26, 39, 50, .94), rgba(15, 23, 31, .95)); box-shadow: 0 18px 55px rgba(0, 0, 0, .17); }
+.portfolioCard, .riskPanel { border: 1px solid rgba(181, 203, 217, .16); border-radius: 4px; background: linear-gradient(150deg, rgba(30, 46, 35, .94), rgba(18, 28, 21, .95)); box-shadow: 0 18px 55px rgba(0, 0, 0, .17); }
 .portfolioCard { padding: 18px; }
 .cardHeader { align-items: center; }
 .cardHeader h2, .sectionHeader h2 { margin: 3px 0 0; font-size: 20px; letter-spacing: -.02em; }
@@ -23,7 +23,7 @@
 .value { margin: 18px 0 15px; font-size: 30px; letter-spacing: -.04em; font-weight: 560; }
 .allocationRow { display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 14px; align-items: center; }
 .donut { width: 116px; height: 116px; border-radius: 50%; display: grid; place-items: center; position: relative; }
-.donut::after { content: ""; position: absolute; inset: 19px; border-radius: 50%; background: #13202a; }
+.donut::after { content: ""; position: absolute; inset: 19px; border-radius: 50%; background: #18251c; }
 .donut span { position: relative; z-index: 1; font-size: 22px; font-weight: 580; text-align: center; }
 .donut small { display: block; color: #93a4b2; font-size: 10px; font-weight: 400; }
 .legend { min-width: 0; display: grid; gap: 7px; }
@@ -46,7 +46,7 @@
 .matrixWrap { overflow-x: auto; }
 .matrix { width: 100%; min-width: 630px; border-collapse: separate; border-spacing: 3px; font-size: 11px; }
 .matrix th { color: #93a4b2; font-weight: 500; padding: 8px; text-align: center; white-space: nowrap; }.matrix tbody th { text-align: left; }
-.matrix td { min-width: 62px; padding: 11px 7px; border-radius: 7px; color: #f4f7f8; text-align: center; }
+.matrix td { min-width: 62px; padding: 11px 7px; border-radius: 4px; color: #f4f7f8; text-align: center; }
 .riskHigh { background: rgba(216, 125, 131, .48); }.riskMedium { background: rgba(226, 176, 113, .38); }.riskLow { background: rgba(53, 76, 91, .48); }.riskEmpty, .diagonal { background: rgba(58, 75, 87, .58); color: #8ca0ad !important; }
 .riskLegend { display: flex; gap: 14px; align-items: center; margin-top: 10px; color: #93a4b2; font-size: 10px; }.riskLegend span { display: flex; gap: 5px; align-items: center; }.riskLegend i { width: 9px; height: 9px; border-radius: 3px; }.legendLow { background: rgba(53, 76, 91, .75); }.legendMedium { background: rgba(226, 176, 113, .65); }.legendHigh { background: rgba(216, 125, 131, .75); }.riskLegend small { margin-left: auto; }
 .footer { max-width: 1420px; margin: 12px auto 0; color: #667985; font-size: 10px; }

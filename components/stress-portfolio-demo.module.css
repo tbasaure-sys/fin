@@ -15,9 +15,9 @@
 .intro p,
 .resultLabel {
   margin: 0;
-  color: #f0b84e;
+  color: #abb688;
   font-size: 0.74rem;
-  font-weight: 850;
+  font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
@@ -42,7 +42,7 @@
   display: grid;
   grid-template-columns: minmax(17rem, 0.72fr) minmax(0, 1.7fr);
   border: 1px solid rgba(246, 239, 228, 0.13);
-  background: rgba(3, 4, 5, 0.84);
+  background: rgba(3, 5, 4, 0.84);
   box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.24);
 }
 
@@ -113,7 +113,7 @@
   border: 1px solid rgba(246, 239, 228, 0.16);
   border-radius: 0;
   color: #fff8ec;
-  background: #0b0d0f;
+  background: #0b0f0c;
   font: inherit;
 }
 
@@ -134,7 +134,7 @@
   gap: 0.4rem;
   color: rgba(246, 239, 228, 0.65);
   font-size: 0.72rem;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 .candidateControls select {
@@ -145,13 +145,13 @@
 .accountButton,
 .status button {
   min-height: 2.8rem;
-  border: 1px solid #f0b84e;
+  border: 1px solid #abb688;
   color: #070707;
   cursor: pointer;
-  background: #f0b84e;
+  background: #abb688;
   font-family: inherit;
   font-size: 0.78rem;
-  font-weight: 850;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -165,7 +165,7 @@
   display: flex;
   gap: 0.65rem;
   align-items: center;
-  color: #f1c774;
+  color: #bcc5a0;
 }
 
 .status button {
@@ -192,13 +192,13 @@
   gap: 0.3rem;
   padding: clamp(1rem, 2.2vw, 1.5rem);
   border-bottom: 1px solid rgba(246, 239, 228, 0.1);
-  background: rgba(240, 184, 78, 0.065);
+  background: rgba(171, 182, 136, 0.065);
 }
 
 .decision > span {
-  color: #f0b84e;
+  color: #abb688;
   font-size: 0.72rem;
-  font-weight: 850;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -247,7 +247,7 @@
   align-content: space-between;
   gap: 0.5rem;
   padding: 0.8rem;
-  background: #060708;
+  background: #060807;
 }
 
 .metricList span {
@@ -289,7 +289,7 @@
 .barRow b {
   height: 100%;
   display: block;
-  background: #f0b84e;
+  background: #abb688;
 }
 
 .barRow em {
@@ -316,8 +316,8 @@
 }
 
 .contributors a {
-  color: #f0b84e;
-  font-weight: 850;
+  color: #abb688;
+  font-weight: 600;
   text-decoration: none;
 }
 

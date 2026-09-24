@@ -3,8 +3,8 @@
   padding: clamp(1rem, 2.2vw, 1.8rem);
   color: #f4efe6;
   background:
-    radial-gradient(circle at 80% 18%, rgba(240, 184, 78, 0.12), transparent 26rem),
-    linear-gradient(180deg, #020304 0%, #060708 54%, #020304 100%);
+    radial-gradient(circle at 80% 18%, rgba(171, 182, 136, 0.12), transparent 26rem),
+    linear-gradient(180deg, #020403 0%, #060807 54%, #020403 100%);
   font-family: "DM Sans", "IBM Plex Sans", system-ui, sans-serif;
 }
 
@@ -18,7 +18,7 @@
 .logo {
   color: #fff8ec;
   font-size: clamp(1.8rem, 4vw, 3.4rem);
-  font-weight: 850;
+  font-weight: 600;
   line-height: 0.9;
   letter-spacing: -0.055em;
   text-decoration: none;
@@ -45,7 +45,7 @@
   cursor: pointer;
   font-family: inherit;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 600;
   text-decoration: none;
   text-transform: uppercase;
   transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
@@ -54,9 +54,9 @@
 .topbar a:not(.logo):hover,
 .heroActions a:hover,
 .actionButton:hover {
-  border-color: rgba(240, 184, 78, 0.55);
+  border-color: rgba(171, 182, 136, 0.55);
   color: #fff8ec;
-  background: rgba(240, 184, 78, 0.08);
+  background: rgba(171, 182, 136, 0.08);
 }
 
 .hero {
@@ -73,9 +73,9 @@
 .split p,
 .methodology p:first-child {
   margin: 0;
-  color: #f0b84e;
+  color: #abb688;
   font-size: 0.76rem;
-  font-weight: 850;
+  font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
@@ -84,7 +84,7 @@
   margin: 0;
   color: #fff8ec;
   font-size: clamp(3.4rem, 9vw, 7.5rem);
-  font-weight: 800;
+  font-weight: 600;
   line-height: 0.96;
   letter-spacing: -0.01em;
   word-spacing: 0.1em;
@@ -162,15 +162,15 @@
   gap: 0.35rem 1rem;
   min-height: 7.8rem;
   padding: clamp(1rem, 2vw, 1.35rem);
-  background: rgba(4, 5, 7, 0.96);
+  background: rgba(4, 7, 5, 0.96);
 }
 
 .explainer li em {
   grid-row: span 2;
-  color: rgba(240, 184, 78, 0.9);
+  color: rgba(171, 182, 136, 0.9);
   font-size: 0.75rem;
   font-style: normal;
-  font-weight: 850;
+  font-weight: 600;
   letter-spacing: 0.16em;
 }
 
@@ -194,7 +194,7 @@
   align-content: space-between;
   gap: 1rem;
   padding: 1rem;
-  background: rgba(4, 5, 7, 0.96);
+  background: rgba(4, 7, 5, 0.96);
 }
 
 .split,
@@ -252,7 +252,7 @@
 .replayTable em {
   color: #52d0a3;
   font-size: 0.78rem;
-  font-weight: 850;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -297,13 +297,13 @@
   align-items: center;
   justify-content: center;
   padding: 0 1rem;
-  border: 1px solid rgba(240, 184, 78, 0.55);
-  color: #050506;
+  border: 1px solid rgba(171, 182, 136, 0.55);
+  color: #050605;
   cursor: pointer;
-  background: #f0b84e;
+  background: #abb688;
   font-family: inherit;
   font-size: 0.82rem;
-  font-weight: 850;
+  font-weight: 600;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -337,4 +337,75 @@
   .hero h1 {
     font-size: clamp(4rem, 22vw, 6rem);
   }
+}
+
+/* Design-system alignment: shared container, serif display type, calm buttons. */
+.page {
+  padding: 0;
+  color: var(--bls-ink);
+  background: var(--bls-bg);
+  font-family: var(--bls-sans);
+}
+
+.page > *:not(:global(.public-site-header)) {
+  width: min(100% - 2 * var(--bls-gutter), var(--bls-max));
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.page h1,
+.page h2 {
+  font-family: var(--bls-serif);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  word-spacing: normal;
+}
+
+.hero {
+  max-width: none;
+  min-height: auto;
+  padding: clamp(3.5rem, 9vw, 6.5rem) 0 clamp(3rem, 7vw, 5rem);
+}
+
+.hero h1 {
+  color: var(--bls-ink);
+  font-size: clamp(3rem, 6.5vw, 5.4rem);
+  line-height: 1.02;
+}
+
+.hero h2 {
+  color: var(--bls-ink);
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+}
+
+.hero p,
+.explainer p,
+.split p,
+.methodology p:first-child {
+  color: var(--bls-accent);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.heroActions a,
+.actionButton {
+  min-height: 2.9rem;
+  padding: 0 1.2rem;
+  border-color: var(--bls-line-strong);
+  color: var(--bls-ink);
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.heroActions a:first-child {
+  border-color: var(--bls-accent);
+  color: var(--bls-accent-ink);
+  background: var(--bls-accent);
+}
+
+.heroActions a:first-child:hover {
+  border-color: var(--bls-accent-strong);
+  color: var(--bls-accent-ink);
+  background: var(--bls-accent-strong);
 }

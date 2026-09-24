@@ -1,18 +1,18 @@
 .page {
-  --carbon: #050609;
-  --carbon-raised: #090b10;
-  --paper: #f2ede2;
-  --paper-dim: rgba(242, 237, 226, 0.68);
-  --paper-faint: rgba(242, 237, 226, 0.43);
-  --line: rgba(242, 237, 226, 0.12);
-  --line-strong: rgba(242, 237, 226, 0.24);
-  --brass: #d9a441;
-  --brass-soft: rgba(217, 164, 65, 0.14);
-  --mint: #69c9a7;
-  --danger: #e57b70;
-  --serif: "DM Serif Display", Georgia, "Times New Roman", serif;
-  --sans: "DM Sans", "IBM Plex Sans", system-ui, sans-serif;
-  --mono: "JetBrains Mono", "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  --carbon: var(--bls-bg);
+  --carbon-raised: var(--bls-bg-raised);
+  --paper: var(--bls-ink);
+  --paper-dim: var(--bls-muted);
+  --paper-faint: var(--bls-dim);
+  --line: var(--bls-line);
+  --line-strong: var(--bls-line-strong);
+  --brass: var(--bls-accent);
+  --brass-soft: var(--bls-accent-soft);
+  --mint: var(--bls-good);
+  --danger: var(--bls-bad);
+  --serif: var(--bls-serif);
+  --sans: var(--bls-sans);
+  --mono: var(--bls-mono);
 
   position: relative;
   display: flex;
@@ -21,8 +21,8 @@
   overflow: hidden;
   background:
     radial-gradient(900px 420px at 92% -8%, rgba(143, 176, 201, 0.08), transparent 62%),
-    radial-gradient(760px 540px at -8% 100%, rgba(217, 164, 65, 0.055), transparent 68%),
-    linear-gradient(180deg, #050609 0%, #07080c 58%, #050609 100%);
+    radial-gradient(760px 540px at -8% 100%, rgba(155, 168, 114, 0.055), transparent 68%),
+    linear-gradient(180deg, #050906 0%, #070c09 58%, #050906 100%);
   color: var(--paper);
   font-family: var(--sans);
 }
@@ -49,7 +49,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: clamp(1rem, 2vw, 1.5rem) clamp(1.1rem, 4vw, 3.5rem);
+  padding: clamp(1rem, 2vw, 1.5rem) var(--bls-gutter);
   border-bottom: 1px solid var(--line);
   animation: fade-down 520ms ease both;
 }
@@ -132,9 +132,9 @@
   grid-template-columns: minmax(0, 1.14fr) minmax(22rem, 0.72fr);
   flex: 1;
   gap: clamp(3rem, 8vw, 8rem);
-  width: min(100%, 86rem);
+  width: min(100%, calc(var(--bls-max) + 2 * var(--bls-gutter)));
   margin: 0 auto;
-  padding: clamp(4rem, 10vh, 8rem) clamp(1.1rem, 4vw, 3.5rem) clamp(4rem, 8vh, 7rem);
+  padding: clamp(4rem, 10vh, 8rem) var(--bls-gutter) clamp(4rem, 8vh, 7rem);
   align-items: center;
 }
 
@@ -319,9 +319,9 @@
   grid-template-columns: minmax(16rem, 0.52fr) minmax(0, 1.48fr);
   flex: 1;
   gap: clamp(3rem, 8vw, 8rem);
-  width: min(100%, 82rem);
+  width: min(100%, calc(var(--bls-max) + 2 * var(--bls-gutter)));
   margin: 0 auto;
-  padding: clamp(3.5rem, 8vh, 6.5rem) clamp(1.1rem, 4vw, 3.5rem) clamp(4rem, 8vh, 7rem);
+  padding: clamp(3.5rem, 8vh, 6.5rem) var(--bls-gutter) clamp(4rem, 8vh, 7rem);
 }
 
 .questionRail {
@@ -472,7 +472,7 @@
 }
 
 .option[data-selected="true"] {
-  background: linear-gradient(90deg, var(--brass-soft), rgba(217, 164, 65, 0.025));
+  background: linear-gradient(90deg, var(--brass-soft), rgba(155, 168, 114, 0.025));
 }
 
 .option[data-disabled="true"] {
@@ -541,9 +541,9 @@
 
 .resultLayout {
   flex: 1;
-  width: min(100%, 82rem);
+  width: min(100%, calc(var(--bls-max) + 2 * var(--bls-gutter)));
   margin: 0 auto;
-  padding: clamp(3.5rem, 8vh, 6.5rem) clamp(1.1rem, 4vw, 3.5rem) clamp(5rem, 10vh, 8rem);
+  padding: clamp(3.5rem, 8vh, 6.5rem) var(--bls-gutter) clamp(5rem, 10vh, 8rem);
   animation: fade-rise 560ms ease both;
 }
 
@@ -943,7 +943,7 @@
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.25rem clamp(1.1rem, 4vw, 3.5rem);
+  padding: 1.25rem var(--bls-gutter);
   border-top: 1px solid var(--line);
   color: var(--paper-faint);
   font-size: 0.72rem;

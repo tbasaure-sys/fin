@@ -404,7 +404,6 @@ export function G820Workstation({ initialLanguage = "es" }) {
           <Detail summary={selected} detail={currentDetail} loading={Boolean(selected && !currentDetail && !detailError)} error={detailError} copy={copy} language={language} />
         </section>
       </main>
-      <footer className={styles.footer}><strong>BLS Prime · G820</strong><p>{copy.disclosure}</p></footer>
     </div>
   );
 }

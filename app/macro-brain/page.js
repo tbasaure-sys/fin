@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
+import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
 import styles from "./macro-brain.module.css";
 import { loadMacroBrainSnapshot } from "@/lib/server/macro-brain";
@@ -41,20 +45,12 @@ export default async function MacroBrainPage() {
     delay: `${index * 80}ms`,
   }));
 
+  const language = normalizeLocale(headers().get(LANGUAGE_REQUEST_HEADER), "es");
+
   return (
+    <>
+    <PublicSiteHeader initialLanguage={language} />
     <main className={styles.page}>
-      <nav className={styles.nav} aria-label="Macro Brain navigation">
-        <Link className={styles.brand} href="/">
-          BLS Prime
-        </Link>
-        <div className={styles.navLinks}>
-          <a href="#today">Today</a>
-          <a href="#record">Log</a>
-        </div>
-        <Link className={styles.navAction} href="/aurora">
-          AURORA
-        </Link>
-      </nav>
 
       <section className={styles.hero}>
         <div className={styles.heroText}>
@@ -186,5 +182,6 @@ export default async function MacroBrainPage() {
         </div>
       </section>
     </main>
+    </>
   );
 }

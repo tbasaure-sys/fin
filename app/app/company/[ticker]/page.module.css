@@ -24,7 +24,7 @@
 .privateHeader strong { color: #f3c875; font-family: var(--serif); font-size: 1.25rem; font-weight: 400; }
 .privateHeader span { color: #8996a5; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .privateHeader nav { display: flex; gap: 1rem; }
-.privateHeader nav a { color: #aab4bf; font-size: 0.76rem; font-weight: 750; }
+.privateHeader nav a { color: #aab4bf; font-size: 0.76rem; font-weight: 600; }
 
 @media (max-width: 560px) {
   .privateHeader span { display: none; }

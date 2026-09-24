@@ -1,6 +1,6 @@
 .page {
-  --ink: #06070a;
-  --ink-raised: #0b0d12;
+  --ink: #060a07;
+  --ink-raised: #0b120d;
   --paper: #f2ede2;
   --dim: rgba(242, 237, 226, 0.66);
   --faint: rgba(242, 237, 226, 0.4);
@@ -19,7 +19,7 @@
   color: var(--paper);
   background:
     radial-gradient(70rem 34rem at 84% -5%, rgba(143, 176, 201, 0.08), transparent 62%),
-    linear-gradient(180deg, #05060a, var(--ink) 45%, #050609);
+    linear-gradient(180deg, #060907, var(--ink) 45%, #050906);
   font-family: var(--sans);
 }
 
@@ -57,7 +57,7 @@
   width: min(100% - clamp(2rem, 6vw, 6.5rem), 94rem);
   margin: 0 auto;
   padding: 1.1rem 0 1.2rem;
-  border-bottom: 1px solid rgba(217, 164, 65, 0.28);
+  border-bottom: 1px solid rgba(155, 168, 114, 0.28);
 }
 
 .g820Launch div {
@@ -96,10 +96,10 @@
   align-items: center;
   min-height: 2.75rem;
   padding: 0 1rem;
-  border: 1px solid rgba(217, 164, 65, 0.5);
+  border: 1px solid rgba(155, 168, 114, 0.5);
   color: var(--paper);
   font-size: 0.7rem;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: 0.07em;
   text-decoration: none;
   text-transform: uppercase;
@@ -281,7 +281,7 @@
 .demoFrame {
   margin-top: clamp(2.5rem, 6vh, 4.5rem);
   border: 1px solid var(--line-strong);
-  background: linear-gradient(145deg, rgba(13, 15, 21, 0.98), rgba(7, 8, 12, 0.98));
+  background: linear-gradient(145deg, rgba(13, 21, 16, 0.98), rgba(7, 12, 9, 0.98));
   box-shadow: 0 36px 90px rgba(0, 0, 0, 0.42);
 }
 
@@ -354,7 +354,7 @@
 .demoGrid section {
   min-height: 14rem;
   padding: 1.15rem;
-  background: rgba(7, 8, 12, 0.98);
+  background: rgba(7, 12, 9, 0.98);
 }
 
 .demoGrid section > span {
@@ -409,7 +409,7 @@
   min-height: 3rem;
   padding: 0 1.35rem;
   font-size: 0.77rem;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-decoration: none;
   text-transform: uppercase;

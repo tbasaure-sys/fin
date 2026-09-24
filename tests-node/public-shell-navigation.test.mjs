@@ -4,16 +4,18 @@ import assert from "node:assert/strict";
 import {
   buildPublicNavigation,
   buildPublicShellActions,
+  buildToolLinks,
 } from "../lib/public-shell-navigation.js";
 
-test("the public shell keeps Spanish context and identifies product engine routes", () => {
+test("the public shell keeps Spanish context and groups engine routes under Tools", () => {
   const navigation = buildPublicNavigation({ locale: "es", pathname: "/factorlab" });
 
   assert.deepEqual(navigation, [
-    { id: "product", label: "Ver ejemplo", href: "/example?lang=es", current: false },
+    { id: "product", label: "Ejemplo", href: "/example?lang=es", current: false },
     { id: "research", label: "Investigar", href: "/research?lang=es", current: false },
-    { id: "g820", label: "G820 Screener", href: "/g820?lang=es", current: false },
-    { id: "methodology", label: "Metodología", href: "/methodology?lang=es", current: false },
+    { id: "tools", label: "Herramientas", href: "/product?lang=es", current: true },
+    { id: "portfolios", label: "Carteras", href: "/app/carteras?lang=es", current: false },
+    { id: "methodology", label: "Método", href: "/methodology?lang=es", current: false },
   ]);
 });
 
@@ -21,10 +23,11 @@ test("the public shell emits complete English navigation without losing locale",
   const navigation = buildPublicNavigation({ locale: "en", pathname: "/methodology" });
 
   assert.deepEqual(navigation, [
-    { id: "product", label: "See example", href: "/example?lang=en", current: false },
+    { id: "product", label: "Example", href: "/example?lang=en", current: false },
     { id: "research", label: "Research", href: "/research?lang=en", current: false },
-    { id: "g820", label: "G820 Screener", href: "/g820?lang=en", current: false },
-    { id: "methodology", label: "Methodology", href: "/methodology?lang=en", current: true },
+    { id: "tools", label: "Tools", href: "/product?lang=en", current: false },
+    { id: "portfolios", label: "Portfolios", href: "/app/carteras?lang=en", current: false },
+    { id: "methodology", label: "Method", href: "/methodology?lang=en", current: true },
   ]);
 });
 
@@ -36,21 +39,24 @@ test("auth actions use real routes and preserve the selected language", () => {
 
   assert.deepEqual(buildPublicShellActions("en"), {
     signIn: { label: "Sign in", href: "/login?intent=signin&lang=en" },
-    signUp: { label: "Create workspace", href: "/signup?lang=en" },
+    signUp: { label: "Create account", href: "/signup?lang=en" },
   });
 });
 
 test("unsupported locale input falls back to Spanish instead of producing mixed links", () => {
   const navigation = buildPublicNavigation({ locale: "pt", pathname: "/" });
 
-  assert.equal(navigation[0].label, "Ver ejemplo");
+  assert.equal(navigation[0].label, "Ejemplo");
   assert.equal(navigation[0].href, "/example?lang=es");
   assert.equal(buildPublicShellActions("pt").signIn.href, "/login?intent=signin&lang=es");
 });
 
-test("G820 is treated as a product engine route", () => {
-  const navigation = buildPublicNavigation({ locale: "es", pathname: "/g820" });
-  assert.equal(navigation.find((item) => item.id === "product").current, false);
-  assert.equal(navigation.find((item) => item.id === "g820").current, true);
-  assert.equal(navigation.find((item) => item.id === "g820").href, "/g820?lang=es");
+test("every public engine, including G820, is reachable and marks Tools as current", () => {
+  for (const pathname of ["/g820", "/aurora", "/stress", "/company/MSFT", "/breakpoint/MSFT"]) {
+    const navigation = buildPublicNavigation({ locale: "es", pathname });
+    assert.equal(navigation.find((item) => item.id === "tools").current, true, pathname);
+  }
+  const tools = buildToolLinks("es");
+  assert.equal(tools.find((item) => item.id === "g820").href, "/g820?lang=es");
+  assert.equal(tools.length, 6);
 });

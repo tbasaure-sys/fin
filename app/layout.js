@@ -1,7 +1,15 @@
+import "@fontsource/dm-sans/400.css";
+import "@fontsource/dm-sans/500.css";
+import "@fontsource/dm-sans/600.css";
+import "@fontsource/dm-sans/700.css";
+import "@fontsource/dm-sans/400-italic.css";
+import "@fontsource/dm-serif-display/400.css";
+import "@fontsource/dm-serif-display/400-italic.css";
 import "./globals.css";
 import { headers } from "next/headers";
 import { LanguageLayer } from "@/components/language-layer";
 import {ProductMeasurement} from '@/components/product-measurement';
+import { SiteFooter } from "@/components/public-shell/site-footer";
 import { buildCacheRecoveryScript } from "@/lib/client/cache-recovery";
 import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
@@ -68,7 +76,7 @@ export function generateMetadata() {
 }
 
 export const viewport = {
-  themeColor: "#0b0f16",
+  themeColor: "#0c120e",
   colorScheme: "dark",
 };
 
@@ -83,16 +91,11 @@ export default function RootLayout({ children }) {
             __html: buildCacheRecoveryScript(cacheRecoveryVersion),
           }}
         />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&display=swap"
-          rel="stylesheet"
-        />
       </head>
       <body>
         <LanguageLayer initialLanguage={requestLocale} />
         {children}
+        <SiteFooter initialLanguage={requestLocale} />
         <ProductMeasurement />
       </body>
     </html>

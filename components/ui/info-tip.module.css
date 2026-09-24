@@ -11,10 +11,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(248, 200, 111, 0.44);
+  border: 1px solid rgba(189, 198, 161, 0.44);
   border-radius: 999px;
   color: var(--accent);
-  background: rgba(248, 200, 111, 0.08);
+  background: rgba(189, 198, 161, 0.08);
   font: 760 0.68rem/1 var(--mono);
   cursor: pointer;
 }
@@ -31,10 +31,10 @@
   z-index: 30;
   width: min(18rem, calc(100vw - 2rem));
   padding: 0.75rem;
-  border: 1px solid rgba(248, 200, 111, 0.28);
-  border-radius: 8px;
+  border: 1px solid rgba(189, 198, 161, 0.28);
+  border-radius: 4px;
   color: var(--text);
-  background: rgba(9, 14, 20, 0.98);
+  background: rgba(11, 18, 13, 0.98);
   box-shadow: 0 18px 52px rgba(0, 0, 0, 0.44);
   font: 500 0.78rem/1.5 var(--sans);
   text-transform: none;

@@ -10,7 +10,7 @@
   flex-direction: column;
   border-left: 1px solid rgba(122, 210, 194, 0.18);
   background:
-    linear-gradient(180deg, rgba(8, 15, 26, 0.99) 0%, rgba(6, 11, 19, 0.99) 100%);
+    linear-gradient(180deg, rgba(13, 21, 16, 0.99) 0%, rgba(10, 15, 12, 0.99) 100%);
   box-shadow: -24px 0 80px rgba(0, 0, 0, 0.5);
   animation: slideIn 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -26,7 +26,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, rgba(122, 210, 194, 0.7), rgba(248, 200, 111, 0.5), transparent);
+  background: linear-gradient(90deg, rgba(122, 210, 194, 0.7), rgba(189, 198, 161, 0.5), transparent);
 }
 
 /* ─── Header ─── */
@@ -131,7 +131,7 @@
 .starter {
   text-align: left;
   padding: 0.65rem 0.9rem;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.07);
   background: rgba(255, 255, 255, 0.03);
   color: rgba(247, 242, 232, 0.65);
@@ -171,7 +171,7 @@
 }
 
 .message[data-role="user"] .messageRole {
-  color: rgba(248, 200, 111, 0.6);
+  color: rgba(189, 198, 161, 0.6);
 }
 
 .message[data-role="assistant"] .messageRole {
@@ -181,7 +181,7 @@
 .messageBody {
   max-width: 92%;
   padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: 4px;
   font-size: 0.875rem;
   line-height: 1.65;
   white-space: pre-wrap;
@@ -189,8 +189,8 @@
 }
 
 .message[data-role="user"] .messageBody {
-  background: rgba(248, 200, 111, 0.1);
-  border: 1px solid rgba(248, 200, 111, 0.18);
+  background: rgba(189, 198, 161, 0.1);
+  border: 1px solid rgba(189, 198, 161, 0.18);
   color: rgba(247, 242, 232, 0.9);
   border-bottom-right-radius: 4px;
 }
@@ -224,7 +224,7 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.65rem 0.9rem;
-  border-radius: 12px;
+  border-radius: 4px;
   border: 1px solid rgba(255, 124, 114, 0.22);
   background: rgba(255, 124, 114, 0.07);
   font-size: 0.8rem;
@@ -263,7 +263,7 @@
   min-height: 2.8rem;
   max-height: 8rem;
   padding: 0.65rem 0.9rem;
-  border-radius: 14px;
+  border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.04);
   color: rgba(247, 242, 232, 0.9);
@@ -292,7 +292,7 @@
 .sendBtn,
 .stopBtn {
   padding: 0.6rem 1.1rem;
-  border-radius: 12px;
+  border-radius: 4px;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -304,7 +304,7 @@
 
 .sendBtn {
   background: linear-gradient(135deg, rgba(122, 210, 194, 0.9), rgba(82, 208, 163, 0.85));
-  color: #060b13;
+  color: #0a0f0c;
   box-shadow: 0 4px 16px rgba(122, 210, 194, 0.2);
 }
 
@@ -344,7 +344,7 @@
 .errorRow,
 .sendBtn,
 .stopBtn {
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {

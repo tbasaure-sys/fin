@@ -1,10 +1,10 @@
 .entry,
 .workspace {
-  --paper: #eeeee8;
+  --paper: var(--bls-ink);
   --muted: #a6ada8;
-  --line: #29332e;
-  --accent: #c1d7a0;
-  --surface: #0b1210;
+  --line: var(--bls-line);
+  --accent: var(--bls-accent);
+  --surface: var(--bls-bg-raised);
   color: var(--paper);
   background: var(--surface);
   font-family: "DM Sans", system-ui, sans-serif;

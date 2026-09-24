@@ -1,18 +1,18 @@
 .shell {
-  --bg: #07090c;
-  --surface: rgba(15, 18, 22, 0.94);
-  --surface-soft: rgba(255, 255, 255, 0.035);
-  --line: rgba(243, 238, 227, 0.12);
-  --line-strong: rgba(211, 166, 75, 0.42);
-  --text: #f3eee3;
-  --muted: rgba(243, 238, 227, 0.68);
-  --dim: rgba(243, 238, 227, 0.46);
-  --gold: #d3a64b;
-  --green: #75cba7;
-  --red: #e58d7d;
-  --serif: "DM Serif Display", Georgia, serif;
-  --sans: "DM Sans", system-ui, sans-serif;
-  --mono: "JetBrains Mono", Consolas, monospace;
+  --bg: var(--bls-bg);
+  --surface: var(--bls-bg-raised);
+  --surface-soft: var(--bls-surface-soft);
+  --line: var(--bls-line);
+  --line-strong: var(--bls-line-strong);
+  --text: var(--bls-ink);
+  --muted: var(--bls-muted);
+  --dim: var(--bls-dim);
+  --gold: var(--bls-accent);
+  --green: var(--bls-good);
+  --red: var(--bls-bad);
+  --serif: var(--bls-serif);
+  --sans: var(--bls-sans);
+  --mono: var(--bls-mono);
   min-height: 100vh;
   overflow-x: hidden;
   background: radial-gradient(900px 420px at 83% -8%, rgba(113, 145, 168, 0.11), transparent 66%), var(--bg);
@@ -41,7 +41,7 @@
   align-items: center;
   justify-content: space-between;
   min-height: 4.25rem;
-  padding: 0 clamp(1rem, 4vw, 3.5rem);
+  padding: 0 var(--bls-gutter);
   border-bottom: 1px solid var(--line);
 }
 
@@ -64,9 +64,9 @@
   grid-template-columns: minmax(0, 1fr) minmax(270px, 0.42fr);
   gap: clamp(2rem, 7vw, 7rem);
   align-items: end;
-  max-width: 94rem;
+  max-width: calc(var(--bls-max) + 2 * var(--bls-gutter));
   margin: 0 auto;
-  padding: clamp(2.7rem, 6vw, 5.4rem) clamp(1rem, 4vw, 3.5rem) 2rem;
+  padding: clamp(2.7rem, 6vw, 5.4rem) var(--bls-gutter) 2rem;
 }
 
 .kicker,
@@ -115,7 +115,7 @@
   gap: 0.75rem;
   padding: 1.2rem;
   border: 1px solid var(--line-strong);
-  background: rgba(211, 166, 75, 0.045);
+  background: rgba(156, 170, 116, 0.045);
 }
 
 .freshness strong { width: fit-content; padding: 0.32rem 0.5rem; border: 1px solid var(--gold); }
@@ -126,9 +126,9 @@
 .statusStrip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  max-width: 94rem;
+  max-width: calc(var(--bls-max) + 2 * var(--bls-gutter));
   margin: 0 auto;
-  padding: 0 clamp(1rem, 4vw, 3.5rem);
+  padding: 0 var(--bls-gutter);
 }
 
 .statusStrip div { display: grid; gap: 0.35rem; padding: 1rem 0; border-block: 1px solid var(--line); }
@@ -138,9 +138,9 @@
   display: grid;
   grid-template-columns: minmax(245px, 300px) minmax(0, 1fr);
   gap: 1rem;
-  max-width: 94rem;
+  max-width: calc(var(--bls-max) + 2 * var(--bls-gutter));
   margin: 0 auto;
-  padding: 1.25rem clamp(1rem, 4vw, 3.5rem) 4rem;
+  padding: 1.25rem var(--bls-gutter) 4rem;
 }
 
 .filters,
@@ -184,7 +184,7 @@
   padding: 0 0.8rem;
   font: inherit;
   font-size: 0.73rem;
-  font-weight: 750;
+  font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
   cursor: pointer;
@@ -232,7 +232,7 @@
 .scoreExplanation { margin: 0.75rem 0 0; color: var(--dim); font-size: 0.76rem; line-height: 1.45; }
 
 .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; margin: 0.9rem 0 0; background: var(--line); }
-.metrics div { display: grid; gap: 0.2rem; padding: 0.65rem; background: #101317; }
+.metrics div { display: grid; gap: 0.2rem; padding: 0.65rem; background: #101712; }
 .metrics dt { color: var(--dim); font-size: 0.67rem; text-transform: uppercase; }
 .metrics dd { margin: 0; font-variant-numeric: tabular-nums; }
 .candidateActions { display: flex; flex-wrap: wrap; gap: 0.55rem; margin-top: 0.9rem; }
@@ -246,12 +246,12 @@
 .emptyState p { margin: 0; }
 .emptyState p { color: var(--muted); }
 
-.footer { display: flex; justify-content: space-between; gap: 2rem; max-width: 94rem; margin: 0 auto; padding: 1.2rem clamp(1rem, 4vw, 3.5rem) 2rem; border-top: 1px solid var(--line); }
+.footer { display: flex; justify-content: space-between; gap: 2rem; max-width: calc(var(--bls-max) + 2 * var(--bls-gutter)); margin: 0 auto; padding: 1.2rem var(--bls-gutter) 2rem; border-top: 1px solid var(--line); }
 .footer a { color: var(--text); font-family: var(--serif); font-size: 1.2rem; text-decoration: none; }
 .footer p { max-width: 55rem; margin: 0; color: var(--dim); font-size: 0.76rem; line-height: 1.45; }
 
 .drawerBackdrop { position: fixed; z-index: 50; inset: 0; display: flex; justify-content: flex-end; background: rgba(0, 0, 0, 0.68); backdrop-filter: blur(4px); }
-.drawer { width: min(680px, 100%); height: 100%; overflow-y: auto; padding: 1.2rem; border-left: 1px solid var(--line-strong); background: #0d1014; box-shadow: -28px 0 80px rgba(0, 0, 0, 0.35); }
+.drawer { width: min(680px, 100%); height: 100%; overflow-y: auto; padding: 1.2rem; border-left: 1px solid var(--line-strong); background: #0d140f; box-shadow: -28px 0 80px rgba(0, 0, 0, 0.35); }
 .drawer header { display: flex; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
 .drawer header p,
 .drawer header h2 { margin: 0; }
@@ -259,7 +259,7 @@
 .drawer header button { min-width: 2.55rem; padding: 0; font-size: 1.4rem; }
 .methodNote { color: var(--muted); line-height: 1.55; }
 .auditFacts { display: grid; gap: 1px; margin: 1rem 0; background: var(--line); }
-.auditFacts div { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 1rem; padding: 0.8rem; background: #11151a; }
+.auditFacts div { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: 1rem; padding: 0.8rem; background: #111a14; }
 .auditFacts dt { color: var(--dim); }
 .auditFacts dd { margin: 0; }
 .sourceSection,
@@ -275,7 +275,7 @@
 .pipelineSection p { margin: 0; color: var(--muted); font-size: 0.8rem; line-height: 1.45; }
 .jsonSection > div:first-child { display: flex; justify-content: space-between; gap: 1rem; }
 .jsonSection > div:first-child span { color: var(--dim); font-family: var(--mono); font-size: 0.7rem; }
-.jsonSection pre { max-height: 24rem; overflow: auto; padding: 0.8rem; border: 1px solid var(--line); background: #07090c; color: var(--muted); font-family: var(--mono); font-size: 0.72rem; line-height: 1.45; white-space: pre-wrap; }
+.jsonSection pre { max-height: 24rem; overflow: auto; padding: 0.8rem; border: 1px solid var(--line); background: #070c09; color: var(--muted); font-family: var(--mono); font-size: 0.72rem; line-height: 1.45; white-space: pre-wrap; }
 .jsonActions { display: flex; gap: 0.55rem; }
 
 @media (max-width: 1020px) {

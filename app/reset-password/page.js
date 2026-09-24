@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 
 import styles from "@/app/login-page.module.css";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import { LANGUAGE_REQUEST_HEADER, normalizeLocale } from "@/lib/i18n/locale";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +75,8 @@ export default function ResetPasswordPage({ searchParams = {} }) {
   const error = errorCode ? copy.errors?.[errorCode] || copy.errors.generic : "";
 
   return (
+    <>
+    <PublicSiteHeader initialLanguage={language} />
     <main className={styles.page}>
       <section className={styles.stage}>
         <Link className={styles.backLink} href={`/login?intent=signin&lang=${language}`}>
@@ -114,5 +117,6 @@ export default function ResetPasswordPage({ searchParams = {} }) {
         </section>
       </section>
     </main>
+    </>
   );
 }

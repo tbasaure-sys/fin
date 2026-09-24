@@ -2,13 +2,13 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const sharedStyles = [
-  "body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#08111d;color:#f4f7fb;font-family:Arial,sans-serif}",
+  "body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#0e1711;color:#f4f7fb;font-family:Arial,sans-serif}",
   "main{max-width:600px;padding:32px;border-radius:12px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}",
   "h1{margin:0 0 12px;font-size:30px}",
   "p{line-height:1.65;color:rgba(244,247,251,.82)}",
   ".actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}",
   "a{display:inline-flex;min-height:44px;align-items:center;padding:0 18px;border:1px solid rgba(255,255,255,.16);color:#f4f7fb;text-decoration:none}",
-  "a.primary{background:#f4f0e7;color:#08111d;border-color:#f4f0e7;font-weight:700}",
+  "a.primary{background:#f4f0e7;color:#0e1711;border-color:#f4f0e7;font-weight:700}",
   "small{display:block;margin-top:18px;color:rgba(255,255,255,.62);line-height:1.5}",
 ].join("");
 

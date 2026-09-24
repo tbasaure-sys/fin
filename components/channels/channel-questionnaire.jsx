@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useLanguagePreference } from "@/components/language-layer";
+import { PublicSiteHeader } from "@/components/public-shell/public-site-header";
 import {
   CHANNEL_STORAGE_KEY,
   canPersistChannelProfile,
@@ -276,25 +277,6 @@ function removeSaveFlagFromUrl() {
     url.searchParams.delete("save");
     window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
   } catch {}
-}
-
-function LanguageToggle({ language, setLanguage, label }) {
-  return (
-    <div aria-label={label} className={styles.languageToggle} role="group">
-      {["es", "en"].map((code) => (
-        <button
-          aria-label={code === "es" ? "Español" : "English"}
-          aria-pressed={language === code}
-          data-active={language === code}
-          key={code}
-          onClick={() => setLanguage(code)}
-          type="button"
-        >
-          {code.toUpperCase()}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 function Progress({ current, total, copy }) {
@@ -891,21 +873,9 @@ export function ChannelQuestionnaire() {
   }
 
   return (
+    <>
+    <PublicSiteHeader initialLanguage={language} />
     <main className={`${styles.page} channels-route`} data-no-translate>
-      <header className={styles.topbar}>
-        <Link aria-label={copy.brandAria} className={styles.logo} href="/">
-          BLS Prime
-        </Link>
-        <div className={styles.topActions}>
-          <Link className={styles.homeLink} href="/">
-            {copy.home}
-          </Link>
-          <LanguageToggle label={copy.language} language={language} setLanguage={setLanguage} />
-          <Link className={styles.loginLink} href={`/login?lang=${language}`}>
-            {copy.signIn}
-          </Link>
-        </div>
-      </header>
 
       {stage === "intro" ? (
         <section aria-labelledby="channel-title" className={styles.intro}>
@@ -972,10 +942,7 @@ export function ChannelQuestionnaire() {
         />
       ) : null}
 
-      <footer className={styles.footer}>
-        <span>BLS Prime · {language === "es" ? "Software de investigación. No es asesoría financiera." : "Research software. Not financial advice."}</span>
-        <Link href="/terms">{language === "es" ? "Términos" : "Terms"}</Link>
-      </footer>
     </main>
+    </>
   );
 }

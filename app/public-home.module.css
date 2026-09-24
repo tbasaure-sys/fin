@@ -2,18 +2,18 @@
 .page {
   --serif: "DM Serif Display", Georgia, serif;
   --body: "DM Sans", "IBM Plex Sans", system-ui, sans-serif;
-  --gold: #e8b84b;
-  --gold-dim: rgba(232, 184, 75, 0.18);
-  --gold-glow: rgba(232, 184, 75, 0.08);
+  --gold: #a6b281;
+  --gold-dim: rgba(166, 178, 129, 0.18);
+  --gold-glow: rgba(166, 178, 129, 0.08);
   --teal: #6cc8bb;
   --teal-dim: rgba(108, 200, 187, 0.14);
   --ink: #f3eee6;
   --ink-muted: rgba(243, 238, 230, 0.65);
   --ink-dim: rgba(243, 238, 230, 0.38);
-  --bg-deep: #060b13;
-  --bg-mid: #08101a;
+  --bg-deep: #0a0f0c;
+  --bg-mid: #0d1510;
   --border-faint: rgba(255, 255, 255, 0.07);
-  --border-gold: rgba(232, 184, 75, 0.22);
+  --border-gold: rgba(166, 178, 129, 0.22);
   font-family: var(--body);
   color: var(--ink);
   min-height: 100vh;
@@ -37,8 +37,8 @@
   inset: 0;
   z-index: 0;
   background:
-    linear-gradient(90deg, rgba(5, 9, 15, 0.94) 0%, rgba(5, 9, 15, 0.82) 34%, rgba(5, 9, 15, 0.42) 68%, rgba(5, 9, 15, 0.18) 100%),
-    linear-gradient(180deg, rgba(5, 9, 15, 0.08) 0%, rgba(5, 9, 15, 0.72) 100%),
+    linear-gradient(90deg, rgba(8, 12, 9, 0.94) 0%, rgba(8, 12, 9, 0.82) 34%, rgba(8, 12, 9, 0.42) 68%, rgba(8, 12, 9, 0.18) 100%),
+    linear-gradient(180deg, rgba(8, 12, 9, 0.08) 0%, rgba(8, 12, 9, 0.72) 100%),
     url("/images/bls-prime-command-center.png");
   background-position: center center, center center, center center;
   background-repeat: no-repeat;
@@ -198,8 +198,8 @@
   min-height: 4rem;
   padding: 0.85rem;
   border: 1px solid var(--border-faint);
-  border-radius: 8px;
-  background: rgba(5, 9, 15, 0.36);
+  border-radius: 4px;
+  background: rgba(8, 12, 9, 0.36);
   backdrop-filter: blur(10px);
 }
 
@@ -260,15 +260,15 @@
 }
 
 .btnPrimary {
-  background: linear-gradient(135deg, #e8b84b 0%, #c9952a 100%);
-  color: #060b13;
+  background: linear-gradient(135deg, #a6b281 0%, #9aa871 100%);
+  color: #0a0f0c;
   border-color: transparent;
-  box-shadow: 0 4px 20px rgba(232, 184, 75, 0.25);
+  box-shadow: 0 4px 20px rgba(166, 178, 129, 0.25);
 }
 
 .btnPrimary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(232, 184, 75, 0.38);
+  box-shadow: 0 8px 30px rgba(166, 178, 129, 0.38);
 }
 
 .btnSecondary {
@@ -412,9 +412,9 @@
 
 .mockPanel {
   position: relative;
-  border-radius: 20px;
+  border-radius: 4px;
   border: 1px solid var(--border-faint);
-  background: linear-gradient(160deg, rgba(10, 18, 30, 0.95) 0%, rgba(8, 14, 22, 0.88) 100%);
+  background: linear-gradient(160deg, rgba(16, 24, 19, 0.95) 0%, rgba(12, 18, 14, 0.88) 100%);
   overflow: hidden;
   padding: 1.4rem;
   box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.04);
@@ -425,7 +425,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 184, 75, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(166, 178, 129, 0.4), transparent);
 }
 
 .mockHeader {
@@ -444,7 +444,7 @@
 }
 
 .mockDot:nth-child(1) { background: #ff6057; }
-.mockDot:nth-child(2) { background: #febc2e; }
+.mockDot:nth-child(2) { background: #a3af7d; }
 .mockDot:nth-child(3) { background: #29c940; }
 
 .mockTitle {
@@ -464,7 +464,7 @@
   display: flex;
   align-items: center;
   padding: 0.65rem 0.75rem;
-  border-radius: 10px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255,255,255,0.05);
 }
@@ -502,8 +502,8 @@
 .mockDecisionBanner {
   margin-top: 1rem;
   padding: 0.85rem 1rem;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(232, 184, 75, 0.1), rgba(232, 184, 75, 0.04));
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(166, 178, 129, 0.1), rgba(166, 178, 129, 0.04));
   border: 1px solid var(--border-gold);
 }
 
@@ -598,7 +598,7 @@
 
 .featureCard {
   padding: 1.6rem;
-  border-radius: 18px;
+  border-radius: 4px;
   border: 1px solid var(--border-faint);
   background: rgba(255, 255, 255, 0.025);
   transition: border-color 250ms ease, transform 250ms ease, background 250ms ease;
@@ -617,7 +617,7 @@
 }
 
 .featureCard:hover {
-  border-color: rgba(232, 184, 75, 0.2);
+  border-color: rgba(166, 178, 129, 0.2);
   transform: translateY(-3px);
   background: rgba(255, 255, 255, 0.04);
 }
@@ -649,7 +649,7 @@
   justify-content: center;
   padding: 2rem;
   border: 1px solid var(--border-faint);
-  border-radius: 18px;
+  border-radius: 4px;
   background: rgba(255, 255, 255, 0.02);
   margin-top: 4rem;
 }
@@ -968,7 +968,7 @@
 .mockPanel,
 .featureCard,
 .trustStrip {
-  border-radius: 8px;
+  border-radius: 4px;
 }
 
 .ritualSection {

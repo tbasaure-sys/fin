@@ -1,17 +1,17 @@
 .page {
   --paper: #f3efe5;
-  --ink: #0b1115;
-  --night: #071016;
-  --panel: #0c171f;
+  --ink: #0c140f;
+  --night: #0b120d;
+  --panel: #111a14;
   --line: rgba(226, 238, 236, 0.14);
   --muted: #93a7ac;
   --mint: #87d6bd;
-  --amber: #f2bd67;
+  --amber: #b6c099;
   min-height: 100vh;
   background:
     radial-gradient(circle at 12% -5%, rgba(135, 214, 189, 0.13), transparent 24rem),
-    radial-gradient(circle at 90% 10%, rgba(242, 189, 103, 0.11), transparent 26rem),
-    #050a0f;
+    radial-gradient(circle at 90% 10%, rgba(182, 192, 153, 0.11), transparent 26rem),
+    #080c09;
   color: #eef3ee;
   font-family: "Sora", "Segoe UI", sans-serif;
 }
@@ -26,7 +26,7 @@
   min-height: 74px;
   padding: 0 clamp(1rem, 4vw, 4.5rem);
   border-bottom: 1px solid var(--line);
-  background: rgba(5, 10, 15, 0.86);
+  background: rgba(8, 12, 9, 0.86);
   backdrop-filter: blur(18px);
 }
 
@@ -72,7 +72,7 @@
   color: #829497;
   cursor: pointer;
   font-size: 0.7rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .language button[data-active="true"] {
@@ -102,7 +102,7 @@
   color: var(--amber);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.16em;
 }
 
@@ -184,7 +184,7 @@
   grid-template-columns: 1fr 1fr 1fr auto;
   align-items: stretch;
   border: 1px solid var(--line);
-  background: rgba(11, 22, 29, 0.7);
+  background: rgba(16, 24, 19, 0.7);
 }
 
 .sourceStatus > div,
@@ -218,7 +218,7 @@
   gap: 0.75rem;
   color: var(--paper);
   font-size: 0.86rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -228,7 +228,7 @@
   height: 12px;
   border-radius: 50%;
   background: var(--amber);
-  box-shadow: 0 0 0 6px rgba(242, 189, 103, 0.1);
+  box-shadow: 0 0 0 6px rgba(182, 192, 153, 0.1);
 }
 
 .statusSeal[data-status="current"] i {
@@ -241,7 +241,7 @@
 .watchButton {
   border: 0;
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .textButton {
@@ -252,11 +252,11 @@
 .sourceStatus .textButton {
   min-width: 190px;
   border-right: 0;
-  background: rgba(242, 189, 103, 0.06);
+  background: rgba(182, 192, 153, 0.06);
 }
 
 .textButton:hover {
-  color: #ffda94;
+  color: #d0d6bd;
 }
 
 .primaryButton {
@@ -282,7 +282,7 @@
   padding: clamp(1.2rem, 3vw, 2.5rem);
   border: 1px solid var(--line);
   border-top: 0;
-  background: #0a141b;
+  background: #0e1711;
 }
 
 .editorToolbar,
@@ -369,7 +369,7 @@
 .holdingsPanel {
   border: 1px solid var(--line);
   border-top: 0;
-  background: rgba(8, 17, 23, 0.9);
+  background: rgba(12, 19, 14, 0.9);
 }
 
 .holdingsHeader {
@@ -420,7 +420,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #0a141b;
+  background: #0e1711;
   color: #71878a;
   font-size: 0.64rem;
   letter-spacing: 0.08em;
@@ -486,7 +486,7 @@
   min-height: 220px;
   padding: clamp(1.2rem, 2.5vw, 2rem);
   border-right: 1px solid var(--line);
-  background: rgba(11, 22, 29, 0.62);
+  background: rgba(16, 24, 19, 0.62);
 }
 
 .metrics article:last-child {
@@ -649,7 +649,7 @@
 .matrix td {
   height: 34px;
   background:
-    linear-gradient(rgba(242, 189, 103, calc(var(--heat) * 0.72)), rgba(242, 189, 103, calc(var(--heat) * 0.72))),
+    linear-gradient(rgba(182, 192, 153, calc(var(--heat) * 0.72)), rgba(182, 192, 153, calc(var(--heat) * 0.72))),
     linear-gradient(rgba(135, 214, 189, calc(var(--cool) * 0.7)), rgba(135, 214, 189, calc(var(--cool) * 0.7))),
     rgba(255,255,255,0.03);
   color: rgba(255,255,255,0.8);
@@ -680,7 +680,7 @@
   margin-bottom: 0.85rem;
   color: var(--paper);
   font-size: 0.88rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .choiceGrid {
@@ -761,7 +761,7 @@
   color: #6f6a5d;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.62rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -788,7 +788,7 @@
 .candidate {
   margin-top: 1rem;
   border: 1px solid var(--line);
-  background: #0a141b;
+  background: #0e1711;
 }
 
 .candidate > header {
@@ -808,7 +808,7 @@
   color: var(--mint);
   font-family: "JetBrains Mono", monospace;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .candidate h4 {
@@ -831,11 +831,11 @@
   border: 1px solid rgba(135,214,189,0.3);
   color: var(--mint);
   font-size: 0.62rem;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .fitTag[data-fit="same_cluster"] {
-  border-color: rgba(242,189,103,0.3);
+  border-color: rgba(182, 192, 153,0.3);
   color: var(--amber);
 }
 
@@ -861,7 +861,7 @@
   color: #72888a;
   font-family: "JetBrains Mono", monospace;
   font-size: 0.6rem;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
@@ -890,7 +890,7 @@
 }
 
 .watchButton:hover:not(:disabled) {
-  background: rgba(242,189,103,0.07);
+  background: rgba(182, 192, 153,0.07);
 }
 
 .demoGate {
