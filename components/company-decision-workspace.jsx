@@ -361,6 +361,7 @@ export default function CompanyDecisionWorkspace({ initialView = null, publicMod
         </div>
 
         <div className={styles.actions}>
+          <Link href={`/company/${view.company.ticker}/thesis?lang=es`}>Intentar refutar una tesis</Link>
           {publicMode ? (
             <>
               <Link className={styles.primaryAction} href={signupHref}>Guardar en un workspace</Link>

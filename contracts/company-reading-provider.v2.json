@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:bls:company-reading-provider:v2",
+  "title": "Source evidence admitted by the company reading adapter",
+  "type": "object",
+  "required": ["ticker", "reading_evidence"],
+  "properties": {
+    "ticker": { "type": "string", "pattern": "^[A-Z0-9.-]{1,16}$" },
+    "reading_evidence": {
+      "type": "object",
+      "required": ["identity", "facts"],
+      "properties": {
+        "identity": { "type": "object", "required": ["ticker", "currency", "exchange", "instrumentType"], "properties": { "ticker": { "type": "string" }, "currency": { "type": ["string", "null"], "pattern": "^[A-Z]{3}$" }, "exchange": { "type": ["string", "null"] }, "instrumentType": { "enum": ["EQUITY", "ADR", null] } } },
+        "facts": { "type": "object", "additionalProperties": { "$ref": "#/$defs/point" } },
+        "unitEconomics": { "type": "object", "additionalProperties": { "$ref": "#/$defs/point" } },
+        "business": { "type": "object", "required": ["summary", "asOf", "sources", "segments"], "properties": { "summary": { "type": "string" }, "asOf": { "type": ["string", "null"], "format": "date" }, "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } }, "segments": { "type": "array", "items": { "$ref": "#/$defs/point" } } } },
+        "shareBasis": { "type": "object", "required": ["shareClass", "splitCheckedThrough", "splitFactorSinceBalance", "sources"], "properties": { "shareClass": { "type": "string" }, "splitCheckedThrough": { "type": "string", "format": "date" }, "splitFactorSinceBalance": { "type": "number" }, "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } } } }
+      }
+    },
+    "reading_policy": {
+      "type": "object",
+      "required": ["numericalOrigin", "modelVersion", "rationale", "central", "adverse", "favorable", "points"],
+      "properties": {
+        "numericalOrigin": { "const": "deterministic" }, "modelVersion": { "type": "string", "minLength": 1 }, "rationale": { "type": "string", "minLength": 20 },
+        "central": { "$ref": "#/$defs/hypotheses" }, "adverse": { "$ref": "#/$defs/hypotheses" }, "favorable": { "$ref": "#/$defs/hypotheses" },
+        "points": { "type": "object", "additionalProperties": { "type": "object", "required": ["asOf", "formula", "inputRefs", "sources"], "properties": { "asOf": { "type": "string", "format": "date" }, "formula": { "type": "string", "minLength": 1 }, "inputRefs": { "type": "array", "minItems": 1, "items": { "type": "string" } }, "sources": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/source" } } } } }
+      }
+    }
+  },
+  "$defs": {
+    "source": { "type": "object", "required": ["id", "label", "url", "publishedAt", "type"], "properties": { "id": { "type": "string", "minLength": 1 }, "label": { "type": "string", "minLength": 1 }, "url": { "type": "string", "pattern": "^https://" }, "publishedAt": { "type": "string", "format": "date" }, "type": { "enum": ["primary", "market", "market-crosscheck"] }, "provider": { "type": "string" } } },
+    "point": { "type": "object", "required": ["value", "unit", "currency", "asOf", "availableOn", "sources", "provenance"], "properties": { "value": { "type": ["number", "null"] }, "unit": { "type": ["string", "null"] }, "currency": { "type": ["string", "null"] }, "asOf": { "type": ["string", "null"], "format": "date" }, "availableOn": { "type": ["string", "null"], "format": "date" }, "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } }, "provenance": { "enum": ["observed", "calculated", "missing"] }, "formula": { "type": "string" }, "adjustment": { "enum": ["unadjusted"] }, "periodStart": { "type": ["string", "null"], "format": "date" } } },
+    "hypotheses": { "type": "object", "required": ["growth", "margin", "reinvestment", "discountRate", "terminalGrowth", "taxRate", "terminalRoic", "dilution"], "properties": { "growth": { "type": "number" }, "margin": { "type": "number" }, "reinvestment": { "type": "number" }, "discountRate": { "type": "number" }, "terminalGrowth": { "type": "number" }, "taxRate": { "type": "number" }, "terminalRoic": { "type": "number" }, "dilution": { "type": "number" } } }
+  }
+}

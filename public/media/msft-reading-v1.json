@@ -1,0 +1,9 @@
+{
+  "snapshotId": "MSFT-FY2024-close-20240731-v1",
+  "runId": "reading-b20d91d81f5794be",
+  "modelVersion": "aurora_operating_fcff_v1",
+  "durationSeconds": 127.97378684807256,
+  "generatedFrom": "deterministic narration JSON",
+  "voice": "Windows System.Speech es-MX",
+  "chapters": 7
+}

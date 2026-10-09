@@ -47,6 +47,13 @@ export default function AuroraPage() {
           publicMode
         />
 
+        <aside className={styles.disclaimer} aria-label="Lectura interactiva">
+          <strong>Una empresa, una tesis que puedes refutar</strong>
+          <p>Microsoft: negocio, economía disponible, expectativas implícitas y efecto hipotético en cartera. Cambia supuestos y conserva cada versión para contrastar la evidencia posterior.</p>
+          <Link href="/company/MSFT/thesis?view=historical&lang=es">Abrir lectura histórica de Microsoft →</Link>
+          <Link href="/company/MSFT/thesis?case=missing-debt&lang=es">Ver cuándo el motor se abstiene →</Link>
+        </aside>
+
         <aside className={styles.disclaimer} aria-label="Alcance de la valoración">
           <strong>Cómo usar esta lectura</strong>
           <p>

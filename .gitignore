@@ -34,6 +34,7 @@ venv/
 # node / next
 node_modules/
 .next/
+.next-reading*/
 .next-dev-*.log
 .vercel/
 .playwright-cli/

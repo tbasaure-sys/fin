@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  distDir: process.env.BLS_NEXT_DIST_DIR || ".next",
   reactStrictMode: true,
   experimental: {
     typedRoutes: false,
