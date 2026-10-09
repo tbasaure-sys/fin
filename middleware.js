@@ -38,6 +38,12 @@ export function middleware(request) {
   requestHeaders.set(LANGUAGE_REQUEST_HEADER, locale);
 
   const finalize = (response) => {
+    if (pathname === "/app" || pathname.startsWith("/app/") || pathname === "/legacy" || pathname.startsWith("/api/v1/") || pathname.startsWith("/api/auth/") || pathname.startsWith("/api/carteras/") || pathname === "/api/snapshot") {
+      response.headers.set("Cache-Control", "private, no-store, max-age=0");
+      response.headers.set("Pragma", "no-cache");
+      response.headers.set("Expires", "0");
+      response.headers.append("Vary", "Cookie");
+    }
     if (shouldPersistQueryLocale({ pathname, queryLanguage })) {
       response.cookies.set(LANGUAGE_COOKIE_KEY, locale, {
         httpOnly: false,

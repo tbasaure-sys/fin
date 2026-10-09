@@ -13,7 +13,9 @@ export async function POST(request) {
   const token = request.cookies.get(getSessionCookieName())?.value || "";
   await clearSessionByToken(token);
 
-  const response = NextResponse.redirect(new URL("/", request.url));
+  const response = NextResponse.redirect(new URL("/", request.url), 303);
+  response.headers.set("Cache-Control", "private, no-store");
+  response.headers.set("Clear-Site-Data", '"cache"');
   response.cookies.set(getSessionCookieName(), "", {
     ...getSessionCookieOptions(new Date(0)),
     maxAge: 0,
